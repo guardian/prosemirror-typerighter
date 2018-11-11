@@ -1,0 +1,48 @@
+.validation-widget {
+  font-family: sans-serif;
+  font-size: 14px;
+  position: absolute;
+  font-style: normal;
+  font-weight: normal;
+  background-color: white;
+  padding: 3px;
+  box-shadow: 3px 3px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  border-bottom: 2px solid yellow;
+  width: 200px;
+  top: calc(1em + 3px);
+  transition: opacity 0.1s, transform 0.1s;
+  transform: translate3d(0, -3px, 0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.validation-widget-container {
+  position: relative;
+}
+
+.validation-widget-container--is-hovering .validation-widget {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.validation-widget-label {
+  font-size: 0.7em;
+  display: block;
+  margin-bottom: 2px;
+  transition: background-color 0.1s;
+}
+
+.validation-decoration {
+  background-color: #ffff00;
+}
+
+.validation-dirty,
+.validation-dirty.validation-inflight {
+  background-color: rgba(0,128,128,0.40);
+}
+
+.validation-inflight {
+  background-color: rgba(0,128,128,0.20);
+}

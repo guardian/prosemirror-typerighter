@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "es6",
+    "esModuleInterop": true,
+    "lib": ["webworker", "dom", "scripthost", "es2015"]
+  }
+}

@@ -1,0 +1,96 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`State management validationRequestSuccess should create decorations for the incoming validations 1`] = `
+Object {
+  "currentThrottle": 100,
+  "decorations": DecorationSet {
+    "children": Array [
+      0,
+      26,
+      DecorationSet {
+        "children": Array [],
+        "local": Array [
+          Decoration {
+            "from": 4,
+            "to": 4,
+            "type": WidgetType {
+              "side": 0,
+              "spec": Object {
+                "decorationId": "uuid",
+              },
+              "widget": <span
+                class="validation-widget-container ProseMirror-widget"
+              >
+                <span
+                  class="validation-widget"
+                >
+                  <span
+                    class="validation-widget-label"
+                  >
+                    EXAMPLE_TYPE
+                  </span>
+                  Summat ain't right
+                </span>
+              </span>,
+            },
+          },
+          Decoration {
+            "from": 4,
+            "to": 9,
+            "type": InlineType {
+              "attrs": Object {
+                "class": "validation-decoration",
+                "data-attr-validation-id": "uuid",
+              },
+              "spec": Object {
+                "type": "DECORATION_VALIDATION",
+              },
+            },
+          },
+        ],
+      },
+    ],
+    "local": Array [],
+  },
+  "dirtiedRanges": Array [],
+  "error": undefined,
+  "hoverId": undefined,
+  "initialThrottle": 100,
+  "lastValidationTime": 0,
+  "maxThrottle": 1000,
+  "trHistory": Array [
+    Transaction {
+      "curSelection": undefined,
+      "curSelectionFor": 0,
+      "doc": Object {
+        "content": Array [
+          Object {
+            "content": Array [
+              Object {
+                "text": "Example text to validate",
+                "type": "text",
+              },
+            ],
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
+      "docs": Array [],
+      "mapping": Mapping {
+        "from": 0,
+        "maps": Array [],
+        "mirror": undefined,
+        "to": 0,
+      },
+      "meta": Object {},
+      "steps": Array [],
+      "storedMarks": undefined,
+      "time": 0,
+      "updated": 0,
+    },
+  ],
+  "validationInFlight": undefined,
+  "validationPending": false,
+}
+`;
