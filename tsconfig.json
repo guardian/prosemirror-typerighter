@@ -8,6 +8,8 @@
     "strictNullChecks": true,
     "target": "es6",
     "esModuleInterop": true,
+    "jsx": "react",
+    "jsxFactory": "h",
     "lib": ["webworker", "dom", "scripthost", "es2015"]
   }
 }

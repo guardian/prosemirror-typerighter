@@ -6,7 +6,7 @@ import typescript from "rollup-plugin-typescript";
 
 export default [
   {
-    input: "src/js/index.ts",
+    input: "src/ts/index.ts",
     output: {
       file: "dist/noting.js",
       format: "cjs"
@@ -18,15 +18,6 @@ export default [
       }),
       babel()
     ]
-  },
-  {
-    input: "src/js/worker.ts",
-    output: {
-      file: "pages/dist/worker.js",
-      format: "iife",
-      name: "Worker"
-    },
-    plugins: [resolve({ browser: true }), typescript(), commonjs()]
   },
   {
     // Github pages

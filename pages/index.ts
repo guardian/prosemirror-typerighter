@@ -6,7 +6,7 @@ import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
-import { validationMarks } from "../src/js/utils/prosemirror";
+import { validationMarks } from "../src/ts/utils/prosemirror";
 
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
@@ -14,7 +14,7 @@ import "prosemirror-example-setup/style/style.css";
 import "../src/css/noting.scss";
 import createDocumentValidatorPlugin, {
   validateDocument
-} from "../src/js/index";
+} from "../src/ts/index";
 
 const spinMe = document.getElementById("spin-me");
 let rotation = 0;
