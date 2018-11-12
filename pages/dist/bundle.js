@@ -19337,11 +19337,13 @@ class ValidationService extends ValidationStateManager {
         this.cancelValidation = () => {
             this.cancelValidation();
         };
-        this.handleError = (validationInput, id, message) => {
+        this.handleError = (validationInput, id, status, message) => {
+            console.log(ValidationEvents.VALIDATION_ERROR);
             this.emit(ValidationEvents.VALIDATION_ERROR, {
                 validationInput,
                 id,
-                message
+                message,
+                status
             });
         };
         this.handleCompleteValidation = (id, validationOutputs) => {
@@ -19349,6 +19351,7 @@ class ValidationService extends ValidationStateManager {
             if (!completeValidation) {
                 return console.warn(`${serviceName} Received validation from worker, but no match in running validations for id ${id}`);
             }
+            console.log(ValidationEvents.VALIDATION_SUCCESS, validationOutputs);
             this.emit(ValidationEvents.VALIDATION_SUCCESS, {
                 id,
                 validationOutputs
@@ -19394,12 +19397,13 @@ class ValidationService extends ValidationStateManager {
                     return validationOutputs;
                 }
                 catch (e) {
-                    this.handleError(input, id, e.message);
+                    this.handleError(input, id, e.status, e.message);
                     return [
                         {
                             validationInput: input,
                             id,
-                            message: e.message
+                            message: e.message,
+                            status: e.status
                         }
                     ];
                 }
@@ -20305,6 +20309,7 @@ const newHoverIdReceived = (hoverId) => ({
     payload: { hoverId }
 });
 const validationPluginReducer = (tr, state, action) => {
+    console.log({ state });
     switch (action.type) {
         case NEW_HOVER_ID:
             return handleNewHoverId(tr, state, action);
@@ -20443,6 +20448,7 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
             const newPluginState = plugin.getState(newState);
             if (newPluginState.dirtiedRanges.length &&
                 !newPluginState.validationPending) {
+                console.log('schedule');
                 scheduleValidation();
                 return newState.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestPending());
             }
