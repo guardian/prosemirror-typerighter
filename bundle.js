@@ -19363,14 +19363,6 @@ class ValidationService extends ValidationStateManager {
         return __awaiter(this, void 0, void 0, function* () {
             const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 const body = new URLSearchParams();
-                body.append("data", JSON.stringify({
-                    annotation: [
-                        {
-                            text: input.str
-                        }
-                    ]
-                }));
-                body.append("language", "en-US");
                 const validation = {
                     id,
                     validationInputs: inputs
@@ -19380,23 +19372,26 @@ class ValidationService extends ValidationStateManager {
                     const response = yield fetch(this.apiUrl, {
                         method: "POST",
                         headers: new Headers({
-                            "Content-Type": "x-www-form-urlencoded"
+                            "Content-Type": "application/json"
                         }),
-                        body
+                        body: JSON.stringify({
+                            text: input.str
+                        })
                     });
                     const validationData = yield response.json();
-                    const validationOutputs = validationData.matches.map(match => ({
-                        str: match.sentence,
-                        from: input.from + match.offset,
-                        to: input.from + match.offset + match.length,
+                    const validationOutputs = validationData.results.map(match => ({
+                        str: input.str,
+                        from: input.from + match.fromPos,
+                        to: input.from + match.toPos,
                         annotation: match.message,
                         type: match.rule.description,
-                        suggestions: match.replacements.map(_ => _.value)
+                        suggestions: match.suggestedReplacements
                     }));
                     this.handleCompleteValidation(id, validationOutputs);
                     return validationOutputs;
                 }
                 catch (e) {
+                    console.log(e.message);
                     this.handleError(input, id, e.status, e.message);
                     return [
                         {
@@ -20122,7 +20117,7 @@ class Decoration extends Component {
             h("span", { className: "ValidationWidget" },
                 h("span", { className: "ValidationWidget__label" }, type),
                 annotation,
-                suggestions &&
+                suggestions && !!suggestions.length &&
                     applySuggestion && (h("span", { className: "ValidationWidget__suggestion-list" },
                     h("span", { className: "ValidationWidget__label" }, "Suggestions"),
                     suggestions.map(suggestion => (h("span", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion) }, suggestion))))))));
@@ -20521,7 +20516,7 @@ editorElement &&
                 }),
                 historyPlugin,
                 documentValidatorPlugin(mySchema, {
-                    apiUrl: "http://localhost:9001"
+                    apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
                 })
             ]
         })
