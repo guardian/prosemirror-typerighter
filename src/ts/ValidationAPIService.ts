@@ -34,17 +34,6 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
     const results = await Promise.all(
       inputs.map(async input => {
         const body = new URLSearchParams();
-        body.append(
-          "data",
-          JSON.stringify({
-            annotation: [
-              {
-                text: input.str
-              }
-            ]
-          })
-        );
-        body.append("language", "en-US");
         const validation = {
           id,
           validationInputs: inputs
@@ -54,24 +43,27 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
           const response = await fetch(this.apiUrl, {
             method: "POST",
             headers: new Headers({
-              "Content-Type": "x-www-form-urlencoded"
+              "Content-Type": "application/json"
             }),
-            body
+            body: JSON.stringify({
+              text: input.str
+            })
           });
           const validationData: LTResponse = await response.json();
-          const validationOutputs: ValidationOutput[] = validationData.matches.map(
+          const validationOutputs: ValidationOutput[] = validationData.results.map(
             match => ({
-              str: match.sentence,
-              from: input.from + match.offset,
-              to: input.from + match.offset + match.length,
+              str: input.str,
+              from: input.from + match.fromPos,
+              to: input.from + match.toPos,
               annotation: match.message,
               type: match.rule.description,
-              suggestions: match.replacements.map(_ => _.value)
+              suggestions: match.suggestedReplacements
             })
           );
           this.handleCompleteValidation(id, validationOutputs);
           return validationOutputs;
         } catch (e) {
+          console.log(e.message)
           this.handleError(input, id, e.status, e.message);
           return [
             {

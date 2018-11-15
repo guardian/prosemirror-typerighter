@@ -19,7 +19,7 @@ class Decoration extends Component<DecorationComponentProps> {
         <span className="ValidationWidget">
           <span className="ValidationWidget__label">{type}</span>
           {annotation}
-          {suggestions &&
+          {suggestions && !!suggestions.length &&
             applySuggestion && (
               <span className="ValidationWidget__suggestion-list">
                           <span className="ValidationWidget__label">Suggestions</span>
