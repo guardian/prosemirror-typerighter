@@ -55,7 +55,7 @@ editorElement &&
         }),
         historyPlugin,
         createDocumentValidatorPlugin(mySchema, {
-          apiUrl: "http://localhost:9001"
+          apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
         })
       ]
     })

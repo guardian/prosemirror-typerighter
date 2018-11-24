@@ -51,19 +51,18 @@ describe("ValidationAPIService", () => {
   afterEach(fetchMock.reset);
   it("should issue a fetch given a validation input, resolving with a validation output and broadcasting the correct event", async () => {
     const service = new ValidationAPIService(
-      "endpoint/check",
-      createLanguageToolAdapter
+      createLanguageToolAdapter("endpoint/check")
     );
     fetchMock.mock("endpoint/check", createResponse(["1234567890"]));
 
     expect.assertions(2);
 
-    service.on(ValidationEvents.VALIDATION_SUCCESS, output =>
+    service.on(ValidationEvents.VALIDATION_SUCCESS, output => {
       expect(output).toEqual({
         id: "id",
         validationOutputs: [createOutput("1234567890")]
-      })
-    );
+      });
+    });
     const output = await service.validate(
       [
         {
@@ -78,8 +77,7 @@ describe("ValidationAPIService", () => {
   });
   it("should handle multiple validation inputs", async () => {
     const service = new ValidationAPIService(
-      "endpoint/check",
-      createLanguageToolAdapter
+      createLanguageToolAdapter("endpoint/check")
     );
     fetchMock
       .once("endpoint/check", createResponse(["1234567890"]))
@@ -109,8 +107,7 @@ describe("ValidationAPIService", () => {
   });
   it("should handle validation errors", async () => {
     const service = new ValidationAPIService(
-      "endpoint/check",
-      createLanguageToolAdapter
+      createLanguageToolAdapter("endpoint/check")
     );
     fetchMock.once("endpoint/check", 400);
 
@@ -124,17 +121,6 @@ describe("ValidationAPIService", () => {
       ],
       "id"
     );
-    expect(output).toEqual([
-      {
-        validationInput: {
-          from: 0,
-          to: 10,
-          str: "1234567890"
-        },
-        id: "id",
-        message: "Bad Request",
-        status: 400
-      }
-    ]);
+    expect(output).toMatchSnapshot();
   });
 });

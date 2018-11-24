@@ -3,17 +3,12 @@ import {
   ValidationInput,
   ValidationError
 } from "./interfaces/Validation";
-import ValidationStateManager, {
-  RunningServiceValidation
-} from "./ValidationStateManager";
 import IValidationService from "./interfaces/IValidationService";
-import { LTResponse } from "./interfaces/LanguageTool";
 import flatten from "lodash/flatten";
-import IValidationAPIAdapterCreator, {
+import {
   IValidationAPIAdapter
 } from "./interfaces/IVAlidationAPIAdapter";
-
-const serviceName = "[validationAPIService]";
+import { EventEmitter } from "./EventEmitter";
 
 export const ValidationEvents = {
   VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
@@ -22,14 +17,11 @@ export const ValidationEvents = {
 
 /**
  * The validation service. Calls to validate() begin validations
- * for ranges, which are returned via an event.
+ * for ranges. Validation results and errors are emitted as events.
  */
-class ValidationService extends ValidationStateManager<RunningServiceValidation>
-  implements IValidationService {
-  private adapter: IValidationAPIAdapter;
-  constructor(apiUrl: string, adapterCreator: IValidationAPIAdapterCreator) {
+class ValidationService extends EventEmitter implements IValidationService {
+  constructor(private adapter: IValidationAPIAdapter) {
     super();
-    this.adapter = adapterCreator(apiUrl);
   }
 
   /**
@@ -39,15 +31,15 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
     const results = await Promise.all(
       inputs.map(async input => {
         try {
-          const outputs = await this.adapter(input);
-          this.handleCompleteValidation(id, outputs);
-          return outputs;
+          const result = await this.adapter(input);
+          this.handleCompleteValidation(id, result);
+          return result;
         } catch (e) {
           this.handleError(input, id, e.message);
           return {
             validationInput: input,
-            id,
-            message: e.message
+            message: e.message,
+            id
           };
         }
       })
@@ -84,17 +76,10 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
     id: string | number,
     validationOutputs: ValidationOutput[]
   ) => {
-    const completeValidation = this.findRunningValidation(id);
-    if (!completeValidation) {
-      return console.warn(
-        `${serviceName} Received validation from worker, but no match in running validations for id ${id}`
-      );
-    }
     this.emit(ValidationEvents.VALIDATION_SUCCESS, {
       id,
       validationOutputs
     });
-    this.removeRunningValidation(completeValidation);
   };
 }
 

@@ -25,6 +25,7 @@ import {
   removeValidationDecorationsFromRanges
 } from "./utils/decoration";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
+import createLanguageToolAdapter from "./adapters/languageTool";
 
 /**
  * Create a function responsible for updating the view. We update the view
@@ -114,7 +115,7 @@ const documentValidatorPlugin = (
   }
 ) => {
   let localView: EditorView;
-  const validationService = new ValidationService(apiUrl);
+  const validationService = new ValidationService(createLanguageToolAdapter(apiUrl));
   validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
   const sendValidation = () => {
     const pluginState: PluginState = plugin.getState(localView.state);
