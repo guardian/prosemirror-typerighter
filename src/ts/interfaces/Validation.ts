@@ -11,7 +11,6 @@ export type ValidationOutput = ValidationInput & {
 export type ValidationError = {
   validationInput: ValidationInput;
   id: string | number;
-  status: number;
   message: string;
 };
 

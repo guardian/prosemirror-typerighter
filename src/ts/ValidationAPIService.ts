@@ -9,6 +9,9 @@ import ValidationStateManager, {
 import IValidationService from "./interfaces/IValidationService";
 import { LTResponse } from "./interfaces/LanguageTool";
 import flatten from "lodash/flatten";
+import IValidationAPIAdapterCreator, {
+  IValidationAPIAdapter
+} from "./interfaces/IVAlidationAPIAdapter";
 
 const serviceName = "[validationAPIService]";
 
@@ -23,8 +26,10 @@ export const ValidationEvents = {
  */
 class ValidationService extends ValidationStateManager<RunningServiceValidation>
   implements IValidationService {
-  constructor(private apiUrl: string) {
+  private adapter: IValidationAPIAdapter;
+  constructor(apiUrl: string, adapterCreator: IValidationAPIAdapterCreator) {
     super();
+    this.adapter = adapterCreator(apiUrl);
   }
 
   /**
@@ -33,57 +38,21 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
   public async validate(inputs: ValidationInput[], id: string | number) {
     const results = await Promise.all(
       inputs.map(async input => {
-        const body = new URLSearchParams();
-        body.append(
-          "data",
-          JSON.stringify({
-            annotation: [
-              {
-                text: input.str
-              }
-            ]
-          })
-        );
-        body.append("language", "en-US");
-        const validation = {
-          id,
-          validationInputs: inputs
-        };
-        this.addRunningValidation(validation);
-        const response = await fetch(this.apiUrl, {
-          method: "POST",
-          headers: new Headers({
-            "Content-Type": "x-www-form-urlencoded"
-          }),
-          body
-        });
-        if (response.status !== 200) {
-          this.handleError(input, id, response.status, response.statusText);
-          return [
-            {
-              validationInput: input,
-              id,
-              message: response.statusText,
-              status: response.status
-            }
-          ];
+        try {
+          const outputs = await this.adapter(input);
+          this.handleCompleteValidation(id, outputs);
+          return outputs;
+        } catch (e) {
+          this.handleError(input, id, e.message);
+          return {
+            validationInput: input,
+            id,
+            message: e.message
+          };
         }
-        const validationData: LTResponse = await response.json();
-        const validationOutputs: ValidationOutput[] = validationData.matches.map(
-          match => ({
-            str: match.sentence,
-            from: input.from + match.offset,
-            to: input.from + match.offset + match.length,
-            annotation: match.message,
-            type: match.rule.description,
-            suggestions: match.replacements.map(_ => _.value)
-          })
-        );
-        this.handleCompleteValidation(id, validationOutputs);
-        return validationOutputs;
       })
     );
-    return flatten<ValidationError | ValidationOutput>(results);
+    return flatten<ValidationOutput | ValidationError>(results);
   }
 
   /**
@@ -99,14 +68,12 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
   handleError = (
     validationInput: ValidationInput,
     id: string | number,
-    status: number,
     message: string
   ) => {
     this.emit(ValidationEvents.VALIDATION_ERROR, {
       validationInput,
       id,
-      message,
-      status
+      message
     } as ValidationError);
   };
 

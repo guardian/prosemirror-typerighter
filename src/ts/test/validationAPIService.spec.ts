@@ -3,7 +3,8 @@ import ValidationAPIService, {
   ValidationEvents
 } from "../ValidationAPIService";
 import { ValidationOutput } from "../interfaces/Validation";
-import { LTReplacement } from "../interfaces/LanguageTool";
+import { LTReplacement } from "../adapters/interfaces/LanguageTool";
+import createLanguageToolAdapter from "../adapters/languageTool";
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -49,7 +50,10 @@ const createOutput = (str: string, offset: number = 0) =>
 describe("ValidationAPIService", () => {
   afterEach(fetchMock.reset);
   it("should issue a fetch given a validation input, resolving with a validation output and broadcasting the correct event", async () => {
-    const service = new ValidationAPIService("endpoint/check");
+    const service = new ValidationAPIService(
+      "endpoint/check",
+      createLanguageToolAdapter
+    );
     fetchMock.mock("endpoint/check", createResponse(["1234567890"]));
 
     expect.assertions(2);
@@ -73,7 +77,10 @@ describe("ValidationAPIService", () => {
     expect(output).toEqual([createOutput("1234567890")]);
   });
   it("should handle multiple validation inputs", async () => {
-    const service = new ValidationAPIService("endpoint/check");
+    const service = new ValidationAPIService(
+      "endpoint/check",
+      createLanguageToolAdapter
+    );
     fetchMock
       .once("endpoint/check", createResponse(["1234567890"]))
       .once("endpoint/check", createResponse(["1234567890"]), {
@@ -101,7 +108,10 @@ describe("ValidationAPIService", () => {
     ]);
   });
   it("should handle validation errors", async () => {
-    const service = new ValidationAPIService("endpoint/check");
+    const service = new ValidationAPIService(
+      "endpoint/check",
+      createLanguageToolAdapter
+    );
     fetchMock.once("endpoint/check", 400);
 
     const output = await service.validate(
@@ -114,15 +124,17 @@ describe("ValidationAPIService", () => {
       ],
       "id"
     );
-    expect(output).toEqual([{
-      validationInput: {
-        from: 0,
-        to: 10,
-        str: "1234567890"
-      },
-      id: 'id',
-      message: "Bad Request",
-      status: 400
-    }]);
+    expect(output).toEqual([
+      {
+        validationInput: {
+          from: 0,
+          to: 10,
+          str: "1234567890"
+        },
+        id: "id",
+        message: "Bad Request",
+        status: 400
+      }
+    ]);
   });
 });
