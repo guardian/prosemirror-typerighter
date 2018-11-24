@@ -19338,7 +19338,6 @@ class ValidationService extends ValidationStateManager {
             this.cancelValidation();
         };
         this.handleError = (validationInput, id, status, message) => {
-            console.log(ValidationEvents.VALIDATION_ERROR);
             this.emit(ValidationEvents.VALIDATION_ERROR, {
                 validationInput,
                 id,
