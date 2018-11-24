@@ -88,33 +88,6 @@ export const validationInputToRange = (input: ValidationInput): Range => ({
   to: input.to
 });
 
-const getValRangesFromRange = <T extends ValidationInput | ValidationOutput>(
-  range: Range,
-  valRanges: T[]
-): T[] =>
-  valRanges.reduce(
-    (acc, vi: T) => {
-      // If this validation input touches this range, remove it.
-      if (range.from >= vi.from && range.from <= vi.from + vi.str.length) {
-        const from = range.from - vi.from;
-        const to = range.from - vi.from + (range.to - range.from);
-        const str = vi.str.slice(from > 0 ? from - 1 : 0, to);
-        return str
-          ? acc.concat(
-              // Why not spread? See https://github.com/Microsoft/TypeScript/pull/13288
-              Object.assign({}, vi, {
-                from: range.from,
-                to: range.to,
-                str
-              })
-            )
-          : acc;
-      }
-      return acc;
-    },
-    [] as T[]
-  );
-
 /**
  * Expand a range in a document to encompass the words adjacent to the range.
  */

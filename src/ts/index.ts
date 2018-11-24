@@ -116,21 +116,22 @@ const documentValidatorPlugin = (
   let localView: EditorView;
   const validationService = new ValidationService(apiUrl);
   validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
+  const sendValidation = () => {
+    const pluginState: PluginState = plugin.getState(localView.state);
+    // If there's already a validation in flight, defer validation
+    // for another throttle tick
+    if (pluginState.validationInFlight) {
+      return scheduleValidation();
+    }
+    localView.dispatch(
+      localView.state.tr.setMeta(
+        VALIDATION_PLUGIN_ACTION,
+        validationRequestStart()
+      )
+    );
+  }
   const scheduleValidation = () => {
-    setTimeout(() => {
-      const pluginState: PluginState = plugin.getState(localView.state);
-      // If there's already a validation in flight, defer validation
-      // for another throttle tick
-      if (pluginState.validationInFlight) {
-        return scheduleValidation();
-      }
-      localView.dispatch(
-        localView.state.tr.setMeta(
-          VALIDATION_PLUGIN_ACTION,
-          validationRequestStart()
-        )
-      );
-    }, plugin.getState(localView.state).currentThrottle);
+    setTimeout(sendValidation, plugin.getState(localView.state).currentThrottle);
   };
   const plugin: Plugin = new Plugin({
     state: {

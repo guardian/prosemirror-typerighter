@@ -50,38 +50,37 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
           validationInputs: inputs
         };
         this.addRunningValidation(validation);
-        try {
-          const response = await fetch(this.apiUrl, {
-            method: "POST",
-            headers: new Headers({
-              "Content-Type": "x-www-form-urlencoded"
-            }),
-            body
-          });
-          const validationData: LTResponse = await response.json();
-          const validationOutputs: ValidationOutput[] = validationData.matches.map(
-            match => ({
-              str: match.sentence,
-              from: input.from + match.offset,
-              to: input.from + match.offset + match.length,
-              annotation: match.message,
-              type: match.rule.description,
-              suggestions: match.replacements.map(_ => _.value)
-            })
-          );
-          this.handleCompleteValidation(id, validationOutputs);
-          return validationOutputs;
-        } catch (e) {
-          this.handleError(input, id, e.status, e.message);
+        const response = await fetch(this.apiUrl, {
+          method: "POST",
+          headers: new Headers({
+            "Content-Type": "x-www-form-urlencoded"
+          }),
+          body
+        });
+        if (response.status !== 200) {
+          this.handleError(input, id, response.status, response.statusText);
           return [
             {
               validationInput: input,
               id,
-              message: e.message,
-              status: e.status
+              message: response.statusText,
+              status: response.status
             }
           ];
         }
+        const validationData: LTResponse = await response.json();
+        const validationOutputs: ValidationOutput[] = validationData.matches.map(
+          match => ({
+            str: match.sentence,
+            from: input.from + match.offset,
+            to: input.from + match.offset + match.length,
+            annotation: match.message,
+            type: match.rule.description,
+            suggestions: match.replacements.map(_ => _.value)
+          })
+        );
+        this.handleCompleteValidation(id, validationOutputs);
+        return validationOutputs;
       })
     );
     return flatten<ValidationError | ValidationOutput>(results);
@@ -103,7 +102,6 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
     status: number,
     message: string
   ) => {
-    console.log(ValidationEvents.VALIDATION_ERROR);
     this.emit(ValidationEvents.VALIDATION_ERROR, {
       validationInput,
       id,
@@ -125,7 +123,6 @@ class ValidationService extends ValidationStateManager<RunningServiceValidation>
         `${serviceName} Received validation from worker, but no match in running validations for id ${id}`
       );
     }
-    console.log(ValidationEvents.VALIDATION_SUCCESS, validationOutputs);
     this.emit(ValidationEvents.VALIDATION_SUCCESS, {
       id,
       validationOutputs

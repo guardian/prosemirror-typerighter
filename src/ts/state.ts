@@ -84,7 +84,6 @@ const validationPluginReducer = (
   state: PluginState,
   action: Action
 ): PluginState => {
-  console.log({state});
   switch (action.type) {
     case NEW_HOVER_ID:
       return handleNewHoverId(tr, state, action);
