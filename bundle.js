@@ -19121,66 +19121,6 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
 }));
 //# sourceMappingURL=range.js.map
 
-class EventEmitter {
-    constructor() {
-        this.events = {};
-    }
-    on(event, listener) {
-        if (typeof this.events[event] !== "object") {
-            this.events[event] = [];
-        }
-        this.events[event].push(listener);
-        return () => this.removeListener(event, listener);
-    }
-    removeListener(event, listener) {
-        if (typeof this.events[event] !== "object") {
-            return;
-        }
-        const idx = this.events[event].indexOf(listener);
-        if (idx > -1) {
-            this.events[event].splice(idx, 1);
-        }
-    }
-    removeAllListeners() {
-        Object.keys(this.events).forEach((event) => this.events[event].splice(0, this.events[event].length));
-    }
-    emit(event, ...args) {
-        if (typeof this.events[event] !== "object") {
-            return;
-        }
-        [...this.events[event]].forEach(listener => listener.apply(this, args));
-    }
-    once(event, listener) {
-        const remove = this.on(event, (...args) => {
-            remove();
-            listener.apply(this, args);
-        });
-        return remove;
-    }
-}
-//# sourceMappingURL=EventEmitter.js.map
-
-class ValidationStateManager extends EventEmitter {
-    constructor() {
-        super(...arguments);
-        this.runningValidations = [];
-        this.addRunningValidation = (rv) => {
-            this.runningValidations.push(rv);
-        };
-        this.removeRunningValidation = (validation) => {
-            this.runningValidations.splice(this.runningValidations.indexOf(validation), 1);
-        };
-        this.findRunningValidation = (id) => {
-            return this.runningValidations.find(_ => _.id === id);
-        };
-        this.getRunningValidations = (ranges) => {
-            return this.runningValidations;
-        };
-    }
-}
-
-//# sourceMappingURL=ValidationStateManager.js.map
-
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -19325,86 +19265,85 @@ function flatten$1(array) {
 
 var flatten_1 = flatten$1;
 
-const serviceName = "[validationAPIService]";
+class EventEmitter {
+    constructor() {
+        this.events = {};
+    }
+    on(event, listener) {
+        if (typeof this.events[event] !== "object") {
+            this.events[event] = [];
+        }
+        this.events[event].push(listener);
+        return () => this.removeListener(event, listener);
+    }
+    removeListener(event, listener) {
+        if (typeof this.events[event] !== "object") {
+            return;
+        }
+        const idx = this.events[event].indexOf(listener);
+        if (idx > -1) {
+            this.events[event].splice(idx, 1);
+        }
+    }
+    removeAllListeners() {
+        Object.keys(this.events).forEach((event) => this.events[event].splice(0, this.events[event].length));
+    }
+    emit(event, ...args) {
+        if (typeof this.events[event] !== "object") {
+            return;
+        }
+        [...this.events[event]].forEach(listener => listener.apply(this, args));
+    }
+    once(event, listener) {
+        const remove = this.on(event, (...args) => {
+            remove();
+            listener.apply(this, args);
+        });
+        return remove;
+    }
+}
+//# sourceMappingURL=EventEmitter.js.map
+
 const ValidationEvents = {
     VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
     VALIDATION_ERROR: "VALIDATION_ERROR"
 };
-class ValidationService extends ValidationStateManager {
-    constructor(apiUrl) {
+class ValidationService extends EventEmitter {
+    constructor(adapter) {
         super();
-        this.apiUrl = apiUrl;
+        this.adapter = adapter;
         this.cancelValidation = () => {
             this.cancelValidation();
         };
-        this.handleError = (validationInput, id, status, message) => {
+        this.handleError = (validationInput, id, message) => {
             this.emit(ValidationEvents.VALIDATION_ERROR, {
                 validationInput,
                 id,
-                message,
-                status
+                message
             });
         };
         this.handleCompleteValidation = (id, validationOutputs) => {
-            const completeValidation = this.findRunningValidation(id);
-            if (!completeValidation) {
-                return console.warn(`${serviceName} Received validation from worker, but no match in running validations for id ${id}`);
-            }
-            console.log(ValidationEvents.VALIDATION_SUCCESS, validationOutputs);
             this.emit(ValidationEvents.VALIDATION_SUCCESS, {
                 id,
                 validationOutputs
             });
-            this.removeRunningValidation(completeValidation);
         };
     }
     validate(inputs, id) {
         return __awaiter(this, void 0, void 0, function* () {
             const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
-                const body = new URLSearchParams();
-                body.append("data", JSON.stringify({
-                    annotation: [
-                        {
-                            text: input.str
-                        }
-                    ]
-                }));
-                body.append("language", "en-US");
-                const validation = {
-                    id,
-                    validationInputs: inputs
-                };
-                this.addRunningValidation(validation);
                 try {
-                    const response = yield fetch(this.apiUrl, {
-                        method: "POST",
-                        headers: new Headers({
-                            "Content-Type": "x-www-form-urlencoded"
-                        }),
-                        body
-                    });
-                    const validationData = yield response.json();
-                    const validationOutputs = validationData.matches.map(match => ({
-                        str: match.sentence,
-                        from: input.from + match.offset,
-                        to: input.from + match.offset + match.length,
-                        annotation: match.message,
-                        type: match.rule.description,
-                        suggestions: match.replacements.map(_ => _.value)
-                    }));
-                    this.handleCompleteValidation(id, validationOutputs);
-                    return validationOutputs;
+                    const result = yield this.adapter(input);
+                    this.handleCompleteValidation(id, result);
+                    return result;
                 }
                 catch (e) {
-                    this.handleError(input, id, e.status, e.message);
-                    return [
-                        {
-                            validationInput: input,
-                            id,
-                            message: e.message,
-                            status: e.status
-                        }
-                    ];
+                    this.handleError(input, id, e.message);
+                    return {
+                        validationInput: input,
+                        message: e.message,
+                        id
+                    };
                 }
             })));
             return flatten_1(results);
@@ -20121,7 +20060,7 @@ class Decoration extends Component {
             h("span", { className: "ValidationWidget" },
                 h("span", { className: "ValidationWidget__label" }, type),
                 annotation,
-                suggestions &&
+                suggestions && !!suggestions.length &&
                     applySuggestion && (h("span", { className: "ValidationWidget__suggestion-list" },
                     h("span", { className: "ValidationWidget__label" }, "Suggestions"),
                     suggestions.map(suggestion => (h("span", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion) }, suggestion))))))));
@@ -20308,7 +20247,6 @@ const newHoverIdReceived = (hoverId) => ({
     payload: { hoverId }
 });
 const validationPluginReducer = (tr, state, action) => {
-    console.log({ state });
     switch (action.type) {
         case NEW_HOVER_ID:
             return handleNewHoverId(tr, state, action);
@@ -20362,6 +20300,39 @@ const handleValidationRequestError = (tr, state, action) => {
 
 //# sourceMappingURL=state.js.map
 
+const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, void 0, void 0, function* () {
+    const body = new URLSearchParams();
+    body.append("data", JSON.stringify({
+        annotation: [
+            {
+                text: input.str
+            }
+        ]
+    }));
+    body.append("language", "en-US");
+    const response = yield fetch(apiUrl, {
+        method: "POST",
+        headers: new Headers({
+            "Content-Type": "x-www-form-urlencoded"
+        }),
+        body
+    });
+    if (response.status !== 200) {
+        throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
+    }
+    const validationData = yield response.json();
+    return validationData.matches.map(match => ({
+        str: match.sentence,
+        from: input.from + match.offset,
+        to: input.from + match.offset + match.length,
+        annotation: match.message,
+        type: match.rule.description,
+        suggestions: match.replacements.map(_ => _.value)
+    }));
+});
+
+//# sourceMappingURL=languageTool.js.map
+
 const updateView = (plugin) => (view, prevState) => {
     const pluginState = plugin.getState(view.state);
     const decorationId = pluginState.hoverId;
@@ -20392,16 +20363,17 @@ const getMergedDirtiedRanges = (tr, oldRanges) => mergeRanges(oldRanges
     .concat(getReplaceStepRangesFromTransaction(tr)));
 const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
-    const validationService = new ValidationService(apiUrl);
+    const validationService = new ValidationService(createLanguageToolAdapter(apiUrl));
     validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
+    const sendValidation = () => {
+        const pluginState = plugin.getState(localView.state);
+        if (pluginState.validationInFlight) {
+            return scheduleValidation();
+        }
+        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart()));
+    };
     const scheduleValidation = () => {
-        setTimeout(() => {
-            const pluginState = plugin.getState(localView.state);
-            if (pluginState.validationInFlight) {
-                return scheduleValidation();
-            }
-            localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart()));
-        }, plugin.getState(localView.state).currentThrottle);
+        setTimeout(sendValidation, plugin.getState(localView.state).currentThrottle);
     };
     const plugin = new dist_8({
         state: {
@@ -20520,7 +20492,7 @@ editorElement &&
                 }),
                 historyPlugin,
                 documentValidatorPlugin(mySchema, {
-                    apiUrl: "http://localhost:9001"
+                    apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
                 })
             ]
         })
