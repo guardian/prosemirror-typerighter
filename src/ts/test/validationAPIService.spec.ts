@@ -39,6 +39,7 @@ const createResponse = (strs: string[]) => ({
 
 const createOutput = (str: string, offset: number = 0) =>
   ({
+    id: "id",
     from: offset,
     to: offset + str.length,
     str,
@@ -46,6 +47,8 @@ const createOutput = (str: string, offset: number = 0) =>
     suggestions: [],
     annotation: "It's just a bunch of numbers, mate"
   } as ValidationOutput);
+
+jest.mock("uuid/v4", () => () => "id");
 
 describe("ValidationAPIService", () => {
   afterEach(fetchMock.reset);

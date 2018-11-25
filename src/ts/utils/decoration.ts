@@ -4,15 +4,12 @@ import DecorationComponent, {
 } from "../components/Decoration";
 import {
   Range,
-  ValidationResponse,
   ValidationOutput
 } from "../interfaces/Validation";
-import { Transaction } from "prosemirror-state";
-import uuid from "uuid/v4";
 import flatten from "lodash/flatten";
 import { PluginState } from "..";
-import { mapRangeThroughTransactions } from "./range";
 import { render, h } from "preact";
+import { Node } from "prosemirror-model";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
@@ -59,56 +56,43 @@ export const removeValidationDecorationsFromRanges = (
  * Given a validation response and the current decoration set,
  * returns a new decoration set containing the new validations.
  */
-export const getNewDecorationsForValidationResponse = (
-  response: ValidationResponse,
+export const getNewDecorationsForCurrentValidations = (
+  outputs: ValidationOutput[],
   decorationSet: DecorationSet,
-  trs: Transaction[],
-  currentTr: Transaction
+  doc: Node
 ) => {
-  const initialTransaction = trs.find(tr => tr.time === parseInt(response.id));
-  if (!initialTransaction && trs.length > 1) {
-    return decorationSet;
-  }
-  const newRanges = mapRangeThroughTransactions(
-    response.validationOutputs,
-    parseInt(response.id),
-    trs
-  );
-
   // Remove existing validations for the ranges
   let newDecorationSet = removeValidationDecorationsFromRanges(
     decorationSet,
-    newRanges
+    outputs
   );
 
   // There are new validations available; apply them to the document.
-  const decorationsToAdd = getDecorationsForValidationRanges(newRanges);
+  const decorationsToAdd = getDecorationsForValidationRanges(outputs);
 
   // Finally, we add the existing decorations to this new map.
-  return newDecorationSet.add(currentTr.doc, decorationsToAdd);
+  return newDecorationSet.add(doc, decorationsToAdd);
 };
 
 /**
  * Create a validation decoration for the given range.
  */
-export const createDecorationForValidationRange = (output: ValidationOutput) => {
-  const decorationId = uuid();
+export const createDecorationForValidationRange = (
+  output: ValidationOutput
+) => {
   return [
     Decoration.inline(
       output.from,
       output.to,
       {
         class: DecorationClassMap[DECORATION_VALIDATION],
-        [DECORATION_ATTRIBUTE_ID]: decorationId
+        [DECORATION_ATTRIBUTE_ID]: output.id
       } as any,
       {
         type: DECORATION_VALIDATION,
         inclusiveStart: true
       } as any
-    ),
-    Decoration.widget(output.from, getWidgetNode(output, decorationId), {
-      decorationId
-    } as any)
+    )
   ];
 };
 
@@ -129,7 +113,10 @@ export const findSingleDecoration = (
 /**
  * Get a widget DOM node given a validation range.
  */
-export const getWidgetNode = (validationOutput: ValidationOutput, id: string) => {
+export const getWidgetNode = (
+  validationOutput: ValidationOutput,
+  id: string
+) => {
   const widget = document.createElement("span");
   widget.setAttribute(DECORATION_ATTRIBUTE_ID, id);
   render(

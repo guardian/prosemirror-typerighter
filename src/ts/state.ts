@@ -3,17 +3,19 @@ import { PluginState } from "./index";
 import {
   ValidationResponse,
   ValidationError,
-  ValidationInput
+  ValidationInput,
+  ValidationOutput
 } from "./interfaces/Validation";
 import {
   mapRangeThroughTransactions,
   mergeRanges,
   getRangesOfParentBlockNodes,
-  validationInputToRange
+  validationInputToRange,
+  mergeOutputsFromValidationResponse
 } from "./utils/range";
 import {
   DECORATION_INFLIGHT,
-  getNewDecorationsForValidationResponse,
+  getNewDecorationsForCurrentValidations,
   createDebugDecorationFromRange,
   removeValidationDecorationsFromRanges,
   DECORATION_DIRTY
@@ -62,9 +64,12 @@ export const validationRequestError = (validationError: ValidationError) => ({
 });
 type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
 
-export const newHoverIdReceived = (hoverId: string | undefined) => ({
+export const newHoverIdReceived = (
+  hoverId: string | undefined,
+  rect: DOMRect | ClientRect
+) => ({
   type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
-  payload: { hoverId }
+  payload: { hoverId, rect }
 });
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
@@ -74,6 +79,16 @@ type Action =
   | ActionValidationRequestStart
   | ActionValidationRequestPending
   | ActionValidationRequestError;
+
+/**
+ * Selectors.
+ */
+
+export const selectValidationById = (
+  state: PluginState,
+  id: string
+): ValidationOutput | undefined =>
+  state.currentValidations.find(validation => validation.id === id);
 
 /**
  * Reducer.
@@ -117,10 +132,11 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
   _,
   state,
   action
-) => {
+): PluginState => {
   return {
     ...state,
-    hoverId: action.payload.hoverId
+    hoverId: action.payload.hoverId,
+    hoverRect: action.payload.rect
   };
 };
 
@@ -178,11 +194,15 @@ const handleValidationRequestSuccess: ActionHandler<
 > = (tr, state, action) => {
   const response = action.payload.response;
   if (response && response.validationOutputs.length) {
-    const decorations = getNewDecorationsForValidationResponse(
+    const currentValidations = mergeOutputsFromValidationResponse(
       response,
+      state.currentValidations,
+      state.trHistory
+    );
+    const decorations = getNewDecorationsForCurrentValidations(
+      currentValidations,
       state.decorations,
-      state.trHistory,
-      tr
+      tr.doc
     );
     // Ditch any decorations marking inflight validations
     const decsToRemove = state.decorations.find(
@@ -194,6 +214,7 @@ const handleValidationRequestSuccess: ActionHandler<
     return {
       ...state,
       validationInFlight: undefined,
+      currentValidations,
       decorations: decorations.remove(decsToRemove)
     };
   }

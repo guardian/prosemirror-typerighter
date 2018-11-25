@@ -6,7 +6,7 @@ import typescript from "rollup-plugin-typescript";
 
 export default [
   {
-    input: "src/ts/index.ts",
+    input: "src/ts/index.tsx",
     output: {
       file: "dist/noting.js",
       format: "cjs"

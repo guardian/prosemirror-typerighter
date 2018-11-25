@@ -6,6 +6,7 @@ export type ValidationOutput = ValidationInput & {
   annotation: string;
   suggestions?: string[];
   type: string;
+  id: string;
 };
 
 export type ValidationError = {

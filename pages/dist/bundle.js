@@ -15064,6 +15064,707 @@ function __awaiter(thisArg, _arguments, P, generator) {
     });
 }
 
+var VNode = function VNode() {};
+
+var options = {};
+
+var stack = [];
+
+var EMPTY_CHILDREN = [];
+
+function h(nodeName, attributes) {
+	var children = EMPTY_CHILDREN,
+	    lastSimple,
+	    child,
+	    simple,
+	    i;
+	for (i = arguments.length; i-- > 2;) {
+		stack.push(arguments[i]);
+	}
+	if (attributes && attributes.children != null) {
+		if (!stack.length) stack.push(attributes.children);
+		delete attributes.children;
+	}
+	while (stack.length) {
+		if ((child = stack.pop()) && child.pop !== undefined) {
+			for (i = child.length; i--;) {
+				stack.push(child[i]);
+			}
+		} else {
+			if (typeof child === 'boolean') child = null;
+
+			if (simple = typeof nodeName !== 'function') {
+				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
+			}
+
+			if (simple && lastSimple) {
+				children[children.length - 1] += child;
+			} else if (children === EMPTY_CHILDREN) {
+				children = [child];
+			} else {
+				children.push(child);
+			}
+
+			lastSimple = simple;
+		}
+	}
+
+	var p = new VNode();
+	p.nodeName = nodeName;
+	p.children = children;
+	p.attributes = attributes == null ? undefined : attributes;
+	p.key = attributes == null ? undefined : attributes.key;
+
+	if (options.vnode !== undefined) options.vnode(p);
+
+	return p;
+}
+
+function extend(obj, props) {
+  for (var i in props) {
+    obj[i] = props[i];
+  }return obj;
+}
+
+var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
+
+var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
+
+var items = [];
+
+function enqueueRender(component) {
+	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
+		(options.debounceRendering || defer)(rerender);
+	}
+}
+
+function rerender() {
+	var p,
+	    list = items;
+	items = [];
+	while (p = list.pop()) {
+		if (p._dirty) renderComponent(p);
+	}
+}
+
+function isSameNodeType(node, vnode, hydrating) {
+	if (typeof vnode === 'string' || typeof vnode === 'number') {
+		return node.splitText !== undefined;
+	}
+	if (typeof vnode.nodeName === 'string') {
+		return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
+	}
+	return hydrating || node._componentConstructor === vnode.nodeName;
+}
+
+function isNamedNode(node, nodeName) {
+	return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
+}
+
+function getNodeProps(vnode) {
+	var props = extend({}, vnode.attributes);
+	props.children = vnode.children;
+
+	var defaultProps = vnode.nodeName.defaultProps;
+	if (defaultProps !== undefined) {
+		for (var i in defaultProps) {
+			if (props[i] === undefined) {
+				props[i] = defaultProps[i];
+			}
+		}
+	}
+
+	return props;
+}
+
+function createNode(nodeName, isSvg) {
+	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
+	node.normalizedNodeName = nodeName;
+	return node;
+}
+
+function removeNode(node) {
+	var parentNode = node.parentNode;
+	if (parentNode) parentNode.removeChild(node);
+}
+
+function setAccessor(node, name, old, value, isSvg) {
+	if (name === 'className') name = 'class';
+
+	if (name === 'key') {} else if (name === 'ref') {
+		if (old) old(null);
+		if (value) value(node);
+	} else if (name === 'class' && !isSvg) {
+		node.className = value || '';
+	} else if (name === 'style') {
+		if (!value || typeof value === 'string' || typeof old === 'string') {
+			node.style.cssText = value || '';
+		}
+		if (value && typeof value === 'object') {
+			if (typeof old !== 'string') {
+				for (var i in old) {
+					if (!(i in value)) node.style[i] = '';
+				}
+			}
+			for (var i in value) {
+				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
+			}
+		}
+	} else if (name === 'dangerouslySetInnerHTML') {
+		if (value) node.innerHTML = value.__html || '';
+	} else if (name[0] == 'o' && name[1] == 'n') {
+		var useCapture = name !== (name = name.replace(/Capture$/, ''));
+		name = name.toLowerCase().substring(2);
+		if (value) {
+			if (!old) node.addEventListener(name, eventProxy, useCapture);
+		} else {
+			node.removeEventListener(name, eventProxy, useCapture);
+		}
+		(node._listeners || (node._listeners = {}))[name] = value;
+	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
+		try {
+			node[name] = value == null ? '' : value;
+		} catch (e) {}
+		if ((value == null || value === false) && name != 'spellcheck') node.removeAttribute(name);
+	} else {
+		var ns = isSvg && name !== (name = name.replace(/^xlink:?/, ''));
+
+		if (value == null || value === false) {
+			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
+		} else if (typeof value !== 'function') {
+			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
+		}
+	}
+}
+
+function eventProxy(e) {
+	return this._listeners[e.type](options.event && options.event(e) || e);
+}
+
+var mounts = [];
+
+var diffLevel = 0;
+
+var isSvgMode = false;
+
+var hydrating = false;
+
+function flushMounts() {
+	var c;
+	while (c = mounts.pop()) {
+		if (options.afterMount) options.afterMount(c);
+		if (c.componentDidMount) c.componentDidMount();
+	}
+}
+
+function diff(dom, vnode, context, mountAll, parent, componentRoot) {
+	if (!diffLevel++) {
+		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
+
+		hydrating = dom != null && !('__preactattr_' in dom);
+	}
+
+	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
+
+	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
+
+	if (! --diffLevel) {
+		hydrating = false;
+
+		if (!componentRoot) flushMounts();
+	}
+
+	return ret;
+}
+
+function idiff(dom, vnode, context, mountAll, componentRoot) {
+	var out = dom,
+	    prevSvgMode = isSvgMode;
+
+	if (vnode == null || typeof vnode === 'boolean') vnode = '';
+
+	if (typeof vnode === 'string' || typeof vnode === 'number') {
+		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
+			if (dom.nodeValue != vnode) {
+				dom.nodeValue = vnode;
+			}
+		} else {
+			out = document.createTextNode(vnode);
+			if (dom) {
+				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+				recollectNodeTree(dom, true);
+			}
+		}
+
+		out['__preactattr_'] = true;
+
+		return out;
+	}
+
+	var vnodeName = vnode.nodeName;
+	if (typeof vnodeName === 'function') {
+		return buildComponentFromVNode(dom, vnode, context, mountAll);
+	}
+
+	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
+
+	vnodeName = String(vnodeName);
+	if (!dom || !isNamedNode(dom, vnodeName)) {
+		out = createNode(vnodeName, isSvgMode);
+
+		if (dom) {
+			while (dom.firstChild) {
+				out.appendChild(dom.firstChild);
+			}
+			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+
+			recollectNodeTree(dom, true);
+		}
+	}
+
+	var fc = out.firstChild,
+	    props = out['__preactattr_'],
+	    vchildren = vnode.children;
+
+	if (props == null) {
+		props = out['__preactattr_'] = {};
+		for (var a = out.attributes, i = a.length; i--;) {
+			props[a[i].name] = a[i].value;
+		}
+	}
+
+	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
+		if (fc.nodeValue != vchildren[0]) {
+			fc.nodeValue = vchildren[0];
+		}
+	} else if (vchildren && vchildren.length || fc != null) {
+			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
+		}
+
+	diffAttributes(out, vnode.attributes, props);
+
+	isSvgMode = prevSvgMode;
+
+	return out;
+}
+
+function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
+	var originalChildren = dom.childNodes,
+	    children = [],
+	    keyed = {},
+	    keyedLen = 0,
+	    min = 0,
+	    len = originalChildren.length,
+	    childrenLen = 0,
+	    vlen = vchildren ? vchildren.length : 0,
+	    j,
+	    c,
+	    f,
+	    vchild,
+	    child;
+
+	if (len !== 0) {
+		for (var i = 0; i < len; i++) {
+			var _child = originalChildren[i],
+			    props = _child['__preactattr_'],
+			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
+			if (key != null) {
+				keyedLen++;
+				keyed[key] = _child;
+			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
+				children[childrenLen++] = _child;
+			}
+		}
+	}
+
+	if (vlen !== 0) {
+		for (var i = 0; i < vlen; i++) {
+			vchild = vchildren[i];
+			child = null;
+
+			var key = vchild.key;
+			if (key != null) {
+				if (keyedLen && keyed[key] !== undefined) {
+					child = keyed[key];
+					keyed[key] = undefined;
+					keyedLen--;
+				}
+			} else if (min < childrenLen) {
+					for (j = min; j < childrenLen; j++) {
+						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
+							child = c;
+							children[j] = undefined;
+							if (j === childrenLen - 1) childrenLen--;
+							if (j === min) min++;
+							break;
+						}
+					}
+				}
+
+			child = idiff(child, vchild, context, mountAll);
+
+			f = originalChildren[i];
+			if (child && child !== dom && child !== f) {
+				if (f == null) {
+					dom.appendChild(child);
+				} else if (child === f.nextSibling) {
+					removeNode(f);
+				} else {
+					dom.insertBefore(child, f);
+				}
+			}
+		}
+	}
+
+	if (keyedLen) {
+		for (var i in keyed) {
+			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
+		}
+	}
+
+	while (min <= childrenLen) {
+		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
+	}
+}
+
+function recollectNodeTree(node, unmountOnly) {
+	var component = node._component;
+	if (component) {
+		unmountComponent(component);
+	} else {
+		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
+
+		if (unmountOnly === false || node['__preactattr_'] == null) {
+			removeNode(node);
+		}
+
+		removeChildren(node);
+	}
+}
+
+function removeChildren(node) {
+	node = node.lastChild;
+	while (node) {
+		var next = node.previousSibling;
+		recollectNodeTree(node, true);
+		node = next;
+	}
+}
+
+function diffAttributes(dom, attrs, old) {
+	var name;
+
+	for (name in old) {
+		if (!(attrs && attrs[name] != null) && old[name] != null) {
+			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
+		}
+	}
+
+	for (name in attrs) {
+		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
+			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
+		}
+	}
+}
+
+var recyclerComponents = [];
+
+function createComponent(Ctor, props, context) {
+	var inst,
+	    i = recyclerComponents.length;
+
+	if (Ctor.prototype && Ctor.prototype.render) {
+		inst = new Ctor(props, context);
+		Component.call(inst, props, context);
+	} else {
+		inst = new Component(props, context);
+		inst.constructor = Ctor;
+		inst.render = doRender;
+	}
+
+	while (i--) {
+		if (recyclerComponents[i].constructor === Ctor) {
+			inst.nextBase = recyclerComponents[i].nextBase;
+			recyclerComponents.splice(i, 1);
+			return inst;
+		}
+	}
+
+	return inst;
+}
+
+function doRender(props, state, context) {
+	return this.constructor(props, context);
+}
+
+function setComponentProps(component, props, renderMode, context, mountAll) {
+	if (component._disable) return;
+	component._disable = true;
+
+	component.__ref = props.ref;
+	component.__key = props.key;
+	delete props.ref;
+	delete props.key;
+
+	if (typeof component.constructor.getDerivedStateFromProps === 'undefined') {
+		if (!component.base || mountAll) {
+			if (component.componentWillMount) component.componentWillMount();
+		} else if (component.componentWillReceiveProps) {
+			component.componentWillReceiveProps(props, context);
+		}
+	}
+
+	if (context && context !== component.context) {
+		if (!component.prevContext) component.prevContext = component.context;
+		component.context = context;
+	}
+
+	if (!component.prevProps) component.prevProps = component.props;
+	component.props = props;
+
+	component._disable = false;
+
+	if (renderMode !== 0) {
+		if (renderMode === 1 || options.syncComponentUpdates !== false || !component.base) {
+			renderComponent(component, 1, mountAll);
+		} else {
+			enqueueRender(component);
+		}
+	}
+
+	if (component.__ref) component.__ref(component);
+}
+
+function renderComponent(component, renderMode, mountAll, isChild) {
+	if (component._disable) return;
+
+	var props = component.props,
+	    state = component.state,
+	    context = component.context,
+	    previousProps = component.prevProps || props,
+	    previousState = component.prevState || state,
+	    previousContext = component.prevContext || context,
+	    isUpdate = component.base,
+	    nextBase = component.nextBase,
+	    initialBase = isUpdate || nextBase,
+	    initialChildComponent = component._component,
+	    skip = false,
+	    snapshot = previousContext,
+	    rendered,
+	    inst,
+	    cbase;
+
+	if (component.constructor.getDerivedStateFromProps) {
+		state = extend(extend({}, state), component.constructor.getDerivedStateFromProps(props, state));
+		component.state = state;
+	}
+
+	if (isUpdate) {
+		component.props = previousProps;
+		component.state = previousState;
+		component.context = previousContext;
+		if (renderMode !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
+			skip = true;
+		} else if (component.componentWillUpdate) {
+			component.componentWillUpdate(props, state, context);
+		}
+		component.props = props;
+		component.state = state;
+		component.context = context;
+	}
+
+	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
+	component._dirty = false;
+
+	if (!skip) {
+		rendered = component.render(props, state, context);
+
+		if (component.getChildContext) {
+			context = extend(extend({}, context), component.getChildContext());
+		}
+
+		if (isUpdate && component.getSnapshotBeforeUpdate) {
+			snapshot = component.getSnapshotBeforeUpdate(previousProps, previousState);
+		}
+
+		var childComponent = rendered && rendered.nodeName,
+		    toUnmount,
+		    base;
+
+		if (typeof childComponent === 'function') {
+
+			var childProps = getNodeProps(rendered);
+			inst = initialChildComponent;
+
+			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
+				setComponentProps(inst, childProps, 1, context, false);
+			} else {
+				toUnmount = inst;
+
+				component._component = inst = createComponent(childComponent, childProps, context);
+				inst.nextBase = inst.nextBase || nextBase;
+				inst._parentComponent = component;
+				setComponentProps(inst, childProps, 0, context, false);
+				renderComponent(inst, 1, mountAll, true);
+			}
+
+			base = inst.base;
+		} else {
+			cbase = initialBase;
+
+			toUnmount = initialChildComponent;
+			if (toUnmount) {
+				cbase = component._component = null;
+			}
+
+			if (initialBase || renderMode === 1) {
+				if (cbase) cbase._component = null;
+				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
+			}
+		}
+
+		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
+			var baseParent = initialBase.parentNode;
+			if (baseParent && base !== baseParent) {
+				baseParent.replaceChild(base, initialBase);
+
+				if (!toUnmount) {
+					initialBase._component = null;
+					recollectNodeTree(initialBase, false);
+				}
+			}
+		}
+
+		if (toUnmount) {
+			unmountComponent(toUnmount);
+		}
+
+		component.base = base;
+		if (base && !isChild) {
+			var componentRef = component,
+			    t = component;
+			while (t = t._parentComponent) {
+				(componentRef = t).base = base;
+			}
+			base._component = componentRef;
+			base._componentConstructor = componentRef.constructor;
+		}
+	}
+
+	if (!isUpdate || mountAll) {
+		mounts.unshift(component);
+	} else if (!skip) {
+
+		if (component.componentDidUpdate) {
+			component.componentDidUpdate(previousProps, previousState, snapshot);
+		}
+		if (options.afterUpdate) options.afterUpdate(component);
+	}
+
+	while (component._renderCallbacks.length) {
+		component._renderCallbacks.pop().call(component);
+	}if (!diffLevel && !isChild) flushMounts();
+}
+
+function buildComponentFromVNode(dom, vnode, context, mountAll) {
+	var c = dom && dom._component,
+	    originalComponent = c,
+	    oldDom = dom,
+	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
+	    isOwner = isDirectOwner,
+	    props = getNodeProps(vnode);
+	while (c && !isOwner && (c = c._parentComponent)) {
+		isOwner = c.constructor === vnode.nodeName;
+	}
+
+	if (c && isOwner && (!mountAll || c._component)) {
+		setComponentProps(c, props, 3, context, mountAll);
+		dom = c.base;
+	} else {
+		if (originalComponent && !isDirectOwner) {
+			unmountComponent(originalComponent);
+			dom = oldDom = null;
+		}
+
+		c = createComponent(vnode.nodeName, props, context);
+		if (dom && !c.nextBase) {
+			c.nextBase = dom;
+
+			oldDom = null;
+		}
+		setComponentProps(c, props, 1, context, mountAll);
+		dom = c.base;
+
+		if (oldDom && dom !== oldDom) {
+			oldDom._component = null;
+			recollectNodeTree(oldDom, false);
+		}
+	}
+
+	return dom;
+}
+
+function unmountComponent(component) {
+	if (options.beforeUnmount) options.beforeUnmount(component);
+
+	var base = component.base;
+
+	component._disable = true;
+
+	if (component.componentWillUnmount) component.componentWillUnmount();
+
+	component.base = null;
+
+	var inner = component._component;
+	if (inner) {
+		unmountComponent(inner);
+	} else if (base) {
+		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
+
+		component.nextBase = base;
+
+		removeNode(base);
+		recyclerComponents.push(component);
+
+		removeChildren(base);
+	}
+
+	if (component.__ref) component.__ref(null);
+}
+
+function Component(props, context) {
+	this._dirty = true;
+
+	this.context = context;
+
+	this.props = props;
+
+	this.state = this.state || {};
+
+	this._renderCallbacks = [];
+}
+
+extend(Component.prototype, {
+	setState: function setState(state, callback) {
+		if (!this.prevState) this.prevState = this.state;
+		this.state = extend(extend({}, this.state), typeof state === 'function' ? state(this.state, this.props) : state);
+		if (callback) this._renderCallbacks.push(callback);
+		enqueueRender(this);
+	},
+	forceUpdate: function forceUpdate(callback) {
+		if (callback) this._renderCallbacks.push(callback);
+		renderComponent(this, 2);
+	},
+	render: function render() {}
+});
+
+function render(vnode, parent, merge) {
+  return diff(merge, vnode, {}, false, parent, false);
+}
+
+
+//# sourceMappingURL=preact.mjs.map
+
 var dist$11 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
@@ -19056,6 +19757,13 @@ const findOverlappingRangeIndex = (range, ranges) => {
         (localRange.to >= range.to && localRange.from <= range.to) ||
         (localRange.from >= range.from && localRange.to <= range.to));
 };
+const removeOverlappingRanges = (firstRanges, secondRanges) => {
+    return firstRanges.reduce((acc, range) => {
+        return findOverlappingRangeIndex(range, secondRanges) === -1
+            ? acc.concat(range)
+            : acc;
+    }, []);
+};
 const mergeRange = (range1, range2) => ({
     from: range1.from < range2.from ? range1.from : range2.from,
     to: range1.to > range2.to ? range1.to : range2.to
@@ -19074,6 +19782,14 @@ const validationInputToRange = (input) => ({
     from: input.from,
     to: input.to
 });
+const mergeOutputsFromValidationResponse = (response, currentOutputs, trs) => {
+    const initialTransaction = trs.find(tr => tr.time === parseInt(response.id));
+    if (!initialTransaction && trs.length > 1) {
+        return currentOutputs;
+    }
+    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, parseInt(response.id), trs);
+    return removeOverlappingRanges(currentOutputs, newOutputs).concat(newOutputs);
+};
 const expandRange = (range, doc) => {
     try {
         const $fromPos = doc.resolve(range.from);
@@ -19353,721 +20069,135 @@ class ValidationService extends EventEmitter {
 
 //# sourceMappingURL=ValidationAPIService.js.map
 
-var VNode = function VNode() {};
-
-var options = {};
-
-var stack = [];
-
-var EMPTY_CHILDREN = [];
-
-function h(nodeName, attributes) {
-	var children = EMPTY_CHILDREN,
-	    lastSimple,
-	    child,
-	    simple,
-	    i;
-	for (i = arguments.length; i-- > 2;) {
-		stack.push(arguments[i]);
-	}
-	if (attributes && attributes.children != null) {
-		if (!stack.length) stack.push(attributes.children);
-		delete attributes.children;
-	}
-	while (stack.length) {
-		if ((child = stack.pop()) && child.pop !== undefined) {
-			for (i = child.length; i--;) {
-				stack.push(child[i]);
-			}
-		} else {
-			if (typeof child === 'boolean') child = null;
-
-			if (simple = typeof nodeName !== 'function') {
-				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
-			}
-
-			if (simple && lastSimple) {
-				children[children.length - 1] += child;
-			} else if (children === EMPTY_CHILDREN) {
-				children = [child];
-			} else {
-				children.push(child);
-			}
-
-			lastSimple = simple;
-		}
-	}
-
-	var p = new VNode();
-	p.nodeName = nodeName;
-	p.children = children;
-	p.attributes = attributes == null ? undefined : attributes;
-	p.key = attributes == null ? undefined : attributes.key;
-
-	if (options.vnode !== undefined) options.vnode(p);
-
-	return p;
-}
-
-function extend(obj, props) {
-  for (var i in props) {
-    obj[i] = props[i];
-  }return obj;
-}
-
-var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
-
-var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
-
-var items = [];
-
-function enqueueRender(component) {
-	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
-		(options.debounceRendering || defer)(rerender);
-	}
-}
-
-function rerender() {
-	var p,
-	    list = items;
-	items = [];
-	while (p = list.pop()) {
-		if (p._dirty) renderComponent(p);
-	}
-}
-
-function isSameNodeType(node, vnode, hydrating) {
-	if (typeof vnode === 'string' || typeof vnode === 'number') {
-		return node.splitText !== undefined;
-	}
-	if (typeof vnode.nodeName === 'string') {
-		return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
-	}
-	return hydrating || node._componentConstructor === vnode.nodeName;
-}
-
-function isNamedNode(node, nodeName) {
-	return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
-}
-
-function getNodeProps(vnode) {
-	var props = extend({}, vnode.attributes);
-	props.children = vnode.children;
-
-	var defaultProps = vnode.nodeName.defaultProps;
-	if (defaultProps !== undefined) {
-		for (var i in defaultProps) {
-			if (props[i] === undefined) {
-				props[i] = defaultProps[i];
-			}
-		}
-	}
-
-	return props;
-}
-
-function createNode(nodeName, isSvg) {
-	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
-	node.normalizedNodeName = nodeName;
-	return node;
-}
-
-function removeNode(node) {
-	var parentNode = node.parentNode;
-	if (parentNode) parentNode.removeChild(node);
-}
-
-function setAccessor(node, name, old, value, isSvg) {
-	if (name === 'className') name = 'class';
-
-	if (name === 'key') {} else if (name === 'ref') {
-		if (old) old(null);
-		if (value) value(node);
-	} else if (name === 'class' && !isSvg) {
-		node.className = value || '';
-	} else if (name === 'style') {
-		if (!value || typeof value === 'string' || typeof old === 'string') {
-			node.style.cssText = value || '';
-		}
-		if (value && typeof value === 'object') {
-			if (typeof old !== 'string') {
-				for (var i in old) {
-					if (!(i in value)) node.style[i] = '';
-				}
-			}
-			for (var i in value) {
-				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
-			}
-		}
-	} else if (name === 'dangerouslySetInnerHTML') {
-		if (value) node.innerHTML = value.__html || '';
-	} else if (name[0] == 'o' && name[1] == 'n') {
-		var useCapture = name !== (name = name.replace(/Capture$/, ''));
-		name = name.toLowerCase().substring(2);
-		if (value) {
-			if (!old) node.addEventListener(name, eventProxy, useCapture);
-		} else {
-			node.removeEventListener(name, eventProxy, useCapture);
-		}
-		(node._listeners || (node._listeners = {}))[name] = value;
-	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
-		try {
-			node[name] = value == null ? '' : value;
-		} catch (e) {}
-		if ((value == null || value === false) && name != 'spellcheck') node.removeAttribute(name);
-	} else {
-		var ns = isSvg && name !== (name = name.replace(/^xlink:?/, ''));
-
-		if (value == null || value === false) {
-			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
-		} else if (typeof value !== 'function') {
-			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
-		}
-	}
-}
-
-function eventProxy(e) {
-	return this._listeners[e.type](options.event && options.event(e) || e);
-}
-
-var mounts = [];
-
-var diffLevel = 0;
-
-var isSvgMode = false;
-
-var hydrating = false;
-
-function flushMounts() {
-	var c;
-	while (c = mounts.pop()) {
-		if (options.afterMount) options.afterMount(c);
-		if (c.componentDidMount) c.componentDidMount();
-	}
-}
-
-function diff(dom, vnode, context, mountAll, parent, componentRoot) {
-	if (!diffLevel++) {
-		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
-
-		hydrating = dom != null && !('__preactattr_' in dom);
-	}
-
-	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
-
-	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
-
-	if (! --diffLevel) {
-		hydrating = false;
-
-		if (!componentRoot) flushMounts();
-	}
-
-	return ret;
-}
-
-function idiff(dom, vnode, context, mountAll, componentRoot) {
-	var out = dom,
-	    prevSvgMode = isSvgMode;
-
-	if (vnode == null || typeof vnode === 'boolean') vnode = '';
-
-	if (typeof vnode === 'string' || typeof vnode === 'number') {
-		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
-			if (dom.nodeValue != vnode) {
-				dom.nodeValue = vnode;
-			}
-		} else {
-			out = document.createTextNode(vnode);
-			if (dom) {
-				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
-				recollectNodeTree(dom, true);
-			}
-		}
-
-		out['__preactattr_'] = true;
-
-		return out;
-	}
-
-	var vnodeName = vnode.nodeName;
-	if (typeof vnodeName === 'function') {
-		return buildComponentFromVNode(dom, vnode, context, mountAll);
-	}
-
-	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
-
-	vnodeName = String(vnodeName);
-	if (!dom || !isNamedNode(dom, vnodeName)) {
-		out = createNode(vnodeName, isSvgMode);
-
-		if (dom) {
-			while (dom.firstChild) {
-				out.appendChild(dom.firstChild);
-			}
-			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
-
-			recollectNodeTree(dom, true);
-		}
-	}
-
-	var fc = out.firstChild,
-	    props = out['__preactattr_'],
-	    vchildren = vnode.children;
-
-	if (props == null) {
-		props = out['__preactattr_'] = {};
-		for (var a = out.attributes, i = a.length; i--;) {
-			props[a[i].name] = a[i].value;
-		}
-	}
-
-	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
-		if (fc.nodeValue != vchildren[0]) {
-			fc.nodeValue = vchildren[0];
-		}
-	} else if (vchildren && vchildren.length || fc != null) {
-			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
-		}
-
-	diffAttributes(out, vnode.attributes, props);
-
-	isSvgMode = prevSvgMode;
-
-	return out;
-}
-
-function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
-	var originalChildren = dom.childNodes,
-	    children = [],
-	    keyed = {},
-	    keyedLen = 0,
-	    min = 0,
-	    len = originalChildren.length,
-	    childrenLen = 0,
-	    vlen = vchildren ? vchildren.length : 0,
-	    j,
-	    c,
-	    f,
-	    vchild,
-	    child;
-
-	if (len !== 0) {
-		for (var i = 0; i < len; i++) {
-			var _child = originalChildren[i],
-			    props = _child['__preactattr_'],
-			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
-			if (key != null) {
-				keyedLen++;
-				keyed[key] = _child;
-			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
-				children[childrenLen++] = _child;
-			}
-		}
-	}
-
-	if (vlen !== 0) {
-		for (var i = 0; i < vlen; i++) {
-			vchild = vchildren[i];
-			child = null;
-
-			var key = vchild.key;
-			if (key != null) {
-				if (keyedLen && keyed[key] !== undefined) {
-					child = keyed[key];
-					keyed[key] = undefined;
-					keyedLen--;
-				}
-			} else if (min < childrenLen) {
-					for (j = min; j < childrenLen; j++) {
-						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
-							child = c;
-							children[j] = undefined;
-							if (j === childrenLen - 1) childrenLen--;
-							if (j === min) min++;
-							break;
-						}
-					}
-				}
-
-			child = idiff(child, vchild, context, mountAll);
-
-			f = originalChildren[i];
-			if (child && child !== dom && child !== f) {
-				if (f == null) {
-					dom.appendChild(child);
-				} else if (child === f.nextSibling) {
-					removeNode(f);
-				} else {
-					dom.insertBefore(child, f);
-				}
-			}
-		}
-	}
-
-	if (keyedLen) {
-		for (var i in keyed) {
-			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
-		}
-	}
-
-	while (min <= childrenLen) {
-		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
-	}
-}
-
-function recollectNodeTree(node, unmountOnly) {
-	var component = node._component;
-	if (component) {
-		unmountComponent(component);
-	} else {
-		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
-
-		if (unmountOnly === false || node['__preactattr_'] == null) {
-			removeNode(node);
-		}
-
-		removeChildren(node);
-	}
-}
-
-function removeChildren(node) {
-	node = node.lastChild;
-	while (node) {
-		var next = node.previousSibling;
-		recollectNodeTree(node, true);
-		node = next;
-	}
-}
-
-function diffAttributes(dom, attrs, old) {
-	var name;
-
-	for (name in old) {
-		if (!(attrs && attrs[name] != null) && old[name] != null) {
-			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
-		}
-	}
-
-	for (name in attrs) {
-		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
-			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
-		}
-	}
-}
-
-var recyclerComponents = [];
-
-function createComponent(Ctor, props, context) {
-	var inst,
-	    i = recyclerComponents.length;
-
-	if (Ctor.prototype && Ctor.prototype.render) {
-		inst = new Ctor(props, context);
-		Component.call(inst, props, context);
-	} else {
-		inst = new Component(props, context);
-		inst.constructor = Ctor;
-		inst.render = doRender;
-	}
-
-	while (i--) {
-		if (recyclerComponents[i].constructor === Ctor) {
-			inst.nextBase = recyclerComponents[i].nextBase;
-			recyclerComponents.splice(i, 1);
-			return inst;
-		}
-	}
-
-	return inst;
-}
-
-function doRender(props, state, context) {
-	return this.constructor(props, context);
-}
-
-function setComponentProps(component, props, renderMode, context, mountAll) {
-	if (component._disable) return;
-	component._disable = true;
-
-	component.__ref = props.ref;
-	component.__key = props.key;
-	delete props.ref;
-	delete props.key;
-
-	if (typeof component.constructor.getDerivedStateFromProps === 'undefined') {
-		if (!component.base || mountAll) {
-			if (component.componentWillMount) component.componentWillMount();
-		} else if (component.componentWillReceiveProps) {
-			component.componentWillReceiveProps(props, context);
-		}
-	}
-
-	if (context && context !== component.context) {
-		if (!component.prevContext) component.prevContext = component.context;
-		component.context = context;
-	}
-
-	if (!component.prevProps) component.prevProps = component.props;
-	component.props = props;
-
-	component._disable = false;
-
-	if (renderMode !== 0) {
-		if (renderMode === 1 || options.syncComponentUpdates !== false || !component.base) {
-			renderComponent(component, 1, mountAll);
-		} else {
-			enqueueRender(component);
-		}
-	}
-
-	if (component.__ref) component.__ref(component);
-}
-
-function renderComponent(component, renderMode, mountAll, isChild) {
-	if (component._disable) return;
-
-	var props = component.props,
-	    state = component.state,
-	    context = component.context,
-	    previousProps = component.prevProps || props,
-	    previousState = component.prevState || state,
-	    previousContext = component.prevContext || context,
-	    isUpdate = component.base,
-	    nextBase = component.nextBase,
-	    initialBase = isUpdate || nextBase,
-	    initialChildComponent = component._component,
-	    skip = false,
-	    snapshot = previousContext,
-	    rendered,
-	    inst,
-	    cbase;
-
-	if (component.constructor.getDerivedStateFromProps) {
-		state = extend(extend({}, state), component.constructor.getDerivedStateFromProps(props, state));
-		component.state = state;
-	}
-
-	if (isUpdate) {
-		component.props = previousProps;
-		component.state = previousState;
-		component.context = previousContext;
-		if (renderMode !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
-			skip = true;
-		} else if (component.componentWillUpdate) {
-			component.componentWillUpdate(props, state, context);
-		}
-		component.props = props;
-		component.state = state;
-		component.context = context;
-	}
-
-	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
-	component._dirty = false;
-
-	if (!skip) {
-		rendered = component.render(props, state, context);
-
-		if (component.getChildContext) {
-			context = extend(extend({}, context), component.getChildContext());
-		}
-
-		if (isUpdate && component.getSnapshotBeforeUpdate) {
-			snapshot = component.getSnapshotBeforeUpdate(previousProps, previousState);
-		}
-
-		var childComponent = rendered && rendered.nodeName,
-		    toUnmount,
-		    base;
-
-		if (typeof childComponent === 'function') {
-
-			var childProps = getNodeProps(rendered);
-			inst = initialChildComponent;
-
-			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
-				setComponentProps(inst, childProps, 1, context, false);
-			} else {
-				toUnmount = inst;
-
-				component._component = inst = createComponent(childComponent, childProps, context);
-				inst.nextBase = inst.nextBase || nextBase;
-				inst._parentComponent = component;
-				setComponentProps(inst, childProps, 0, context, false);
-				renderComponent(inst, 1, mountAll, true);
-			}
-
-			base = inst.base;
-		} else {
-			cbase = initialBase;
-
-			toUnmount = initialChildComponent;
-			if (toUnmount) {
-				cbase = component._component = null;
-			}
-
-			if (initialBase || renderMode === 1) {
-				if (cbase) cbase._component = null;
-				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
-			}
-		}
-
-		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
-			var baseParent = initialBase.parentNode;
-			if (baseParent && base !== baseParent) {
-				baseParent.replaceChild(base, initialBase);
-
-				if (!toUnmount) {
-					initialBase._component = null;
-					recollectNodeTree(initialBase, false);
-				}
-			}
-		}
-
-		if (toUnmount) {
-			unmountComponent(toUnmount);
-		}
-
-		component.base = base;
-		if (base && !isChild) {
-			var componentRef = component,
-			    t = component;
-			while (t = t._parentComponent) {
-				(componentRef = t).base = base;
-			}
-			base._component = componentRef;
-			base._componentConstructor = componentRef.constructor;
-		}
-	}
-
-	if (!isUpdate || mountAll) {
-		mounts.unshift(component);
-	} else if (!skip) {
-
-		if (component.componentDidUpdate) {
-			component.componentDidUpdate(previousProps, previousState, snapshot);
-		}
-		if (options.afterUpdate) options.afterUpdate(component);
-	}
-
-	while (component._renderCallbacks.length) {
-		component._renderCallbacks.pop().call(component);
-	}if (!diffLevel && !isChild) flushMounts();
-}
-
-function buildComponentFromVNode(dom, vnode, context, mountAll) {
-	var c = dom && dom._component,
-	    originalComponent = c,
-	    oldDom = dom,
-	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
-	    isOwner = isDirectOwner,
-	    props = getNodeProps(vnode);
-	while (c && !isOwner && (c = c._parentComponent)) {
-		isOwner = c.constructor === vnode.nodeName;
-	}
-
-	if (c && isOwner && (!mountAll || c._component)) {
-		setComponentProps(c, props, 3, context, mountAll);
-		dom = c.base;
-	} else {
-		if (originalComponent && !isDirectOwner) {
-			unmountComponent(originalComponent);
-			dom = oldDom = null;
-		}
-
-		c = createComponent(vnode.nodeName, props, context);
-		if (dom && !c.nextBase) {
-			c.nextBase = dom;
-
-			oldDom = null;
-		}
-		setComponentProps(c, props, 1, context, mountAll);
-		dom = c.base;
-
-		if (oldDom && dom !== oldDom) {
-			oldDom._component = null;
-			recollectNodeTree(oldDom, false);
-		}
-	}
-
-	return dom;
-}
-
-function unmountComponent(component) {
-	if (options.beforeUnmount) options.beforeUnmount(component);
-
-	var base = component.base;
-
-	component._disable = true;
-
-	if (component.componentWillUnmount) component.componentWillUnmount();
-
-	component.base = null;
-
-	var inner = component._component;
-	if (inner) {
-		unmountComponent(inner);
-	} else if (base) {
-		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
-
-		component.nextBase = base;
-
-		removeNode(base);
-		recyclerComponents.push(component);
-
-		removeChildren(base);
-	}
-
-	if (component.__ref) component.__ref(null);
-}
-
-function Component(props, context) {
-	this._dirty = true;
-
-	this.context = context;
-
-	this.props = props;
-
-	this.state = this.state || {};
-
-	this._renderCallbacks = [];
-}
-
-extend(Component.prototype, {
-	setState: function setState(state, callback) {
-		if (!this.prevState) this.prevState = this.state;
-		this.state = extend(extend({}, this.state), typeof state === 'function' ? state(this.state, this.props) : state);
-		if (callback) this._renderCallbacks.push(callback);
-		enqueueRender(this);
-	},
-	forceUpdate: function forceUpdate(callback) {
-		if (callback) this._renderCallbacks.push(callback);
-		renderComponent(this, 2);
-	},
-	render: function render() {}
-});
-
-function render(vnode, parent, merge) {
-  return diff(merge, vnode, {}, false, parent, false);
-}
-
-
-//# sourceMappingURL=preact.mjs.map
-
-class Decoration extends Component {
-    render({ type, annotation, suggestions, applySuggestion }) {
-        return (h("span", { className: "ValidationWidget__container" },
-            h("span", { className: "ValidationWidget" },
-                h("span", { className: "ValidationWidget__label" }, type),
-                annotation,
-                suggestions && !!suggestions.length &&
-                    applySuggestion && (h("span", { className: "ValidationWidget__suggestion-list" },
-                    h("span", { className: "ValidationWidget__label" }, "Suggestions"),
-                    suggestions.map(suggestion => (h("span", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion) }, suggestion))))))));
-    }
-}
-
 //# sourceMappingURL=Decoration.js.map
+
+const DECORATION_VALIDATION = "DECORATION_VALIDATION";
+const DECORATION_DIRTY = "DECORATION_DIRTY";
+const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
+const DecorationClassMap = {
+    [DECORATION_DIRTY]: "ValidationDebugDirty",
+    [DECORATION_INFLIGHT]: "ValidationDebugInflight",
+    [DECORATION_VALIDATION]: "ValidationDecoration"
+};
+const DECORATION_ATTRIBUTE_ID = "data-attr-validation-id";
+const createDebugDecorationFromRange = (range, dirty = true) => {
+    const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
+    return dist_2$3.inline(range.from, range.to + 1, {
+        class: DecorationClassMap[type]
+    }, {
+        type
+    });
+};
+const removeValidationDecorationsFromRanges = (decorations, ranges, type = DECORATION_VALIDATION) => ranges.reduce((acc, range) => {
+    const decorationsToRemove = decorations.find(range.from, range.to, spec => spec.type === type);
+    return acc.remove(decorationsToRemove);
+}, decorations);
+const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
+    let newDecorationSet = removeValidationDecorationsFromRanges(decorationSet, outputs);
+    const decorationsToAdd = getDecorationsForValidationRanges(outputs);
+    return newDecorationSet.add(doc, decorationsToAdd);
+};
+const createDecorationForValidationRange = (output) => {
+    return [
+        dist_2$3.inline(output.from, output.to, {
+            class: DecorationClassMap[DECORATION_VALIDATION],
+            [DECORATION_ATTRIBUTE_ID]: output.id
+        }, {
+            type: DECORATION_VALIDATION,
+            inclusiveStart: true
+        })
+    ];
+};
+const getDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(createDecorationForValidationRange));
+const findSingleDecoration = (state, predicate) => {
+    const decorations = state.decorations.find(undefined, undefined, predicate);
+    if (!decorations[0]) {
+        return undefined;
+    }
+    return decorations[0];
+};
+
+//# sourceMappingURL=decoration.js.map
+
+const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
+const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
+const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
+const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
+const NEW_HOVER_ID = "NEW_HOVER_ID";
+const validationRequestPending = () => ({
+    type: VALIDATION_REQUEST_PENDING
+});
+const validationRequestStart = () => ({
+    type: VALIDATION_REQUEST_START
+});
+const validationRequestSuccess = (response) => ({
+    type: VALIDATION_REQUEST_SUCCESS,
+    payload: { response }
+});
+const validationRequestError = (validationError) => ({
+    type: VALIDATION_REQUEST_ERROR,
+    payload: { validationError }
+});
+const newHoverIdReceived = (hoverId, rect) => ({
+    type: NEW_HOVER_ID,
+    payload: { hoverId, rect }
+});
+const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
+const validationPluginReducer = (tr, state, action) => {
+    switch (action.type) {
+        case NEW_HOVER_ID:
+            return handleNewHoverId(tr, state, action);
+        case VALIDATION_REQUEST_PENDING:
+            return handleValidationRequestPending(tr, state, action);
+        case VALIDATION_REQUEST_START:
+            return handleValidationRequestStart(tr, state, action);
+        case VALIDATION_REQUEST_SUCCESS:
+            return handleValidationRequestSuccess(tr, state, action);
+        case VALIDATION_REQUEST_ERROR:
+            return handleValidationRequestError(tr, state, action);
+        default:
+            return state;
+    }
+};
+const handleNewHoverId = (_, state, action) => {
+    return Object.assign({}, state, { hoverId: action.payload.hoverId, hoverRect: action.payload.rect });
+};
+const handleValidationRequestPending = (_, state) => {
+    return Object.assign({}, state, { validationPending: true });
+};
+const handleValidationRequestStart = (tr, state) => {
+    const expandedRanges = getRangesOfParentBlockNodes(state.dirtiedRanges, tr.doc);
+    const validationInputs = expandedRanges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    const decorations = removeValidationDecorationsFromRanges(state.decorations, expandedRanges, DECORATION_DIRTY).add(tr.doc, expandedRanges.map(range => createDebugDecorationFromRange(range, false)));
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: {
+            validationInputs,
+            id: tr.time
+        } });
+};
+const handleValidationRequestSuccess = (tr, state, action) => {
+    const response = action.payload.response;
+    if (response && response.validationOutputs.length) {
+        const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
+        const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
+        const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
+        return Object.assign({}, state, { validationInFlight: undefined, currentValidations, decorations: decorations.remove(decsToRemove) });
+    }
+    return state;
+};
+const handleValidationRequestError = (tr, state, action) => {
+    const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
+    const dirtiedRanges = mapRangeThroughTransactions([validationInputToRange(action.payload.validationError.validationInput)], parseInt(String(action.payload.validationError.id), 10), state.trHistory);
+    let decorations = state.decorations.remove(decsToRemove);
+    if (dirtiedRanges.length) {
+        decorations = decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
+    }
+    return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
+            ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
+            : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
+};
+
+//# sourceMappingURL=state.js.map
 
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
@@ -20155,151 +20285,6 @@ function v4(options, buf, offset) {
 
 var v4_1 = v4;
 
-const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-const DECORATION_DIRTY = "DECORATION_DIRTY";
-const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
-const DecorationClassMap = {
-    [DECORATION_DIRTY]: "ValidationDebugDirty",
-    [DECORATION_INFLIGHT]: "ValidationDebugInflight",
-    [DECORATION_VALIDATION]: "ValidationDecoration"
-};
-const DECORATION_ATTRIBUTE_ID = "data-attr-validation-id";
-const createDebugDecorationFromRange = (range, dirty = true) => {
-    const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
-    return dist_2$3.inline(range.from, range.to + 1, {
-        class: DecorationClassMap[type]
-    }, {
-        type
-    });
-};
-const removeValidationDecorationsFromRanges = (decorations, ranges, type = DECORATION_VALIDATION) => ranges.reduce((acc, range) => {
-    const decorationsToRemove = decorations.find(range.from, range.to, spec => spec.type === type);
-    return acc.remove(decorationsToRemove);
-}, decorations);
-const getNewDecorationsForValidationResponse = (response, decorationSet, trs, currentTr) => {
-    const initialTransaction = trs.find(tr => tr.time === parseInt(response.id));
-    if (!initialTransaction && trs.length > 1) {
-        return decorationSet;
-    }
-    const newRanges = mapRangeThroughTransactions(response.validationOutputs, parseInt(response.id), trs);
-    let newDecorationSet = removeValidationDecorationsFromRanges(decorationSet, newRanges);
-    const decorationsToAdd = getDecorationsForValidationRanges(newRanges);
-    return newDecorationSet.add(currentTr.doc, decorationsToAdd);
-};
-const createDecorationForValidationRange = (output) => {
-    const decorationId = v4_1();
-    return [
-        dist_2$3.inline(output.from, output.to, {
-            class: DecorationClassMap[DECORATION_VALIDATION],
-            [DECORATION_ATTRIBUTE_ID]: decorationId
-        }, {
-            type: DECORATION_VALIDATION,
-            inclusiveStart: true
-        }),
-        dist_2$3.widget(output.from, getWidgetNode(output, decorationId), {
-            decorationId
-        })
-    ];
-};
-const getDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(createDecorationForValidationRange));
-const findSingleDecoration = (state, predicate) => {
-    const decorations = state.decorations.find(undefined, undefined, predicate);
-    if (!decorations[0]) {
-        return undefined;
-    }
-    return decorations[0];
-};
-const getWidgetNode = (validationOutput, id) => {
-    const widget = document.createElement("span");
-    widget.setAttribute(DECORATION_ATTRIBUTE_ID, id);
-    render(h(Decoration, {
-        type: validationOutput.type,
-        annotation: validationOutput.annotation,
-        suggestions: validationOutput.suggestions,
-        applySuggestion: suggestion => console.log("apply", suggestion)
-    }), widget);
-    return widget;
-};
-//# sourceMappingURL=decoration.js.map
-
-const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
-const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
-const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
-const NEW_HOVER_ID = "NEW_HOVER_ID";
-const validationRequestPending = () => ({
-    type: VALIDATION_REQUEST_PENDING
-});
-const validationRequestStart = () => ({
-    type: VALIDATION_REQUEST_START
-});
-const validationRequestSuccess = (response) => ({
-    type: VALIDATION_REQUEST_SUCCESS,
-    payload: { response }
-});
-const validationRequestError = (validationError) => ({
-    type: VALIDATION_REQUEST_ERROR,
-    payload: { validationError }
-});
-const newHoverIdReceived = (hoverId) => ({
-    type: NEW_HOVER_ID,
-    payload: { hoverId }
-});
-const validationPluginReducer = (tr, state, action) => {
-    switch (action.type) {
-        case NEW_HOVER_ID:
-            return handleNewHoverId(tr, state, action);
-        case VALIDATION_REQUEST_PENDING:
-            return handleValidationRequestPending(tr, state, action);
-        case VALIDATION_REQUEST_START:
-            return handleValidationRequestStart(tr, state, action);
-        case VALIDATION_REQUEST_SUCCESS:
-            return handleValidationRequestSuccess(tr, state, action);
-        case VALIDATION_REQUEST_ERROR:
-            return handleValidationRequestError(tr, state, action);
-        default:
-            return state;
-    }
-};
-const handleNewHoverId = (_, state, action) => {
-    return Object.assign({}, state, { hoverId: action.payload.hoverId });
-};
-const handleValidationRequestPending = (_, state) => {
-    return Object.assign({}, state, { validationPending: true });
-};
-const handleValidationRequestStart = (tr, state) => {
-    const expandedRanges = getRangesOfParentBlockNodes(state.dirtiedRanges, tr.doc);
-    const validationInputs = expandedRanges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
-    const decorations = removeValidationDecorationsFromRanges(state.decorations, expandedRanges, DECORATION_DIRTY).add(tr.doc, expandedRanges.map(range => createDebugDecorationFromRange(range, false)));
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: {
-            validationInputs,
-            id: tr.time
-        } });
-};
-const handleValidationRequestSuccess = (tr, state, action) => {
-    const response = action.payload.response;
-    if (response && response.validationOutputs.length) {
-        const decorations = getNewDecorationsForValidationResponse(response, state.decorations, state.trHistory, tr);
-        const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
-        return Object.assign({}, state, { validationInFlight: undefined, decorations: decorations.remove(decsToRemove) });
-    }
-    return state;
-};
-const handleValidationRequestError = (tr, state, action) => {
-    const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
-    const dirtiedRanges = mapRangeThroughTransactions([validationInputToRange(action.payload.validationError.validationInput)], parseInt(String(action.payload.validationError.id), 10), state.trHistory);
-    let decorations = state.decorations.remove(decsToRemove);
-    if (dirtiedRanges.length) {
-        decorations = decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
-    }
-    return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
-            ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-            : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
-};
-
-//# sourceMappingURL=state.js.map
-
 const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, void 0, void 0, function* () {
     const body = new URLSearchParams();
     body.append("data", JSON.stringify({
@@ -20322,6 +20307,7 @@ const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, vo
     }
     const validationData = yield response.json();
     return validationData.matches.map(match => ({
+        id: v4_1(),
         str: match.sentence,
         from: input.from + match.offset,
         to: input.from + match.offset + match.length,
@@ -20333,8 +20319,28 @@ const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, vo
 
 //# sourceMappingURL=languageTool.js.map
 
-const updateView = (plugin) => (view, prevState) => {
+class ValidationOverlay extends Component {
+    constructor() {
+        super(...arguments);
+        this.state = {
+            hoverRect: undefined,
+            validationOutput: undefined
+        };
+        this.handleValidationHoverEvent = (hoverEvent) => {
+            this.setState(hoverEvent);
+        };
+    }
+    componentWillMount() {
+        this.props.subscribe(this.handleValidationHoverEvent);
+    }
+    render() {
+        return h("div", null, JSON.stringify(this.state));
+    }
+}
+
+const updateView = (plugin, notify) => (view, prevState) => {
     const pluginState = plugin.getState(view.state);
+    notify(pluginState);
     const decorationId = pluginState.hoverId;
     const prevDecorationId = plugin.getState(prevState).hoverId;
     if (prevDecorationId === decorationId) {
@@ -20363,6 +20369,7 @@ const getMergedDirtiedRanges = (tr, oldRanges) => mergeRanges(oldRanges
     .concat(getReplaceStepRangesFromTransaction(tr)));
 const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
+    let overlayNode;
     const validationService = new ValidationService(createLanguageToolAdapter(apiUrl));
     validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
     const sendValidation = () => {
@@ -20386,8 +20393,10 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                     maxThrottle,
                     decorations: dist_3$3.create(doc, []),
                     dirtiedRanges: [],
+                    currentValidations: [],
                     lastValidationTime: 0,
                     hoverId: undefined,
+                    hoverRect: undefined,
                     trHistory: [],
                     validationInFlight: undefined,
                     validationPending: false,
@@ -20419,7 +20428,6 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
             const newPluginState = plugin.getState(newState);
             if (newPluginState.dirtiedRanges.length &&
                 !newPluginState.validationPending) {
-                console.log('schedule');
                 scheduleValidation();
                 return newState.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestPending());
             }
@@ -20439,7 +20447,7 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                         const targetAttr = target.getAttribute("data-attr-validation-id");
                         const newValidationId = targetAttr ? targetAttr : undefined;
                         if (newValidationId !== plugin.getState(view.state).hoverId) {
-                            view.dispatch(view.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(newValidationId)));
+                            view.dispatch(view.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(newValidationId, target.getBoundingClientRect())));
                         }
                     }
                     return false;
@@ -20447,9 +20455,32 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
             }
         },
         view(view) {
+            const notificationSubscribers = [];
+            const subscribe = (callback) => {
+                notificationSubscribers.push(callback);
+                return () => {
+                    notificationSubscribers.splice(notificationSubscribers.indexOf(callback), 1);
+                };
+            };
+            overlayNode = document.createElement("div");
+            view.dom.insertAdjacentElement("afterend", overlayNode);
+            render(h(ValidationOverlay, { subscribe: subscribe }), overlayNode);
+            const notify = (state) => notificationSubscribers.forEach(sub => {
+                if (state.hoverId) {
+                    const validationOutput = selectValidationById(state, state.hoverId);
+                    return sub({
+                        hoverRect: state.hoverRect,
+                        validationOutput
+                    });
+                }
+                sub({
+                    hoverRect: undefined,
+                    validationOutput: undefined
+                });
+            });
             localView = view;
             return {
-                update: updateView(plugin)
+                update: updateView(plugin, notify)
             };
         }
     });
@@ -20459,16 +20490,6 @@ const validateDocument = (state, dispatch) => dispatch(state.tr.setMeta(VALIDATI
 
 //# sourceMappingURL=index.js.map
 
-const spinMe = document.getElementById("spin-me");
-let rotation = 0;
-const commenceTheSpinning = () => {
-    spinMe && (spinMe.style.transform = `rotate(${rotation}deg)`);
-    rotation += 4;
-    if (rotation > 360)
-        rotation = 0;
-    requestAnimationFrame(commenceTheSpinning);
-};
-commenceTheSpinning();
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: Object.assign({}, schemaBasic_2, validationMarks)
@@ -20492,7 +20513,7 @@ editorElement &&
                 }),
                 historyPlugin,
                 documentValidatorPlugin(mySchema, {
-                    apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
+                    apiUrl: "http://localhost:9001"
                 })
             ]
         })

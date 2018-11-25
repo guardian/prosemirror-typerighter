@@ -1,6 +1,7 @@
 import { ValidationInput } from "../interfaces/Validation";
 import { LTResponse } from "./interfaces/LanguageTool";
 import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
+import v4 from 'uuid/v4';
 
 /**
  * An adapter for the Typerighter service.
@@ -36,6 +37,7 @@ const createLanguageToolAdapter: IValidationAPIAdapter = (
   }
   const validationData: LTResponse = await response.json();
   return validationData.matches.map(match => ({
+    id: v4(),
     str: match.sentence,
     from: input.from + match.offset,
     to: input.from + match.offset + match.length,

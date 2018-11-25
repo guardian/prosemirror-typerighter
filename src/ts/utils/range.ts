@@ -1,6 +1,5 @@
-import flatMap from "lodash/flatten";
-import { Range } from "../interfaces/Validation";
-import { ValidationOutput, ValidationInput } from "../interfaces/Validation";
+import { Range, ValidationResponse, ValidationOutput } from "../interfaces/Validation";
+import { ValidationInput } from "../interfaces/Validation";
 import { Node } from "prosemirror-model";
 import { findParentNode } from "prosemirror-utils";
 import { Selection, Transaction } from "prosemirror-state";
@@ -16,6 +15,23 @@ export const findOverlappingRangeIndex = (range: Range, ranges: Range[]) => {
       (localRange.to >= range.to && localRange.from <= range.to) ||
       // Overlaps to the right of the range
       (localRange.from >= range.from && localRange.to <= range.to)
+  );
+};
+
+/**
+ * Return the first set of ranges with any members overlapping the second set removed.
+ */
+export const removeOverlappingRanges = <T extends Range>(
+  firstRanges: T[],
+  secondRanges: T[]
+) => {
+  return firstRanges.reduce(
+    (acc, range) => {
+      return findOverlappingRangeIndex(range, secondRanges) === -1
+        ? acc.concat(range)
+        : acc;
+    },
+    [] as T[]
   );
 };
 
@@ -88,6 +104,25 @@ export const validationInputToRange = (input: ValidationInput): Range => ({
   to: input.to
 });
 
+export const mergeOutputsFromValidationResponse = (
+  response: ValidationResponse,
+  currentOutputs: ValidationOutput[],
+  trs: Transaction[]
+): ValidationOutput[] => {
+  const initialTransaction = trs.find(tr => tr.time === parseInt(response.id));
+  if (!initialTransaction && trs.length > 1) {
+    return currentOutputs;
+  }
+
+  const newOutputs = mapRangeThroughTransactions(
+    response.validationOutputs,
+    parseInt(response.id),
+    trs
+  );
+
+  return removeOverlappingRanges(currentOutputs, newOutputs).concat(newOutputs);
+};
+
 /**
  * Expand a range in a document to encompass the words adjacent to the range.
  */
@@ -117,19 +152,25 @@ export const expandRange = (range: Range, doc: Node): Range | undefined => {
  * Expand the given ranges to include their parent block nodes.
  */
 export const getRangesOfParentBlockNodes = (ranges: Range[], doc: Node) => {
-  const validationRanges = ranges.reduce((acc, range: Range) => {
-    const expandedRange = expandRange({ from: range.from, to: range.to }, doc);
-    return acc.concat(
-      expandedRange
-        ? [
-            {
-              from: expandedRange.from,
-              to: clamp(expandedRange.to, doc.content.size)
-            }
-          ]
-        : []
-    );
-  }, [] as Range[]);
+  const validationRanges = ranges.reduce(
+    (acc, range: Range) => {
+      const expandedRange = expandRange(
+        { from: range.from, to: range.to },
+        doc
+      );
+      return acc.concat(
+        expandedRange
+          ? [
+              {
+                from: expandedRange.from,
+                to: clamp(expandedRange.to, doc.content.size)
+              }
+            ]
+          : []
+      );
+    },
+    [] as Range[]
+  );
   return mergeRanges(validationRanges);
 };
 

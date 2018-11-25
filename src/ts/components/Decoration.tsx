@@ -8,6 +8,7 @@ export interface DecorationComponentProps {
 }
 
 class Decoration extends Component<DecorationComponentProps> {
+  private containerRef: HTMLDivElement;
   render({
     type,
     annotation,
@@ -15,7 +16,7 @@ class Decoration extends Component<DecorationComponentProps> {
     applySuggestion
   }: DecorationComponentProps) {
     return (
-      <span className="ValidationWidget__container">
+      <span className="ValidationWidget__container" ref={_ => this.containerRef = _}>
         <span className="ValidationWidget">
           <span className="ValidationWidget__label">{type}</span>
           {annotation}

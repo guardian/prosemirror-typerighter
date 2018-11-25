@@ -1,14 +1,17 @@
 import {
   mergeRanges,
   findOverlappingRangeIndex,
-  diffRanges
+  diffRanges,
+  removeOverlappingRanges
 } from "../utils/range";
+
+
 
 describe("Range utils", () => {
   describe("expandRange", () => {
-    it('should get the range of the nearest ancestor block node', () => {
+    it("should get the range of the nearest ancestor block node", () => {
       // @todo
-    })
+    });
   });
   describe("findOverlappingRangeIndex", () => {
     it("should find overlapping ranges", () => {
@@ -176,6 +179,73 @@ describe("Range utils", () => {
         {
           from: 18,
           to: 20
+        }
+      ]);
+    });
+  });
+  describe("removeOverlappingRanges", () => {
+    it("should remove overlaps in the second set of ranges from the first set", () => {
+      const outputs = removeOverlappingRanges(
+        [
+          {
+            str: "one",
+            from: 0,
+            to: 2
+          },
+          {
+            str: "two",
+            from: 5,
+            to: 7
+          }
+        ],
+        [
+          {
+            str: "one",
+            from: 1,
+            to: 3
+          }
+        ]
+      );
+      expect(outputs).toEqual([
+        {
+          str: "two",
+          from: 5,
+          to: 7
+        }
+      ]);
+    });
+    it("should pass through untouched ranges", () => {
+      const outputs = removeOverlappingRanges(
+        [
+          {
+            str: "one",
+            from: 0,
+            to: 2
+          },
+          {
+            str: "two",
+            from: 5,
+            to: 7
+          }
+        ],
+        [
+          {
+            str: "three",
+            from: 10,
+            to: 12
+          }
+        ]
+      );
+      expect(outputs).toEqual([
+        {
+          str: "one",
+          from: 0,
+          to: 2
+        },
+        {
+          str: "two",
+          from: 5,
+          to: 7
         }
       ]);
     });

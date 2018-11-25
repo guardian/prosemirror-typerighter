@@ -16,16 +16,6 @@ import createDocumentValidatorPlugin, {
   validateDocument
 } from "../src/ts/index";
 
-const spinMe = document.getElementById("spin-me");
-let rotation = 0;
-const commenceTheSpinning = () => {
-  spinMe && (spinMe.style.transform = `rotate(${rotation}deg)`);
-  rotation += 4;
-  if (rotation > 360) rotation = 0;
-  requestAnimationFrame(commenceTheSpinning);
-};
-commenceTheSpinning();
-
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
   marks: {
@@ -55,7 +45,7 @@ editorElement &&
         }),
         historyPlugin,
         createDocumentValidatorPlugin(mySchema, {
-          apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
+          apiUrl: "http://localhost:9001"
         })
       ]
     })

@@ -1,6 +1,7 @@
 import { ValidationInput } from "../interfaces/Validation";
 import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
 import { TypeRighterResponse } from "./interfaces/Typerighter";
+import v4 from "uuid/v4";
 
 /**
  * An adapter for the Typerighter service.
@@ -26,6 +27,7 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
   }
   const validationData: TypeRighterResponse = await response.json();
   return validationData.results.map(match => ({
+    id: v4(),
     str: input.str,
     from: input.from + match.fromPos,
     to: input.from + match.toPos,
