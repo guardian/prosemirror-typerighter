@@ -290,7 +290,6 @@ li.ProseMirror-selectednode:after {
   width: 200px;
   transition: opacity 0.1s, transform 0.1s;
   transform: translate3d(0, -3px, 0);
-  opacity: 0;
   pointer-events: none;
   z-index: 1;
 }
@@ -334,9 +333,23 @@ li.ProseMirror-selectednode:after {
 
 .ValidationDebugDirty,
 .ValidationDebugDirty.ValidationDebugInflight {
-  background-color: rgba(0,128,128,0.40);
+  background-color: rgba(0, 128, 128, 0.4);
 }
 
 .ValidationDebugInflight {
-  background-color: rgba(0,128,128,0.20);
+  background-color: rgba(0, 128, 128, 0.2);
+}
+
+.ValidationPlugin__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.ValidationPlugin__decoration-container {
+  position: absolute;
+}
+
+.ValidationPlugin__container {
+  position: relative;
 }

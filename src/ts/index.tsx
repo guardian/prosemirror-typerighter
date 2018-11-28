@@ -31,6 +31,7 @@ import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import createLanguageToolAdapter from "./adapters/languageTool";
 import ValidationOverlay from "./components/ValidationOverlay";
 import HoverEvent from "./interfaces/HoverEvent";
+import { findAncestor } from "./utils/dom";
 
 /**
  * Create a function responsible for updating the view. We update the view
@@ -84,7 +85,8 @@ type PluginState = {
   dirtiedRanges: Range[];
   lastValidationTime: number;
   hoverId: string | undefined;
-  hoverRect: DOMRect | ClientRect | undefined;
+  hoverLeft: number | undefined;
+  hoverTop: number | undefined;
   trHistory: Transaction[];
   validationPending: boolean;
   validationInFlight:
@@ -183,7 +185,8 @@ const documentValidatorPlugin = (
           currentValidations: [],
           lastValidationTime: 0,
           hoverId: undefined,
-          hoverRect: undefined,
+          hoverLeft: undefined,
+          hoverTop: undefined,
           trHistory: [],
           validationInFlight: undefined,
           validationPending: false,
@@ -267,12 +270,19 @@ const documentValidatorPlugin = (
         return plugin.getState(state).decorations;
       },
       handleDOMEvents: {
-        mouseover: (view: EditorView, e: Event) => {
-          const target = e.target;
+        mouseover: (view: EditorView, event: MouseEvent) => {
+          const target = event.target;
           if (target) {
             const targetAttr = (target as HTMLElement).getAttribute(
               "data-attr-validation-id"
             );
+            window.target = target
+            console.log(target)
+            console.log(findAncestor((target as HTMLElement), e => e.hasAttribute('data-attr-validation-id')))
+            if (findAncestor((target as HTMLElement), e => e.hasAttribute('data-attr-validation-id'))) {
+              // Do nothing if we're within a validation-related node
+              return;
+            }
             const newValidationId = targetAttr ? targetAttr : undefined;
             if (newValidationId !== plugin.getState(view.state).hoverId) {
               view.dispatch(
@@ -280,7 +290,7 @@ const documentValidatorPlugin = (
                   VALIDATION_PLUGIN_ACTION,
                   newHoverIdReceived(
                     newValidationId,
-                    (target as HTMLDivElement).getBoundingClientRect()
+                    event
                   )
                 )
               );
@@ -303,25 +313,35 @@ const documentValidatorPlugin = (
           );
         };
       };
-  
+
       // Create our overlay node, which is responsible for displaying
       // validation messages when the user hovers over highlighted ranges.
-      overlayNode = document.createElement("div");
+      const overlayNode = document.createElement("div");
+
+      // We wrap this in a container to allow the overlay to be positioned
+      // relative to the editable document.
+      const wrapperNode = document.createElement("div");
+      wrapperNode.classList.add("ValidationPlugin__container");
+      view.dom.parentNode!.replaceChild(wrapperNode, view.dom);
+      wrapperNode.appendChild(view.dom);
       view.dom.insertAdjacentElement("afterend", overlayNode);
       render(<ValidationOverlay subscribe={subscribe} />, overlayNode);
-      const notify = (state: PluginState) => notificationSubscribers.forEach(sub => {
-        if (state.hoverId) {
-          const validationOutput = selectValidationById(state, state.hoverId);
-          return sub({
-            hoverRect: state.hoverRect,
-            validationOutput
-          })
-        }
-        sub({
-          hoverRect: undefined,
-          validationOutput: undefined
-        })
-      });
+      const notify = (state: PluginState) =>
+        notificationSubscribers.forEach(sub => {
+          if (state.hoverId) {
+            const validationOutput = selectValidationById(state, state.hoverId);
+            return sub({
+              hoverLeft: state.hoverLeft,
+              hoverTop: state.hoverTop,
+              validationOutput
+            });
+          }
+          sub({
+            hoverLeft: undefined,
+            hoverTop: undefined,
+            validationOutput: undefined
+          });
+        });
 
       localView = view;
       return {

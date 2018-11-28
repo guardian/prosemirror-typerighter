@@ -1,5 +1,6 @@
 import { Component, h } from "preact";
 import HoverEvent from "../interfaces/HoverEvent";
+import Decoration from "./Decoration";
 
 class ValidationOverlay extends Component<
   {
@@ -7,18 +8,33 @@ class ValidationOverlay extends Component<
   },
   HoverEvent
 > {
-  public state = {
-    hoverRect: undefined,
+  public state: HoverEvent = {
+    hoverLeft: undefined,
+    hoverTop: undefined,
     validationOutput: undefined
   };
   public componentWillMount() {
     this.props.subscribe(this.handleValidationHoverEvent);
   }
   public handleValidationHoverEvent = (hoverEvent: HoverEvent) => {
-	  this.setState(hoverEvent);
-  }
+    this.setState(hoverEvent);
+  };
   public render() {
-    return <div>{JSON.stringify(this.state)}</div>;
+    const { validationOutput, hoverLeft, hoverTop } = this.state;
+    if (!validationOutput || !hoverLeft || !hoverTop) {
+      return null;
+	  }
+    return (
+      <div class="ValidationPlugin__overlay">
+        <div
+          class="ValidationPlugin__decoration-container"
+          style={{ top: hoverTop, left: hoverLeft }}
+          data-attr-validation-id={this.state.validationOutput!.id}
+        >
+          <Decoration {...validationOutput} applySuggestion={console.log} />
+        </div>
+      </div>
+    );
   }
 }
 

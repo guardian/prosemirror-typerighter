@@ -20069,7 +20069,19 @@ class ValidationService extends EventEmitter {
 
 //# sourceMappingURL=ValidationAPIService.js.map
 
-//# sourceMappingURL=Decoration.js.map
+class Decoration extends Component {
+    render({ type, annotation, suggestions, applySuggestion }) {
+        return (h("div", { className: "ValidationWidget__container", onMouseOver: console.warn },
+            h("div", { className: "ValidationWidget" },
+                h("div", { className: "ValidationWidget__label" }, type),
+                annotation,
+                suggestions &&
+                    !!suggestions.length &&
+                    applySuggestion && (h("div", { className: "ValidationWidget__suggestion-list" },
+                    h("div", { className: "ValidationWidget__label" }, "Suggestions"),
+                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion) }, suggestion))))))));
+    }
+}
 
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
 const DECORATION_DIRTY = "DECORATION_DIRTY";
@@ -20139,9 +20151,9 @@ const validationRequestError = (validationError) => ({
     type: VALIDATION_REQUEST_ERROR,
     payload: { validationError }
 });
-const newHoverIdReceived = (hoverId, rect) => ({
+const newHoverIdReceived = (hoverId, event) => ({
     type: NEW_HOVER_ID,
-    payload: { hoverId, rect }
+    payload: { hoverId, event }
 });
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
 const validationPluginReducer = (tr, state, action) => {
@@ -20161,7 +20173,13 @@ const validationPluginReducer = (tr, state, action) => {
     }
 };
 const handleNewHoverId = (_, state, action) => {
-    return Object.assign({}, state, { hoverId: action.payload.hoverId, hoverRect: action.payload.rect });
+    if (!(action.payload.event.target instanceof HTMLElement) || !action.payload.hoverId || !action.payload.event.target.offsetParent) {
+        return Object.assign({}, state, { hoverId: undefined, hoverLeft: undefined, hoverTop: undefined });
+    }
+    const { offsetLeft, offsetTop, offsetWidth, offsetHeight, offsetParent } = action.payload.event.target;
+    const { offsetY } = action.payload.event;
+    const isHoveringOverFirstLine = offsetY < offsetTop + (offsetHeight / 2);
+    return Object.assign({}, state, { hoverId: action.payload.hoverId, hoverLeft: isHoveringOverFirstLine ? offsetLeft : offsetParent.offsetLeft, hoverTop: isHoveringOverFirstLine ? offsetTop + offsetHeight / 2 : offsetTop + offsetHeight });
 };
 const handleValidationRequestPending = (_, state) => {
     return Object.assign({}, state, { validationPending: true });
@@ -20323,7 +20341,8 @@ class ValidationOverlay extends Component {
     constructor() {
         super(...arguments);
         this.state = {
-            hoverRect: undefined,
+            hoverLeft: undefined,
+            hoverTop: undefined,
             validationOutput: undefined
         };
         this.handleValidationHoverEvent = (hoverEvent) => {
@@ -20334,9 +20353,26 @@ class ValidationOverlay extends Component {
         this.props.subscribe(this.handleValidationHoverEvent);
     }
     render() {
-        return h("div", null, JSON.stringify(this.state));
+        const { validationOutput, hoverLeft, hoverTop } = this.state;
+        if (!validationOutput || !hoverLeft || !hoverTop) {
+            return null;
+        }
+        return (h("div", { class: "ValidationPlugin__overlay" },
+            h("div", { class: "ValidationPlugin__decoration-container", style: { top: hoverTop, left: hoverLeft }, "data-attr-validation-id": this.state.validationOutput.id },
+                h(Decoration, Object.assign({}, validationOutput, { applySuggestion: console.log })))));
     }
 }
+
+//# sourceMappingURL=ValidationOverlay.js.map
+
+function findAncestor(element, selector) {
+    let currentElement = element;
+    while ((currentElement = currentElement.parentElement) &&
+        !selector(currentElement))
+        ;
+    return currentElement;
+}
+//# sourceMappingURL=dom.js.map
 
 const updateView = (plugin, notify) => (view, prevState) => {
     const pluginState = plugin.getState(view.state);
@@ -20369,7 +20405,6 @@ const getMergedDirtiedRanges = (tr, oldRanges) => mergeRanges(oldRanges
     .concat(getReplaceStepRangesFromTransaction(tr)));
 const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
-    let overlayNode;
     const validationService = new ValidationService(createLanguageToolAdapter(apiUrl));
     validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
     const sendValidation = () => {
@@ -20396,7 +20431,8 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                     currentValidations: [],
                     lastValidationTime: 0,
                     hoverId: undefined,
-                    hoverRect: undefined,
+                    hoverLeft: undefined,
+                    hoverTop: undefined,
                     trHistory: [],
                     validationInFlight: undefined,
                     validationPending: false,
@@ -20441,13 +20477,19 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                 return plugin.getState(state).decorations;
             },
             handleDOMEvents: {
-                mouseover: (view, e) => {
-                    const target = e.target;
+                mouseover: (view, event) => {
+                    const target = event.target;
                     if (target) {
                         const targetAttr = target.getAttribute("data-attr-validation-id");
+                        window.target = target;
+                        console.log(target);
+                        console.log(findAncestor(target, e => e.hasAttribute('data-attr-validation-id')));
+                        if (findAncestor(target, e => e.hasAttribute('data-attr-validation-id'))) {
+                            return;
+                        }
                         const newValidationId = targetAttr ? targetAttr : undefined;
                         if (newValidationId !== plugin.getState(view.state).hoverId) {
-                            view.dispatch(view.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(newValidationId, target.getBoundingClientRect())));
+                            view.dispatch(view.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(newValidationId, event)));
                         }
                     }
                     return false;
@@ -20462,19 +20504,25 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                     notificationSubscribers.splice(notificationSubscribers.indexOf(callback), 1);
                 };
             };
-            overlayNode = document.createElement("div");
+            const overlayNode = document.createElement("div");
+            const wrapperNode = document.createElement("div");
+            wrapperNode.classList.add("ValidationPlugin__container");
+            view.dom.parentNode.replaceChild(wrapperNode, view.dom);
+            wrapperNode.appendChild(view.dom);
             view.dom.insertAdjacentElement("afterend", overlayNode);
             render(h(ValidationOverlay, { subscribe: subscribe }), overlayNode);
             const notify = (state) => notificationSubscribers.forEach(sub => {
                 if (state.hoverId) {
                     const validationOutput = selectValidationById(state, state.hoverId);
                     return sub({
-                        hoverRect: state.hoverRect,
+                        hoverLeft: state.hoverLeft,
+                        hoverTop: state.hoverTop,
                         validationOutput
                     });
                 }
                 sub({
-                    hoverRect: undefined,
+                    hoverLeft: undefined,
+                    hoverTop: undefined,
                     validationOutput: undefined
                 });
             });

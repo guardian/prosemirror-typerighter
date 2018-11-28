@@ -8,7 +8,6 @@ export interface DecorationComponentProps {
 }
 
 class Decoration extends Component<DecorationComponentProps> {
-  private containerRef: HTMLDivElement;
   render({
     type,
     annotation,
@@ -16,27 +15,27 @@ class Decoration extends Component<DecorationComponentProps> {
     applySuggestion
   }: DecorationComponentProps) {
     return (
-      <span className="ValidationWidget__container" ref={_ => this.containerRef = _}>
-        <span className="ValidationWidget">
-          <span className="ValidationWidget__label">{type}</span>
+      <div className="ValidationWidget__container" onMouseOver={console.warn}>
+        <div className="ValidationWidget">
+          <div className="ValidationWidget__label">{type}</div>
           {annotation}
-          {suggestions && !!suggestions.length &&
+          {suggestions &&
+            !!suggestions.length &&
             applySuggestion && (
-              <span className="ValidationWidget__suggestion-list">
-                          <span className="ValidationWidget__label">Suggestions</span>
-
+              <div className="ValidationWidget__suggestion-list">
+                <div className="ValidationWidget__label">Suggestions</div>
                 {suggestions.map(suggestion => (
-                  <span
+                  <div
                     class="ValidationWidget__suggestion"
                     onClick={() => applySuggestion(suggestion)}
                   >
                     {suggestion}
-                  </span>
+                  </div>
                 ))}
-              </span>
+              </div>
             )}
-        </span>
-      </span>
+        </div>
+      </div>
     );
   }
 }

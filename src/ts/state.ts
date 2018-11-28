@@ -66,11 +66,12 @@ type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
 
 export const newHoverIdReceived = (
   hoverId: string | undefined,
-  rect: DOMRect | ClientRect
+  event: MouseEvent
 ) => ({
   type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
-  payload: { hoverId, rect }
+  payload: { hoverId, event }
 });
+
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
 type Action =
@@ -133,10 +134,22 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
   state,
   action
 ): PluginState => {
+  if (!(action.payload.event.target instanceof HTMLElement) || !action.payload.hoverId || !action.payload.event.target.offsetParent) {
+    return {
+      ...state,
+      hoverId: undefined,
+      hoverLeft: undefined,
+      hoverTop: undefined
+    }
+  }
+  const { offsetLeft, offsetTop, offsetWidth, offsetHeight, offsetParent } = action.payload.event.target;
+  const { offsetY } = action.payload.event;
+  const isHoveringOverFirstLine = offsetY < offsetTop + (offsetHeight / 2);
   return {
     ...state,
     hoverId: action.payload.hoverId,
-    hoverRect: action.payload.rect
+    hoverLeft: isHoveringOverFirstLine ? offsetLeft : (offsetParent as HTMLElement).offsetLeft,
+    hoverTop: isHoveringOverFirstLine ? offsetTop + offsetHeight / 2 : offsetTop + offsetHeight
   };
 };
 
