@@ -20069,22 +20069,6 @@ class ValidationService extends EventEmitter {
 
 //# sourceMappingURL=ValidationAPIService.js.map
 
-class Decoration extends Component {
-    render({ type, from, to, annotation, suggestions, applySuggestion }) {
-        return (h("div", { className: "ValidationWidget__container" },
-            h("div", { className: "ValidationWidget", onMouseEnter: console.warn },
-                h("div", { className: "ValidationWidget__label" }, type),
-                annotation,
-                suggestions &&
-                    !!suggestions.length &&
-                    applySuggestion && (h("div", { className: "ValidationWidget__suggestion-list" },
-                    h("div", { className: "ValidationWidget__label" }, "Suggestions"),
-                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion, from, to) }, suggestion))))))));
-    }
-}
-
-//# sourceMappingURL=Decoration.js.map
-
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
 const DECORATION_DIRTY = "DECORATION_DIRTY";
 const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
@@ -20130,7 +20114,6 @@ const findSingleDecoration = (state, predicate) => {
     }
     return decorations[0];
 };
-
 //# sourceMappingURL=decoration.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
@@ -20219,6 +20202,69 @@ const handleValidationRequestError = (tr, state, action) => {
 
 //# sourceMappingURL=state.js.map
 
+class Decoration extends Component {
+    render({ type, from, to, annotation, suggestions, applySuggestion }) {
+        return (h("div", { className: "ValidationWidget__container" },
+            h("div", { className: "ValidationWidget", ref: _ => this.ref = _ },
+                h("div", { className: "ValidationWidget__label" }, type),
+                annotation,
+                suggestions &&
+                    !!suggestions.length &&
+                    applySuggestion && (h("div", { className: "ValidationWidget__suggestion-list" },
+                    h("div", { className: "ValidationWidget__label" }, "Suggestions"),
+                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion, from, to) }, suggestion))))))));
+    }
+}
+
+//# sourceMappingURL=Decoration.js.map
+
+class ValidationOverlay extends Component {
+    constructor() {
+        super(...arguments);
+        this.state = {
+            isVisible: false,
+            left: undefined,
+            top: undefined,
+            validationOutput: undefined
+        };
+        this.handleValidationHoverEvent = (hoverEvent) => {
+            const { left, top } = this.getCoordsFromHoverEvent(hoverEvent);
+            this.setState(Object.assign({}, hoverEvent, { left,
+                top }));
+        };
+        this.getCoordsFromHoverEvent = (hoverEvent) => {
+            console.log("w", window.innerWidth, this.decorationRef && this.decorationRef.ref.offsetWidth);
+            console.log("h", window.innerHeight, this.decorationRef && this.decorationRef.ref.offsetHeight);
+            if (!this.decorationRef)
+                return { left: 0, top: 0 };
+            const left = clamp_1(hoverEvent.hoverLeft || 0, 0, window.innerWidth - this.decorationRef.ref.offsetWidth);
+            const top = clamp_1(hoverEvent.hoverTop || 0, 0, window.innerWidth - this.decorationRef.ref.offsetHeight);
+            return { left, top };
+        };
+    }
+    componentWillMount() {
+        this.props.subscribe(this.handleValidationHoverEvent);
+    }
+    render() {
+        const { validationOutput, left, top } = this.state;
+        if (!validationOutput || left === undefined || top === undefined) {
+            return null;
+        }
+        return (h("div", { class: "ValidationPlugin__overlay" },
+            h("div", { class: "ValidationPlugin__decoration-container", style: { top, left }, "data-attr-validation-id": this.state.validationOutput.id },
+                h(Decoration, Object.assign({ ref: _ => (this.decorationRef = _) }, validationOutput, { applySuggestion: this.props.applySuggestion })))));
+    }
+}
+
+function findAncestor(element, selector) {
+    let currentElement = element;
+    while ((currentElement = currentElement.parentElement) &&
+        !selector(currentElement))
+        ;
+    return currentElement;
+}
+//# sourceMappingURL=dom.js.map
+
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
 // browser this is a little complicated due to unknown quality of Math.random()
@@ -20305,76 +20351,32 @@ function v4(options, buf, offset) {
 
 var v4_1 = v4;
 
-const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, void 0, void 0, function* () {
-    const body = new URLSearchParams();
-    body.append("data", JSON.stringify({
-        annotation: [
-            {
-                text: input.str
-            }
-        ]
-    }));
-    body.append("language", "en-US");
+const createTyperighterAdapter = (apiUrl) => (input) => __awaiter(undefined, void 0, void 0, function* () {
     const response = yield fetch(apiUrl, {
         method: "POST",
         headers: new Headers({
-            "Content-Type": "x-www-form-urlencoded"
+            "Content-Type": "application/json"
         }),
-        body
+        body: JSON.stringify({
+            text: input.str
+        })
     });
     if (response.status !== 200) {
         throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
     }
     const validationData = yield response.json();
-    return validationData.matches.map(match => ({
+    return validationData.results.map(match => ({
         id: v4_1(),
-        str: match.sentence,
-        from: input.from + match.offset,
-        to: input.from + match.offset + match.length,
+        str: input.str,
+        from: input.from + match.fromPos,
+        to: input.from + match.toPos,
         annotation: match.message,
         type: match.rule.description,
-        suggestions: match.replacements.map(_ => _.value)
+        suggestions: match.suggestedReplacements
     }));
 });
 
-//# sourceMappingURL=languageTool.js.map
-
-class ValidationOverlay extends Component {
-    constructor() {
-        super(...arguments);
-        this.state = {
-            hoverLeft: undefined,
-            hoverTop: undefined,
-            validationOutput: undefined
-        };
-        this.handleValidationHoverEvent = (hoverEvent) => {
-            this.setState(hoverEvent);
-        };
-    }
-    componentWillMount() {
-        this.props.subscribe(this.handleValidationHoverEvent);
-    }
-    render() {
-        const { validationOutput, hoverLeft, hoverTop } = this.state;
-        if (!validationOutput || !hoverLeft || !hoverTop) {
-            return null;
-        }
-        return (h("div", { class: "ValidationPlugin__overlay" },
-            h("div", { class: "ValidationPlugin__decoration-container", style: { top: hoverTop, left: hoverLeft }, "data-attr-validation-id": this.state.validationOutput.id },
-                h(Decoration, Object.assign({}, validationOutput, { applySuggestion: this.props.applySuggestion })))));
-    }
-}
-
-//# sourceMappingURL=ValidationOverlay.js.map
-
-function findAncestor(element, selector) {
-    let currentElement = element;
-    while ((currentElement = currentElement.parentElement) &&
-        !selector(currentElement))
-        ;
-    return currentElement;
-}
-//# sourceMappingURL=dom.js.map
+//# sourceMappingURL=typerighter.js.map
 
 const updateView = (plugin, notify) => (view, prevState) => {
     const pluginState = plugin.getState(view.state);
@@ -20407,7 +20409,7 @@ const getMergedDirtiedRanges = (tr, oldRanges) => mergeRanges(oldRanges
     .concat(getReplaceStepRangesFromTransaction(tr)));
 const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
-    const validationService = new ValidationService(createLanguageToolAdapter(apiUrl));
+    const validationService = new ValidationService(createTyperighterAdapter(apiUrl));
     validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
     const sendValidation = () => {
         const pluginState = plugin.getState(localView.state);
@@ -20504,8 +20506,6 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                 };
             };
             const applySuggestion = (suggestion, from, to) => {
-                const $from = view.state.doc.resolve(from);
-                const $to = view.state.doc.resolve(to);
                 view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
             };
             const overlayNode = document.createElement("div");
@@ -20565,7 +20565,7 @@ editorElement &&
                 }),
                 historyPlugin,
                 documentValidatorPlugin(mySchema, {
-                    apiUrl: "http://localhost:9001"
+                    apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
                 })
             ]
         })
