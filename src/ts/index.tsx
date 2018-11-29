@@ -32,6 +32,7 @@ import createLanguageToolAdapter from "./adapters/languageTool";
 import ValidationOverlay from "./components/ValidationOverlay";
 import HoverEvent from "./interfaces/HoverEvent";
 import { findAncestor } from "./utils/dom";
+import createTyperighterAdapter from "./adapters/typerighter";
 
 /**
  * Create a function responsible for updating the view. We update the view
@@ -126,7 +127,7 @@ const documentValidatorPlugin = (
 ) => {
   let localView: EditorView;
   const validationService = new ValidationService(
-    createLanguageToolAdapter(apiUrl)
+    createTyperighterAdapter(apiUrl)
   );
   validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
   const sendValidation = () => {
@@ -316,8 +317,6 @@ const documentValidatorPlugin = (
         from: number,
         to: number
       ) => {
-        const $from = view.state.doc.resolve(from);
-        const $to = view.state.doc.resolve(to);
         view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
       };
 

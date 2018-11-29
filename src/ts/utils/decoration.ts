@@ -109,25 +109,3 @@ export const findSingleDecoration = (
   }
   return decorations[0];
 };
-
-/**
- * Get a widget DOM node given a validation range.
- */
-export const getWidgetNode = (
-  validationOutput: ValidationOutput,
-  id: string
-) => {
-  const widget = document.createElement("span");
-  widget.setAttribute(DECORATION_ATTRIBUTE_ID, id);
-  render(
-    h<DecorationComponentProps>(DecorationComponent, {
-      type: validationOutput.type,
-      annotation: validationOutput.annotation,
-      suggestions: validationOutput.suggestions,
-      applySuggestion: suggestion => console.log("apply", suggestion)
-    }),
-    widget
-  );
-
-  return widget;
-};

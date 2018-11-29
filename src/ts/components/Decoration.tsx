@@ -1,4 +1,4 @@
-import { h, Component } from "preact";
+import { h, Component, Ref } from "preact";
 
 export interface DecorationComponentProps {
   type: string;
@@ -10,6 +10,7 @@ export interface DecorationComponentProps {
 }
 
 class Decoration extends Component<DecorationComponentProps> {
+  public ref: HTMLDivElement;
   render({
     type,
     from,
@@ -20,7 +21,7 @@ class Decoration extends Component<DecorationComponentProps> {
   }: DecorationComponentProps) {
     return (
       <div className="ValidationWidget__container">
-        <div className="ValidationWidget" onMouseEnter={console.warn}>
+        <div className="ValidationWidget" ref={_ => this.ref = _}>
           <div className="ValidationWidget__label">{type}</div>
           {annotation}
           {suggestions &&
