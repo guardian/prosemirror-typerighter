@@ -20070,18 +20070,20 @@ class ValidationService extends EventEmitter {
 //# sourceMappingURL=ValidationAPIService.js.map
 
 class Decoration extends Component {
-    render({ type, annotation, suggestions, applySuggestion }) {
-        return (h("div", { className: "ValidationWidget__container", onMouseOver: console.warn },
-            h("div", { className: "ValidationWidget" },
+    render({ type, from, to, annotation, suggestions, applySuggestion }) {
+        return (h("div", { className: "ValidationWidget__container" },
+            h("div", { className: "ValidationWidget", onMouseEnter: console.warn },
                 h("div", { className: "ValidationWidget__label" }, type),
                 annotation,
                 suggestions &&
                     !!suggestions.length &&
                     applySuggestion && (h("div", { className: "ValidationWidget__suggestion-list" },
                     h("div", { className: "ValidationWidget__label" }, "Suggestions"),
-                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion) }, suggestion))))))));
+                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion, from, to) }, suggestion))))))));
     }
 }
+
+//# sourceMappingURL=Decoration.js.map
 
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
 const DECORATION_DIRTY = "DECORATION_DIRTY";
@@ -20359,7 +20361,7 @@ class ValidationOverlay extends Component {
         }
         return (h("div", { class: "ValidationPlugin__overlay" },
             h("div", { class: "ValidationPlugin__decoration-container", style: { top: hoverTop, left: hoverLeft }, "data-attr-validation-id": this.state.validationOutput.id },
-                h(Decoration, Object.assign({}, validationOutput, { applySuggestion: console.log })))));
+                h(Decoration, Object.assign({}, validationOutput, { applySuggestion: this.props.applySuggestion })))));
     }
 }
 
@@ -20481,11 +20483,8 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                     const target = event.target;
                     if (target) {
                         const targetAttr = target.getAttribute("data-attr-validation-id");
-                        window.target = target;
-                        console.log(target);
-                        console.log(findAncestor(target, e => e.hasAttribute('data-attr-validation-id')));
-                        if (findAncestor(target, e => e.hasAttribute('data-attr-validation-id'))) {
-                            return;
+                        if (findAncestor(target, e => e.hasAttribute("data-attr-validation-id"))) {
+                            return false;
                         }
                         const newValidationId = targetAttr ? targetAttr : undefined;
                         if (newValidationId !== plugin.getState(view.state).hoverId) {
@@ -20504,13 +20503,18 @@ const documentValidatorPlugin = (schema, { apiUrl, throttleInMs = 2000, maxThrot
                     notificationSubscribers.splice(notificationSubscribers.indexOf(callback), 1);
                 };
             };
+            const applySuggestion = (suggestion, from, to) => {
+                const $from = view.state.doc.resolve(from);
+                const $to = view.state.doc.resolve(to);
+                view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
+            };
             const overlayNode = document.createElement("div");
             const wrapperNode = document.createElement("div");
             wrapperNode.classList.add("ValidationPlugin__container");
             view.dom.parentNode.replaceChild(wrapperNode, view.dom);
             wrapperNode.appendChild(view.dom);
             view.dom.insertAdjacentElement("afterend", overlayNode);
-            render(h(ValidationOverlay, { subscribe: subscribe }), overlayNode);
+            render(h(ValidationOverlay, { subscribe: subscribe, applySuggestion: applySuggestion }), overlayNode);
             const notify = (state) => notificationSubscribers.forEach(sub => {
                 if (state.hoverId) {
                     const validationOutput = selectValidationById(state, state.hoverId);

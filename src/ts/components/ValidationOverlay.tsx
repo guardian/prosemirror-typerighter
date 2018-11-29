@@ -5,6 +5,7 @@ import Decoration from "./Decoration";
 class ValidationOverlay extends Component<
   {
     subscribe: (callback: (hoverEvent: HoverEvent) => void) => () => void;
+    applySuggestion: (suggestion: string, from: number, to: number) => void;
   },
   HoverEvent
 > {
@@ -31,7 +32,7 @@ class ValidationOverlay extends Component<
           style={{ top: hoverTop, left: hoverLeft }}
           data-attr-validation-id={this.state.validationOutput!.id}
         >
-          <Decoration {...validationOutput} applySuggestion={console.log} />
+          <Decoration {...validationOutput} applySuggestion={this.props.applySuggestion} />
         </div>
       </div>
     );

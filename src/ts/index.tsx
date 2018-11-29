@@ -1,6 +1,6 @@
 import { render, h } from "preact";
-import { Plugin, Transaction, EditorState } from "prosemirror-state";
-import { Schema } from "prosemirror-model";
+import { Plugin, Transaction, EditorState, Selection } from "prosemirror-state";
+import { Schema, Node } from "prosemirror-model";
 import { DecorationSet, EditorView } from "prosemirror-view";
 import { mergeRanges } from "./utils/range";
 import {
@@ -125,7 +125,6 @@ const documentValidatorPlugin = (
   }
 ) => {
   let localView: EditorView;
-  let overlayNode: HTMLDivElement;
   const validationService = new ValidationService(
     createLanguageToolAdapter(apiUrl)
   );
@@ -276,22 +275,20 @@ const documentValidatorPlugin = (
             const targetAttr = (target as HTMLElement).getAttribute(
               "data-attr-validation-id"
             );
-            window.target = target
-            console.log(target)
-            console.log(findAncestor((target as HTMLElement), e => e.hasAttribute('data-attr-validation-id')))
-            if (findAncestor((target as HTMLElement), e => e.hasAttribute('data-attr-validation-id'))) {
+            if (
+              findAncestor(target as HTMLElement, e =>
+                e.hasAttribute("data-attr-validation-id")
+              )
+            ) {
               // Do nothing if we're within a validation-related node
-              return;
+              return false;
             }
             const newValidationId = targetAttr ? targetAttr : undefined;
             if (newValidationId !== plugin.getState(view.state).hoverId) {
               view.dispatch(
                 view.state.tr.setMeta(
                   VALIDATION_PLUGIN_ACTION,
-                  newHoverIdReceived(
-                    newValidationId,
-                    event
-                  )
+                  newHoverIdReceived(newValidationId, event)
                 )
               );
             }
@@ -314,6 +311,16 @@ const documentValidatorPlugin = (
         };
       };
 
+      const applySuggestion = (
+        suggestion: string,
+        from: number,
+        to: number
+      ) => {
+        const $from = view.state.doc.resolve(from);
+        const $to = view.state.doc.resolve(to);
+        view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
+      };
+
       // Create our overlay node, which is responsible for displaying
       // validation messages when the user hovers over highlighted ranges.
       const overlayNode = document.createElement("div");
@@ -325,7 +332,12 @@ const documentValidatorPlugin = (
       view.dom.parentNode!.replaceChild(wrapperNode, view.dom);
       wrapperNode.appendChild(view.dom);
       view.dom.insertAdjacentElement("afterend", overlayNode);
-      render(<ValidationOverlay subscribe={subscribe} />, overlayNode);
+      render(
+        <ValidationOverlay subscribe={subscribe} applySuggestion={applySuggestion} />,
+        overlayNode
+      );
+
+      // Create a function that will notify subscribers on state change.
       const notify = (state: PluginState) =>
         notificationSubscribers.forEach(sub => {
           if (state.hoverId) {
