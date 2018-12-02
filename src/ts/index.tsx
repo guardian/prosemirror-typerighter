@@ -26,7 +26,7 @@ import {
   DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
-import { findAncestor, getStateHoverInfoFromEvent } from "./utils/dom";
+import { getStateHoverInfoFromEvent } from "./utils/dom";
 import defaultView from "./view";
 import { IValidationAPIAdapter } from "./interfaces/IVAlidationAPIAdapter";
 

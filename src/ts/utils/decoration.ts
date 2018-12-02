@@ -1,12 +1,8 @@
 import { Decoration, DecorationSet } from "prosemirror-view";
-import DecorationComponent, {
-  DecorationComponentProps
-} from "../components/Decoration";
 import { Range, ValidationOutput } from "../interfaces/Validation";
 import flatten from "lodash/flatten";
-import { PluginState } from "..";
-import { render, h } from "preact";
 import { Node } from "prosemirror-model";
+import { PluginState } from "../state";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";

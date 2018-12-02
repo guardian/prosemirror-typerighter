@@ -1,4 +1,4 @@
-import { h, Component, Ref } from "preact";
+import { h, Component } from "preact";
 
 export interface DecorationComponentProps {
   type: string;

@@ -17,6 +17,9 @@ interface Props {
   applySuggestion: (suggestion: string, from: number, to: number) => void;
 }
 
+/**
+ * An overlay to display validation tooltips. Subscribes to hover events.
+ */
 class ValidationOverlay extends Component<Props, State> {
   private decorationRef: Decoration;
   public state: State = {

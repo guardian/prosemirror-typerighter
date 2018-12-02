@@ -9,7 +9,7 @@ import { selectValidationById } from "./state";
 import { Plugin } from "prosemirror-state";
 
 /**
- * Accepts a schema and creates a view function.
+ * Accepts a plugin schema and creates a view function.
  */
 export default (plugin: Plugin, schema: Schema) => (view: EditorView) => {
   const notificationSubscribers: Array<(hoverEvent: HoverEvent) => void> = [];
