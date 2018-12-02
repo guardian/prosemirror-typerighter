@@ -5,6 +5,7 @@ import { findParentNode } from "prosemirror-utils";
 import { Selection, Transaction } from "prosemirror-state";
 import clamp from "lodash/clamp";
 import compact from "lodash/compact";
+import { getReplaceStepRangesFromTransaction } from "./prosemirror";
 
 export const findOverlappingRangeIndex = (range: Range, ranges: Range[]) => {
   return ranges.findIndex(
@@ -17,6 +18,16 @@ export const findOverlappingRangeIndex = (range: Range, ranges: Range[]) => {
       (localRange.from >= range.from && localRange.to <= range.to)
   );
 };
+
+export const getMergedDirtiedRanges = (tr: Transaction, oldRanges: Range[]) =>
+  mergeRanges(
+    oldRanges
+      .map(range => ({
+        from: tr.mapping.map(range.from),
+        to: tr.mapping.map(range.to)
+      }))
+      .concat(getReplaceStepRangesFromTransaction(tr))
+  );
 
 /**
  * Return the first set of ranges with any members overlapping the second set removed.
@@ -134,9 +145,6 @@ export const expandRange = (range: Range, doc: Node): Range | undefined => {
       new Selection($fromPos, $toPos)
     );
     if (!parentNode) {
-      console.error(
-        `Parent node not found for position ${$fromPos.start}, ${$fromPos.end}`
-      );
       return undefined;
     }
     return {

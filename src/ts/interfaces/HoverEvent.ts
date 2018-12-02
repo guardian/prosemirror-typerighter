@@ -1,8 +1,8 @@
 import { ValidationOutput } from "./Validation";
+import { StateHoverInfo } from "../state";
 
 interface HoverEvent {
-  hoverLeft: number | undefined;
-  hoverTop: number | undefined;
+  hoverInfo: StateHoverInfo | undefined;
   validationOutput: ValidationOutput | undefined;
 }
 

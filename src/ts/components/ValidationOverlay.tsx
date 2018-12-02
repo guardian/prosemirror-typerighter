@@ -1,12 +1,14 @@
-import { Component, h, Ref } from "preact";
+import { Component, h } from "preact";
 import HoverEvent from "../interfaces/HoverEvent";
 import Decoration from "./Decoration";
 import clamp from "lodash/clamp";
 import { ValidationOutput } from "../interfaces/Validation";
+import { StateHoverInfo } from "../state";
 
 interface State {
   left: number | undefined;
   top: number | undefined;
+  hoverInfo: StateHoverInfo | undefined;
   validationOutput: ValidationOutput | undefined;
   isVisible: boolean;
 }
@@ -21,22 +23,36 @@ class ValidationOverlay extends Component<Props, State> {
     isVisible: false,
     left: undefined,
     top: undefined,
+    hoverInfo: undefined,
     validationOutput: undefined
   };
+
   public componentWillMount() {
     this.props.subscribe(this.handleValidationHoverEvent);
   }
+
+  public componentDidUpdate() {
+    if (this.state.isVisible) {
+      return;
+    }
+    const { left, top } = this.getCoordsFromHoverEvent();
+    this.setState({
+      isVisible: true,
+      left,
+      top
+    });
+  }
+
   public render() {
     const { validationOutput, left, top } = this.state;
     if (!validationOutput || left === undefined || top === undefined) {
       return null;
     }
     return (
-      <div class="ValidationPlugin__overlay">
+      <div class="ValidationPlugin__overlay" onMouseOver={this.handleMouseOver}>
         <div
           class="ValidationPlugin__decoration-container"
-          style={{ top, left }}
-          data-attr-validation-id={this.state.validationOutput!.id}
+          style={{ top: top - 1, left }}
         >
           <Decoration
             ref={_ => (this.decorationRef = _)}
@@ -47,36 +63,52 @@ class ValidationOverlay extends Component<Props, State> {
       </div>
     );
   }
+
+  private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
+
   private handleValidationHoverEvent = (hoverEvent: HoverEvent) => {
-    const { left, top } = this.getCoordsFromHoverEvent(hoverEvent);
     this.setState({
+      ...this.state,
       ...hoverEvent,
-      left,
-      top
+      isVisible: false,
+      left: 0,
+      top: 0
     });
   };
-  private getCoordsFromHoverEvent = (hoverEvent: HoverEvent) => {
-    console.log(
-      "w",
-      window.innerWidth,
-      this.decorationRef && this.decorationRef.ref.offsetWidth
+
+  private getCoordsFromHoverEvent = () => {
+    if (!this.decorationRef || !this.state.hoverInfo)
+      return { left: 0, top: 0 };
+
+    // Get the ideal tooltip position.
+    const { left: tooltipLeft, top: tooltipTop } = this.getTooltipCoords(
+      this.state.hoverInfo
     );
-    console.log(
-      "h",
-      window.innerHeight,
-      this.decorationRef && this.decorationRef.ref.offsetHeight
-    );
-    if (!this.decorationRef) return { left: 0, top: 0 };
+
+    // Fit the ideal position to the viewport.
     const left = clamp(
-      hoverEvent.hoverLeft || 0,
+      tooltipLeft || 0,
       0,
-      window.innerWidth - this.decorationRef.ref.offsetWidth
+      window.innerWidth - this.decorationRef.ref.offsetTop
     );
     const top = clamp(
-      hoverEvent.hoverTop || 0,
+      tooltipTop || 0,
       0,
       window.innerWidth - this.decorationRef.ref.offsetHeight
     );
+    return { left, top };
+  };
+
+  private getTooltipCoords = (hoverInfo: StateHoverInfo) => {
+    // The mouse offset isn't an integer, so we round it here to avoid oddness.
+    const isHoveringOverFirstLine =
+      hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);
+    const left = isHoveringOverFirstLine
+      ? hoverInfo.offsetLeft
+      : hoverInfo.left;
+    const top = isHoveringOverFirstLine
+      ? hoverInfo.offsetTop + hoverInfo.heightOfSingleLine
+      : hoverInfo.offsetTop + hoverInfo.height;
     return { left, top };
   };
 }

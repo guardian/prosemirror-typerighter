@@ -1,14 +1,11 @@
-import { render, h } from "preact";
-import { Plugin, Transaction, EditorState, Selection } from "prosemirror-state";
-import { Schema, Node } from "prosemirror-model";
+import { Plugin, Transaction, EditorState } from "prosemirror-state";
+import { Schema } from "prosemirror-model";
 import { DecorationSet, EditorView } from "prosemirror-view";
-import { mergeRanges } from "./utils/range";
+import { mergeRanges, getMergedDirtiedRanges } from "./utils/range";
 import {
-  ValidationResponse,
-  ValidationInput,
-  ValidationError,
   Range,
-  ValidationOutput
+  ValidationResponse,
+  ValidationError
 } from "./interfaces/Validation";
 import ValidationService, { ValidationEvents } from "./ValidationAPIService";
 import {
@@ -20,94 +17,18 @@ import {
   Action,
   validationRequestPending,
   newHoverIdReceived,
-  selectValidationById
+  PluginState
 } from "./state";
 import {
-  findSingleDecoration,
   createDebugDecorationFromRange,
-  removeValidationDecorationsFromRanges
+  removeValidationDecorationsFromRanges,
+  DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
+  DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
-import createLanguageToolAdapter from "./adapters/languageTool";
-import ValidationOverlay from "./components/ValidationOverlay";
-import HoverEvent from "./interfaces/HoverEvent";
-import { findAncestor } from "./utils/dom";
-import createTyperighterAdapter from "./adapters/typerighter";
-
-/**
- * Create a function responsible for updating the view. We update the view
- * when we need to update our decorations with hover information.
- */
-const updateView = (plugin: Plugin, notify: (s: PluginState) => void) => (
-  view: EditorView,
-  prevState: EditorState
-) => {
-  const pluginState: PluginState = plugin.getState(view.state);
-  notify(pluginState);
-  const decorationId = pluginState.hoverId;
-  const prevDecorationId = plugin.getState(prevState).hoverId;
-  if (prevDecorationId === decorationId) {
-    return;
-  }
-  if (!prevDecorationId && decorationId) {
-    const decoration = findSingleDecoration(
-      pluginState,
-      spec => spec.decorationId === decorationId
-    );
-    if (!decoration) {
-      return;
-    }
-    (decoration as any).type.widget.classList.add(
-      "ValidationWidget__container--is-hovering"
-    );
-    return;
-  }
-  const decoration = findSingleDecoration(
-    pluginState,
-    spec => spec.decorationId === prevDecorationId
-  );
-  if (!decoration) {
-    return;
-  }
-  // @todo - revisit typing, as PM doesn't expose the 'type' property
-  // but we need access to the appropriate DOM node here
-  (decoration as any).type.widget &&
-    (decoration as any).type.widget.classList.remove(
-      "ValidationWidget__container--is-hovering"
-    );
-};
-
-type PluginState = {
-  initialThrottle: number;
-  currentThrottle: number;
-  maxThrottle: number;
-  decorations: DecorationSet;
-  currentValidations: ValidationOutput[];
-  dirtiedRanges: Range[];
-  lastValidationTime: number;
-  hoverId: string | undefined;
-  hoverLeft: number | undefined;
-  hoverTop: number | undefined;
-  trHistory: Transaction[];
-  validationPending: boolean;
-  validationInFlight:
-    | {
-        validationInputs: ValidationInput[];
-        id: number;
-      }
-    | undefined;
-  error: string | undefined;
-};
-
-const getMergedDirtiedRanges = (tr: Transaction, oldRanges: Range[]) =>
-  mergeRanges(
-    oldRanges
-      .map(range => ({
-        from: tr.mapping.map(range.from),
-        to: tr.mapping.map(range.to)
-      }))
-      .concat(getReplaceStepRangesFromTransaction(tr))
-  );
+import { findAncestor, getStateHoverInfoFromEvent } from "./utils/dom";
+import defaultView from "./view";
+import { IValidationAPIAdapter } from "./interfaces/IVAlidationAPIAdapter";
 
 /**
  * The document validator plugin. Listens for validation commands and applies
@@ -116,21 +37,36 @@ const getMergedDirtiedRanges = (tr: Transaction, oldRanges: Range[]) =>
 const documentValidatorPlugin = (
   schema: Schema,
   {
-    apiUrl,
+    createViewHandler = defaultView,
+    adapter,
     throttleInMs = 2000,
     maxThrottle = 8000
   }: {
-    apiUrl: string;
+    createViewHandler?: (
+      plugin: Plugin,
+      schema: Schema
+    ) => ((
+      p: EditorView<Schema>
+    ) => {
+      update?:
+        | ((view: EditorView<Schema>, prevState: EditorState<Schema>) => void)
+        | null;
+      destroy?: (() => void) | null;
+    });
+    adapter: IValidationAPIAdapter;
     throttleInMs?: number;
     maxThrottle?: number;
   }
 ) => {
   let localView: EditorView;
-  const validationService = new ValidationService(
-    createTyperighterAdapter(apiUrl)
-  );
-  validationService.on(ValidationEvents.VALIDATION_SUCCESS, console.log);
-  const sendValidation = () => {
+
+  // Set up our validation methods, which run outside of the plugin state lifecycle.
+  const validationService = new ValidationService(adapter);
+
+  /**
+   * Request a validation for the currently pending ranges.
+   */
+  const requestValidation = () => {
     const pluginState: PluginState = plugin.getState(localView.state);
     // If there's already a validation in flight, defer validation
     // for another throttle tick
@@ -144,12 +80,11 @@ const documentValidatorPlugin = (
       )
     );
   };
-  const scheduleValidation = () => {
+  const scheduleValidation = () =>
     setTimeout(
-      sendValidation,
+      requestValidation,
       plugin.getState(localView.state).currentThrottle
     );
-  };
 
   const plugin: Plugin = new Plugin({
     state: {
@@ -175,18 +110,16 @@ const documentValidatorPlugin = (
               )
             )
         );
-
         return {
+          debug: false,
           currentThrottle: throttleInMs,
           initialThrottle: throttleInMs,
           maxThrottle,
           decorations: DecorationSet.create(doc, []),
           dirtiedRanges: [],
           currentValidations: [],
-          lastValidationTime: 0,
           hoverId: undefined,
-          hoverLeft: undefined,
-          hoverTop: undefined,
+          hoverInfo: undefined,
           trHistory: [],
           validationInFlight: undefined,
           validationPending: false,
@@ -221,7 +154,9 @@ const documentValidatorPlugin = (
           );
         }
 
-        // Keep the transaction history up to date
+        // Keep the transaction history up to date ... to a point! If we get a
+        // validation result older than this history, we can discard it and ask
+        // for another.
         _trHistory =
           _trHistory.length > 25
             ? _trHistory.slice(1).concat(tr)
@@ -246,8 +181,8 @@ const documentValidatorPlugin = (
         newPluginState.dirtiedRanges.length &&
         !newPluginState.validationPending
       ) {
-        // Issue a delayed request to the validation service,
-        // and mark the state as pending validation
+        // Issue a delayed request to the validation service, and mark the
+        // state as pending validation.
         scheduleValidation();
         return newState.tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
@@ -271,93 +206,48 @@ const documentValidatorPlugin = (
       },
       handleDOMEvents: {
         mouseover: (view: EditorView, event: MouseEvent) => {
-          const target = event.target;
-          if (target) {
-            const targetAttr = (target as HTMLElement).getAttribute(
-              "data-attr-validation-id"
-            );
-            if (
-              findAncestor(target as HTMLElement, e =>
-                e.hasAttribute("data-attr-validation-id")
-              )
-            ) {
-              // Do nothing if we're within a validation-related node
-              return false;
-            }
-            const newValidationId = targetAttr ? targetAttr : undefined;
-            if (newValidationId !== plugin.getState(view.state).hoverId) {
-              view.dispatch(
-                view.state.tr.setMeta(
-                  VALIDATION_PLUGIN_ACTION,
-                  newHoverIdReceived(newValidationId, event)
-                )
-              );
-            }
+          if (!event.target || !(event.target instanceof HTMLElement)) {
+            return false;
           }
+          const target = event.target;
+          const targetAttr = target.getAttribute(DECORATION_ATTRIBUTE_ID);
+          const newValidationId = targetAttr ? targetAttr : undefined;
+          if (
+            newValidationId === plugin.getState(view.state).hoverId
+          ) {
+            return false;
+          }
+          // Get our height marker, which tells us the height of a single line
+          // for the given validation.
+          const heightMarker = document.querySelector(
+            `[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newValidationId}"]`
+          );
+          if (
+            newValidationId &&
+            (!heightMarker || !(heightMarker instanceof HTMLElement))
+          ) {
+            console.warn(
+              `No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`
+            );
+            return false;
+          }
+          view.dispatch(
+            view.state.tr.setMeta(
+              VALIDATION_PLUGIN_ACTION,
+              newHoverIdReceived(
+                newValidationId,
+                getStateHoverInfoFromEvent(event, heightMarker)
+              )
+            )
+          );
           return false;
         }
       }
     },
-    view(view: EditorView) {
-      const notificationSubscribers: Array<
-        (hoverEvent: HoverEvent) => void
-      > = [];
-      const subscribe = (callback: (hoverEvent: HoverEvent) => void) => {
-        notificationSubscribers.push(callback);
-        return () => {
-          notificationSubscribers.splice(
-            notificationSubscribers.indexOf(callback),
-            1
-          );
-        };
-      };
-
-      const applySuggestion = (
-        suggestion: string,
-        from: number,
-        to: number
-      ) => {
-        view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
-      };
-
-      // Create our overlay node, which is responsible for displaying
-      // validation messages when the user hovers over highlighted ranges.
-      const overlayNode = document.createElement("div");
-
-      // We wrap this in a container to allow the overlay to be positioned
-      // relative to the editable document.
-      const wrapperNode = document.createElement("div");
-      wrapperNode.classList.add("ValidationPlugin__container");
-      view.dom.parentNode!.replaceChild(wrapperNode, view.dom);
-      wrapperNode.appendChild(view.dom);
-      view.dom.insertAdjacentElement("afterend", overlayNode);
-      render(
-        <ValidationOverlay subscribe={subscribe} applySuggestion={applySuggestion} />,
-        overlayNode
-      );
-
-      // Create a function that will notify subscribers on state change.
-      const notify = (state: PluginState) =>
-        notificationSubscribers.forEach(sub => {
-          if (state.hoverId) {
-            const validationOutput = selectValidationById(state, state.hoverId);
-            return sub({
-              hoverLeft: state.hoverLeft,
-              hoverTop: state.hoverTop,
-              validationOutput
-            });
-          }
-          sub({
-            hoverLeft: undefined,
-            hoverTop: undefined,
-            validationOutput: undefined
-          });
-        });
-
+    view(view) {
       localView = view;
-      return {
-        update: updateView(plugin, notify)
-      };
+      const viewHandler = createViewHandler(plugin, schema);
+      return viewHandler(view);
     }
   });
   return plugin;
@@ -375,4 +265,4 @@ const validateDocument = (
   );
 
 export default documentValidatorPlugin;
-export { validateDocument, PluginState };
+export { validateDocument };

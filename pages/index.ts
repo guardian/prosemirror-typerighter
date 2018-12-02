@@ -15,6 +15,7 @@ import "../src/css/noting.scss";
 import createDocumentValidatorPlugin, {
   validateDocument
 } from "../src/ts/index";
+import createLanguageToolAdapter from "../src/ts/adapters/languageTool";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -45,7 +46,7 @@ editorElement &&
         }),
         historyPlugin,
         createDocumentValidatorPlugin(mySchema, {
-          apiUrl: "https://typerighter.code.dev-gutools.co.uk/check"
+          adapter: createLanguageToolAdapter("http://localhost:9001")
         })
       ]
     })

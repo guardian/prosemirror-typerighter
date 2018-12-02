@@ -2,10 +2,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import DecorationComponent, {
   DecorationComponentProps
 } from "../components/Decoration";
-import {
-  Range,
-  ValidationOutput
-} from "../interfaces/Validation";
+import { Range, ValidationOutput } from "../interfaces/Validation";
 import flatten from "lodash/flatten";
 import { PluginState } from "..";
 import { render, h } from "preact";
@@ -13,6 +10,8 @@ import { Node } from "prosemirror-model";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
+export const DECORATION_VALIDATION_HEIGHT_MARKER =
+  "DECORATION_VALIDATION_HEIGHT_MARKER";
 export const DECORATION_DIRTY = "DECORATION_DIRTY";
 export const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
 
@@ -22,7 +21,8 @@ export const DecorationClassMap = {
   [DECORATION_VALIDATION]: "ValidationDecoration"
 };
 
-const DECORATION_ATTRIBUTE_ID = "data-attr-validation-id";
+export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
+export const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
 
 export const createDebugDecorationFromRange = (range: Range, dirty = true) => {
   const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
@@ -75,12 +75,27 @@ export const getNewDecorationsForCurrentValidations = (
 };
 
 /**
+ * Create a height marker DOM node. Used to determine the height
+ * of a single line of inline content, which is useful when we're
+ * calculating where to place tooltips as the user hovers over multi-
+ * line spans.
+ */
+const createHeightMarkerNode = (id: string) => {
+  const node = document.createElement("span");
+  node.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
+  return node;
+};
+
+/**
  * Create a validation decoration for the given range.
  */
 export const createDecorationForValidationRange = (
   output: ValidationOutput
 ) => {
   return [
+    Decoration.widget(output.from, createHeightMarkerNode(output.id), {
+      type: DECORATION_VALIDATION_HEIGHT_MARKER
+    } as any),
     Decoration.inline(
       output.from,
       output.to,

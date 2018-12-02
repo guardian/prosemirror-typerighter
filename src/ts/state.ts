@@ -1,5 +1,4 @@
 import { Transaction } from "prosemirror-state";
-import { PluginState } from "./index";
 import {
   ValidationResponse,
   ValidationError,
@@ -20,6 +19,78 @@ import {
   removeValidationDecorationsFromRanges,
   DECORATION_DIRTY
 } from "./utils/decoration";
+
+import { DecorationSet } from "prosemirror-view";
+import {  Range } from "./interfaces/Validation";
+
+/**
+ * Information about the span element the user is hovering over.
+ */
+export interface StateHoverInfo {
+  // The offsetLeft property of the element relative to the document container.
+  // If the span covers multiple lines, this will be the point that the span
+  // starts on the line - for the left position of the bounding rectangle see
+  // `left`.
+  offsetLeft: number;
+  // The offsetTop property of the element relative to the document container.
+  offsetTop: number;
+  // The left property from the element's bounding rectangle.
+  left: number;
+  // The top property from the element's bounding rectangle.
+  top: number;
+  // The height of the element.
+  height: number;
+  // The x coordinate of the mouse position relative to the element
+  mouseOffsetX: number;
+  // The y coordinate of the mouse position relative to the element
+  mouseOffsetY: number;
+  // The height the element would have if it occupied a single line.
+  // Useful when determining where to put a tooltip if the user
+  // is hovering over a span that covers several lines.
+  heightOfSingleLine: number;
+}
+
+export interface PluginState {
+  // Is the plugin in debug mode? Debug mode adds marks to show dirtied
+  // and expanded ranges.
+  debug: boolean;
+  // The initial throttle duration for pending validation requests.
+  initialThrottle: number;
+  // The current throttle duration, which increases during backof.
+  currentThrottle: number;
+  // The maximum possible throttle duration.
+  maxThrottle: number;
+  // The current decorations the plugin is applying to the document.
+  decorations: DecorationSet;
+  // The current validation outputs for the document.
+  currentValidations: ValidationOutput[];
+  // The current ranges that are marked as dirty, that is, have been
+  // changed since the last validation pass.
+  dirtiedRanges: Range[];
+  // The id of the validation the user is currently hovering over.
+  hoverId: string | undefined;
+  // See StateHoverInfo.
+  hoverInfo: StateHoverInfo | undefined;
+  // The history of transactions accrued since the last validation.
+  // These are mapped through to apply validations applied against
+  // a preview document state to the current document state.
+  trHistory: Transaction[];
+  // Is a validation pending - that is, have ranges been dirtied but
+  // not yet been expanded and sent for validation?
+  validationPending: boolean;
+  // Is a validation currently in flight - that is, has a validation
+  // been sent to the validation service and we're awaiting its
+  // return?
+  validationInFlight:
+    | {
+        validationInputs: ValidationInput[];
+        id: number;
+      }
+    | undefined;
+  // The current error status.
+  error: string | undefined;
+}
+
 
 // The transaction meta key that namespaces our actions.
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
@@ -66,10 +137,10 @@ type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
 
 export const newHoverIdReceived = (
   hoverId: string | undefined,
-  event: MouseEvent
+  hoverInfo: StateHoverInfo | undefined
 ) => ({
   type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
-  payload: { hoverId, event }
+  payload: { hoverId, hoverInfo }
 });
 
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
@@ -134,23 +205,11 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
   state,
   action
 ): PluginState => {
-  if (!(action.payload.event.target instanceof HTMLElement) || !action.payload.hoverId || !action.payload.event.target.offsetParent) {
-    return {
-      ...state,
-      hoverId: undefined,
-      hoverLeft: undefined,
-      hoverTop: undefined
-    }
-  }
-  const { offsetLeft, offsetTop, offsetWidth, offsetHeight, offsetParent } = action.payload.event.target;
-  const { offsetY } = action.payload.event;
-  const isHoveringOverFirstLine = offsetY < offsetTop + (offsetHeight / 2);
   return {
     ...state,
     hoverId: action.payload.hoverId,
-    hoverLeft: isHoveringOverFirstLine ? offsetLeft : (offsetParent as HTMLElement).offsetLeft,
-    hoverTop: isHoveringOverFirstLine ? offsetTop + offsetHeight / 2 : offsetTop + offsetHeight
-  };
+    hoverInfo: action.payload.hoverInfo
+  }
 };
 
 const handleValidationRequestPending: ActionHandler<
