@@ -3512,17 +3512,35 @@ prosemirror-transform@^1.0.0:
   dependencies:
     prosemirror-model "^1.0.0"
 
+prosemirror-transform@^1.1.0:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/prosemirror-transform/-/prosemirror-transform-1.1.3.tgz#28cfdf1f9ee514edc40466be7b7db39eed545fdf"
+  dependencies:
+    prosemirror-model "^1.0.0"
+
 prosemirror-utils@^0.6.7:
   version "0.6.7"
   resolved "https://registry.yarnpkg.com/prosemirror-utils/-/prosemirror-utils-0.6.7.tgz#2a54de0883a609442b83fe5c076073b828c58f19"
 
-prosemirror-view@^1.0.0, prosemirror-view@^1.2.0:
+prosemirror-view@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.2.0.tgz#a3466a6f74a3af8aa70bf37c7779e961eeabf35b"
   dependencies:
     prosemirror-model "^1.1.0"
     prosemirror-state "^1.0.0"
     prosemirror-transform "^1.0.0"
+
+prosemirror-view@^1.6.7:
+  version "1.6.7"
+  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.6.7.tgz#c89f078c7880d44cf5c193e8b1bd289da226fbd9"
+  dependencies:
+    prosemirror-model "^1.1.0"
+    prosemirror-state "^1.0.0"
+    prosemirror-transform "^1.1.0"
+
+prosemirror@^0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/prosemirror/-/prosemirror-0.11.1.tgz#4a2c40b824ededf1b1f56e6ece332621583c0887"
 
 pseudomap@^1.0.2:
   version "1.0.2"
