@@ -1,6 +1,6 @@
-import { ValidationError, ValidationInput, ValidationOutput } from "./IValidation";
+import { IValidationInput, IValidationOutput } from "./IValidation";
 
-export type IValidationAPIAdapter = (input: ValidationInput) => Promise<ValidationOutput[]>;
+export type IValidationAPIAdapter = (input: IValidationInput) => Promise<IValidationOutput[]>;
 type IValidationAPIAdapterCreator = (apiUrl: string) => IValidationAPIAdapter;
 
 export default IValidationAPIAdapterCreator;

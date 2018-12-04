@@ -1,26 +1,25 @@
-import { Transaction } from 'prosemirror-state';
-import { DecorationSet } from 'prosemirror-view';
-import { IRange } from './interfaces/IValidation';
+import { Transaction } from "prosemirror-state";
+import { DecorationSet } from "prosemirror-view";
+import { IRange } from "./interfaces/IValidation";
 import {
   IValidationError,
   IValidationInput,
   IValidationOutput,
   IValidationResponse
-  } from './interfaces/IValidation';
+} from "./interfaces/IValidation";
 import {
   createDebugDecorationFromRange,
   DECORATION_DIRTY,
   DECORATION_INFLIGHT,
   getNewDecorationsForCurrentValidations,
   removeValidationDecorationsFromRanges
-  } from './utils/decoration';
+} from "./utils/decoration";
 import {
-  getRangesOfParentBlockNodes,
   mapRangeThroughTransactions,
   mergeOutputsFromValidationResponse,
   mergeRanges,
   validationInputToRange
-  } from './utils/range';
+} from "./utils/range";
 
 /**
  * Information about the span element the user is hovering over.
@@ -208,7 +207,7 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
     ...state,
     hoverId: action.payload.hoverId,
     hoverInfo: action.payload.hoverInfo
-  }
+  };
 };
 
 const handleValidationRequestPending: ActionHandler<
@@ -226,10 +225,12 @@ const handleValidationRequestPending: ActionHandler<
 const handleValidationRequestStart: ActionHandler<
   ActionValidationRequestStart
 > = (tr, state, action) => {
-  const validationInputs: IValidationInput[] = action.payload.ranges.map(range => ({
-    str: tr.doc.textBetween(range.from, range.to),
-    ...range
-  }));
+  const validationInputs: IValidationInput[] = action.payload.ranges.map(
+    range => ({
+      str: tr.doc.textBetween(range.from, range.to),
+      ...range
+    })
+  );
   // Remove any debug decorations, if they exist.
   const decorations = removeValidationDecorationsFromRanges(
     state.decorations,
@@ -237,7 +238,9 @@ const handleValidationRequestStart: ActionHandler<
     DECORATION_DIRTY
   ).add(
     tr.doc,
-    action.payload.ranges.map(range => createDebugDecorationFromRange(range, false))
+    action.payload.ranges.map(range =>
+      createDebugDecorationFromRange(range, false)
+    )
   );
   return {
     ...state,

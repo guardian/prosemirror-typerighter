@@ -3480,7 +3480,7 @@ exports.MarkType = MarkType;
 exports.ContentMatch = ContentMatch;
 exports.DOMParser = DOMParser;
 exports.DOMSerializer = DOMSerializer;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$1);
@@ -5183,7 +5183,7 @@ exports.RemoveMarkStep = RemoveMarkStep;
 exports.ReplaceStep = ReplaceStep;
 exports.ReplaceAroundStep = ReplaceAroundStep;
 exports.replaceStep = replaceStep;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$2);
@@ -6340,7 +6340,7 @@ exports.Transaction = Transaction;
 exports.EditorState = EditorState;
 exports.Plugin = Plugin;
 exports.PluginKey = PluginKey;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist);
@@ -10972,7 +10972,7 @@ exports.Decoration = Decoration;
 exports.DecorationSet = DecorationSet;
 exports.__serializeForClipboard = serializeForClipboard;
 exports.__parseFromClipboard = parseFromClipboard;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$3);
@@ -11143,7 +11143,7 @@ var schema = new dist$1.Schema({nodes: nodes, marks: marks});
 exports.nodes = nodes;
 exports.marks = marks;
 exports.schema = schema;
-
+//# sourceMappingURL=schema-basic.js.map
 });
 
 unwrapExports(schemaBasic);
@@ -11398,7 +11398,7 @@ exports.wrapInList = wrapInList;
 exports.splitListItem = splitListItem;
 exports.liftListItem = liftListItem;
 exports.sinkListItem = sinkListItem;
-
+//# sourceMappingURL=schema-list.js.map
 });
 
 unwrapExports(schemaList);
@@ -12058,7 +12058,7 @@ exports.undo = undo;
 exports.redo = redo;
 exports.undoDepth = undoDepth;
 exports.redoDepth = redoDepth;
-
+//# sourceMappingURL=history.js.map
 });
 
 unwrapExports(history_1);
@@ -12298,7 +12298,7 @@ function keydownHandler(bindings) {
 
 exports.keymap = keymap;
 exports.keydownHandler = keydownHandler;
-
+//# sourceMappingURL=keymap.js.map
 });
 
 unwrapExports(keymap_1);
@@ -12964,7 +12964,7 @@ exports.chainCommands = chainCommands;
 exports.pcBaseKeymap = pcBaseKeymap;
 exports.macBaseKeymap = macBaseKeymap;
 exports.baseKeymap = baseKeymap;
-
+//# sourceMappingURL=commands.js.map
 });
 
 unwrapExports(commands$1);
@@ -13107,7 +13107,7 @@ function dropPos(slice, $pos) {
 }
 
 exports.dropCursor = dropCursor;
-
+//# sourceMappingURL=dropcursor.js.map
 });
 
 unwrapExports(dropcursor);
@@ -13303,7 +13303,7 @@ function drawGapCursor(state) {
 
 exports.gapCursor = gapCursor;
 exports.GapCursor = GapCursor;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$7);
@@ -14147,7 +14147,7 @@ exports.redoItem = redoItem;
 exports.wrapItem = wrapItem;
 exports.blockTypeItem = blockTypeItem;
 exports.menuBar = menuBar;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$8);
@@ -14338,7 +14338,7 @@ exports.closeSingleQuote = closeSingleQuote;
 exports.smartQuotes = smartQuotes;
 exports.wrappingInputRule = wrappingInputRule;
 exports.textblockTypeInputRule = textblockTypeInputRule;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$9);
@@ -14982,7 +14982,7 @@ exports.buildMenuItems = buildMenuItems;
 exports.buildKeymap = buildKeymap;
 exports.buildInputRules = buildInputRules;
 exports.exampleSetup = exampleSetup;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$6);
@@ -15091,12 +15091,10 @@ function isObject(value) {
 
 var isObject_1 = isObject;
 
-/** Detect free variable `global` from Node.js. */
 var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
 
 var _freeGlobal = freeGlobal;
 
-/** Detect free variable `self`. */
 var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
 
 /** Used as a reference to the global object. */
@@ -15104,12 +15102,10 @@ var root = _freeGlobal || freeSelf || Function('return this')();
 
 var _root = root;
 
-/** Built-in value references. */
 var Symbol$1 = _root.Symbol;
 
 var _Symbol = Symbol$1;
 
-/** Used for built-in method references. */
 var objectProto = Object.prototype;
 
 /** Used to check objects for own properties. */
@@ -15177,7 +15173,6 @@ function objectToString(value) {
 
 var _objectToString = objectToString;
 
-/** `Object#toString` result references. */
 var nullTag = '[object Null]';
 var undefinedTag = '[object Undefined]';
 
@@ -15232,7 +15227,6 @@ function isObjectLike(value) {
 
 var isObjectLike_1 = isObjectLike;
 
-/** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
 
 /**
@@ -15259,7 +15253,6 @@ function isSymbol(value) {
 
 var isSymbol_1 = isSymbol;
 
-/** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
 
 /** Used to match leading and trailing whitespace. */
@@ -15323,25 +15316,6 @@ function toNumber(value) {
 
 var toNumber_1 = toNumber;
 
-/**
- * Clamps `number` within the inclusive `lower` and `upper` bounds.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Number
- * @param {number} number The number to clamp.
- * @param {number} [lower] The lower bound.
- * @param {number} upper The upper bound.
- * @returns {number} Returns the clamped number.
- * @example
- *
- * _.clamp(-10, -5, 5);
- * // => -5
- *
- * _.clamp(10, -5, 5);
- * // => 5
- */
 function clamp(number, lower, upper) {
   if (upper === undefined) {
     upper = lower;
@@ -16058,6 +16032,9 @@ function render(vnode, parent, merge) {
   return diff(merge, vnode, {}, false, parent, false);
 }
 
+
+//# sourceMappingURL=preact.mjs.map
+
 class Decoration extends Component {
     render({ type, from, to, annotation, suggestions, applySuggestion }) {
         return (h("div", { className: "ValidationWidget__container" },
@@ -16071,6 +16048,8 @@ class Decoration extends Component {
                     suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion, from, to) }, suggestion))))))));
     }
 }
+
+//# sourceMappingURL=Decoration.js.map
 
 class ValidationOverlay extends Component {
     constructor() {
@@ -16130,6 +16109,8 @@ class ValidationOverlay extends Component {
     }
 }
 
+//# sourceMappingURL=ValidationOverlay.js.map
+
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -16151,7 +16132,6 @@ function arrayPush(array, values) {
 
 var _arrayPush = arrayPush;
 
-/** `Object#toString` result references. */
 var argsTag = '[object Arguments]';
 
 /**
@@ -16167,7 +16147,6 @@ function baseIsArguments(value) {
 
 var _baseIsArguments = baseIsArguments;
 
-/** Used for built-in method references. */
 var objectProto$2 = Object.prototype;
 
 /** Used to check objects for own properties. */
@@ -16228,7 +16207,6 @@ var isArray = Array.isArray;
 
 var isArray_1 = isArray;
 
-/** Built-in value references. */
 var spreadableSymbol = _Symbol ? _Symbol.isConcatSpreadable : undefined;
 
 /**
@@ -16245,17 +16223,6 @@ function isFlattenable(value) {
 
 var _isFlattenable = isFlattenable;
 
-/**
- * The base implementation of `_.flatten` with support for restricting flattening.
- *
- * @private
- * @param {Array} array The array to flatten.
- * @param {number} depth The maximum recursion depth.
- * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
- * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
- * @param {Array} [result=[]] The initial result value.
- * @returns {Array} Returns the new flattened array.
- */
 function baseFlatten(array, depth, predicate, isStrict, result) {
   var index = -1,
       length = array.length;
@@ -16281,20 +16248,6 @@ function baseFlatten(array, depth, predicate, isStrict, result) {
 
 var _baseFlatten = baseFlatten;
 
-/**
- * Flattens `array` a single level deep.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Array
- * @param {Array} array The array to flatten.
- * @returns {Array} Returns the new flattened array.
- * @example
- *
- * _.flatten([1, [2, [3, [4]], 5]]);
- * // => [1, 2, [3, [4]], 5]
- */
 function flatten(array) {
   var length = array == null ? 0 : array.length;
   return length ? _baseFlatten(array, 1) : [];
@@ -16350,6 +16303,8 @@ const createDecorationForValidationRange = (output) => {
     ];
 };
 const getDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(createDecorationForValidationRange));
+
+//# sourceMappingURL=decoration.js.map
 
 /**
  * Creates an array with all falsey values removed. The values `false`, `null`,
@@ -18517,7 +18472,7 @@ exports.toggleHeaderColumn = toggleHeaderColumn;
 exports.toggleHeaderCell = toggleHeaderCell;
 exports.goToNextCell = goToNextCell;
 exports.deleteTable = deleteTable;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$11);
@@ -19976,7 +19931,7 @@ exports.safeInsert = safeInsert;
 exports.setParentNodeMarkup = setParentNodeMarkup;
 exports.selectParentNodeOfType = selectParentNodeOfType;
 exports.removeNodeBefore = removeNodeBefore;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$10);
@@ -20066,6 +20021,7 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
     to: step.to
 }));
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_16 || step instanceof dist_17);
+//# sourceMappingURL=prosemirror.js.map
 
 const findOverlappingRangeIndex = (range, ranges) => {
     return ranges.findIndex(localRange => (localRange.from <= range.from && localRange.to >= range.from) ||
@@ -20156,6 +20112,7 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
     }), range)));
 }));
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
+//# sourceMappingURL=range.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
@@ -20235,6 +20192,8 @@ const handleValidationRequestError = (tr, state, action) => {
             : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
 };
 
+//# sourceMappingURL=state.js.map
+
 var defaultView = (plugin, commands) => (view) => {
     const notificationSubscribers = [];
     const subscribe = (callback) => {
@@ -20267,6 +20226,7 @@ var defaultView = (plugin, commands) => (view) => {
         update: (view) => notify(plugin.getState(view.state))
     };
 };
+//# sourceMappingURL=view.js.map
 
 class EventEmitter {
     constructor() {
@@ -20305,6 +20265,7 @@ class EventEmitter {
         return remove;
     }
 }
+//# sourceMappingURL=EventEmitter.js.map
 
 const ValidationEvents = {
     VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
@@ -20353,6 +20314,8 @@ class ValidationService extends EventEmitter {
     }
 }
 
+//# sourceMappingURL=ValidationAPIService.js.map
+
 function getStateHoverInfoFromEvent(event, heightMarker) {
     if (!event.target ||
         !(event.target instanceof HTMLElement) ||
@@ -20375,6 +20338,7 @@ function getStateHoverInfoFromEvent(event, heightMarker) {
         heightOfSingleLine: heightMarker.offsetHeight
     };
 }
+//# sourceMappingURL=dom.js.map
 
 const documentValidatorPlugin = ({ adapter, createViewHandler = defaultView, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
@@ -20500,6 +20464,10 @@ const documentValidatorPlugin = ({ adapter, createViewHandler = defaultView, exp
     };
 };
 
+//# sourceMappingURL=plugin.js.map
+
+//# sourceMappingURL=index.js.map
+
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
 // browser this is a little complicated due to unknown quality of Math.random()
@@ -20618,6 +20586,8 @@ const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, vo
     }));
 });
 
+//# sourceMappingURL=languageTool.js.map
+
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: Object.assign({}, schemaBasic_2, validationMarks)
@@ -20647,5 +20617,6 @@ editorElement &&
             ]
         })
     }));
+//# sourceMappingURL=index.js.map
 
 }());
