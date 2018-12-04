@@ -1,28 +1,28 @@
-import { Component, h } from "preact";
-import HoverEvent from "../interfaces/HoverEvent";
-import Decoration from "./Decoration";
-import clamp from "lodash/clamp";
-import { ValidationOutput } from "../interfaces/Validation";
-import { StateHoverInfo } from "../state";
+import clamp from 'lodash/clamp';
+import Decoration from './Decoration';
+import IHoverEvent from '../interfaces/IHoverEvent';
+import { Component, h } from 'preact';
+import { IStateHoverInfo } from '../state';
+import { IValidationOutput } from '../interfaces/IValidation';
 
-interface State {
+interface IState {
   left: number | undefined;
   top: number | undefined;
-  hoverInfo: StateHoverInfo | undefined;
-  validationOutput: ValidationOutput | undefined;
+  hoverInfo: IStateHoverInfo | undefined;
+  validationOutput: IValidationOutput | undefined;
   isVisible: boolean;
 }
-interface Props {
-  subscribe: (callback: (hoverEvent: HoverEvent) => void) => () => void;
+interface IProps {
+  subscribe: (callback: (hoverEvent: IHoverEvent) => void) => () => void;
   applySuggestion: (suggestion: string, from: number, to: number) => void;
 }
 
 /**
  * An overlay to display validation tooltips. Subscribes to hover events.
  */
-class ValidationOverlay extends Component<Props, State> {
+class ValidationOverlay extends Component<IProps, IState> {
   private decorationRef: Decoration;
-  public state: State = {
+  public state: IState = {
     isVisible: false,
     left: undefined,
     top: undefined,
@@ -69,7 +69,7 @@ class ValidationOverlay extends Component<Props, State> {
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleValidationHoverEvent = (hoverEvent: HoverEvent) => {
+  private handleValidationHoverEvent = (hoverEvent: IHoverEvent) => {
     this.setState({
       ...this.state,
       ...hoverEvent,
@@ -102,7 +102,7 @@ class ValidationOverlay extends Component<Props, State> {
     return { left, top };
   };
 
-  private getTooltipCoords = (hoverInfo: StateHoverInfo) => {
+  private getTooltipCoords = (hoverInfo: IStateHoverInfo) => {
     // The mouse offset isn't an integer, so we round it here to avoid oddness.
     const isHoveringOverFirstLine =
       hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);

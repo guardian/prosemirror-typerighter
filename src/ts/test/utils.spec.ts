@@ -1,7 +1,7 @@
 import {
+  createStringFromValidationInputs,
   getExpandedRange,
-  getPositionOfNthWord,
-  createStringFromValidationInputs
+  getPositionOfNthWord
 } from "../utils/string";
 
 describe("expandTextSelection", () => {

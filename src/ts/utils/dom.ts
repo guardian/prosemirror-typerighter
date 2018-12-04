@@ -1,4 +1,4 @@
-import { StateHoverInfo } from "../state";
+import { IStateHoverInfo } from "../state";
 
 /**
  * Find the first ancestor node of the given node that matches the selector.
@@ -9,9 +9,10 @@ export function findAncestor(
 ) {
   let currentElement: HTMLElement | null = element;
   while (
+    // tslint:disable-next-line no-conditional-assignment
     (currentElement = currentElement.parentElement) &&
     !selector(currentElement)
-  );
+  ) {; }
   return currentElement;
 }
 
@@ -22,7 +23,7 @@ export function findAncestor(
 export function getStateHoverInfoFromEvent(
   event: MouseEvent,
   heightMarker: Element | null
-): StateHoverInfo | undefined {
+): IStateHoverInfo | undefined {
   if (
     !event.target ||
     !(event.target instanceof HTMLElement) ||

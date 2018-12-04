@@ -1,14 +1,12 @@
-import {
-  ValidationOutput,
-  ValidationInput,
-  ValidationError
-} from "./interfaces/Validation";
-import IValidationService from "./interfaces/IValidationService";
 import flatten from "lodash/flatten";
-import {
-  IValidationAPIAdapter
-} from "./interfaces/IVAlidationAPIAdapter";
 import { EventEmitter } from "./EventEmitter";
+import {
+  IValidationError,
+  IValidationInput,
+  IValidationOutput
+} from "./interfaces/IValidation";
+import { IValidationAPIAdapter } from "./interfaces/IVAlidationAPIAdapter";
+import IValidationService from "./interfaces/IValidationService";
 
 export const ValidationEvents = {
   VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
@@ -27,7 +25,7 @@ class ValidationService extends EventEmitter implements IValidationService {
   /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
-  public async validate(inputs: ValidationInput[], id: string | number) {
+  public async validate(inputs: IValidationInput[], id: string | number) {
     const results = await Promise.all(
       inputs.map(async input => {
         try {
@@ -44,7 +42,7 @@ class ValidationService extends EventEmitter implements IValidationService {
         }
       })
     );
-    return flatten<ValidationOutput | ValidationError>(results);
+    return flatten<IValidationOutput | IValidationError>(results);
   }
 
   /**
@@ -57,8 +55,8 @@ class ValidationService extends EventEmitter implements IValidationService {
   /**
    * Handle an error.
    */
-  handleError = (
-    validationInput: ValidationInput,
+  public handleError = (
+    validationInput: IValidationInput,
     id: string | number,
     message: string
   ) => {
@@ -66,7 +64,7 @@ class ValidationService extends EventEmitter implements IValidationService {
       validationInput,
       id,
       message
-    } as ValidationError);
+    } as IValidationError);
   };
 
   /**
@@ -74,7 +72,7 @@ class ValidationService extends EventEmitter implements IValidationService {
    */
   private handleCompleteValidation = (
     id: string | number,
-    validationOutputs: ValidationOutput[]
+    validationOutputs: IValidationOutput[]
   ) => {
     this.emit(ValidationEvents.VALIDATION_SUCCESS, {
       id,

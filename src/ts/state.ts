@@ -1,32 +1,31 @@
-import { Transaction } from "prosemirror-state";
+import { Transaction } from 'prosemirror-state';
+import { DecorationSet } from 'prosemirror-view';
+import { IRange } from './interfaces/IValidation';
 import {
-  ValidationResponse,
-  ValidationError,
-  ValidationInput,
-  ValidationOutput
-} from "./interfaces/Validation";
+  IValidationError,
+  IValidationInput,
+  IValidationOutput,
+  IValidationResponse
+  } from './interfaces/IValidation';
 import {
-  mapRangeThroughTransactions,
-  mergeRanges,
-  getRangesOfParentBlockNodes,
-  validationInputToRange,
-  mergeOutputsFromValidationResponse
-} from "./utils/range";
-import {
+  createDebugDecorationFromRange,
+  DECORATION_DIRTY,
   DECORATION_INFLIGHT,
   getNewDecorationsForCurrentValidations,
-  createDebugDecorationFromRange,
-  removeValidationDecorationsFromRanges,
-  DECORATION_DIRTY
-} from "./utils/decoration";
-
-import { DecorationSet } from "prosemirror-view";
-import {  Range } from "./interfaces/Validation";
+  removeValidationDecorationsFromRanges
+  } from './utils/decoration';
+import {
+  getRangesOfParentBlockNodes,
+  mapRangeThroughTransactions,
+  mergeOutputsFromValidationResponse,
+  mergeRanges,
+  validationInputToRange
+  } from './utils/range';
 
 /**
  * Information about the span element the user is hovering over.
  */
-export interface StateHoverInfo {
+export interface IStateHoverInfo {
   // The offsetLeft property of the element relative to the document container.
   // If the span covers multiple lines, this will be the point that the span
   // starts on the line - for the left position of the bounding rectangle see
@@ -50,7 +49,7 @@ export interface StateHoverInfo {
   heightOfSingleLine: number;
 }
 
-export interface PluginState {
+export interface IPluginState {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
@@ -63,14 +62,14 @@ export interface PluginState {
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current validation outputs for the document.
-  currentValidations: ValidationOutput[];
+  currentValidations: IValidationOutput[];
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last validation pass.
-  dirtiedRanges: Range[];
+  dirtiedRanges: IRange[];
   // The id of the validation the user is currently hovering over.
   hoverId: string | undefined;
   // See StateHoverInfo.
-  hoverInfo: StateHoverInfo | undefined;
+  hoverInfo: IStateHoverInfo | undefined;
   // The history of transactions accrued since the last validation.
   // These are mapped through to apply validations applied against
   // a preview document state to the current document state.
@@ -83,14 +82,13 @@ export interface PluginState {
   // return?
   validationInFlight:
     | {
-        validationInputs: ValidationInput[];
+        validationInputs: IValidationInput[];
         id: number;
       }
     | undefined;
   // The current error status.
   error: string | undefined;
 }
-
 
 // The transaction meta key that namespaces our actions.
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
@@ -116,12 +114,13 @@ type ActionValidationRequestPending = ReturnType<
   typeof validationRequestPending
 >;
 
-export const validationRequestStart = () => ({
-  type: VALIDATION_REQUEST_START as typeof VALIDATION_REQUEST_START
+export const validationRequestStart = (ranges: IRange[]) => ({
+  type: VALIDATION_REQUEST_START as typeof VALIDATION_REQUEST_START,
+  payload: { ranges }
 });
 type ActionValidationRequestStart = ReturnType<typeof validationRequestStart>;
 
-export const validationRequestSuccess = (response: ValidationResponse) => ({
+export const validationRequestSuccess = (response: IValidationResponse) => ({
   type: VALIDATION_REQUEST_SUCCESS as typeof VALIDATION_REQUEST_SUCCESS,
   payload: { response }
 });
@@ -129,7 +128,7 @@ type ActionValidationResponseReceived = ReturnType<
   typeof validationRequestSuccess
 >;
 
-export const validationRequestError = (validationError: ValidationError) => ({
+export const validationRequestError = (validationError: IValidationError) => ({
   type: VALIDATION_REQUEST_ERROR as typeof VALIDATION_REQUEST_ERROR,
   payload: { validationError }
 });
@@ -137,7 +136,7 @@ type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
 
 export const newHoverIdReceived = (
   hoverId: string | undefined,
-  hoverInfo: StateHoverInfo | undefined
+  hoverInfo: IStateHoverInfo | undefined
 ) => ({
   type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
   payload: { hoverId, hoverInfo }
@@ -157,9 +156,9 @@ type Action =
  */
 
 export const selectValidationById = (
-  state: PluginState,
+  state: IPluginState,
   id: string
-): ValidationOutput | undefined =>
+): IValidationOutput | undefined =>
   state.currentValidations.find(validation => validation.id === id);
 
 /**
@@ -168,9 +167,9 @@ export const selectValidationById = (
 
 const validationPluginReducer = (
   tr: Transaction,
-  state: PluginState,
+  state: IPluginState,
   action: Action
-): PluginState => {
+): IPluginState => {
   switch (action.type) {
     case NEW_HOVER_ID:
       return handleNewHoverId(tr, state, action);
@@ -193,9 +192,9 @@ const validationPluginReducer = (
 
 type ActionHandler<ActionType> = (
   _: Transaction,
-  state: PluginState,
+  state: IPluginState,
   action: ActionType
-) => PluginState;
+) => IPluginState;
 
 /**
  * Handle the receipt of a new hover id.
@@ -204,7 +203,7 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
   _,
   state,
   action
-): PluginState => {
+): IPluginState => {
   return {
     ...state,
     hoverId: action.payload.hoverId,
@@ -226,23 +225,19 @@ const handleValidationRequestPending: ActionHandler<
  */
 const handleValidationRequestStart: ActionHandler<
   ActionValidationRequestStart
-> = (tr, state) => {
-  const expandedRanges = getRangesOfParentBlockNodes(
-    state.dirtiedRanges,
-    tr.doc
-  );
-  const validationInputs: ValidationInput[] = expandedRanges.map(range => ({
+> = (tr, state, action) => {
+  const validationInputs: IValidationInput[] = action.payload.ranges.map(range => ({
     str: tr.doc.textBetween(range.from, range.to),
     ...range
   }));
   // Remove any debug decorations, if they exist.
   const decorations = removeValidationDecorationsFromRanges(
     state.decorations,
-    expandedRanges,
+    action.payload.ranges,
     DECORATION_DIRTY
   ).add(
     tr.doc,
-    expandedRanges.map(range => createDebugDecorationFromRange(range, false))
+    action.payload.ranges.map(range => createDebugDecorationFromRange(range, false))
   );
   return {
     ...state,

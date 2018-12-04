@@ -1,11 +1,11 @@
-export interface LTResponse {
+export interface ILTResponse {
 	language: unknown
-	matches: LTMatch[]
+	matches: ILTMatch[]
 	software: unknown
 	warnings: unknown
 }
 
-export interface LTMatch {
+export interface ILTMatch {
 	context: {
 		text: string,
 		offset: number,
@@ -14,29 +14,29 @@ export interface LTMatch {
 	length: number,
 	message: string,
 	offset: number,
-	replacements: LTReplacement[],
-	rule: LTRule,
+	replacements: ILTReplacement[],
+	rule: ILTRule,
 	sentence: string,
 	shortMessage: string,
-	type: LTType
+	type: ILTType
 }
 
-export interface LTReplacement {
+export interface ILTReplacement {
 	value: string
 }
 
-export interface LTType {
+export interface ILTType {
 	typeName: string
 }
 
-export interface LTRule {
-	category: LTCategory,
+export interface ILTRule {
+	category: ILTCategory,
 	description: string,
 	id: string,
 	issueType: string
 }
 
-export interface LTCategory {
+export interface ILTCategory {
 	id: string,
 	name: string
 }

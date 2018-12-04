@@ -1,14 +1,14 @@
-import { ValidationInput } from "../interfaces/Validation";
-import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
-import { TypeRighterResponse } from "./interfaces/Typerighter";
 import v4 from "uuid/v4";
+import { IValidationInput } from "../interfaces/IValidation";
+import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
+import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 
 /**
  * An adapter for the Typerighter service.
  */
 const createTyperighterAdapter: IValidationAPIAdapter = (
   apiUrl: string
-) => async (input: ValidationInput) => {
+) => async (input: IValidationInput) => {
   const response = await fetch(apiUrl, {
     method: "POST",
     headers: new Headers({
@@ -25,7 +25,7 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
       }: ${response.statusText}`
     );
   }
-  const validationData: TypeRighterResponse = await response.json();
+  const validationData: ITypeRighterResponse = await response.json();
   return validationData.results.map(match => ({
     id: v4(),
     str: input.str,

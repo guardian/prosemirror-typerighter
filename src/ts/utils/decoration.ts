@@ -1,8 +1,8 @@
-import { Decoration, DecorationSet } from "prosemirror-view";
-import { Range, ValidationOutput } from "../interfaces/Validation";
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
-import { PluginState } from "../state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { IRange, IValidationOutput } from "../interfaces/IValidation";
+import { IPluginState } from "../state";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
@@ -20,7 +20,7 @@ export const DecorationClassMap = {
 export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
 export const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
 
-export const createDebugDecorationFromRange = (range: Range, dirty = true) => {
+export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
   const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
   return Decoration.inline(
     range.from,
@@ -36,7 +36,7 @@ export const createDebugDecorationFromRange = (range: Range, dirty = true) => {
 
 export const removeValidationDecorationsFromRanges = (
   decorations: DecorationSet,
-  ranges: Range[],
+  ranges: IRange[],
   type = DECORATION_VALIDATION
 ) =>
   ranges.reduce((acc, range) => {
@@ -53,12 +53,12 @@ export const removeValidationDecorationsFromRanges = (
  * returns a new decoration set containing the new validations.
  */
 export const getNewDecorationsForCurrentValidations = (
-  outputs: ValidationOutput[],
+  outputs: IValidationOutput[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
   // Remove existing validations for the ranges
-  let newDecorationSet = removeValidationDecorationsFromRanges(
+  const newDecorationSet = removeValidationDecorationsFromRanges(
     decorationSet,
     outputs
   );
@@ -86,7 +86,7 @@ const createHeightMarkerNode = (id: string) => {
  * Create a validation decoration for the given range.
  */
 export const createDecorationForValidationRange = (
-  output: ValidationOutput
+  output: IValidationOutput
 ) => {
   return [
     Decoration.widget(output.from, createHeightMarkerNode(output.id), {
@@ -107,11 +107,11 @@ export const createDecorationForValidationRange = (
   ];
 };
 
-export const getDecorationsForValidationRanges = (ranges: ValidationOutput[]) =>
+export const getDecorationsForValidationRanges = (ranges: IValidationOutput[]) =>
   flatten(ranges.map(createDecorationForValidationRange));
 
 export const findSingleDecoration = (
-  state: PluginState,
+  state: IPluginState,
   predicate: (spec: any) => boolean
 ): Decoration | undefined => {
   const decorations = state.decorations.find(undefined, undefined, predicate);

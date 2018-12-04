@@ -3480,7 +3480,7 @@ exports.MarkType = MarkType;
 exports.ContentMatch = ContentMatch;
 exports.DOMParser = DOMParser;
 exports.DOMSerializer = DOMSerializer;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$1);
@@ -5183,7 +5183,7 @@ exports.RemoveMarkStep = RemoveMarkStep;
 exports.ReplaceStep = ReplaceStep;
 exports.ReplaceAroundStep = ReplaceAroundStep;
 exports.replaceStep = replaceStep;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$2);
@@ -6340,7 +6340,7 @@ exports.Transaction = Transaction;
 exports.EditorState = EditorState;
 exports.Plugin = Plugin;
 exports.PluginKey = PluginKey;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist);
@@ -10972,7 +10972,7 @@ exports.Decoration = Decoration;
 exports.DecorationSet = DecorationSet;
 exports.__serializeForClipboard = serializeForClipboard;
 exports.__parseFromClipboard = parseFromClipboard;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$3);
@@ -11143,7 +11143,7 @@ var schema = new dist$1.Schema({nodes: nodes, marks: marks});
 exports.nodes = nodes;
 exports.marks = marks;
 exports.schema = schema;
-//# sourceMappingURL=schema-basic.js.map
+
 });
 
 unwrapExports(schemaBasic);
@@ -11398,7 +11398,7 @@ exports.wrapInList = wrapInList;
 exports.splitListItem = splitListItem;
 exports.liftListItem = liftListItem;
 exports.sinkListItem = sinkListItem;
-//# sourceMappingURL=schema-list.js.map
+
 });
 
 unwrapExports(schemaList);
@@ -12058,7 +12058,7 @@ exports.undo = undo;
 exports.redo = redo;
 exports.undoDepth = undoDepth;
 exports.redoDepth = redoDepth;
-//# sourceMappingURL=history.js.map
+
 });
 
 unwrapExports(history_1);
@@ -12298,14 +12298,14 @@ function keydownHandler(bindings) {
 
 exports.keymap = keymap;
 exports.keydownHandler = keydownHandler;
-//# sourceMappingURL=keymap.js.map
+
 });
 
 unwrapExports(keymap_1);
 var keymap_2 = keymap_1.keymap;
 var keymap_3 = keymap_1.keydownHandler;
 
-var commands = createCommonjsModule(function (module, exports) {
+var commands$1 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 
@@ -12964,34 +12964,34 @@ exports.chainCommands = chainCommands;
 exports.pcBaseKeymap = pcBaseKeymap;
 exports.macBaseKeymap = macBaseKeymap;
 exports.baseKeymap = baseKeymap;
-//# sourceMappingURL=commands.js.map
+
 });
 
-unwrapExports(commands);
-var commands_1 = commands.deleteSelection;
-var commands_2 = commands.joinBackward;
-var commands_3 = commands.selectNodeBackward;
-var commands_4 = commands.joinForward;
-var commands_5 = commands.selectNodeForward;
-var commands_6 = commands.joinUp;
-var commands_7 = commands.joinDown;
-var commands_8 = commands.lift;
-var commands_9 = commands.newlineInCode;
-var commands_10 = commands.exitCode;
-var commands_11 = commands.createParagraphNear;
-var commands_12 = commands.liftEmptyBlock;
-var commands_13 = commands.splitBlock;
-var commands_14 = commands.splitBlockKeepMarks;
-var commands_15 = commands.selectParentNode;
-var commands_16 = commands.selectAll;
-var commands_17 = commands.wrapIn;
-var commands_18 = commands.setBlockType;
-var commands_19 = commands.toggleMark;
-var commands_20 = commands.autoJoin;
-var commands_21 = commands.chainCommands;
-var commands_22 = commands.pcBaseKeymap;
-var commands_23 = commands.macBaseKeymap;
-var commands_24 = commands.baseKeymap;
+unwrapExports(commands$1);
+var commands_1 = commands$1.deleteSelection;
+var commands_2 = commands$1.joinBackward;
+var commands_3 = commands$1.selectNodeBackward;
+var commands_4 = commands$1.joinForward;
+var commands_5 = commands$1.selectNodeForward;
+var commands_6 = commands$1.joinUp;
+var commands_7 = commands$1.joinDown;
+var commands_8 = commands$1.lift;
+var commands_9 = commands$1.newlineInCode;
+var commands_10 = commands$1.exitCode;
+var commands_11 = commands$1.createParagraphNear;
+var commands_12 = commands$1.liftEmptyBlock;
+var commands_13 = commands$1.splitBlock;
+var commands_14 = commands$1.splitBlockKeepMarks;
+var commands_15 = commands$1.selectParentNode;
+var commands_16 = commands$1.selectAll;
+var commands_17 = commands$1.wrapIn;
+var commands_18 = commands$1.setBlockType;
+var commands_19 = commands$1.toggleMark;
+var commands_20 = commands$1.autoJoin;
+var commands_21 = commands$1.chainCommands;
+var commands_22 = commands$1.pcBaseKeymap;
+var commands_23 = commands$1.macBaseKeymap;
+var commands_24 = commands$1.baseKeymap;
 
 var dropcursor = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -13107,7 +13107,7 @@ function dropPos(slice, $pos) {
 }
 
 exports.dropCursor = dropCursor;
-//# sourceMappingURL=dropcursor.js.map
+
 });
 
 unwrapExports(dropcursor);
@@ -13303,7 +13303,7 @@ function drawGapCursor(state) {
 
 exports.gapCursor = gapCursor;
 exports.GapCursor = GapCursor;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$7);
@@ -13878,8 +13878,8 @@ var icons = {
 // Menu item for the `joinUp` command.
 var joinUpItem = new MenuItem({
   title: "Join with above block",
-  run: commands.joinUp,
-  select: function (state) { return commands.joinUp(state); },
+  run: commands$1.joinUp,
+  select: function (state) { return commands$1.joinUp(state); },
   icon: icons.join
 });
 
@@ -13887,8 +13887,8 @@ var joinUpItem = new MenuItem({
 // Menu item for the `lift` command.
 var liftItem = new MenuItem({
   title: "Lift out of enclosing block",
-  run: commands.lift,
-  select: function (state) { return commands.lift(state); },
+  run: commands$1.lift,
+  select: function (state) { return commands$1.lift(state); },
   icon: icons.lift
 });
 
@@ -13896,8 +13896,8 @@ var liftItem = new MenuItem({
 // Menu item for the `selectParentNode` command.
 var selectParentNodeItem = new MenuItem({
   title: "Select parent node",
-  run: commands.selectParentNode,
-  select: function (state) { return commands.selectParentNode(state); },
+  run: commands$1.selectParentNode,
+  select: function (state) { return commands$1.selectParentNode(state); },
   icon: icons.selectParentNode
 });
 
@@ -13928,10 +13928,10 @@ function wrapItem(nodeType, options) {
   var passedOptions = {
     run: function run(state, dispatch) {
       // FIXME if (options.attrs instanceof Function) options.attrs(state, attrs => wrapIn(nodeType, attrs)(state))
-      return commands.wrapIn(nodeType, options.attrs)(state, dispatch)
+      return commands$1.wrapIn(nodeType, options.attrs)(state, dispatch)
     },
     select: function select(state) {
-      return commands.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
+      return commands$1.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
     }
   };
   for (var prop in options) { passedOptions[prop] = options[prop]; }
@@ -13944,7 +13944,7 @@ function wrapItem(nodeType, options) {
 // properties. Others must be given in `options`. `options.attrs` may
 // be an object to provide the attributes for the textblock node.
 function blockTypeItem(nodeType, options) {
-  var command = commands.setBlockType(nodeType, options.attrs);
+  var command = commands$1.setBlockType(nodeType, options.attrs);
   var passedOptions = {
     run: command,
     enable: function enable(state) { return command(state) },
@@ -14147,7 +14147,7 @@ exports.redoItem = redoItem;
 exports.wrapItem = wrapItem;
 exports.blockTypeItem = blockTypeItem;
 exports.menuBar = menuBar;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$8);
@@ -14338,7 +14338,7 @@ exports.closeSingleQuote = closeSingleQuote;
 exports.smartQuotes = smartQuotes;
 exports.wrappingInputRule = wrappingInputRule;
 exports.textblockTypeInputRule = textblockTypeInputRule;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$9);
@@ -14609,7 +14609,7 @@ function markItem(markType, options) {
     enable: true
   };
   for (var prop in options) { passedOptions[prop] = options[prop]; }
-  return cmdItem(commands.toggleMark(markType), passedOptions)
+  return cmdItem(commands$1.toggleMark(markType), passedOptions)
 }
 
 function linkItem(markType) {
@@ -14620,7 +14620,7 @@ function linkItem(markType) {
     enable: function enable(state) { return !state.selection.empty },
     run: function run(state, dispatch, view) {
       if (markActive(state, markType)) {
-        commands.toggleMark(markType)(state, dispatch);
+        commands$1.toggleMark(markType)(state, dispatch);
         return true
       }
       openPrompt({
@@ -14633,7 +14633,7 @@ function linkItem(markType) {
           title: new TextField({label: "Title"})
         },
         callback: function callback(attrs) {
-          commands.toggleMark(markType, attrs)(view.state, view.dispatch);
+          commands$1.toggleMark(markType, attrs)(view.state, view.dispatch);
           view.focus();
         }
       });
@@ -14819,26 +14819,26 @@ function buildKeymap(schema, mapKeys) {
   bind("Backspace", dist$9.undoInputRule);
   if (!mac) { bind("Mod-y", history_1.redo); }
 
-  bind("Alt-ArrowUp", commands.joinUp);
-  bind("Alt-ArrowDown", commands.joinDown);
-  bind("Mod-BracketLeft", commands.lift);
-  bind("Escape", commands.selectParentNode);
+  bind("Alt-ArrowUp", commands$1.joinUp);
+  bind("Alt-ArrowDown", commands$1.joinDown);
+  bind("Mod-BracketLeft", commands$1.lift);
+  bind("Escape", commands$1.selectParentNode);
 
   if (type = schema.marks.strong)
-    { bind("Mod-b", commands.toggleMark(type)); }
+    { bind("Mod-b", commands$1.toggleMark(type)); }
   if (type = schema.marks.em)
-    { bind("Mod-i", commands.toggleMark(type)); }
+    { bind("Mod-i", commands$1.toggleMark(type)); }
   if (type = schema.marks.code)
-    { bind("Mod-`", commands.toggleMark(type)); }
+    { bind("Mod-`", commands$1.toggleMark(type)); }
 
   if (type = schema.nodes.bullet_list)
     { bind("Shift-Ctrl-8", schemaList.wrapInList(type)); }
   if (type = schema.nodes.ordered_list)
     { bind("Shift-Ctrl-9", schemaList.wrapInList(type)); }
   if (type = schema.nodes.blockquote)
-    { bind("Ctrl->", commands.wrapIn(type)); }
+    { bind("Ctrl->", commands$1.wrapIn(type)); }
   if (type = schema.nodes.hard_break) {
-    var br = type, cmd = commands.chainCommands(commands.exitCode, function (state, dispatch) {
+    var br = type, cmd = commands$1.chainCommands(commands$1.exitCode, function (state, dispatch) {
       dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
       return true
     });
@@ -14852,11 +14852,11 @@ function buildKeymap(schema, mapKeys) {
     bind("Mod-]", schemaList.sinkListItem(type));
   }
   if (type = schema.nodes.paragraph)
-    { bind("Shift-Ctrl-0", commands.setBlockType(type)); }
+    { bind("Shift-Ctrl-0", commands$1.setBlockType(type)); }
   if (type = schema.nodes.code_block)
-    { bind("Shift-Ctrl-\\", commands.setBlockType(type)); }
+    { bind("Shift-Ctrl-\\", commands$1.setBlockType(type)); }
   if (type = schema.nodes.heading)
-    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, commands.setBlockType(type, {level: i})); } }
+    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, commands$1.setBlockType(type, {level: i})); } }
   if (type = schema.nodes.horizontal_rule) {
     var hr = type;
     bind("Mod-_", function (state, dispatch) {
@@ -14961,7 +14961,7 @@ function exampleSetup(options) {
   var plugins = [
     buildInputRules(options.schema),
     keymap_1.keymap(buildKeymap(options.schema, options.mapKeys)),
-    keymap_1.keymap(commands.baseKeymap),
+    keymap_1.keymap(commands$1.baseKeymap),
     dropcursor.dropCursor(),
     dist$7.gapCursor()
   ];
@@ -14982,7 +14982,7 @@ exports.buildMenuItems = buildMenuItems;
 exports.buildKeymap = buildKeymap;
 exports.buildInputRules = buildInputRules;
 exports.exampleSetup = exampleSetup;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$6);
@@ -14990,34 +14990,6 @@ var dist_1$4 = dist$6.buildMenuItems;
 var dist_2$4 = dist$6.buildKeymap;
 var dist_3$4 = dist$6.buildInputRules;
 var dist_4$4 = dist$6.exampleSetup;
-
-const MarkTypes = {
-    legal: "legal",
-    warn: "warn"
-};
-const createValidationMark = (markName) => ({
-    attrs: {},
-    inclusive: false,
-    parseDOM: [
-        {
-            tag: `span.${markName}`,
-            getAttrs: () => ({})
-        }
-    ],
-    toDOM: (mark, inline) => [`span.${markName}`]
-});
-const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
-    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
-}, {});
-
-
-
-const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
-    from: step.from,
-    to: step.to
-}));
-const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_16 || step instanceof dist_17);
-//# sourceMappingURL=prosemirror.js.map
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -15063,6 +15035,1353 @@ function __awaiter(thisArg, _arguments, P, generator) {
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 }
+
+/**
+ * The base implementation of `_.clamp` which doesn't coerce arguments.
+ *
+ * @private
+ * @param {number} number The number to clamp.
+ * @param {number} [lower] The lower bound.
+ * @param {number} upper The upper bound.
+ * @returns {number} Returns the clamped number.
+ */
+function baseClamp(number, lower, upper) {
+  if (number === number) {
+    if (upper !== undefined) {
+      number = number <= upper ? number : upper;
+    }
+    if (lower !== undefined) {
+      number = number >= lower ? number : lower;
+    }
+  }
+  return number;
+}
+
+var _baseClamp = baseClamp;
+
+/**
+ * Checks if `value` is the
+ * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+ * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(_.noop);
+ * // => true
+ *
+ * _.isObject(null);
+ * // => false
+ */
+function isObject(value) {
+  var type = typeof value;
+  return value != null && (type == 'object' || type == 'function');
+}
+
+var isObject_1 = isObject;
+
+/** Detect free variable `global` from Node.js. */
+var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
+
+var _freeGlobal = freeGlobal;
+
+/** Detect free variable `self`. */
+var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+/** Used as a reference to the global object. */
+var root = _freeGlobal || freeSelf || Function('return this')();
+
+var _root = root;
+
+/** Built-in value references. */
+var Symbol$1 = _root.Symbol;
+
+var _Symbol = Symbol$1;
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var nativeObjectToString = objectProto.toString;
+
+/** Built-in value references. */
+var symToStringTag$1 = _Symbol ? _Symbol.toStringTag : undefined;
+
+/**
+ * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the raw `toStringTag`.
+ */
+function getRawTag(value) {
+  var isOwn = hasOwnProperty.call(value, symToStringTag$1),
+      tag = value[symToStringTag$1];
+
+  try {
+    value[symToStringTag$1] = undefined;
+    var unmasked = true;
+  } catch (e) {}
+
+  var result = nativeObjectToString.call(value);
+  if (unmasked) {
+    if (isOwn) {
+      value[symToStringTag$1] = tag;
+    } else {
+      delete value[symToStringTag$1];
+    }
+  }
+  return result;
+}
+
+var _getRawTag = getRawTag;
+
+/** Used for built-in method references. */
+var objectProto$1 = Object.prototype;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var nativeObjectToString$1 = objectProto$1.toString;
+
+/**
+ * Converts `value` to a string using `Object.prototype.toString`.
+ *
+ * @private
+ * @param {*} value The value to convert.
+ * @returns {string} Returns the converted string.
+ */
+function objectToString(value) {
+  return nativeObjectToString$1.call(value);
+}
+
+var _objectToString = objectToString;
+
+/** `Object#toString` result references. */
+var nullTag = '[object Null]';
+var undefinedTag = '[object Undefined]';
+
+/** Built-in value references. */
+var symToStringTag = _Symbol ? _Symbol.toStringTag : undefined;
+
+/**
+ * The base implementation of `getTag` without fallbacks for buggy environments.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the `toStringTag`.
+ */
+function baseGetTag(value) {
+  if (value == null) {
+    return value === undefined ? undefinedTag : nullTag;
+  }
+  return (symToStringTag && symToStringTag in Object(value))
+    ? _getRawTag(value)
+    : _objectToString(value);
+}
+
+var _baseGetTag = baseGetTag;
+
+/**
+ * Checks if `value` is object-like. A value is object-like if it's not `null`
+ * and has a `typeof` result of "object".
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ * @example
+ *
+ * _.isObjectLike({});
+ * // => true
+ *
+ * _.isObjectLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isObjectLike(_.noop);
+ * // => false
+ *
+ * _.isObjectLike(null);
+ * // => false
+ */
+function isObjectLike(value) {
+  return value != null && typeof value == 'object';
+}
+
+var isObjectLike_1 = isObjectLike;
+
+/** `Object#toString` result references. */
+var symbolTag = '[object Symbol]';
+
+/**
+ * Checks if `value` is classified as a `Symbol` primitive or object.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+ * @example
+ *
+ * _.isSymbol(Symbol.iterator);
+ * // => true
+ *
+ * _.isSymbol('abc');
+ * // => false
+ */
+function isSymbol(value) {
+  return typeof value == 'symbol' ||
+    (isObjectLike_1(value) && _baseGetTag(value) == symbolTag);
+}
+
+var isSymbol_1 = isSymbol;
+
+/** Used as references for various `Number` constants. */
+var NAN = 0 / 0;
+
+/** Used to match leading and trailing whitespace. */
+var reTrim = /^\s+|\s+$/g;
+
+/** Used to detect bad signed hexadecimal string values. */
+var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+
+/** Used to detect binary string values. */
+var reIsBinary = /^0b[01]+$/i;
+
+/** Used to detect octal string values. */
+var reIsOctal = /^0o[0-7]+$/i;
+
+/** Built-in method references without a dependency on `root`. */
+var freeParseInt = parseInt;
+
+/**
+ * Converts `value` to a number.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to process.
+ * @returns {number} Returns the number.
+ * @example
+ *
+ * _.toNumber(3.2);
+ * // => 3.2
+ *
+ * _.toNumber(Number.MIN_VALUE);
+ * // => 5e-324
+ *
+ * _.toNumber(Infinity);
+ * // => Infinity
+ *
+ * _.toNumber('3.2');
+ * // => 3.2
+ */
+function toNumber(value) {
+  if (typeof value == 'number') {
+    return value;
+  }
+  if (isSymbol_1(value)) {
+    return NAN;
+  }
+  if (isObject_1(value)) {
+    var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
+    value = isObject_1(other) ? (other + '') : other;
+  }
+  if (typeof value != 'string') {
+    return value === 0 ? value : +value;
+  }
+  value = value.replace(reTrim, '');
+  var isBinary = reIsBinary.test(value);
+  return (isBinary || reIsOctal.test(value))
+    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+    : (reIsBadHex.test(value) ? NAN : +value);
+}
+
+var toNumber_1 = toNumber;
+
+/**
+ * Clamps `number` within the inclusive `lower` and `upper` bounds.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Number
+ * @param {number} number The number to clamp.
+ * @param {number} [lower] The lower bound.
+ * @param {number} upper The upper bound.
+ * @returns {number} Returns the clamped number.
+ * @example
+ *
+ * _.clamp(-10, -5, 5);
+ * // => -5
+ *
+ * _.clamp(10, -5, 5);
+ * // => 5
+ */
+function clamp(number, lower, upper) {
+  if (upper === undefined) {
+    upper = lower;
+    lower = undefined;
+  }
+  if (upper !== undefined) {
+    upper = toNumber_1(upper);
+    upper = upper === upper ? upper : 0;
+  }
+  if (lower !== undefined) {
+    lower = toNumber_1(lower);
+    lower = lower === lower ? lower : 0;
+  }
+  return _baseClamp(toNumber_1(number), lower, upper);
+}
+
+var clamp_1 = clamp;
+
+var VNode = function VNode() {};
+
+var options = {};
+
+var stack = [];
+
+var EMPTY_CHILDREN = [];
+
+function h(nodeName, attributes) {
+	var children = EMPTY_CHILDREN,
+	    lastSimple,
+	    child,
+	    simple,
+	    i;
+	for (i = arguments.length; i-- > 2;) {
+		stack.push(arguments[i]);
+	}
+	if (attributes && attributes.children != null) {
+		if (!stack.length) stack.push(attributes.children);
+		delete attributes.children;
+	}
+	while (stack.length) {
+		if ((child = stack.pop()) && child.pop !== undefined) {
+			for (i = child.length; i--;) {
+				stack.push(child[i]);
+			}
+		} else {
+			if (typeof child === 'boolean') child = null;
+
+			if (simple = typeof nodeName !== 'function') {
+				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
+			}
+
+			if (simple && lastSimple) {
+				children[children.length - 1] += child;
+			} else if (children === EMPTY_CHILDREN) {
+				children = [child];
+			} else {
+				children.push(child);
+			}
+
+			lastSimple = simple;
+		}
+	}
+
+	var p = new VNode();
+	p.nodeName = nodeName;
+	p.children = children;
+	p.attributes = attributes == null ? undefined : attributes;
+	p.key = attributes == null ? undefined : attributes.key;
+
+	if (options.vnode !== undefined) options.vnode(p);
+
+	return p;
+}
+
+function extend(obj, props) {
+  for (var i in props) {
+    obj[i] = props[i];
+  }return obj;
+}
+
+var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
+
+var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
+
+var items = [];
+
+function enqueueRender(component) {
+	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
+		(options.debounceRendering || defer)(rerender);
+	}
+}
+
+function rerender() {
+	var p,
+	    list = items;
+	items = [];
+	while (p = list.pop()) {
+		if (p._dirty) renderComponent(p);
+	}
+}
+
+function isSameNodeType(node, vnode, hydrating) {
+	if (typeof vnode === 'string' || typeof vnode === 'number') {
+		return node.splitText !== undefined;
+	}
+	if (typeof vnode.nodeName === 'string') {
+		return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
+	}
+	return hydrating || node._componentConstructor === vnode.nodeName;
+}
+
+function isNamedNode(node, nodeName) {
+	return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
+}
+
+function getNodeProps(vnode) {
+	var props = extend({}, vnode.attributes);
+	props.children = vnode.children;
+
+	var defaultProps = vnode.nodeName.defaultProps;
+	if (defaultProps !== undefined) {
+		for (var i in defaultProps) {
+			if (props[i] === undefined) {
+				props[i] = defaultProps[i];
+			}
+		}
+	}
+
+	return props;
+}
+
+function createNode(nodeName, isSvg) {
+	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
+	node.normalizedNodeName = nodeName;
+	return node;
+}
+
+function removeNode(node) {
+	var parentNode = node.parentNode;
+	if (parentNode) parentNode.removeChild(node);
+}
+
+function setAccessor(node, name, old, value, isSvg) {
+	if (name === 'className') name = 'class';
+
+	if (name === 'key') {} else if (name === 'ref') {
+		if (old) old(null);
+		if (value) value(node);
+	} else if (name === 'class' && !isSvg) {
+		node.className = value || '';
+	} else if (name === 'style') {
+		if (!value || typeof value === 'string' || typeof old === 'string') {
+			node.style.cssText = value || '';
+		}
+		if (value && typeof value === 'object') {
+			if (typeof old !== 'string') {
+				for (var i in old) {
+					if (!(i in value)) node.style[i] = '';
+				}
+			}
+			for (var i in value) {
+				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
+			}
+		}
+	} else if (name === 'dangerouslySetInnerHTML') {
+		if (value) node.innerHTML = value.__html || '';
+	} else if (name[0] == 'o' && name[1] == 'n') {
+		var useCapture = name !== (name = name.replace(/Capture$/, ''));
+		name = name.toLowerCase().substring(2);
+		if (value) {
+			if (!old) node.addEventListener(name, eventProxy, useCapture);
+		} else {
+			node.removeEventListener(name, eventProxy, useCapture);
+		}
+		(node._listeners || (node._listeners = {}))[name] = value;
+	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
+		try {
+			node[name] = value == null ? '' : value;
+		} catch (e) {}
+		if ((value == null || value === false) && name != 'spellcheck') node.removeAttribute(name);
+	} else {
+		var ns = isSvg && name !== (name = name.replace(/^xlink:?/, ''));
+
+		if (value == null || value === false) {
+			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
+		} else if (typeof value !== 'function') {
+			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
+		}
+	}
+}
+
+function eventProxy(e) {
+	return this._listeners[e.type](options.event && options.event(e) || e);
+}
+
+var mounts = [];
+
+var diffLevel = 0;
+
+var isSvgMode = false;
+
+var hydrating = false;
+
+function flushMounts() {
+	var c;
+	while (c = mounts.pop()) {
+		if (options.afterMount) options.afterMount(c);
+		if (c.componentDidMount) c.componentDidMount();
+	}
+}
+
+function diff(dom, vnode, context, mountAll, parent, componentRoot) {
+	if (!diffLevel++) {
+		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
+
+		hydrating = dom != null && !('__preactattr_' in dom);
+	}
+
+	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
+
+	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
+
+	if (! --diffLevel) {
+		hydrating = false;
+
+		if (!componentRoot) flushMounts();
+	}
+
+	return ret;
+}
+
+function idiff(dom, vnode, context, mountAll, componentRoot) {
+	var out = dom,
+	    prevSvgMode = isSvgMode;
+
+	if (vnode == null || typeof vnode === 'boolean') vnode = '';
+
+	if (typeof vnode === 'string' || typeof vnode === 'number') {
+		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
+			if (dom.nodeValue != vnode) {
+				dom.nodeValue = vnode;
+			}
+		} else {
+			out = document.createTextNode(vnode);
+			if (dom) {
+				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+				recollectNodeTree(dom, true);
+			}
+		}
+
+		out['__preactattr_'] = true;
+
+		return out;
+	}
+
+	var vnodeName = vnode.nodeName;
+	if (typeof vnodeName === 'function') {
+		return buildComponentFromVNode(dom, vnode, context, mountAll);
+	}
+
+	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
+
+	vnodeName = String(vnodeName);
+	if (!dom || !isNamedNode(dom, vnodeName)) {
+		out = createNode(vnodeName, isSvgMode);
+
+		if (dom) {
+			while (dom.firstChild) {
+				out.appendChild(dom.firstChild);
+			}
+			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+
+			recollectNodeTree(dom, true);
+		}
+	}
+
+	var fc = out.firstChild,
+	    props = out['__preactattr_'],
+	    vchildren = vnode.children;
+
+	if (props == null) {
+		props = out['__preactattr_'] = {};
+		for (var a = out.attributes, i = a.length; i--;) {
+			props[a[i].name] = a[i].value;
+		}
+	}
+
+	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
+		if (fc.nodeValue != vchildren[0]) {
+			fc.nodeValue = vchildren[0];
+		}
+	} else if (vchildren && vchildren.length || fc != null) {
+			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
+		}
+
+	diffAttributes(out, vnode.attributes, props);
+
+	isSvgMode = prevSvgMode;
+
+	return out;
+}
+
+function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
+	var originalChildren = dom.childNodes,
+	    children = [],
+	    keyed = {},
+	    keyedLen = 0,
+	    min = 0,
+	    len = originalChildren.length,
+	    childrenLen = 0,
+	    vlen = vchildren ? vchildren.length : 0,
+	    j,
+	    c,
+	    f,
+	    vchild,
+	    child;
+
+	if (len !== 0) {
+		for (var i = 0; i < len; i++) {
+			var _child = originalChildren[i],
+			    props = _child['__preactattr_'],
+			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
+			if (key != null) {
+				keyedLen++;
+				keyed[key] = _child;
+			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
+				children[childrenLen++] = _child;
+			}
+		}
+	}
+
+	if (vlen !== 0) {
+		for (var i = 0; i < vlen; i++) {
+			vchild = vchildren[i];
+			child = null;
+
+			var key = vchild.key;
+			if (key != null) {
+				if (keyedLen && keyed[key] !== undefined) {
+					child = keyed[key];
+					keyed[key] = undefined;
+					keyedLen--;
+				}
+			} else if (min < childrenLen) {
+					for (j = min; j < childrenLen; j++) {
+						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
+							child = c;
+							children[j] = undefined;
+							if (j === childrenLen - 1) childrenLen--;
+							if (j === min) min++;
+							break;
+						}
+					}
+				}
+
+			child = idiff(child, vchild, context, mountAll);
+
+			f = originalChildren[i];
+			if (child && child !== dom && child !== f) {
+				if (f == null) {
+					dom.appendChild(child);
+				} else if (child === f.nextSibling) {
+					removeNode(f);
+				} else {
+					dom.insertBefore(child, f);
+				}
+			}
+		}
+	}
+
+	if (keyedLen) {
+		for (var i in keyed) {
+			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
+		}
+	}
+
+	while (min <= childrenLen) {
+		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
+	}
+}
+
+function recollectNodeTree(node, unmountOnly) {
+	var component = node._component;
+	if (component) {
+		unmountComponent(component);
+	} else {
+		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
+
+		if (unmountOnly === false || node['__preactattr_'] == null) {
+			removeNode(node);
+		}
+
+		removeChildren(node);
+	}
+}
+
+function removeChildren(node) {
+	node = node.lastChild;
+	while (node) {
+		var next = node.previousSibling;
+		recollectNodeTree(node, true);
+		node = next;
+	}
+}
+
+function diffAttributes(dom, attrs, old) {
+	var name;
+
+	for (name in old) {
+		if (!(attrs && attrs[name] != null) && old[name] != null) {
+			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
+		}
+	}
+
+	for (name in attrs) {
+		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
+			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
+		}
+	}
+}
+
+var recyclerComponents = [];
+
+function createComponent(Ctor, props, context) {
+	var inst,
+	    i = recyclerComponents.length;
+
+	if (Ctor.prototype && Ctor.prototype.render) {
+		inst = new Ctor(props, context);
+		Component.call(inst, props, context);
+	} else {
+		inst = new Component(props, context);
+		inst.constructor = Ctor;
+		inst.render = doRender;
+	}
+
+	while (i--) {
+		if (recyclerComponents[i].constructor === Ctor) {
+			inst.nextBase = recyclerComponents[i].nextBase;
+			recyclerComponents.splice(i, 1);
+			return inst;
+		}
+	}
+
+	return inst;
+}
+
+function doRender(props, state, context) {
+	return this.constructor(props, context);
+}
+
+function setComponentProps(component, props, renderMode, context, mountAll) {
+	if (component._disable) return;
+	component._disable = true;
+
+	component.__ref = props.ref;
+	component.__key = props.key;
+	delete props.ref;
+	delete props.key;
+
+	if (typeof component.constructor.getDerivedStateFromProps === 'undefined') {
+		if (!component.base || mountAll) {
+			if (component.componentWillMount) component.componentWillMount();
+		} else if (component.componentWillReceiveProps) {
+			component.componentWillReceiveProps(props, context);
+		}
+	}
+
+	if (context && context !== component.context) {
+		if (!component.prevContext) component.prevContext = component.context;
+		component.context = context;
+	}
+
+	if (!component.prevProps) component.prevProps = component.props;
+	component.props = props;
+
+	component._disable = false;
+
+	if (renderMode !== 0) {
+		if (renderMode === 1 || options.syncComponentUpdates !== false || !component.base) {
+			renderComponent(component, 1, mountAll);
+		} else {
+			enqueueRender(component);
+		}
+	}
+
+	if (component.__ref) component.__ref(component);
+}
+
+function renderComponent(component, renderMode, mountAll, isChild) {
+	if (component._disable) return;
+
+	var props = component.props,
+	    state = component.state,
+	    context = component.context,
+	    previousProps = component.prevProps || props,
+	    previousState = component.prevState || state,
+	    previousContext = component.prevContext || context,
+	    isUpdate = component.base,
+	    nextBase = component.nextBase,
+	    initialBase = isUpdate || nextBase,
+	    initialChildComponent = component._component,
+	    skip = false,
+	    snapshot = previousContext,
+	    rendered,
+	    inst,
+	    cbase;
+
+	if (component.constructor.getDerivedStateFromProps) {
+		state = extend(extend({}, state), component.constructor.getDerivedStateFromProps(props, state));
+		component.state = state;
+	}
+
+	if (isUpdate) {
+		component.props = previousProps;
+		component.state = previousState;
+		component.context = previousContext;
+		if (renderMode !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
+			skip = true;
+		} else if (component.componentWillUpdate) {
+			component.componentWillUpdate(props, state, context);
+		}
+		component.props = props;
+		component.state = state;
+		component.context = context;
+	}
+
+	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
+	component._dirty = false;
+
+	if (!skip) {
+		rendered = component.render(props, state, context);
+
+		if (component.getChildContext) {
+			context = extend(extend({}, context), component.getChildContext());
+		}
+
+		if (isUpdate && component.getSnapshotBeforeUpdate) {
+			snapshot = component.getSnapshotBeforeUpdate(previousProps, previousState);
+		}
+
+		var childComponent = rendered && rendered.nodeName,
+		    toUnmount,
+		    base;
+
+		if (typeof childComponent === 'function') {
+
+			var childProps = getNodeProps(rendered);
+			inst = initialChildComponent;
+
+			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
+				setComponentProps(inst, childProps, 1, context, false);
+			} else {
+				toUnmount = inst;
+
+				component._component = inst = createComponent(childComponent, childProps, context);
+				inst.nextBase = inst.nextBase || nextBase;
+				inst._parentComponent = component;
+				setComponentProps(inst, childProps, 0, context, false);
+				renderComponent(inst, 1, mountAll, true);
+			}
+
+			base = inst.base;
+		} else {
+			cbase = initialBase;
+
+			toUnmount = initialChildComponent;
+			if (toUnmount) {
+				cbase = component._component = null;
+			}
+
+			if (initialBase || renderMode === 1) {
+				if (cbase) cbase._component = null;
+				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
+			}
+		}
+
+		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
+			var baseParent = initialBase.parentNode;
+			if (baseParent && base !== baseParent) {
+				baseParent.replaceChild(base, initialBase);
+
+				if (!toUnmount) {
+					initialBase._component = null;
+					recollectNodeTree(initialBase, false);
+				}
+			}
+		}
+
+		if (toUnmount) {
+			unmountComponent(toUnmount);
+		}
+
+		component.base = base;
+		if (base && !isChild) {
+			var componentRef = component,
+			    t = component;
+			while (t = t._parentComponent) {
+				(componentRef = t).base = base;
+			}
+			base._component = componentRef;
+			base._componentConstructor = componentRef.constructor;
+		}
+	}
+
+	if (!isUpdate || mountAll) {
+		mounts.unshift(component);
+	} else if (!skip) {
+
+		if (component.componentDidUpdate) {
+			component.componentDidUpdate(previousProps, previousState, snapshot);
+		}
+		if (options.afterUpdate) options.afterUpdate(component);
+	}
+
+	while (component._renderCallbacks.length) {
+		component._renderCallbacks.pop().call(component);
+	}if (!diffLevel && !isChild) flushMounts();
+}
+
+function buildComponentFromVNode(dom, vnode, context, mountAll) {
+	var c = dom && dom._component,
+	    originalComponent = c,
+	    oldDom = dom,
+	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
+	    isOwner = isDirectOwner,
+	    props = getNodeProps(vnode);
+	while (c && !isOwner && (c = c._parentComponent)) {
+		isOwner = c.constructor === vnode.nodeName;
+	}
+
+	if (c && isOwner && (!mountAll || c._component)) {
+		setComponentProps(c, props, 3, context, mountAll);
+		dom = c.base;
+	} else {
+		if (originalComponent && !isDirectOwner) {
+			unmountComponent(originalComponent);
+			dom = oldDom = null;
+		}
+
+		c = createComponent(vnode.nodeName, props, context);
+		if (dom && !c.nextBase) {
+			c.nextBase = dom;
+
+			oldDom = null;
+		}
+		setComponentProps(c, props, 1, context, mountAll);
+		dom = c.base;
+
+		if (oldDom && dom !== oldDom) {
+			oldDom._component = null;
+			recollectNodeTree(oldDom, false);
+		}
+	}
+
+	return dom;
+}
+
+function unmountComponent(component) {
+	if (options.beforeUnmount) options.beforeUnmount(component);
+
+	var base = component.base;
+
+	component._disable = true;
+
+	if (component.componentWillUnmount) component.componentWillUnmount();
+
+	component.base = null;
+
+	var inner = component._component;
+	if (inner) {
+		unmountComponent(inner);
+	} else if (base) {
+		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
+
+		component.nextBase = base;
+
+		removeNode(base);
+		recyclerComponents.push(component);
+
+		removeChildren(base);
+	}
+
+	if (component.__ref) component.__ref(null);
+}
+
+function Component(props, context) {
+	this._dirty = true;
+
+	this.context = context;
+
+	this.props = props;
+
+	this.state = this.state || {};
+
+	this._renderCallbacks = [];
+}
+
+extend(Component.prototype, {
+	setState: function setState(state, callback) {
+		if (!this.prevState) this.prevState = this.state;
+		this.state = extend(extend({}, this.state), typeof state === 'function' ? state(this.state, this.props) : state);
+		if (callback) this._renderCallbacks.push(callback);
+		enqueueRender(this);
+	},
+	forceUpdate: function forceUpdate(callback) {
+		if (callback) this._renderCallbacks.push(callback);
+		renderComponent(this, 2);
+	},
+	render: function render() {}
+});
+
+function render(vnode, parent, merge) {
+  return diff(merge, vnode, {}, false, parent, false);
+}
+
+class Decoration extends Component {
+    render({ type, from, to, annotation, suggestions, applySuggestion }) {
+        return (h("div", { className: "ValidationWidget__container" },
+            h("div", { className: "ValidationWidget", ref: _ => this.ref = _ },
+                h("div", { className: "ValidationWidget__label" }, type),
+                annotation,
+                suggestions &&
+                    !!suggestions.length &&
+                    applySuggestion && (h("div", { className: "ValidationWidget__suggestion-list" },
+                    h("div", { className: "ValidationWidget__label" }, "Suggestions"),
+                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion, from, to) }, suggestion))))))));
+    }
+}
+
+class ValidationOverlay extends Component {
+    constructor() {
+        super(...arguments);
+        this.state = {
+            isVisible: false,
+            left: undefined,
+            top: undefined,
+            hoverInfo: undefined,
+            validationOutput: undefined
+        };
+        this.handleMouseOver = (e) => e.stopPropagation();
+        this.handleValidationHoverEvent = (hoverEvent) => {
+            this.setState(Object.assign({}, this.state, hoverEvent, { isVisible: false, left: 0, top: 0 }));
+        };
+        this.getCoordsFromHoverEvent = () => {
+            if (!this.decorationRef || !this.state.hoverInfo)
+                return { left: 0, top: 0 };
+            const { left: tooltipLeft, top: tooltipTop } = this.getTooltipCoords(this.state.hoverInfo);
+            const left = clamp_1(tooltipLeft || 0, 0, window.innerWidth - this.decorationRef.ref.offsetTop);
+            const top = clamp_1(tooltipTop || 0, 0, window.innerWidth - this.decorationRef.ref.offsetHeight);
+            return { left, top };
+        };
+        this.getTooltipCoords = (hoverInfo) => {
+            const isHoveringOverFirstLine = hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);
+            const left = isHoveringOverFirstLine
+                ? hoverInfo.offsetLeft
+                : hoverInfo.left;
+            const top = isHoveringOverFirstLine
+                ? hoverInfo.offsetTop + hoverInfo.heightOfSingleLine
+                : hoverInfo.offsetTop + hoverInfo.height;
+            return { left, top };
+        };
+    }
+    componentWillMount() {
+        this.props.subscribe(this.handleValidationHoverEvent);
+    }
+    componentDidUpdate() {
+        if (this.state.isVisible) {
+            return;
+        }
+        const { left, top } = this.getCoordsFromHoverEvent();
+        this.setState({
+            isVisible: true,
+            left,
+            top
+        });
+    }
+    render() {
+        const { validationOutput, left, top } = this.state;
+        if (!validationOutput || left === undefined || top === undefined) {
+            return null;
+        }
+        return (h("div", { class: "ValidationPlugin__overlay", onMouseOver: this.handleMouseOver },
+            h("div", { class: "ValidationPlugin__decoration-container", style: { top: top - 1, left } },
+                h(Decoration, Object.assign({ ref: _ => (this.decorationRef = _) }, validationOutput, { applySuggestion: this.props.applySuggestion })))));
+    }
+}
+
+/**
+ * Appends the elements of `values` to `array`.
+ *
+ * @private
+ * @param {Array} array The array to modify.
+ * @param {Array} values The values to append.
+ * @returns {Array} Returns `array`.
+ */
+function arrayPush(array, values) {
+  var index = -1,
+      length = values.length,
+      offset = array.length;
+
+  while (++index < length) {
+    array[offset + index] = values[index];
+  }
+  return array;
+}
+
+var _arrayPush = arrayPush;
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]';
+
+/**
+ * The base implementation of `_.isArguments`.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+ */
+function baseIsArguments(value) {
+  return isObjectLike_1(value) && _baseGetTag(value) == argsTag;
+}
+
+var _baseIsArguments = baseIsArguments;
+
+/** Used for built-in method references. */
+var objectProto$2 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$1 = objectProto$2.hasOwnProperty;
+
+/** Built-in value references. */
+var propertyIsEnumerable = objectProto$2.propertyIsEnumerable;
+
+/**
+ * Checks if `value` is likely an `arguments` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+ *  else `false`.
+ * @example
+ *
+ * _.isArguments(function() { return arguments; }());
+ * // => true
+ *
+ * _.isArguments([1, 2, 3]);
+ * // => false
+ */
+var isArguments = _baseIsArguments(function() { return arguments; }()) ? _baseIsArguments : function(value) {
+  return isObjectLike_1(value) && hasOwnProperty$1.call(value, 'callee') &&
+    !propertyIsEnumerable.call(value, 'callee');
+};
+
+var isArguments_1 = isArguments;
+
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(document.body.children);
+ * // => false
+ *
+ * _.isArray('abc');
+ * // => false
+ *
+ * _.isArray(_.noop);
+ * // => false
+ */
+var isArray = Array.isArray;
+
+var isArray_1 = isArray;
+
+/** Built-in value references. */
+var spreadableSymbol = _Symbol ? _Symbol.isConcatSpreadable : undefined;
+
+/**
+ * Checks if `value` is a flattenable `arguments` object or array.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
+ */
+function isFlattenable(value) {
+  return isArray_1(value) || isArguments_1(value) ||
+    !!(spreadableSymbol && value && value[spreadableSymbol]);
+}
+
+var _isFlattenable = isFlattenable;
+
+/**
+ * The base implementation of `_.flatten` with support for restricting flattening.
+ *
+ * @private
+ * @param {Array} array The array to flatten.
+ * @param {number} depth The maximum recursion depth.
+ * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
+ * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
+ * @param {Array} [result=[]] The initial result value.
+ * @returns {Array} Returns the new flattened array.
+ */
+function baseFlatten(array, depth, predicate, isStrict, result) {
+  var index = -1,
+      length = array.length;
+
+  predicate || (predicate = _isFlattenable);
+  result || (result = []);
+
+  while (++index < length) {
+    var value = array[index];
+    if (depth > 0 && predicate(value)) {
+      if (depth > 1) {
+        // Recursively flatten arrays (susceptible to call stack limits).
+        baseFlatten(value, depth - 1, predicate, isStrict, result);
+      } else {
+        _arrayPush(result, value);
+      }
+    } else if (!isStrict) {
+      result[result.length] = value;
+    }
+  }
+  return result;
+}
+
+var _baseFlatten = baseFlatten;
+
+/**
+ * Flattens `array` a single level deep.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Array
+ * @param {Array} array The array to flatten.
+ * @returns {Array} Returns the new flattened array.
+ * @example
+ *
+ * _.flatten([1, [2, [3, [4]], 5]]);
+ * // => [1, 2, [3, [4]], 5]
+ */
+function flatten(array) {
+  var length = array == null ? 0 : array.length;
+  return length ? _baseFlatten(array, 1) : [];
+}
+
+var flatten_1 = flatten;
+
+const DECORATION_VALIDATION = "DECORATION_VALIDATION";
+const DECORATION_VALIDATION_HEIGHT_MARKER = "DECORATION_VALIDATION_HEIGHT_MARKER";
+const DECORATION_DIRTY = "DECORATION_DIRTY";
+const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
+const DecorationClassMap = {
+    [DECORATION_DIRTY]: "ValidationDebugDirty",
+    [DECORATION_INFLIGHT]: "ValidationDebugInflight",
+    [DECORATION_VALIDATION]: "ValidationDecoration"
+};
+const DECORATION_ATTRIBUTE_ID = "data-validation-id";
+const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
+const createDebugDecorationFromRange = (range, dirty = true) => {
+    const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
+    return dist_2$3.inline(range.from, range.to + 1, {
+        class: DecorationClassMap[type]
+    }, {
+        type
+    });
+};
+const removeValidationDecorationsFromRanges = (decorations, ranges, type = DECORATION_VALIDATION) => ranges.reduce((acc, range) => {
+    const decorationsToRemove = decorations.find(range.from, range.to, spec => spec.type === type);
+    return acc.remove(decorationsToRemove);
+}, decorations);
+const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
+    const newDecorationSet = removeValidationDecorationsFromRanges(decorationSet, outputs);
+    const decorationsToAdd = getDecorationsForValidationRanges(outputs);
+    return newDecorationSet.add(doc, decorationsToAdd);
+};
+const createHeightMarkerNode = (id) => {
+    const node = document.createElement("span");
+    node.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
+    return node;
+};
+const createDecorationForValidationRange = (output) => {
+    return [
+        dist_2$3.widget(output.from, createHeightMarkerNode(output.id), {
+            type: DECORATION_VALIDATION_HEIGHT_MARKER
+        }),
+        dist_2$3.inline(output.from, output.to, {
+            class: DecorationClassMap[DECORATION_VALIDATION],
+            [DECORATION_ATTRIBUTE_ID]: output.id
+        }, {
+            type: DECORATION_VALIDATION,
+            inclusiveStart: true
+        })
+    ];
+};
+const getDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(createDecorationForValidationRange));
+
+/**
+ * Creates an array with all falsey values removed. The values `false`, `null`,
+ * `0`, `""`, `undefined`, and `NaN` are falsey.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Array
+ * @param {Array} array The array to compact.
+ * @returns {Array} Returns the new array of filtered values.
+ * @example
+ *
+ * _.compact([0, 1, false, 2, '', 3]);
+ * // => [1, 2, 3]
+ */
+function compact(array) {
+  var index = -1,
+      length = array == null ? 0 : array.length,
+      resIndex = 0,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index];
+    if (value) {
+      result[resIndex++] = value;
+    }
+  }
+  return result;
+}
+
+var compact_1 = compact;
 
 var dist$11 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -17198,7 +18517,7 @@ exports.toggleHeaderColumn = toggleHeaderColumn;
 exports.toggleHeaderCell = toggleHeaderCell;
 exports.goToNextCell = goToNextCell;
 exports.deleteTable = deleteTable;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$11);
@@ -18657,7 +19976,7 @@ exports.safeInsert = safeInsert;
 exports.setParentNodeMarkup = setParentNodeMarkup;
 exports.selectParentNodeOfType = selectParentNodeOfType;
 exports.removeNodeBefore = removeNodeBefore;
-//# sourceMappingURL=index.js.map
+
 });
 
 unwrapExports(dist$10);
@@ -18721,335 +20040,32 @@ var dist_57 = dist$10.setParentNodeMarkup;
 var dist_58 = dist$10.selectParentNodeOfType;
 var dist_59 = dist$10.removeNodeBefore;
 
-/**
- * The base implementation of `_.clamp` which doesn't coerce arguments.
- *
- * @private
- * @param {number} number The number to clamp.
- * @param {number} [lower] The lower bound.
- * @param {number} upper The upper bound.
- * @returns {number} Returns the clamped number.
- */
-function baseClamp(number, lower, upper) {
-  if (number === number) {
-    if (upper !== undefined) {
-      number = number <= upper ? number : upper;
-    }
-    if (lower !== undefined) {
-      number = number >= lower ? number : lower;
-    }
-  }
-  return number;
-}
+const MarkTypes = {
+    legal: "legal",
+    warn: "warn"
+};
+const createValidationMark = (markName) => ({
+    attrs: {},
+    inclusive: false,
+    parseDOM: [
+        {
+            tag: `span.${markName}`,
+            getAttrs: () => ({})
+        }
+    ],
+    toDOM: (mark, inline) => [`span.${markName}`]
+});
+const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
+    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
+}, {});
 
-var _baseClamp = baseClamp;
 
-/**
- * Checks if `value` is the
- * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
- * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(_.noop);
- * // => true
- *
- * _.isObject(null);
- * // => false
- */
-function isObject(value) {
-  var type = typeof value;
-  return value != null && (type == 'object' || type == 'function');
-}
 
-var isObject_1 = isObject;
-
-var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-
-var _freeGlobal = freeGlobal;
-
-var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
-
-/** Used as a reference to the global object. */
-var root = _freeGlobal || freeSelf || Function('return this')();
-
-var _root = root;
-
-var Symbol$1 = _root.Symbol;
-
-var _Symbol = Symbol$1;
-
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var nativeObjectToString = objectProto.toString;
-
-/** Built-in value references. */
-var symToStringTag$1 = _Symbol ? _Symbol.toStringTag : undefined;
-
-/**
- * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
- *
- * @private
- * @param {*} value The value to query.
- * @returns {string} Returns the raw `toStringTag`.
- */
-function getRawTag(value) {
-  var isOwn = hasOwnProperty.call(value, symToStringTag$1),
-      tag = value[symToStringTag$1];
-
-  try {
-    value[symToStringTag$1] = undefined;
-    var unmasked = true;
-  } catch (e) {}
-
-  var result = nativeObjectToString.call(value);
-  if (unmasked) {
-    if (isOwn) {
-      value[symToStringTag$1] = tag;
-    } else {
-      delete value[symToStringTag$1];
-    }
-  }
-  return result;
-}
-
-var _getRawTag = getRawTag;
-
-/** Used for built-in method references. */
-var objectProto$1 = Object.prototype;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var nativeObjectToString$1 = objectProto$1.toString;
-
-/**
- * Converts `value` to a string using `Object.prototype.toString`.
- *
- * @private
- * @param {*} value The value to convert.
- * @returns {string} Returns the converted string.
- */
-function objectToString(value) {
-  return nativeObjectToString$1.call(value);
-}
-
-var _objectToString = objectToString;
-
-var nullTag = '[object Null]';
-var undefinedTag = '[object Undefined]';
-
-/** Built-in value references. */
-var symToStringTag = _Symbol ? _Symbol.toStringTag : undefined;
-
-/**
- * The base implementation of `getTag` without fallbacks for buggy environments.
- *
- * @private
- * @param {*} value The value to query.
- * @returns {string} Returns the `toStringTag`.
- */
-function baseGetTag(value) {
-  if (value == null) {
-    return value === undefined ? undefinedTag : nullTag;
-  }
-  return (symToStringTag && symToStringTag in Object(value))
-    ? _getRawTag(value)
-    : _objectToString(value);
-}
-
-var _baseGetTag = baseGetTag;
-
-/**
- * Checks if `value` is object-like. A value is object-like if it's not `null`
- * and has a `typeof` result of "object".
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
- * @example
- *
- * _.isObjectLike({});
- * // => true
- *
- * _.isObjectLike([1, 2, 3]);
- * // => true
- *
- * _.isObjectLike(_.noop);
- * // => false
- *
- * _.isObjectLike(null);
- * // => false
- */
-function isObjectLike(value) {
-  return value != null && typeof value == 'object';
-}
-
-var isObjectLike_1 = isObjectLike;
-
-var symbolTag = '[object Symbol]';
-
-/**
- * Checks if `value` is classified as a `Symbol` primitive or object.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
- * @example
- *
- * _.isSymbol(Symbol.iterator);
- * // => true
- *
- * _.isSymbol('abc');
- * // => false
- */
-function isSymbol(value) {
-  return typeof value == 'symbol' ||
-    (isObjectLike_1(value) && _baseGetTag(value) == symbolTag);
-}
-
-var isSymbol_1 = isSymbol;
-
-var NAN = 0 / 0;
-
-/** Used to match leading and trailing whitespace. */
-var reTrim = /^\s+|\s+$/g;
-
-/** Used to detect bad signed hexadecimal string values. */
-var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
-
-/** Used to detect binary string values. */
-var reIsBinary = /^0b[01]+$/i;
-
-/** Used to detect octal string values. */
-var reIsOctal = /^0o[0-7]+$/i;
-
-/** Built-in method references without a dependency on `root`. */
-var freeParseInt = parseInt;
-
-/**
- * Converts `value` to a number.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to process.
- * @returns {number} Returns the number.
- * @example
- *
- * _.toNumber(3.2);
- * // => 3.2
- *
- * _.toNumber(Number.MIN_VALUE);
- * // => 5e-324
- *
- * _.toNumber(Infinity);
- * // => Infinity
- *
- * _.toNumber('3.2');
- * // => 3.2
- */
-function toNumber(value) {
-  if (typeof value == 'number') {
-    return value;
-  }
-  if (isSymbol_1(value)) {
-    return NAN;
-  }
-  if (isObject_1(value)) {
-    var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
-    value = isObject_1(other) ? (other + '') : other;
-  }
-  if (typeof value != 'string') {
-    return value === 0 ? value : +value;
-  }
-  value = value.replace(reTrim, '');
-  var isBinary = reIsBinary.test(value);
-  return (isBinary || reIsOctal.test(value))
-    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
-    : (reIsBadHex.test(value) ? NAN : +value);
-}
-
-var toNumber_1 = toNumber;
-
-function clamp(number, lower, upper) {
-  if (upper === undefined) {
-    upper = lower;
-    lower = undefined;
-  }
-  if (upper !== undefined) {
-    upper = toNumber_1(upper);
-    upper = upper === upper ? upper : 0;
-  }
-  if (lower !== undefined) {
-    lower = toNumber_1(lower);
-    lower = lower === lower ? lower : 0;
-  }
-  return _baseClamp(toNumber_1(number), lower, upper);
-}
-
-var clamp_1 = clamp;
-
-/**
- * Creates an array with all falsey values removed. The values `false`, `null`,
- * `0`, `""`, `undefined`, and `NaN` are falsey.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Array
- * @param {Array} array The array to compact.
- * @returns {Array} Returns the new array of filtered values.
- * @example
- *
- * _.compact([0, 1, false, 2, '', 3]);
- * // => [1, 2, 3]
- */
-function compact(array) {
-  var index = -1,
-      length = array == null ? 0 : array.length,
-      resIndex = 0,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index];
-    if (value) {
-      result[resIndex++] = value;
-    }
-  }
-  return result;
-}
-
-var compact_1 = compact;
+const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
+    from: step.from,
+    to: step.to
+}));
+const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_16 || step instanceof dist_17);
 
 const findOverlappingRangeIndex = (range, ranges) => {
     return ranges.findIndex(localRange => (localRange.from <= range.from && localRange.to >= range.from) ||
@@ -19088,11 +20104,11 @@ const validationInputToRange = (input) => ({
     to: input.to
 });
 const mergeOutputsFromValidationResponse = (response, currentOutputs, trs) => {
-    const initialTransaction = trs.find(tr => tr.time === parseInt(response.id));
+    const initialTransaction = trs.find(tr => tr.time === parseInt(response.id, 10));
     if (!initialTransaction && trs.length > 1) {
         return currentOutputs;
     }
-    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, parseInt(response.id), trs);
+    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, parseInt(response.id, 10), trs);
     return removeOverlappingRanges(currentOutputs, newOutputs).concat(newOutputs);
 };
 const expandRange = (range, doc) => {
@@ -19101,7 +20117,6 @@ const expandRange = (range, doc) => {
         const $toPos = doc.resolve(range.to);
         const parentNode = dist_3$7(node => node.isBlock)(new dist_1($fromPos, $toPos));
         if (!parentNode) {
-            console.error(`Parent node not found for position ${$fromPos.start}, ${$fromPos.end}`);
             return undefined;
         }
         return {
@@ -19140,151 +20155,118 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
         to: tr.mapping.map(acc.to)
     }), range)));
 }));
-//# sourceMappingURL=range.js.map
+const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
 
-/**
- * Appends the elements of `values` to `array`.
- *
- * @private
- * @param {Array} array The array to modify.
- * @param {Array} values The values to append.
- * @returns {Array} Returns `array`.
- */
-function arrayPush(array, values) {
-  var index = -1,
-      length = values.length,
-      offset = array.length;
-
-  while (++index < length) {
-    array[offset + index] = values[index];
-  }
-  return array;
-}
-
-var _arrayPush = arrayPush;
-
-var argsTag = '[object Arguments]';
-
-/**
- * The base implementation of `_.isArguments`.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an `arguments` object,
- */
-function baseIsArguments(value) {
-  return isObjectLike_1(value) && _baseGetTag(value) == argsTag;
-}
-
-var _baseIsArguments = baseIsArguments;
-
-var objectProto$2 = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty$1 = objectProto$2.hasOwnProperty;
-
-/** Built-in value references. */
-var propertyIsEnumerable = objectProto$2.propertyIsEnumerable;
-
-/**
- * Checks if `value` is likely an `arguments` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an `arguments` object,
- *  else `false`.
- * @example
- *
- * _.isArguments(function() { return arguments; }());
- * // => true
- *
- * _.isArguments([1, 2, 3]);
- * // => false
- */
-var isArguments = _baseIsArguments(function() { return arguments; }()) ? _baseIsArguments : function(value) {
-  return isObjectLike_1(value) && hasOwnProperty$1.call(value, 'callee') &&
-    !propertyIsEnumerable.call(value, 'callee');
+const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
+const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
+const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
+const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
+const NEW_HOVER_ID = "NEW_HOVER_ID";
+const validationRequestPending = () => ({
+    type: VALIDATION_REQUEST_PENDING
+});
+const validationRequestStart = (ranges) => ({
+    type: VALIDATION_REQUEST_START,
+    payload: { ranges }
+});
+const validationRequestSuccess = (response) => ({
+    type: VALIDATION_REQUEST_SUCCESS,
+    payload: { response }
+});
+const validationRequestError = (validationError) => ({
+    type: VALIDATION_REQUEST_ERROR,
+    payload: { validationError }
+});
+const newHoverIdReceived = (hoverId, hoverInfo) => ({
+    type: NEW_HOVER_ID,
+    payload: { hoverId, hoverInfo }
+});
+const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
+const validationPluginReducer = (tr, state, action) => {
+    switch (action.type) {
+        case NEW_HOVER_ID:
+            return handleNewHoverId(tr, state, action);
+        case VALIDATION_REQUEST_PENDING:
+            return handleValidationRequestPending(tr, state, action);
+        case VALIDATION_REQUEST_START:
+            return handleValidationRequestStart(tr, state, action);
+        case VALIDATION_REQUEST_SUCCESS:
+            return handleValidationRequestSuccess(tr, state, action);
+        case VALIDATION_REQUEST_ERROR:
+            return handleValidationRequestError(tr, state, action);
+        default:
+            return state;
+    }
+};
+const handleNewHoverId = (_, state, action) => {
+    return Object.assign({}, state, { hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
+};
+const handleValidationRequestPending = (_, state) => {
+    return Object.assign({}, state, { validationPending: true });
+};
+const handleValidationRequestStart = (tr, state, action) => {
+    const validationInputs = action.payload.ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    const decorations = removeValidationDecorationsFromRanges(state.decorations, action.payload.ranges, DECORATION_DIRTY).add(tr.doc, action.payload.ranges.map(range => createDebugDecorationFromRange(range, false)));
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: {
+            validationInputs,
+            id: tr.time
+        } });
+};
+const handleValidationRequestSuccess = (tr, state, action) => {
+    const response = action.payload.response;
+    if (response && response.validationOutputs.length) {
+        const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
+        const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
+        const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
+        return Object.assign({}, state, { validationInFlight: undefined, currentValidations, decorations: decorations.remove(decsToRemove) });
+    }
+    return state;
+};
+const handleValidationRequestError = (tr, state, action) => {
+    const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
+    const dirtiedRanges = mapRangeThroughTransactions([validationInputToRange(action.payload.validationError.validationInput)], parseInt(String(action.payload.validationError.id), 10), state.trHistory);
+    let decorations = state.decorations.remove(decsToRemove);
+    if (dirtiedRanges.length) {
+        decorations = decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
+    }
+    return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
+            ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
+            : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
 };
 
-var isArguments_1 = isArguments;
-
-/**
- * Checks if `value` is classified as an `Array` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an array, else `false`.
- * @example
- *
- * _.isArray([1, 2, 3]);
- * // => true
- *
- * _.isArray(document.body.children);
- * // => false
- *
- * _.isArray('abc');
- * // => false
- *
- * _.isArray(_.noop);
- * // => false
- */
-var isArray = Array.isArray;
-
-var isArray_1 = isArray;
-
-var spreadableSymbol = _Symbol ? _Symbol.isConcatSpreadable : undefined;
-
-/**
- * Checks if `value` is a flattenable `arguments` object or array.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
- */
-function isFlattenable(value) {
-  return isArray_1(value) || isArguments_1(value) ||
-    !!(spreadableSymbol && value && value[spreadableSymbol]);
-}
-
-var _isFlattenable = isFlattenable;
-
-function baseFlatten(array, depth, predicate, isStrict, result) {
-  var index = -1,
-      length = array.length;
-
-  predicate || (predicate = _isFlattenable);
-  result || (result = []);
-
-  while (++index < length) {
-    var value = array[index];
-    if (depth > 0 && predicate(value)) {
-      if (depth > 1) {
-        // Recursively flatten arrays (susceptible to call stack limits).
-        baseFlatten(value, depth - 1, predicate, isStrict, result);
-      } else {
-        _arrayPush(result, value);
-      }
-    } else if (!isStrict) {
-      result[result.length] = value;
-    }
-  }
-  return result;
-}
-
-var _baseFlatten = baseFlatten;
-
-function flatten$1(array) {
-  var length = array == null ? 0 : array.length;
-  return length ? _baseFlatten(array, 1) : [];
-}
-
-var flatten_1 = flatten$1;
+var defaultView = (plugin, commands) => (view) => {
+    const notificationSubscribers = [];
+    const subscribe = (callback) => {
+        notificationSubscribers.push(callback);
+        return () => {
+            notificationSubscribers.splice(notificationSubscribers.indexOf(callback), 1);
+        };
+    };
+    const overlayNode = document.createElement("div");
+    const wrapperNode = document.createElement("div");
+    wrapperNode.classList.add("ValidationPlugin__container");
+    view.dom.parentNode.replaceChild(wrapperNode, view.dom);
+    wrapperNode.appendChild(view.dom);
+    view.dom.insertAdjacentElement("afterend", overlayNode);
+    render(h(ValidationOverlay, { subscribe: subscribe, applySuggestion: (validationId, suggestionIndex) => commands.applySuggestion(validationId, suggestionIndex)(view.state, view.dispatch) }), overlayNode);
+    const notify = (state) => notificationSubscribers.forEach(sub => {
+        if (state.hoverId) {
+            const validationOutput = selectValidationById(state, state.hoverId);
+            return sub({
+                hoverInfo: state.hoverInfo,
+                validationOutput
+            });
+        }
+        sub({
+            hoverInfo: undefined,
+            validationOutput: undefined
+        });
+    });
+    return {
+        update: (view) => notify(plugin.getState(view.state))
+    };
+};
 
 class EventEmitter {
     constructor() {
@@ -19323,7 +20305,6 @@ class EventEmitter {
         return remove;
     }
 }
-//# sourceMappingURL=EventEmitter.js.map
 
 const ValidationEvents = {
     VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
@@ -19372,139 +20353,6 @@ class ValidationService extends EventEmitter {
     }
 }
 
-//# sourceMappingURL=ValidationAPIService.js.map
-
-const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-const DECORATION_VALIDATION_HEIGHT_MARKER = "DECORATION_VALIDATION_HEIGHT_MARKER";
-const DECORATION_DIRTY = "DECORATION_DIRTY";
-const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
-const DecorationClassMap = {
-    [DECORATION_DIRTY]: "ValidationDebugDirty",
-    [DECORATION_INFLIGHT]: "ValidationDebugInflight",
-    [DECORATION_VALIDATION]: "ValidationDecoration"
-};
-const DECORATION_ATTRIBUTE_ID = "data-validation-id";
-const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
-const createDebugDecorationFromRange = (range, dirty = true) => {
-    const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
-    return dist_2$3.inline(range.from, range.to + 1, {
-        class: DecorationClassMap[type]
-    }, {
-        type
-    });
-};
-const removeValidationDecorationsFromRanges = (decorations, ranges, type = DECORATION_VALIDATION) => ranges.reduce((acc, range) => {
-    const decorationsToRemove = decorations.find(range.from, range.to, spec => spec.type === type);
-    return acc.remove(decorationsToRemove);
-}, decorations);
-const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
-    let newDecorationSet = removeValidationDecorationsFromRanges(decorationSet, outputs);
-    const decorationsToAdd = getDecorationsForValidationRanges(outputs);
-    return newDecorationSet.add(doc, decorationsToAdd);
-};
-const createHeightMarkerNode = (id) => {
-    const node = document.createElement("span");
-    node.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
-    return node;
-};
-const createDecorationForValidationRange = (output) => {
-    return [
-        dist_2$3.widget(output.from, createHeightMarkerNode(output.id), {
-            type: DECORATION_VALIDATION_HEIGHT_MARKER
-        }),
-        dist_2$3.inline(output.from, output.to, {
-            class: DecorationClassMap[DECORATION_VALIDATION],
-            [DECORATION_ATTRIBUTE_ID]: output.id
-        }, {
-            type: DECORATION_VALIDATION,
-            inclusiveStart: true
-        })
-    ];
-};
-const getDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(createDecorationForValidationRange));
-
-//# sourceMappingURL=decoration.js.map
-
-const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
-const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
-const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
-const NEW_HOVER_ID = "NEW_HOVER_ID";
-const validationRequestPending = () => ({
-    type: VALIDATION_REQUEST_PENDING
-});
-const validationRequestStart = () => ({
-    type: VALIDATION_REQUEST_START
-});
-const validationRequestSuccess = (response) => ({
-    type: VALIDATION_REQUEST_SUCCESS,
-    payload: { response }
-});
-const validationRequestError = (validationError) => ({
-    type: VALIDATION_REQUEST_ERROR,
-    payload: { validationError }
-});
-const newHoverIdReceived = (hoverId, hoverInfo) => ({
-    type: NEW_HOVER_ID,
-    payload: { hoverId, hoverInfo }
-});
-const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
-const validationPluginReducer = (tr, state, action) => {
-    switch (action.type) {
-        case NEW_HOVER_ID:
-            return handleNewHoverId(tr, state, action);
-        case VALIDATION_REQUEST_PENDING:
-            return handleValidationRequestPending(tr, state, action);
-        case VALIDATION_REQUEST_START:
-            return handleValidationRequestStart(tr, state, action);
-        case VALIDATION_REQUEST_SUCCESS:
-            return handleValidationRequestSuccess(tr, state, action);
-        case VALIDATION_REQUEST_ERROR:
-            return handleValidationRequestError(tr, state, action);
-        default:
-            return state;
-    }
-};
-const handleNewHoverId = (_, state, action) => {
-    return Object.assign({}, state, { hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
-};
-const handleValidationRequestPending = (_, state) => {
-    return Object.assign({}, state, { validationPending: true });
-};
-const handleValidationRequestStart = (tr, state) => {
-    const expandedRanges = getRangesOfParentBlockNodes(state.dirtiedRanges, tr.doc);
-    const validationInputs = expandedRanges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
-    const decorations = removeValidationDecorationsFromRanges(state.decorations, expandedRanges, DECORATION_DIRTY).add(tr.doc, expandedRanges.map(range => createDebugDecorationFromRange(range, false)));
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: {
-            validationInputs,
-            id: tr.time
-        } });
-};
-const handleValidationRequestSuccess = (tr, state, action) => {
-    const response = action.payload.response;
-    if (response && response.validationOutputs.length) {
-        const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
-        const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
-        const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
-        return Object.assign({}, state, { validationInFlight: undefined, currentValidations, decorations: decorations.remove(decsToRemove) });
-    }
-    return state;
-};
-const handleValidationRequestError = (tr, state, action) => {
-    const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
-    const dirtiedRanges = mapRangeThroughTransactions([validationInputToRange(action.payload.validationError.validationInput)], parseInt(String(action.payload.validationError.id), 10), state.trHistory);
-    let decorations = state.decorations.remove(decsToRemove);
-    if (dirtiedRanges.length) {
-        decorations = decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
-    }
-    return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
-            ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-            : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
-};
-
-//# sourceMappingURL=state.js.map
-
 function getStateHoverInfoFromEvent(event, heightMarker) {
     if (!event.target ||
         !(event.target instanceof HTMLElement) ||
@@ -19527,823 +20375,8 @@ function getStateHoverInfoFromEvent(event, heightMarker) {
         heightOfSingleLine: heightMarker.offsetHeight
     };
 }
-//# sourceMappingURL=dom.js.map
 
-var VNode = function VNode() {};
-
-var options = {};
-
-var stack = [];
-
-var EMPTY_CHILDREN = [];
-
-function h(nodeName, attributes) {
-	var children = EMPTY_CHILDREN,
-	    lastSimple,
-	    child,
-	    simple,
-	    i;
-	for (i = arguments.length; i-- > 2;) {
-		stack.push(arguments[i]);
-	}
-	if (attributes && attributes.children != null) {
-		if (!stack.length) stack.push(attributes.children);
-		delete attributes.children;
-	}
-	while (stack.length) {
-		if ((child = stack.pop()) && child.pop !== undefined) {
-			for (i = child.length; i--;) {
-				stack.push(child[i]);
-			}
-		} else {
-			if (typeof child === 'boolean') child = null;
-
-			if (simple = typeof nodeName !== 'function') {
-				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
-			}
-
-			if (simple && lastSimple) {
-				children[children.length - 1] += child;
-			} else if (children === EMPTY_CHILDREN) {
-				children = [child];
-			} else {
-				children.push(child);
-			}
-
-			lastSimple = simple;
-		}
-	}
-
-	var p = new VNode();
-	p.nodeName = nodeName;
-	p.children = children;
-	p.attributes = attributes == null ? undefined : attributes;
-	p.key = attributes == null ? undefined : attributes.key;
-
-	if (options.vnode !== undefined) options.vnode(p);
-
-	return p;
-}
-
-function extend(obj, props) {
-  for (var i in props) {
-    obj[i] = props[i];
-  }return obj;
-}
-
-var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
-
-var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
-
-var items = [];
-
-function enqueueRender(component) {
-	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
-		(options.debounceRendering || defer)(rerender);
-	}
-}
-
-function rerender() {
-	var p,
-	    list = items;
-	items = [];
-	while (p = list.pop()) {
-		if (p._dirty) renderComponent(p);
-	}
-}
-
-function isSameNodeType(node, vnode, hydrating) {
-	if (typeof vnode === 'string' || typeof vnode === 'number') {
-		return node.splitText !== undefined;
-	}
-	if (typeof vnode.nodeName === 'string') {
-		return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
-	}
-	return hydrating || node._componentConstructor === vnode.nodeName;
-}
-
-function isNamedNode(node, nodeName) {
-	return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
-}
-
-function getNodeProps(vnode) {
-	var props = extend({}, vnode.attributes);
-	props.children = vnode.children;
-
-	var defaultProps = vnode.nodeName.defaultProps;
-	if (defaultProps !== undefined) {
-		for (var i in defaultProps) {
-			if (props[i] === undefined) {
-				props[i] = defaultProps[i];
-			}
-		}
-	}
-
-	return props;
-}
-
-function createNode(nodeName, isSvg) {
-	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
-	node.normalizedNodeName = nodeName;
-	return node;
-}
-
-function removeNode(node) {
-	var parentNode = node.parentNode;
-	if (parentNode) parentNode.removeChild(node);
-}
-
-function setAccessor(node, name, old, value, isSvg) {
-	if (name === 'className') name = 'class';
-
-	if (name === 'key') {} else if (name === 'ref') {
-		if (old) old(null);
-		if (value) value(node);
-	} else if (name === 'class' && !isSvg) {
-		node.className = value || '';
-	} else if (name === 'style') {
-		if (!value || typeof value === 'string' || typeof old === 'string') {
-			node.style.cssText = value || '';
-		}
-		if (value && typeof value === 'object') {
-			if (typeof old !== 'string') {
-				for (var i in old) {
-					if (!(i in value)) node.style[i] = '';
-				}
-			}
-			for (var i in value) {
-				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
-			}
-		}
-	} else if (name === 'dangerouslySetInnerHTML') {
-		if (value) node.innerHTML = value.__html || '';
-	} else if (name[0] == 'o' && name[1] == 'n') {
-		var useCapture = name !== (name = name.replace(/Capture$/, ''));
-		name = name.toLowerCase().substring(2);
-		if (value) {
-			if (!old) node.addEventListener(name, eventProxy, useCapture);
-		} else {
-			node.removeEventListener(name, eventProxy, useCapture);
-		}
-		(node._listeners || (node._listeners = {}))[name] = value;
-	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
-		try {
-			node[name] = value == null ? '' : value;
-		} catch (e) {}
-		if ((value == null || value === false) && name != 'spellcheck') node.removeAttribute(name);
-	} else {
-		var ns = isSvg && name !== (name = name.replace(/^xlink:?/, ''));
-
-		if (value == null || value === false) {
-			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
-		} else if (typeof value !== 'function') {
-			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
-		}
-	}
-}
-
-function eventProxy(e) {
-	return this._listeners[e.type](options.event && options.event(e) || e);
-}
-
-var mounts = [];
-
-var diffLevel = 0;
-
-var isSvgMode = false;
-
-var hydrating = false;
-
-function flushMounts() {
-	var c;
-	while (c = mounts.pop()) {
-		if (options.afterMount) options.afterMount(c);
-		if (c.componentDidMount) c.componentDidMount();
-	}
-}
-
-function diff(dom, vnode, context, mountAll, parent, componentRoot) {
-	if (!diffLevel++) {
-		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
-
-		hydrating = dom != null && !('__preactattr_' in dom);
-	}
-
-	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
-
-	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
-
-	if (! --diffLevel) {
-		hydrating = false;
-
-		if (!componentRoot) flushMounts();
-	}
-
-	return ret;
-}
-
-function idiff(dom, vnode, context, mountAll, componentRoot) {
-	var out = dom,
-	    prevSvgMode = isSvgMode;
-
-	if (vnode == null || typeof vnode === 'boolean') vnode = '';
-
-	if (typeof vnode === 'string' || typeof vnode === 'number') {
-		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
-			if (dom.nodeValue != vnode) {
-				dom.nodeValue = vnode;
-			}
-		} else {
-			out = document.createTextNode(vnode);
-			if (dom) {
-				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
-				recollectNodeTree(dom, true);
-			}
-		}
-
-		out['__preactattr_'] = true;
-
-		return out;
-	}
-
-	var vnodeName = vnode.nodeName;
-	if (typeof vnodeName === 'function') {
-		return buildComponentFromVNode(dom, vnode, context, mountAll);
-	}
-
-	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
-
-	vnodeName = String(vnodeName);
-	if (!dom || !isNamedNode(dom, vnodeName)) {
-		out = createNode(vnodeName, isSvgMode);
-
-		if (dom) {
-			while (dom.firstChild) {
-				out.appendChild(dom.firstChild);
-			}
-			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
-
-			recollectNodeTree(dom, true);
-		}
-	}
-
-	var fc = out.firstChild,
-	    props = out['__preactattr_'],
-	    vchildren = vnode.children;
-
-	if (props == null) {
-		props = out['__preactattr_'] = {};
-		for (var a = out.attributes, i = a.length; i--;) {
-			props[a[i].name] = a[i].value;
-		}
-	}
-
-	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
-		if (fc.nodeValue != vchildren[0]) {
-			fc.nodeValue = vchildren[0];
-		}
-	} else if (vchildren && vchildren.length || fc != null) {
-			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
-		}
-
-	diffAttributes(out, vnode.attributes, props);
-
-	isSvgMode = prevSvgMode;
-
-	return out;
-}
-
-function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
-	var originalChildren = dom.childNodes,
-	    children = [],
-	    keyed = {},
-	    keyedLen = 0,
-	    min = 0,
-	    len = originalChildren.length,
-	    childrenLen = 0,
-	    vlen = vchildren ? vchildren.length : 0,
-	    j,
-	    c,
-	    f,
-	    vchild,
-	    child;
-
-	if (len !== 0) {
-		for (var i = 0; i < len; i++) {
-			var _child = originalChildren[i],
-			    props = _child['__preactattr_'],
-			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
-			if (key != null) {
-				keyedLen++;
-				keyed[key] = _child;
-			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
-				children[childrenLen++] = _child;
-			}
-		}
-	}
-
-	if (vlen !== 0) {
-		for (var i = 0; i < vlen; i++) {
-			vchild = vchildren[i];
-			child = null;
-
-			var key = vchild.key;
-			if (key != null) {
-				if (keyedLen && keyed[key] !== undefined) {
-					child = keyed[key];
-					keyed[key] = undefined;
-					keyedLen--;
-				}
-			} else if (min < childrenLen) {
-					for (j = min; j < childrenLen; j++) {
-						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
-							child = c;
-							children[j] = undefined;
-							if (j === childrenLen - 1) childrenLen--;
-							if (j === min) min++;
-							break;
-						}
-					}
-				}
-
-			child = idiff(child, vchild, context, mountAll);
-
-			f = originalChildren[i];
-			if (child && child !== dom && child !== f) {
-				if (f == null) {
-					dom.appendChild(child);
-				} else if (child === f.nextSibling) {
-					removeNode(f);
-				} else {
-					dom.insertBefore(child, f);
-				}
-			}
-		}
-	}
-
-	if (keyedLen) {
-		for (var i in keyed) {
-			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
-		}
-	}
-
-	while (min <= childrenLen) {
-		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
-	}
-}
-
-function recollectNodeTree(node, unmountOnly) {
-	var component = node._component;
-	if (component) {
-		unmountComponent(component);
-	} else {
-		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
-
-		if (unmountOnly === false || node['__preactattr_'] == null) {
-			removeNode(node);
-		}
-
-		removeChildren(node);
-	}
-}
-
-function removeChildren(node) {
-	node = node.lastChild;
-	while (node) {
-		var next = node.previousSibling;
-		recollectNodeTree(node, true);
-		node = next;
-	}
-}
-
-function diffAttributes(dom, attrs, old) {
-	var name;
-
-	for (name in old) {
-		if (!(attrs && attrs[name] != null) && old[name] != null) {
-			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
-		}
-	}
-
-	for (name in attrs) {
-		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
-			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
-		}
-	}
-}
-
-var recyclerComponents = [];
-
-function createComponent(Ctor, props, context) {
-	var inst,
-	    i = recyclerComponents.length;
-
-	if (Ctor.prototype && Ctor.prototype.render) {
-		inst = new Ctor(props, context);
-		Component.call(inst, props, context);
-	} else {
-		inst = new Component(props, context);
-		inst.constructor = Ctor;
-		inst.render = doRender;
-	}
-
-	while (i--) {
-		if (recyclerComponents[i].constructor === Ctor) {
-			inst.nextBase = recyclerComponents[i].nextBase;
-			recyclerComponents.splice(i, 1);
-			return inst;
-		}
-	}
-
-	return inst;
-}
-
-function doRender(props, state, context) {
-	return this.constructor(props, context);
-}
-
-function setComponentProps(component, props, renderMode, context, mountAll) {
-	if (component._disable) return;
-	component._disable = true;
-
-	component.__ref = props.ref;
-	component.__key = props.key;
-	delete props.ref;
-	delete props.key;
-
-	if (typeof component.constructor.getDerivedStateFromProps === 'undefined') {
-		if (!component.base || mountAll) {
-			if (component.componentWillMount) component.componentWillMount();
-		} else if (component.componentWillReceiveProps) {
-			component.componentWillReceiveProps(props, context);
-		}
-	}
-
-	if (context && context !== component.context) {
-		if (!component.prevContext) component.prevContext = component.context;
-		component.context = context;
-	}
-
-	if (!component.prevProps) component.prevProps = component.props;
-	component.props = props;
-
-	component._disable = false;
-
-	if (renderMode !== 0) {
-		if (renderMode === 1 || options.syncComponentUpdates !== false || !component.base) {
-			renderComponent(component, 1, mountAll);
-		} else {
-			enqueueRender(component);
-		}
-	}
-
-	if (component.__ref) component.__ref(component);
-}
-
-function renderComponent(component, renderMode, mountAll, isChild) {
-	if (component._disable) return;
-
-	var props = component.props,
-	    state = component.state,
-	    context = component.context,
-	    previousProps = component.prevProps || props,
-	    previousState = component.prevState || state,
-	    previousContext = component.prevContext || context,
-	    isUpdate = component.base,
-	    nextBase = component.nextBase,
-	    initialBase = isUpdate || nextBase,
-	    initialChildComponent = component._component,
-	    skip = false,
-	    snapshot = previousContext,
-	    rendered,
-	    inst,
-	    cbase;
-
-	if (component.constructor.getDerivedStateFromProps) {
-		state = extend(extend({}, state), component.constructor.getDerivedStateFromProps(props, state));
-		component.state = state;
-	}
-
-	if (isUpdate) {
-		component.props = previousProps;
-		component.state = previousState;
-		component.context = previousContext;
-		if (renderMode !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
-			skip = true;
-		} else if (component.componentWillUpdate) {
-			component.componentWillUpdate(props, state, context);
-		}
-		component.props = props;
-		component.state = state;
-		component.context = context;
-	}
-
-	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
-	component._dirty = false;
-
-	if (!skip) {
-		rendered = component.render(props, state, context);
-
-		if (component.getChildContext) {
-			context = extend(extend({}, context), component.getChildContext());
-		}
-
-		if (isUpdate && component.getSnapshotBeforeUpdate) {
-			snapshot = component.getSnapshotBeforeUpdate(previousProps, previousState);
-		}
-
-		var childComponent = rendered && rendered.nodeName,
-		    toUnmount,
-		    base;
-
-		if (typeof childComponent === 'function') {
-
-			var childProps = getNodeProps(rendered);
-			inst = initialChildComponent;
-
-			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
-				setComponentProps(inst, childProps, 1, context, false);
-			} else {
-				toUnmount = inst;
-
-				component._component = inst = createComponent(childComponent, childProps, context);
-				inst.nextBase = inst.nextBase || nextBase;
-				inst._parentComponent = component;
-				setComponentProps(inst, childProps, 0, context, false);
-				renderComponent(inst, 1, mountAll, true);
-			}
-
-			base = inst.base;
-		} else {
-			cbase = initialBase;
-
-			toUnmount = initialChildComponent;
-			if (toUnmount) {
-				cbase = component._component = null;
-			}
-
-			if (initialBase || renderMode === 1) {
-				if (cbase) cbase._component = null;
-				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
-			}
-		}
-
-		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
-			var baseParent = initialBase.parentNode;
-			if (baseParent && base !== baseParent) {
-				baseParent.replaceChild(base, initialBase);
-
-				if (!toUnmount) {
-					initialBase._component = null;
-					recollectNodeTree(initialBase, false);
-				}
-			}
-		}
-
-		if (toUnmount) {
-			unmountComponent(toUnmount);
-		}
-
-		component.base = base;
-		if (base && !isChild) {
-			var componentRef = component,
-			    t = component;
-			while (t = t._parentComponent) {
-				(componentRef = t).base = base;
-			}
-			base._component = componentRef;
-			base._componentConstructor = componentRef.constructor;
-		}
-	}
-
-	if (!isUpdate || mountAll) {
-		mounts.unshift(component);
-	} else if (!skip) {
-
-		if (component.componentDidUpdate) {
-			component.componentDidUpdate(previousProps, previousState, snapshot);
-		}
-		if (options.afterUpdate) options.afterUpdate(component);
-	}
-
-	while (component._renderCallbacks.length) {
-		component._renderCallbacks.pop().call(component);
-	}if (!diffLevel && !isChild) flushMounts();
-}
-
-function buildComponentFromVNode(dom, vnode, context, mountAll) {
-	var c = dom && dom._component,
-	    originalComponent = c,
-	    oldDom = dom,
-	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
-	    isOwner = isDirectOwner,
-	    props = getNodeProps(vnode);
-	while (c && !isOwner && (c = c._parentComponent)) {
-		isOwner = c.constructor === vnode.nodeName;
-	}
-
-	if (c && isOwner && (!mountAll || c._component)) {
-		setComponentProps(c, props, 3, context, mountAll);
-		dom = c.base;
-	} else {
-		if (originalComponent && !isDirectOwner) {
-			unmountComponent(originalComponent);
-			dom = oldDom = null;
-		}
-
-		c = createComponent(vnode.nodeName, props, context);
-		if (dom && !c.nextBase) {
-			c.nextBase = dom;
-
-			oldDom = null;
-		}
-		setComponentProps(c, props, 1, context, mountAll);
-		dom = c.base;
-
-		if (oldDom && dom !== oldDom) {
-			oldDom._component = null;
-			recollectNodeTree(oldDom, false);
-		}
-	}
-
-	return dom;
-}
-
-function unmountComponent(component) {
-	if (options.beforeUnmount) options.beforeUnmount(component);
-
-	var base = component.base;
-
-	component._disable = true;
-
-	if (component.componentWillUnmount) component.componentWillUnmount();
-
-	component.base = null;
-
-	var inner = component._component;
-	if (inner) {
-		unmountComponent(inner);
-	} else if (base) {
-		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
-
-		component.nextBase = base;
-
-		removeNode(base);
-		recyclerComponents.push(component);
-
-		removeChildren(base);
-	}
-
-	if (component.__ref) component.__ref(null);
-}
-
-function Component(props, context) {
-	this._dirty = true;
-
-	this.context = context;
-
-	this.props = props;
-
-	this.state = this.state || {};
-
-	this._renderCallbacks = [];
-}
-
-extend(Component.prototype, {
-	setState: function setState(state, callback) {
-		if (!this.prevState) this.prevState = this.state;
-		this.state = extend(extend({}, this.state), typeof state === 'function' ? state(this.state, this.props) : state);
-		if (callback) this._renderCallbacks.push(callback);
-		enqueueRender(this);
-	},
-	forceUpdate: function forceUpdate(callback) {
-		if (callback) this._renderCallbacks.push(callback);
-		renderComponent(this, 2);
-	},
-	render: function render() {}
-});
-
-function render(vnode, parent, merge) {
-  return diff(merge, vnode, {}, false, parent, false);
-}
-
-
-//# sourceMappingURL=preact.mjs.map
-
-class Decoration extends Component {
-    render({ type, from, to, annotation, suggestions, applySuggestion }) {
-        return (h("div", { className: "ValidationWidget__container" },
-            h("div", { className: "ValidationWidget", ref: _ => this.ref = _ },
-                h("div", { className: "ValidationWidget__label" }, type),
-                annotation,
-                suggestions &&
-                    !!suggestions.length &&
-                    applySuggestion && (h("div", { className: "ValidationWidget__suggestion-list" },
-                    h("div", { className: "ValidationWidget__label" }, "Suggestions"),
-                    suggestions.map(suggestion => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestion(suggestion, from, to) }, suggestion))))))));
-    }
-}
-
-//# sourceMappingURL=Decoration.js.map
-
-class ValidationOverlay extends Component {
-    constructor() {
-        super(...arguments);
-        this.state = {
-            isVisible: false,
-            left: undefined,
-            top: undefined,
-            hoverInfo: undefined,
-            validationOutput: undefined
-        };
-        this.handleMouseOver = (e) => e.stopPropagation();
-        this.handleValidationHoverEvent = (hoverEvent) => {
-            this.setState(Object.assign({}, this.state, hoverEvent, { isVisible: false, left: 0, top: 0 }));
-        };
-        this.getCoordsFromHoverEvent = () => {
-            if (!this.decorationRef || !this.state.hoverInfo)
-                return { left: 0, top: 0 };
-            const { left: tooltipLeft, top: tooltipTop } = this.getTooltipCoords(this.state.hoverInfo);
-            const left = clamp_1(tooltipLeft || 0, 0, window.innerWidth - this.decorationRef.ref.offsetTop);
-            const top = clamp_1(tooltipTop || 0, 0, window.innerWidth - this.decorationRef.ref.offsetHeight);
-            return { left, top };
-        };
-        this.getTooltipCoords = (hoverInfo) => {
-            const isHoveringOverFirstLine = hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);
-            const left = isHoveringOverFirstLine
-                ? hoverInfo.offsetLeft
-                : hoverInfo.left;
-            const top = isHoveringOverFirstLine
-                ? hoverInfo.offsetTop + hoverInfo.heightOfSingleLine
-                : hoverInfo.offsetTop + hoverInfo.height;
-            return { left, top };
-        };
-    }
-    componentWillMount() {
-        this.props.subscribe(this.handleValidationHoverEvent);
-    }
-    componentDidUpdate() {
-        if (this.state.isVisible) {
-            return;
-        }
-        const { left, top } = this.getCoordsFromHoverEvent();
-        this.setState({
-            isVisible: true,
-            left,
-            top
-        });
-    }
-    render() {
-        const { validationOutput, left, top } = this.state;
-        if (!validationOutput || left === undefined || top === undefined) {
-            return null;
-        }
-        return (h("div", { class: "ValidationPlugin__overlay", onMouseOver: this.handleMouseOver },
-            h("div", { class: "ValidationPlugin__decoration-container", style: { top: top - 1, left } },
-                h(Decoration, Object.assign({ ref: _ => (this.decorationRef = _) }, validationOutput, { applySuggestion: this.props.applySuggestion })))));
-    }
-}
-
-//# sourceMappingURL=ValidationOverlay.js.map
-
-var defaultView = (plugin, schema) => (view) => {
-    const notificationSubscribers = [];
-    const subscribe = (callback) => {
-        notificationSubscribers.push(callback);
-        return () => {
-            notificationSubscribers.splice(notificationSubscribers.indexOf(callback), 1);
-        };
-    };
-    const applySuggestion = (suggestion, from, to) => {
-        view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
-    };
-    const overlayNode = document.createElement("div");
-    const wrapperNode = document.createElement("div");
-    wrapperNode.classList.add("ValidationPlugin__container");
-    view.dom.parentNode.replaceChild(wrapperNode, view.dom);
-    wrapperNode.appendChild(view.dom);
-    view.dom.insertAdjacentElement("afterend", overlayNode);
-    render(h(ValidationOverlay, { subscribe: subscribe, applySuggestion: applySuggestion }), overlayNode);
-    const notify = (state) => notificationSubscribers.forEach(sub => {
-        if (state.hoverId) {
-            const validationOutput = selectValidationById(state, state.hoverId);
-            return sub({
-                hoverInfo: state.hoverInfo,
-                validationOutput
-            });
-        }
-        sub({
-            hoverInfo: undefined,
-            validationOutput: undefined
-        });
-    });
-    return {
-        update: (view) => notify(plugin.getState(view.state))
-    };
-};
-//# sourceMappingURL=view.js.map
-
-const documentValidatorPlugin = (schema, { createViewHandler = defaultView, adapter, throttleInMs = 2000, maxThrottle = 8000 }) => {
+const documentValidatorPlugin = ({ adapter, createViewHandler = defaultView, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
     const validationService = new ValidationService(adapter);
     const requestValidation = () => {
@@ -20351,9 +20384,30 @@ const documentValidatorPlugin = (schema, { createViewHandler = defaultView, adap
         if (pluginState.validationInFlight) {
             return scheduleValidation();
         }
-        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart()));
+        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(expandRanges(pluginState.dirtiedRanges, localView.state.tr.doc))));
     };
     const scheduleValidation = () => setTimeout(requestValidation, plugin.getState(localView.state).currentThrottle);
+    const commands = {
+        validateDocument: (state, dispatch) => {
+            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart([])));
+            return true;
+        },
+        applySuggestion: (validationId, suggestionIndex) => (state, dispatch) => {
+            const pluginState = plugin.getState(state);
+            const validationOutput = selectValidationById(pluginState, validationId);
+            if (!validationOutput) {
+                return false;
+            }
+            const suggestion = validationOutput.suggestions &&
+                validationOutput.suggestions[suggestionIndex];
+            if (!suggestion) {
+                return false;
+            }
+            dispatch &&
+                dispatch(state.tr.replaceWith(validationOutput.from, validationOutput.to, state.schema.text(suggestion)));
+            return true;
+        }
+    };
     const plugin = new dist_8({
         state: {
             init(_, { doc }) {
@@ -20380,19 +20434,19 @@ const documentValidatorPlugin = (schema, { createViewHandler = defaultView, adap
                 const _a = action
                     ? validationPluginReducer(tr, state, action)
                     : state, { decorations, dirtiedRanges, trHistory } = _a, rest = __rest(_a, ["decorations", "dirtiedRanges", "trHistory"]);
-                let _decorations = decorations.map(tr.mapping, tr.doc);
-                let _trHistory = trHistory;
+                let newDecorations = decorations.map(tr.mapping, tr.doc);
+                let newTrHistory = trHistory;
                 const newDirtiedRanges = getMergedDirtiedRanges(tr, dirtiedRanges);
                 const currentDirtiedRanges = getReplaceStepRangesFromTransaction(tr);
-                _decorations = _decorations.add(tr.doc, currentDirtiedRanges.map(range => createDebugDecorationFromRange(range)));
+                newDecorations = newDecorations.add(tr.doc, currentDirtiedRanges.map(range => createDebugDecorationFromRange(range)));
                 if (currentDirtiedRanges.length) {
-                    _decorations = removeValidationDecorationsFromRanges(_decorations, newDirtiedRanges);
+                    newDecorations = removeValidationDecorationsFromRanges(newDecorations, newDirtiedRanges);
                 }
-                _trHistory =
-                    _trHistory.length > 25
-                        ? _trHistory.slice(1).concat(tr)
-                        : _trHistory.concat(tr);
-                return Object.assign({}, rest, { decorations: _decorations, dirtiedRanges: newDirtiedRanges, trHistory: _trHistory });
+                newTrHistory =
+                    newTrHistory.length > 25
+                        ? newTrHistory.slice(1).concat(tr)
+                        : newTrHistory.concat(tr);
+                return Object.assign({}, rest, { decorations: newDecorations, dirtiedRanges: newDirtiedRanges, trHistory: newTrHistory });
             }
         },
         appendTransaction(trs, oldState, newState) {
@@ -20436,15 +20490,15 @@ const documentValidatorPlugin = (schema, { createViewHandler = defaultView, adap
         },
         view(view) {
             localView = view;
-            const viewHandler = createViewHandler(plugin, schema);
+            const viewHandler = createViewHandler(plugin, commands);
             return viewHandler(view);
         }
     });
-    return plugin;
+    return {
+        plugin,
+        commands
+    };
 };
-const validateDocument = (state, dispatch) => dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart()));
-
-//# sourceMappingURL=index.js.map
 
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
@@ -20564,8 +20618,6 @@ const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, vo
     }));
 });
 
-//# sourceMappingURL=languageTool.js.map
-
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: Object.assign({}, schemaBasic_2, validationMarks)
@@ -20574,6 +20626,9 @@ const contentElement = document.querySelector("#content") || document.createElem
 const doc = dist_12.fromSchema(mySchema).parse(contentElement);
 const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
+const { plugin: validatorPlugin, commands } = documentValidatorPlugin({
+    adapter: createLanguageToolAdapter("http://localhost:9001")
+});
 editorElement &&
     (window.editor = new dist_1$3(editorElement, {
         state: dist_7.create({
@@ -20585,15 +20640,12 @@ editorElement &&
                     menuContent: dist_1$4(mySchema).fullMenu
                 }),
                 keymap_2({
-                    F6: validateDocument
+                    F6: commands.validateDocument
                 }),
                 historyPlugin,
-                documentValidatorPlugin(mySchema, {
-                    adapter: createLanguageToolAdapter("http://localhost:9001")
-                })
+                validatorPlugin
             ]
         })
     }));
-//# sourceMappingURL=index.js.map
 
 }());

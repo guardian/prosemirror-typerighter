@@ -1,13 +1,13 @@
-import { Range, ValidationResponse, ValidationOutput } from "../interfaces/Validation";
-import { ValidationInput } from "../interfaces/Validation";
-import { Node } from "prosemirror-model";
-import { findParentNode } from "prosemirror-utils";
-import { Selection, Transaction } from "prosemirror-state";
-import clamp from "lodash/clamp";
-import compact from "lodash/compact";
-import { getReplaceStepRangesFromTransaction } from "./prosemirror";
+import clamp from 'lodash/clamp';
+import compact from 'lodash/compact';
+import { Node } from 'prosemirror-model';
+import { Selection, Transaction } from 'prosemirror-state';
+import { findParentNode } from 'prosemirror-utils';
+import { IRange, IValidationOutput, IValidationResponse } from '../interfaces/IValidation';
+import { IValidationInput } from '../interfaces/IValidation';
+import { getReplaceStepRangesFromTransaction } from './prosemirror';
 
-export const findOverlappingRangeIndex = (range: Range, ranges: Range[]) => {
+export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   return ranges.findIndex(
     localRange =>
       // Overlaps to the left of the range
@@ -19,7 +19,7 @@ export const findOverlappingRangeIndex = (range: Range, ranges: Range[]) => {
   );
 };
 
-export const getMergedDirtiedRanges = (tr: Transaction, oldRanges: Range[]) =>
+export const getMergedDirtiedRanges = (tr: Transaction, oldRanges: IRange[]) =>
   mergeRanges(
     oldRanges
       .map(range => ({
@@ -32,7 +32,7 @@ export const getMergedDirtiedRanges = (tr: Transaction, oldRanges: Range[]) =>
 /**
  * Return the first set of ranges with any members overlapping the second set removed.
  */
-export const removeOverlappingRanges = <T extends Range>(
+export const removeOverlappingRanges = <T extends IRange>(
   firstRanges: T[],
   secondRanges: T[]
 ) => {
@@ -46,12 +46,12 @@ export const removeOverlappingRanges = <T extends Range>(
   );
 };
 
-export const mergeRange = (range1: Range, range2: Range): Range => ({
+export const mergeRange = (range1: IRange, range2: IRange): IRange => ({
   from: range1.from < range2.from ? range1.from : range2.from,
   to: range1.to > range2.to ? range1.to : range2.to
 });
 
-export const mergeRanges = (ranges: Range[]): Range[] =>
+export const mergeRanges = (ranges: IRange[]): IRange[] =>
   ranges.reduce(
     (acc, range) => {
       const index = findOverlappingRangeIndex(range, acc);
@@ -62,16 +62,16 @@ export const mergeRanges = (ranges: Range[]): Range[] =>
       newRange.splice(index, 1, mergeRange(range, acc[index]));
       return newRange;
     },
-    [] as Range[]
+    [] as IRange[]
   );
 
 /**
  * Return the first set of ranges with any overlaps removed.
  */
 export const diffRanges = (
-  firstRanges: Range[],
-  secondRanges: Range[]
-): Range[] => {
+  firstRanges: IRange[],
+  secondRanges: IRange[]
+): IRange[] => {
   const firstRangesMerged = mergeRanges(firstRanges);
   const secondRangesMerged = mergeRanges(secondRanges);
   return firstRangesMerged.reduce(
@@ -106,28 +106,28 @@ export const diffRanges = (
         )
       );
     },
-    [] as Range[]
+    [] as IRange[]
   );
 };
 
-export const validationInputToRange = (input: ValidationInput): Range => ({
+export const validationInputToRange = (input: IValidationInput): IRange => ({
   from: input.from,
   to: input.to
 });
 
 export const mergeOutputsFromValidationResponse = (
-  response: ValidationResponse,
-  currentOutputs: ValidationOutput[],
+  response: IValidationResponse,
+  currentOutputs: IValidationOutput[],
   trs: Transaction[]
-): ValidationOutput[] => {
-  const initialTransaction = trs.find(tr => tr.time === parseInt(response.id));
+): IValidationOutput[] => {
+  const initialTransaction = trs.find(tr => tr.time === parseInt(response.id, 10));
   if (!initialTransaction && trs.length > 1) {
     return currentOutputs;
   }
 
   const newOutputs = mapRangeThroughTransactions(
     response.validationOutputs,
-    parseInt(response.id),
+    parseInt(response.id, 10),
     trs
   );
 
@@ -137,7 +137,7 @@ export const mergeOutputsFromValidationResponse = (
 /**
  * Expand a range in a document to encompass the words adjacent to the range.
  */
-export const expandRange = (range: Range, doc: Node): Range | undefined => {
+export const expandRange = (range: IRange, doc: Node): IRange | undefined => {
   try {
     const $fromPos = doc.resolve(range.from);
     const $toPos = doc.resolve(range.to);
@@ -159,9 +159,9 @@ export const expandRange = (range: Range, doc: Node): Range | undefined => {
 /**
  * Expand the given ranges to include their parent block nodes.
  */
-export const getRangesOfParentBlockNodes = (ranges: Range[], doc: Node) => {
+export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
   const validationRanges = ranges.reduce(
-    (acc, range: Range) => {
+    (acc, range: IRange) => {
       const expandedRange = expandRange(
         { from: range.from, to: range.to },
         doc
@@ -177,12 +177,12 @@ export const getRangesOfParentBlockNodes = (ranges: Range[], doc: Node) => {
           : []
       );
     },
-    [] as Range[]
+    [] as IRange[]
   );
   return mergeRanges(validationRanges);
 };
 
-export const mapRangeThroughTransactions = <T extends Range>(
+export const mapRangeThroughTransactions = <T extends IRange>(
   ranges: T[],
   time: number,
   trs: Transaction[]
@@ -211,3 +211,6 @@ export const mapRangeThroughTransactions = <T extends Range>(
       });
     })
   );
+
+export const expandRangesToParentBlockNode = (ranges: IRange[], doc: Node) =>
+  getRangesOfParentBlockNodes(ranges, doc);

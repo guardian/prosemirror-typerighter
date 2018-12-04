@@ -1,62 +1,111 @@
-import { Plugin, Transaction, EditorState } from "prosemirror-state";
-import { Schema } from "prosemirror-model";
-import { DecorationSet, EditorView } from "prosemirror-view";
-import { mergeRanges, getMergedDirtiedRanges } from "./utils/range";
+import defaultView from './view';
+import ValidationService, { ValidationEvents } from './ValidationAPIService';
 import {
-  Range,
-  ValidationResponse,
-  ValidationError
-} from "./interfaces/Validation";
-import ValidationService, { ValidationEvents } from "./ValidationAPIService";
-import {
-  VALIDATION_PLUGIN_ACTION,
-  validationRequestStart,
-  validationRequestSuccess,
-  validationRequestError,
-  validationPluginReducer,
   Action,
-  validationRequestPending,
+  IPluginState,
   newHoverIdReceived,
-  PluginState
-} from "./state";
+  selectValidationById,
+  VALIDATION_PLUGIN_ACTION,
+  validationPluginReducer,
+  validationRequestError,
+  validationRequestPending,
+  validationRequestStart,
+  validationRequestSuccess
+  } from './state';
 import {
   createDebugDecorationFromRange,
-  removeValidationDecorationsFromRanges,
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
-  DECORATION_ATTRIBUTE_ID
-} from "./utils/decoration";
-import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
-import { getStateHoverInfoFromEvent } from "./utils/dom";
-import defaultView from "./view";
-import { IValidationAPIAdapter } from "./interfaces/IVAlidationAPIAdapter";
+  DECORATION_ATTRIBUTE_ID,
+  removeValidationDecorationsFromRanges
+  } from './utils/decoration';
+import { DecorationSet, EditorView } from 'prosemirror-view';
+import { EditorState, Plugin, Transaction } from 'prosemirror-state';
+import { expandRangesToParentBlockNode, getMergedDirtiedRanges } from './utils/range';
+import { getReplaceStepRangesFromTransaction } from './utils/prosemirror';
+import { getStateHoverInfoFromEvent } from './utils/dom';
+import { IRange, IValidationError, IValidationResponse } from './interfaces/IValidation';
+import { IValidationAPIAdapter } from './interfaces/IVAlidationAPIAdapter';
+import { Node, Schema } from 'prosemirror-model';
 
 /**
- * The document validator plugin. Listens for validation commands and applies
- * validation decorations to the document.
+ * The commands available to the plugin consumer.
+ */
+export interface Commands {
+  /**
+   * Applies a suggestion from a validation to the document.
+   */
+  applySuggestion: (
+    validationId: string,
+    suggestionIndex: number
+  ) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
+
+  /**
+   * Validates an entire document.
+   */
+  validateDocument: (
+    state: EditorState,
+    dispatch?: (tr: Transaction) => void
+  ) => boolean;
+}
+
+interface PluginOptions {
+  /**
+   * The adapter the plugin uses to asynchonously request validations.
+   */
+  adapter: IValidationAPIAdapter;
+
+  /**
+   * The view handler responsible for rendering any UI beyond the inline
+   * decorations applied by the plugin. The default implementation shows
+   * additional validation information on hover.
+   */
+  createViewHandler?: (
+    plugin: Plugin,
+    commands: Commands
+  ) => ((
+    p: EditorView<Schema>
+  ) => {
+    update?:
+      | ((view: EditorView<Schema>, prevState: EditorState<Schema>) => void)
+      | null;
+    destroy?: (() => void) | null;
+  });
+
+  /**
+   * A function that receives ranges that have been dirtied since the
+   * last validation request, and returns the new ranges to validate. The
+   * default implementation expands the dirtied ranges to cover the parent
+   * block node.
+   */
+  expandRanges?: (ranges: IRange[], doc: Node<any>) => IRange[];
+
+  /**
+   * The throttle duration for validation requests, in ms.
+   */
+  throttleInMs?: number;
+
+  /**
+   * The maximum throttle duration.
+   */
+  maxThrottle?: number;
+}
+
+/**
+ * Creates a document validator plugin, responsible for issuing validation
+ * requests when the document is changed, decorating the document when they
+ * are returned, and applying suggestions.
+ * 
+ * @param {PluginOptions} options
+ * @returns {{plugin: Plugin, commands: Commands}}
  */
 const documentValidatorPlugin = (
-  schema: Schema,
   {
-    createViewHandler = defaultView,
     adapter,
+    createViewHandler = defaultView,
+    expandRanges = expandRangesToParentBlockNode,
     throttleInMs = 2000,
     maxThrottle = 8000
-  }: {
-    createViewHandler?: (
-      plugin: Plugin,
-      schema: Schema
-    ) => ((
-      p: EditorView<Schema>
-    ) => {
-      update?:
-        | ((view: EditorView<Schema>, prevState: EditorState<Schema>) => void)
-        | null;
-      destroy?: (() => void) | null;
-    });
-    adapter: IValidationAPIAdapter;
-    throttleInMs?: number;
-    maxThrottle?: number;
-  }
+  }: PluginOptions
 ) => {
   let localView: EditorView;
 
@@ -67,7 +116,7 @@ const documentValidatorPlugin = (
    * Request a validation for the currently pending ranges.
    */
   const requestValidation = () => {
-    const pluginState: PluginState = plugin.getState(localView.state);
+    const pluginState: IPluginState = plugin.getState(localView.state);
     // If there's already a validation in flight, defer validation
     // for another throttle tick
     if (pluginState.validationInFlight) {
@@ -76,7 +125,9 @@ const documentValidatorPlugin = (
     localView.dispatch(
       localView.state.tr.setMeta(
         VALIDATION_PLUGIN_ACTION,
-        validationRequestStart()
+        validationRequestStart(
+          expandRanges(pluginState.dirtiedRanges, localView.state.tr.doc)
+        )
       )
     );
   };
@@ -86,13 +137,53 @@ const documentValidatorPlugin = (
       plugin.getState(localView.state).currentThrottle
     );
 
+  const commands: Commands = {
+    validateDocument: (
+      state: EditorState,
+      dispatch: (tr: Transaction) => void
+    ) => {
+      dispatch(
+        state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(
+          [] // @todo: get ranges of all top level block nodes
+        ))
+      );
+      return true;
+    },
+
+    applySuggestion: (validationId: string, suggestionIndex: number) => (
+      state: EditorState,
+      dispatch?: (tr: Transaction) => void
+    ) => {
+      const pluginState = plugin.getState(state);
+      const validationOutput = selectValidationById(pluginState, validationId);
+      if (!validationOutput) {
+        return false;
+      }
+      const suggestion =
+        validationOutput.suggestions &&
+        validationOutput.suggestions[suggestionIndex];
+      if (!suggestion) {
+        return false;
+      }
+      dispatch &&
+        dispatch(
+          state.tr.replaceWith(
+            validationOutput.from,
+            validationOutput.to,
+            state.schema.text(suggestion)
+          )
+        );
+      return true;
+    }
+  };
+
   const plugin: Plugin = new Plugin({
     state: {
-      init(_, { doc }): PluginState {
+      init(_, { doc }): IPluginState {
         // Hook up our validation events.
         validationService.on(
           ValidationEvents.VALIDATION_SUCCESS,
-          (validationResponse: ValidationResponse) =>
+          (validationResponse: IValidationResponse) =>
             localView.dispatch(
               localView.state.tr.setMeta(
                 VALIDATION_PLUGIN_ACTION,
@@ -102,7 +193,7 @@ const documentValidatorPlugin = (
         );
         validationService.on(
           ValidationEvents.VALIDATION_ERROR,
-          (validationError: ValidationError) =>
+          (validationError: IValidationError) =>
             localView.dispatch(
               localView.state.tr.setMeta(
                 VALIDATION_PLUGIN_ACTION,
@@ -126,7 +217,7 @@ const documentValidatorPlugin = (
           error: undefined
         };
       },
-      apply(tr: Transaction, state: PluginState): PluginState {
+      apply(tr: Transaction, state: IPluginState): IPluginState {
         // Apply our reducer.
         const action: Action | undefined = tr.getMeta(VALIDATION_PLUGIN_ACTION);
         const { decorations, dirtiedRanges, trHistory, ...rest } = action
@@ -135,11 +226,11 @@ const documentValidatorPlugin = (
 
         // Map our dirtied ranges through the current transaction, and append
         // any new ranges it has dirtied.
-        let _decorations = decorations.map(tr.mapping, tr.doc);
-        let _trHistory = trHistory;
+        let newDecorations = decorations.map(tr.mapping, tr.doc);
+        let newTrHistory = trHistory;
         const newDirtiedRanges = getMergedDirtiedRanges(tr, dirtiedRanges);
         const currentDirtiedRanges = getReplaceStepRangesFromTransaction(tr);
-        _decorations = _decorations.add(
+        newDecorations = newDecorations.add(
           tr.doc,
           currentDirtiedRanges.map(range =>
             createDebugDecorationFromRange(range)
@@ -148,8 +239,8 @@ const documentValidatorPlugin = (
 
         if (currentDirtiedRanges.length) {
           // Remove any validations touched by the dirtied ranges from the doc
-          _decorations = removeValidationDecorationsFromRanges(
-            _decorations,
+          newDecorations = removeValidationDecorationsFromRanges(
+            newDecorations,
             newDirtiedRanges
           );
         }
@@ -157,26 +248,27 @@ const documentValidatorPlugin = (
         // Keep the transaction history up to date ... to a point! If we get a
         // validation result older than this history, we can discard it and ask
         // for another.
-        _trHistory =
-          _trHistory.length > 25
-            ? _trHistory.slice(1).concat(tr)
-            : _trHistory.concat(tr);
+        newTrHistory =
+          newTrHistory.length > 25
+            ? newTrHistory.slice(1).concat(tr)
+            : newTrHistory.concat(tr);
 
         return {
           ...rest,
-          decorations: _decorations,
+          decorations: newDecorations,
           dirtiedRanges: newDirtiedRanges,
-          trHistory: _trHistory
+          trHistory: newTrHistory
         };
       }
     },
+
     /**
      * We use appendTransaction to handle side effects and dispatch actions
      * in response to state transitions.
      */
     appendTransaction(trs: Transaction[], oldState, newState) {
-      const oldPluginState: PluginState = plugin.getState(oldState);
-      const newPluginState: PluginState = plugin.getState(newState);
+      const oldPluginState: IPluginState = plugin.getState(oldState);
+      const newPluginState: IPluginState = plugin.getState(newState);
       if (
         newPluginState.dirtiedRanges.length &&
         !newPluginState.validationPending
@@ -189,6 +281,7 @@ const documentValidatorPlugin = (
           validationRequestPending()
         );
       }
+
       // If we have a new validation, send it to the validation service.
       if (
         !oldPluginState.validationInFlight &&
@@ -212,11 +305,10 @@ const documentValidatorPlugin = (
           const target = event.target;
           const targetAttr = target.getAttribute(DECORATION_ATTRIBUTE_ID);
           const newValidationId = targetAttr ? targetAttr : undefined;
-          if (
-            newValidationId === plugin.getState(view.state).hoverId
-          ) {
+          if (newValidationId === plugin.getState(view.state).hoverId) {
             return false;
           }
+
           // Get our height marker, which tells us the height of a single line
           // for the given validation.
           const heightMarker = document.querySelector(
@@ -246,23 +338,15 @@ const documentValidatorPlugin = (
     },
     view(view) {
       localView = view;
-      const viewHandler = createViewHandler(plugin, schema);
+      const viewHandler = createViewHandler(plugin, commands);
       return viewHandler(view);
     }
   });
-  return plugin;
+
+  return {
+    plugin,
+    commands
+  };
 };
 
-/**
- * The 'validate document' Prosemirror command.
- */
-const validateDocument = (
-  state: EditorState,
-  dispatch: (tr: Transaction) => void
-) =>
-  dispatch(
-    state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart())
-  );
-
 export default documentValidatorPlugin;
-export { validateDocument };

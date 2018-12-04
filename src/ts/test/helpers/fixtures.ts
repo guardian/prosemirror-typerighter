@@ -1,6 +1,6 @@
-import { ValidationLibrary } from "../../interfaces/Validation";
+import { IValidationLibrary } from "../../interfaces/IValidation";
 
-export const validationLibrary: ValidationLibrary = [
+export const validationLibrary: IValidationLibrary = [
   [
     {
       regExp: new RegExp("first match", "g"),

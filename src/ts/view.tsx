@@ -1,19 +1,19 @@
-import { render, h } from "preact";
-import { EditorView } from "prosemirror-view";
-
-import HoverEvent from "./interfaces/HoverEvent";
-import { Schema } from "prosemirror-model";
-import { PluginState } from "./state";
+import IHoverEvent from "./interfaces/IHoverEvent";
 import ValidationOverlay from "./components/ValidationOverlay";
-import { selectValidationById } from "./state";
+import { Commands } from "./plugin";
+import { EditorView } from "prosemirror-view";
+import { h, render } from "preact";
+import { IPluginState } from "./state";
 import { Plugin } from "prosemirror-state";
+import { Schema } from "prosemirror-model";
+import { selectValidationById } from "./state";
 
 /**
  * Accepts a plugin schema and creates a view function.
  */
-export default (plugin: Plugin, schema: Schema) => (view: EditorView) => {
-  const notificationSubscribers: Array<(hoverEvent: HoverEvent) => void> = [];
-  const subscribe = (callback: (hoverEvent: HoverEvent) => void) => {
+export default (plugin: Plugin, commands: Commands) => (view: EditorView) => {
+  const notificationSubscribers: Array<(hoverEvent: IHoverEvent) => void> = [];
+  const subscribe = (callback: (hoverEvent: IHoverEvent) => void) => {
     notificationSubscribers.push(callback);
     return () => {
       notificationSubscribers.splice(
@@ -21,10 +21,6 @@ export default (plugin: Plugin, schema: Schema) => (view: EditorView) => {
         1
       );
     };
-  };
-
-  const applySuggestion = (suggestion: string, from: number, to: number) => {
-    view.dispatch(view.state.tr.replaceWith(from, to, schema.text(suggestion)));
   };
 
   // Create our overlay node, which is responsible for displaying
@@ -41,13 +37,18 @@ export default (plugin: Plugin, schema: Schema) => (view: EditorView) => {
   render(
     <ValidationOverlay
       subscribe={subscribe}
-      applySuggestion={applySuggestion}
+      applySuggestion={(validationId: string, suggestionIndex: number) =>
+        commands.applySuggestion(validationId, suggestionIndex)(
+          view.state,
+          view.dispatch
+        )
+      }
     />,
     overlayNode
   );
 
   // Create a function that will notify subscribers on state change.
-  const notify = (state: PluginState) =>
+  const notify = (state: IPluginState) =>
     notificationSubscribers.forEach(sub => {
       if (state.hoverId) {
         const validationOutput = selectValidationById(state, state.hoverId);

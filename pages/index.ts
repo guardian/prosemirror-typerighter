@@ -6,15 +6,12 @@ import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
-import { validationMarks } from "../src/ts/utils/prosemirror";
 
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
 import "prosemirror-example-setup/style/style.css";
 import "../src/css/noting.scss";
-import createDocumentValidatorPlugin, {
-  validateDocument
-} from "../src/ts/index";
+import { createValidatorPlugin, validationMarks } from "../src/ts/index";
 import createLanguageToolAdapter from "../src/ts/adapters/languageTool";
 
 const mySchema = new Schema({
@@ -30,6 +27,9 @@ const contentElement =
 const doc = DOMParser.fromSchema(mySchema).parse(contentElement);
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
+const { plugin: validatorPlugin, commands } = createValidatorPlugin({
+  adapter: createLanguageToolAdapter("http://localhost:9001")
+});
 
 editorElement &&
   ((window as any).editor = new EditorView(editorElement, {
@@ -42,12 +42,10 @@ editorElement &&
           menuContent: buildMenuItems(mySchema).fullMenu
         }),
         keymap({
-          F6: validateDocument
+          F6: commands.validateDocument
         }),
         historyPlugin,
-        createDocumentValidatorPlugin(mySchema, {
-          adapter: createLanguageToolAdapter("http://localhost:9001")
-        })
+        validatorPlugin
       ]
     })
   }));

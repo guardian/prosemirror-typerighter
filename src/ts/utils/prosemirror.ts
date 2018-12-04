@@ -1,17 +1,17 @@
-import { Mark, MarkSpec, Node } from "prosemirror-model";
-import { ValidationInput } from "../interfaces/Validation";
-import { Transaction } from "prosemirror-state";
-import { ReplaceStep, ReplaceAroundStep } from "prosemirror-transform";
+import { Mark, MarkSpec, Node } from 'prosemirror-model';
+import { Transaction } from 'prosemirror-state';
+import { ReplaceAroundStep, ReplaceStep } from 'prosemirror-transform';
+import { IValidationInput } from '../interfaces/IValidation';
 
 /**
  * Get a single string of text, and an array of position mappings,
  * from a Prosemirror document. The mappings can be used to map an
  * index in the text back to a position in the document.
  */
-export const getTextMaps = (doc: Node): ValidationInput[] =>
+export const getTextMaps = (doc: Node): IValidationInput[] =>
   (doc instanceof Node ? findTextNodes(doc) : [doc]).reduce(
     (
-      acc: { positionMap: ValidationInput[]; length: number },
+      acc: { positionMap: IValidationInput[]; length: number },
       textNodeWrapper,
       index,
       textNodes
@@ -44,7 +44,7 @@ export const getTextMaps = (doc: Node): ValidationInput[] =>
       return {
         length: acc.length + str.length,
         positionMap: acc.positionMap.concat({
-          str: str,
+          str,
           from: textNodeWrapper.pos,
           to: textNodeWrapper.pos + str.length
         })
@@ -94,7 +94,7 @@ export const flatten = (node: Node, descend = true) => {
   if (!node) {
     throw new Error('Invalid "node" parameter');
   }
-  const result: { node: Node; parent: Node; pos: number }[] = [];
+  const result: Array<{ node: Node; parent: Node; pos: number }> = [];
   node.descendants((child, pos, parent) => {
     result.push({ node: child, parent, pos });
     if (!descend) {
@@ -111,7 +111,7 @@ export const findChildren = (
   node: Node,
   predicate: (node: Node) => boolean,
   descend: boolean
-): { node: Node; parent: Node; pos: number }[] => {
+): Array<{ node: Node; parent: Node; pos: number }> => {
   if (!node) {
     throw new Error('Invalid "node" parameter');
   } else if (!predicate) {
@@ -126,7 +126,7 @@ export const findChildren = (
 export const findTextNodes = (
   node: Node,
   descend: boolean = true
-): { node: Node; parent: Node; pos: number }[] => {
+): Array<{ node: Node; parent: Node; pos: number }> => {
   return findChildren(node, child => child.isText, descend);
 };
 

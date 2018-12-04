@@ -1,19 +1,19 @@
-import { builders } from "prosemirror-test-builder";
-import { nodes, marks } from "prosemirror-schema-basic";
-import { Transaction } from "prosemirror-state";
-import { Schema } from "prosemirror-model";
+import { Schema } from 'prosemirror-model';
+import { marks, nodes } from 'prosemirror-schema-basic';
+import { Transaction } from 'prosemirror-state';
+import { builders } from 'prosemirror-test-builder';
+import { DecorationSet } from 'prosemirror-view';
+import { IPluginState } from '../state';
 import {
+  newHoverIdReceived,
+  selectValidationById,
   validationPluginReducer,
   validationRequestError,
   validationRequestPending,
   validationRequestStart,
-  validationRequestSuccess,
-  newHoverIdReceived,
-  selectValidationById
-} from "../state";
-import { DecorationSet } from "prosemirror-view";
-import { createDebugDecorationFromRange } from "../utils/decoration";
-import { PluginState } from "..";
+  validationRequestSuccess
+  } from '../state';
+import { createDebugDecorationFromRange } from '../utils/decoration';
 
 jest.mock("uuid/v4", () => () => "uuid");
 
@@ -34,16 +34,16 @@ const initialDocToValidate = doc(p("Example text to validate"));
 const initialTr = new Transaction(initialDocToValidate);
 initialTr.doc = initialDocToValidate;
 initialTr.time = 0;
-const initialState: PluginState = {
+const initialState: IPluginState = {
+  debug: false,
   currentThrottle: 100,
   initialThrottle: 100,
   maxThrottle: 1000,
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
   currentValidations: [],
-  lastValidationTime: 0,
   hoverId: undefined,
-  hoverRect: undefined,
+  hoverInfo: undefined,
   trHistory: [initialTr],
   validationInFlight: undefined,
   validationPending: false,
@@ -80,7 +80,7 @@ describe("State management", () => {
               dirtiedRanges: [{ from: 5, to: 10 }],
               validationPending: true
             },
-            validationRequestStart()
+            validationRequestStart([{from: 1, to: 25}])
           )
         ).toEqual({
           ...initialState,
@@ -117,7 +117,7 @@ describe("State management", () => {
               ]),
               validationPending: true
             },
-            validationRequestStart()
+            validationRequestStart([{from: 1, to: 25}])
           )
         ).toEqual({
           ...initialState,

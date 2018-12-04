@@ -1,10 +1,8 @@
-import fetchMock from "fetch-mock";
-import ValidationAPIService, {
-  ValidationEvents
-} from "../ValidationAPIService";
-import { ValidationOutput } from "../interfaces/Validation";
-import { LTReplacement } from "../adapters/interfaces/LanguageTool";
-import createLanguageToolAdapter from "../adapters/languageTool";
+import fetchMock from 'fetch-mock';
+import { ILTReplacement } from '../adapters/interfaces/ILanguageTool';
+import createLanguageToolAdapter from '../adapters/languageTool';
+import { IValidationOutput } from '../interfaces/IValidation';
+import ValidationAPIService, { ValidationEvents } from '../ValidationAPIService';
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -19,7 +17,7 @@ const createResponse = (strs: string[]) => ({
     length: str.length,
     message: "It's just a bunch of numbers, mate",
     offset: 0,
-    replacements: [] as LTReplacement[],
+    replacements: [] as ILTReplacement[],
     rule: {
       category: {
         id: "numberCat",
@@ -46,7 +44,7 @@ const createOutput = (str: string, offset: number = 0) =>
     type: "Some type - use constants, jeez",
     suggestions: [],
     annotation: "It's just a bunch of numbers, mate"
-  } as ValidationOutput);
+  } as IValidationOutput);
 
 jest.mock("uuid/v4", () => () => "id");
 
@@ -60,8 +58,8 @@ describe("ValidationAPIService", () => {
 
     expect.assertions(2);
 
-    service.on(ValidationEvents.VALIDATION_SUCCESS, output => {
-      expect(output).toEqual({
+    service.on(ValidationEvents.VALIDATION_SUCCESS, _ => {
+      expect(_).toEqual({
         id: "id",
         validationOutputs: [createOutput("1234567890")]
       });

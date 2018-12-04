@@ -1,11 +1,9 @@
 import {
-  mergeRanges,
-  findOverlappingRangeIndex,
   diffRanges,
+  findOverlappingRangeIndex,
+  mergeRanges,
   removeOverlappingRanges
-} from "../utils/range";
-
-
+  } from '../utils/range';
 
 describe("Range utils", () => {
   describe("expandRange", () => {

@@ -1,14 +1,14 @@
-import { ValidationInput } from "../interfaces/Validation";
-import { LTResponse } from "./interfaces/LanguageTool";
-import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
 import v4 from 'uuid/v4';
+import { IValidationInput } from "../interfaces/IValidation";
+import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
+import { ILTResponse } from "./interfaces/ILanguageTool";
 
 /**
  * An adapter for the Typerighter service.
  */
 const createLanguageToolAdapter: IValidationAPIAdapter = (
   apiUrl: string
-) => async (input: ValidationInput) => {
+) => async (input: IValidationInput) => {
   const body = new URLSearchParams();
   body.append(
     "data",
@@ -35,7 +35,7 @@ const createLanguageToolAdapter: IValidationAPIAdapter = (
       }: ${response.statusText}`
     );
   }
-  const validationData: LTResponse = await response.json();
+  const validationData: ILTResponse = await response.json();
   return validationData.matches.map(match => ({
     id: v4(),
     str: match.sentence,

@@ -1,11 +1,11 @@
-import { ValidationInput, ValidationOutput, ValidationError } from "./Validation";
 import { EventEmitter } from "../EventEmitter";
+import { IValidationError, IValidationInput, IValidationOutput } from "./IValidation";
 
 /**
  * A service that receives requests for validation and emits responses.
  */
 interface IValidationService extends EventEmitter {
-	validate(inputs: ValidationInput[], id: string|number): Promise<(ValidationOutput|ValidationError)[]>;
+	validate(inputs: IValidationInput[], id: string|number): Promise<Array<IValidationOutput|IValidationError>>;
 	cancelValidation(): void;
 }
 
