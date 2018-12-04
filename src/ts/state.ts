@@ -307,6 +307,7 @@ const handleValidationRequestError: ActionHandler<
     parseInt(String(action.payload.validationError.id), 10),
     state.trHistory
   );
+
   // When we get errors, we map the ranges due to be validated back
   // through the document and add them to the dirtied ranges to be
   // validated on the next pass.
@@ -318,6 +319,7 @@ const handleValidationRequestError: ActionHandler<
       dirtiedRanges.map(range => createDebugDecorationFromRange(range))
     );
   }
+
   // @todo - add backoff if appropriate (429)
   return {
     ...state,

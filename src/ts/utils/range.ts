@@ -1,7 +1,7 @@
 import clamp from 'lodash/clamp';
 import compact from 'lodash/compact';
 import { Node } from 'prosemirror-model';
-import { Selection, Transaction } from 'prosemirror-state';
+import { Transaction, TextSelection } from 'prosemirror-state';
 import { findParentNode } from 'prosemirror-utils';
 import { IRange, IValidationOutput, IValidationResponse } from '../interfaces/IValidation';
 import { IValidationInput } from '../interfaces/IValidation';
@@ -142,7 +142,7 @@ export const expandRange = (range: IRange, doc: Node): IRange | undefined => {
     const $fromPos = doc.resolve(range.from);
     const $toPos = doc.resolve(range.to);
     const parentNode = findParentNode(node => node.isBlock)(
-      new Selection($fromPos, $toPos)
+      new TextSelection($fromPos, $toPos)
     );
     if (!parentNode) {
       return undefined;
