@@ -12,38 +12,48 @@ export function findAncestor(
     // tslint:disable-next-line no-conditional-assignment
     (currentElement = currentElement.parentElement) &&
     !selector(currentElement)
-  ) {; }
+  ) {}
   return currentElement;
 }
 
 /**
  * Get the dimensions required for our UI code to render a tooltip. We encapsulate this here
- * to avoid dealing with side effects in the pluginr reducer.
+ * to avoid dealing with side effects in the plugin reducer.
  */
 export function getStateHoverInfoFromEvent(
   event: MouseEvent,
-  heightMarker: Element | null
+  containerElement: Element | null,
+  heightMarkerElement: Element | null
 ): IStateHoverInfo | undefined {
   if (
     !event.target ||
     !(event.target instanceof HTMLElement) ||
-    !heightMarker ||
-    !(heightMarker instanceof HTMLElement)
+    !containerElement ||
+    !(containerElement instanceof HTMLElement) ||
+    !heightMarkerElement ||
+    !(heightMarkerElement instanceof HTMLElement)
   ) {
     return;
   }
-  const { left, top } = event.target.getBoundingClientRect();
-  const mouseOffsetX = event.clientX - left;
-  const mouseOffsetY = event.clientY - top;
+  const {
+    left: elementLeft,
+    top: elementTop
+  } = event.target.getBoundingClientRect();
+  const {
+    left: containerLeft,
+    top: containerTop
+  } = containerElement.getBoundingClientRect();
+  const mouseOffsetX = event.clientX - elementLeft;
+  const mouseOffsetY = event.clientY - elementTop;
   const { offsetLeft, offsetTop, offsetHeight: height } = event.target;
   return {
-    left,
-    top,
+    left: elementLeft - containerLeft,
+    top: elementTop - containerTop,
     offsetLeft,
     offsetTop,
     height,
     mouseOffsetX,
     mouseOffsetY,
-    heightOfSingleLine: heightMarker.offsetHeight
+    heightOfSingleLine: heightMarkerElement.offsetHeight
   };
 }

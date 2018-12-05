@@ -94,11 +94,11 @@ interface PluginOptions {
  * Creates a document validator plugin, responsible for issuing validation
  * requests when the document is changed, decorating the document when they
  * are returned, and applying suggestions.
- * 
+ *
  * @param {PluginOptions} options
  * @returns {{plugin: Plugin, commands: Commands}}
  */
-const documentValidatorPlugin = (
+const createValidatorPlugin = (
   {
     adapter,
     createViewHandler = defaultView,
@@ -328,7 +328,7 @@ const documentValidatorPlugin = (
               VALIDATION_PLUGIN_ACTION,
               newHoverIdReceived(
                 newValidationId,
-                getStateHoverInfoFromEvent(event, heightMarker)
+                getStateHoverInfoFromEvent(event, localView.dom, heightMarker)
               )
             )
           );
@@ -349,4 +349,4 @@ const documentValidatorPlugin = (
   };
 };
 
-export default documentValidatorPlugin;
+export default createValidatorPlugin;
