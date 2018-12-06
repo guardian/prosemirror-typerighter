@@ -2,7 +2,7 @@ import fetchMock from 'fetch-mock';
 import { ILTReplacement } from '../adapters/interfaces/ILanguageTool';
 import createLanguageToolAdapter from '../adapters/languageTool';
 import { IValidationOutput } from '../interfaces/IValidation';
-import ValidationAPIService, { ValidationEvents } from '../ValidationAPIService';
+import ValidationAPIService, { ValidationEvents } from '../services/ValidationAPIService';
 
 const createResponse = (strs: string[]) => ({
   language: "",

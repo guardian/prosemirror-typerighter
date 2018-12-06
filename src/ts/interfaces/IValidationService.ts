@@ -1,4 +1,4 @@
-import { EventEmitter } from "../EventEmitter";
+import { EventEmitter } from "../services/EventEmitter";
 import { IValidationError, IValidationInput, IValidationOutput } from "./IValidation";
 
 /**

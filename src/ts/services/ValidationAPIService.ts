@@ -4,9 +4,9 @@ import {
   IValidationError,
   IValidationInput,
   IValidationOutput
-} from "./interfaces/IValidation";
-import { IValidationAPIAdapter } from "./interfaces/IVAlidationAPIAdapter";
-import IValidationService from "./interfaces/IValidationService";
+} from "../interfaces/IValidation";
+import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
+import IValidationService from "../interfaces/IValidationService";
 
 export const ValidationEvents = {
   VALIDATION_SUCCESS: "VALIDATION_SUCCESS",

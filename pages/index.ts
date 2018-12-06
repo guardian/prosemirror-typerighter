@@ -1,6 +1,6 @@
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Schema, DOMParser, NodeSpec } from "prosemirror-model";
+import { Schema, DOMParser } from "prosemirror-model";
 import { marks, schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
@@ -11,15 +11,12 @@ import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
 import "prosemirror-example-setup/style/style.css";
 import "../src/css/noting.scss";
-import { createValidatorPlugin, validationMarks } from "../src/ts/index";
+import createValidatorPlugin from "../src/ts/index";
 import createLanguageToolAdapter from "../src/ts/adapters/languageTool";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
-  marks: {
-    ...marks,
-    ...validationMarks
-  }
+  marks
 });
 
 const contentElement =

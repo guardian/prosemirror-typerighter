@@ -1,4 +1,4 @@
-import { MarkSpec, Node } from 'prosemirror-model';
+import { MarkSpec, Node, DOMOutputSpec } from 'prosemirror-model';
 import { Transaction } from 'prosemirror-state';
 import { ReplaceAroundStep, ReplaceStep } from 'prosemirror-transform';
 import { IValidationInput } from '../interfaces/IValidation';
@@ -73,10 +73,10 @@ const createValidationMark = (markName: string) => ({
       getAttrs: () => ({})
     }
   ],
-  toDOM: () => [`span.${markName}`]
+  toDOM: (): DOMOutputSpec => [`span.${markName}`]
 });
 
-export const validationMarks = Object.keys(MarkTypes).reduce(
+export const validationMarks: {[name: string]: MarkSpec} = Object.keys(MarkTypes).reduce(
   (acc, markName: string) => {
     return {
       ...acc,

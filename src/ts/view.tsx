@@ -1,6 +1,6 @@
 import IHoverEvent from "./interfaces/IHoverEvent";
 import ValidationOverlay from "./components/ValidationOverlay";
-import { Commands } from "./plugin";
+import { ICommands } from ".";
 import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
 import { IPluginState } from "./state";
@@ -11,7 +11,7 @@ import { selectValidationById } from "./state";
 /**
  * Accepts a plugin schema and creates a view function.
  */
-export default (plugin: Plugin, commands: Commands) => (view: EditorView) => {
+const createView = (plugin: Plugin, commands: ICommands) => (view: EditorView) => {
   const notificationSubscribers: Array<(hoverEvent: IHoverEvent) => void> = [];
   const subscribe = (callback: (hoverEvent: IHoverEvent) => void) => {
     notificationSubscribers.push(callback);
@@ -67,3 +67,5 @@ export default (plugin: Plugin, commands: Commands) => (view: EditorView) => {
     update: (view: EditorView<Schema>) => notify(plugin.getState(view.state))
   };
 };
+
+export default createView;

@@ -1,6 +1,6 @@
 import v4 from 'uuid/v4';
 import { IValidationInput } from "../interfaces/IValidation";
-import IValidationAPIAdapter from "../interfaces/IVAlidationAPIAdapter";
+import IValidationAPIAdapter from "../interfaces/IValidationAPIAdapter";
 import { ILTResponse } from "./interfaces/ILanguageTool";
 
 /**
