@@ -36127,31 +36127,34 @@ class ValidationService extends EventEmitter {
 
 //# sourceMappingURL=ValidationAPIService.js.map
 
-function getStateHoverInfoFromEvent(event, heightMarker) {
+function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
         !(event.target instanceof HTMLElement) ||
-        !heightMarker ||
-        !(heightMarker instanceof HTMLElement)) {
+        !containerElement ||
+        !(containerElement instanceof HTMLElement) ||
+        !heightMarkerElement ||
+        !(heightMarkerElement instanceof HTMLElement)) {
         return;
     }
-    const { left, top } = event.target.getBoundingClientRect();
-    const mouseOffsetX = event.clientX - left;
-    const mouseOffsetY = event.clientY - top;
+    const { left: elementLeft, top: elementTop } = event.target.getBoundingClientRect();
+    const { left: containerLeft, top: containerTop } = containerElement.getBoundingClientRect();
+    const mouseOffsetX = event.clientX - elementLeft;
+    const mouseOffsetY = event.clientY - elementTop;
     const { offsetLeft, offsetTop, offsetHeight: height } = event.target;
     return {
-        left,
-        top,
+        left: elementLeft - containerLeft,
+        top: elementTop - containerTop,
         offsetLeft,
         offsetTop,
         height,
         mouseOffsetX,
         mouseOffsetY,
-        heightOfSingleLine: heightMarker.offsetHeight
+        heightOfSingleLine: heightMarkerElement.offsetHeight
     };
 }
 //# sourceMappingURL=dom.js.map
 
-const documentValidatorPlugin = ({ adapter, createViewHandler = defaultView, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 }) => {
+const createValidatorPlugin = ({ adapter, createViewHandler = defaultView, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 }) => {
     let localView;
     const validationService = new ValidationService(adapter);
     const requestValidation = () => {
@@ -36258,7 +36261,7 @@ const documentValidatorPlugin = ({ adapter, createViewHandler = defaultView, exp
                         console.warn(`No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
                         return false;
                     }
-                    view.dispatch(view.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(newValidationId, getStateHoverInfoFromEvent(event, heightMarker))));
+                    view.dispatch(view.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(newValidationId, getStateHoverInfoFromEvent(event, localView.dom, heightMarker))));
                     return false;
                 }
             }
@@ -36274,8 +36277,6 @@ const documentValidatorPlugin = ({ adapter, createViewHandler = defaultView, exp
         commands
     };
 };
-
-//# sourceMappingURL=plugin.js.map
 
 //# sourceMappingURL=index.js.map
 
@@ -36407,7 +36408,7 @@ const contentElement = document.querySelector("#content") || document.createElem
 const doc = dist_12.fromSchema(mySchema).parse(contentElement);
 const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
-const { plugin: validatorPlugin, commands } = documentValidatorPlugin({
+const { plugin: validatorPlugin, commands } = createValidatorPlugin({
     adapter: createLanguageToolAdapter("http://localhost:9001")
 });
 editorElement &&
