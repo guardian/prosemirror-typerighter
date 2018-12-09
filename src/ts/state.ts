@@ -20,8 +20,7 @@ import {
   mapRangeThroughTransactions,
   mergeOutputsFromValidationResponse,
   mergeRanges,
-  validationInputToRange,
-  expandRangesToParentBlockNode
+  validationInputToRange
 } from "./utils/range";
 import { ExpandRanges } from ".";
 

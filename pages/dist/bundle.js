@@ -15801,8 +15801,6 @@ const createDecorationForValidationRange = (output, isHovering = false, addHeigh
 };
 const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
 
-//# sourceMappingURL=decoration.js.map
-
 /**
  * The base implementation of `_.clamp` which doesn't coerce arguments.
  *
