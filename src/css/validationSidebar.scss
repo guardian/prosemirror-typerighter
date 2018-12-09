@@ -39,6 +39,14 @@
   margin-left: calc(var(--gutter-width) / 2);
   font-size: 12px;
   color: grey;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+}
+
+.ValidationSidebarOutput__header-range:hover {
+  background-color: #eee;
 }
 
 .ValidationSidebarOutput__header-toggle-status {

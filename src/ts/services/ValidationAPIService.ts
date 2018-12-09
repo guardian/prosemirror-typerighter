@@ -3,7 +3,8 @@ import { EventEmitter } from "./EventEmitter";
 import {
   IValidationError,
   IValidationInput,
-  IValidationOutput
+  IValidationOutput,
+  IValidationResponse
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import IValidationService from "../interfaces/IValidationService";
@@ -30,7 +31,7 @@ class ValidationService extends EventEmitter implements IValidationService {
       inputs.map(async input => {
         try {
           const result = await this.adapter(input);
-          this.handleCompleteValidation(id, result);
+          this.handleCompleteValidation(id, inputs, result);
           return result;
         } catch (e) {
           this.handleError(input, id, e.message);
@@ -72,12 +73,14 @@ class ValidationService extends EventEmitter implements IValidationService {
    */
   private handleCompleteValidation = (
     id: string | number,
+    validationInputs: IValidationInput[],
     validationOutputs: IValidationOutput[]
   ) => {
     this.emit(ValidationEvents.VALIDATION_SUCCESS, {
       id,
+      validationInputs,
       validationOutputs
-    });
+    } as IValidationResponse);
   };
 }
 

@@ -6,7 +6,8 @@ import { IPluginState } from "../state";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-export const DECORATION_VALIDATION_IS_HOVERING = "DECORATION_VALIDATION_IS_HOVERING";
+export const DECORATION_VALIDATION_IS_HOVERING =
+  "DECORATION_VALIDATION_IS_HOVERING";
 export const DECORATION_VALIDATION_HEIGHT_MARKER =
   "DECORATION_VALIDATION_HEIGHT_MARKER";
 export const DECORATION_DIRTY = "DECORATION_DIRTY";
@@ -60,10 +61,7 @@ export const getNewDecorationsForCurrentValidations = (
   doc: Node
 ) => {
   // Remove existing validations for the ranges
-  const newDecorationSet = removeDecorationsFromRanges(
-    decorationSet,
-    outputs
-  );
+  const newDecorationSet = removeDecorationsFromRanges(decorationSet, outputs);
 
   // There are new validations available; apply them to the document.
   const decorationsToAdd = createDecorationsForValidationRanges(outputs);
@@ -89,17 +87,15 @@ const createHeightMarkerNode = (id: string) => {
  */
 export const createDecorationForValidationRange = (
   output: IValidationOutput,
-  isHovering = false
+  isHovering = false,
+  addHeightMarker = true
 ) => {
   const className = isHovering
     ? `${DecorationClassMap[DECORATION_VALIDATION]} ${
         DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
-  return [
-    Decoration.widget(output.from, createHeightMarkerNode(output.id), {
-      type: DECORATION_VALIDATION_HEIGHT_MARKER
-    } as any),
+  const decorationArray = [
     Decoration.inline(
       output.from,
       output.to,
@@ -114,6 +110,15 @@ export const createDecorationForValidationRange = (
       } as any
     )
   ];
+  return addHeightMarker
+    ? [
+        ...decorationArray,
+        Decoration.widget(output.from, createHeightMarkerNode(output.id), {
+          type: DECORATION_VALIDATION_HEIGHT_MARKER,
+          id: output.id
+        } as any)
+      ]
+    : decorationArray;
 };
 
 export const createDecorationsForValidationRanges = (

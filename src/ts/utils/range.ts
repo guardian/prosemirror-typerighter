@@ -1,11 +1,14 @@
-import clamp from 'lodash/clamp';
-import compact from 'lodash/compact';
-import { Node } from 'prosemirror-model';
-import { Transaction, TextSelection } from 'prosemirror-state';
-import { findParentNode } from 'prosemirror-utils';
-import { IRange, IValidationOutput, IValidationResponse } from '../interfaces/IValidation';
-import { IValidationInput } from '../interfaces/IValidation';
-import { getReplaceStepRangesFromTransaction } from './prosemirror';
+import clamp from "lodash/clamp";
+import compact from "lodash/compact";
+import { Node } from "prosemirror-model";
+import { Transaction, TextSelection } from "prosemirror-state";
+import { findParentNode } from "prosemirror-utils";
+import {
+  IRange,
+  IValidationOutput,
+  IValidationResponse
+} from "../interfaces/IValidation";
+import { IValidationInput } from "../interfaces/IValidation";
 
 export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   return ranges.findIndex(
@@ -19,22 +22,20 @@ export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   );
 };
 
-export const getMergedDirtiedRanges = (tr: Transaction, oldRanges: IRange[]) =>
+export const mapAndMergeRanges = (tr: Transaction, ranges: IRange[]) =>
   mergeRanges(
-    oldRanges
-      .map(range => ({
-        from: tr.mapping.map(range.from),
-        to: tr.mapping.map(range.to)
-      }))
-      .concat(getReplaceStepRangesFromTransaction(tr))
+    ranges.map(range => ({
+      from: tr.mapping.map(range.from),
+      to: tr.mapping.map(range.to)
+    }))
   );
 
 /**
  * Return the first set of ranges with any members overlapping the second set removed.
  */
-export const removeOverlappingRanges = <T extends IRange>(
-  firstRanges: T[],
-  secondRanges: T[]
+export const removeOverlappingRanges = <FirstRange extends IRange, SecondRange extends IRange>(
+  firstRanges: FirstRange[],
+  secondRanges: SecondRange[]
 ) => {
   return firstRanges.reduce(
     (acc, range) => {
@@ -42,7 +43,7 @@ export const removeOverlappingRanges = <T extends IRange>(
         ? acc.concat(range)
         : acc;
     },
-    [] as T[]
+    [] as FirstRange[]
   );
 };
 
@@ -120,18 +121,25 @@ export const mergeOutputsFromValidationResponse = (
   currentOutputs: IValidationOutput[],
   trs: Transaction[]
 ): IValidationOutput[] => {
-  const initialTransaction = trs.find(tr => tr.time === parseInt(response.id, 10));
+  const validationId = parseInt(response.id, 10);
+  const initialTransaction = trs.find(tr => tr.time === validationId);
   if (!initialTransaction && trs.length > 1) {
     return currentOutputs;
   }
 
-  const newOutputs = mapRangeThroughTransactions(
-    response.validationOutputs,
-    parseInt(response.id, 10),
+  const mappedInputs = mapRangeThroughTransactions(
+    response.validationInputs,
+    validationId,
     trs
   );
 
-  return removeOverlappingRanges(currentOutputs, newOutputs).concat(newOutputs);
+  const newOutputs = mapRangeThroughTransactions(
+    response.validationOutputs,
+    validationId,
+    trs
+  );
+
+  return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
 };
 
 /**

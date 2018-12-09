@@ -15354,15 +15354,7 @@ and limitations under the License.
 
 
 
-function __rest(s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
-            t[p[i]] = s[p[i]];
-    return t;
-}
+
 
 
 
@@ -15716,9 +15708,10 @@ class ValidationService extends EventEmitter {
                 message
             });
         };
-        this.handleCompleteValidation = (id, validationOutputs) => {
+        this.handleCompleteValidation = (id, validationInputs, validationOutputs) => {
             this.emit(ValidationEvents.VALIDATION_SUCCESS, {
                 id,
+                validationInputs,
                 validationOutputs
             });
         };
@@ -15728,7 +15721,7 @@ class ValidationService extends EventEmitter {
             const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const result = yield this.adapter(input);
-                    this.handleCompleteValidation(id, result);
+                    this.handleCompleteValidation(id, inputs, result);
                     return result;
                 }
                 catch (e) {
@@ -15782,14 +15775,11 @@ const createHeightMarkerNode = (id) => {
     node.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
     return node;
 };
-const createDecorationForValidationRange = (output, isHovering = false) => {
+const createDecorationForValidationRange = (output, isHovering = false, addHeightMarker = true) => {
     const className = isHovering
         ? `${DecorationClassMap[DECORATION_VALIDATION]} ${DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]}`
         : DecorationClassMap[DECORATION_VALIDATION];
-    return [
-        dist_2$3.widget(output.from, createHeightMarkerNode(output.id), {
-            type: DECORATION_VALIDATION_HEIGHT_MARKER
-        }),
+    const decorationArray = [
         dist_2$3.inline(output.from, output.to, {
             class: className,
             [DECORATION_ATTRIBUTE_ID]: output.id
@@ -15799,6 +15789,15 @@ const createDecorationForValidationRange = (output, isHovering = false) => {
             inclusiveStart: true
         })
     ];
+    return addHeightMarker
+        ? [
+            ...decorationArray,
+            dist_2$3.widget(output.from, createHeightMarkerNode(output.id), {
+                type: DECORATION_VALIDATION_HEIGHT_MARKER,
+                id: output.id
+            })
+        ]
+        : decorationArray;
 };
 const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
 
@@ -19648,45 +19647,15 @@ var dist_57 = dist$10.setParentNodeMarkup;
 var dist_58 = dist$10.selectParentNodeOfType;
 var dist_59 = dist$10.removeNodeBefore;
 
-const MarkTypes = {
-    legal: "legal",
-    warn: "warn"
-};
-const createValidationMark = (markName) => ({
-    attrs: {},
-    inclusive: false,
-    parseDOM: [
-        {
-            tag: `span.${markName}`,
-            getAttrs: () => ({})
-        }
-    ],
-    toDOM: () => [`span.${markName}`]
-});
-const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
-    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
-}, {});
-
-
-
-const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
-    from: step.from,
-    to: step.to
-}));
-const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
-//# sourceMappingURL=prosemirror.js.map
-
 const findOverlappingRangeIndex = (range, ranges) => {
     return ranges.findIndex(localRange => (localRange.from <= range.from && localRange.to >= range.from) ||
         (localRange.to >= range.to && localRange.from <= range.to) ||
         (localRange.from >= range.from && localRange.to <= range.to));
 };
-const getMergedDirtiedRanges = (tr, oldRanges) => mergeRanges(oldRanges
-    .map(range => ({
+const mapAndMergeRanges = (tr, ranges) => mergeRanges(ranges.map(range => ({
     from: tr.mapping.map(range.from),
     to: tr.mapping.map(range.to)
-}))
-    .concat(getReplaceStepRangesFromTransaction(tr)));
+})));
 const removeOverlappingRanges = (firstRanges, secondRanges) => {
     return firstRanges.reduce((acc, range) => {
         return findOverlappingRangeIndex(range, secondRanges) === -1
@@ -19713,12 +19682,14 @@ const validationInputToRange = (input) => ({
     to: input.to
 });
 const mergeOutputsFromValidationResponse = (response, currentOutputs, trs) => {
-    const initialTransaction = trs.find(tr => tr.time === parseInt(response.id, 10));
+    const validationId = parseInt(response.id, 10);
+    const initialTransaction = trs.find(tr => tr.time === validationId);
     if (!initialTransaction && trs.length > 1) {
         return currentOutputs;
     }
-    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, parseInt(response.id, 10), trs);
-    return removeOverlappingRanges(currentOutputs, newOutputs).concat(newOutputs);
+    const mappedInputs = mapRangeThroughTransactions(response.validationInputs, validationId, trs);
+    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, validationId, trs);
+    return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
 };
 const expandRange = (range, doc) => {
     try {
@@ -19768,16 +19739,12 @@ const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNod
 //# sourceMappingURL=range.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
-const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
 const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
 const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
-const validationRequestPending = (ranges) => ({
-    type: VALIDATION_REQUEST_PENDING,
-    payload: { ranges }
-});
+const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const validationRequestStart = (ranges) => ({
     type: VALIDATION_REQUEST_START,
     payload: { ranges }
@@ -19794,17 +19761,22 @@ const newHoverIdReceived = (hoverId, hoverInfo) => ({
     type: NEW_HOVER_ID,
     payload: { hoverId, hoverInfo }
 });
+const applyNewDirtiedRanges = (ranges) => ({
+    type: HANDLE_NEW_DIRTY_RANGES,
+    payload: { ranges }
+});
 const selectValidation = (validationId) => ({
     type: SELECT_VALIDATION,
     payload: { validationId }
 });
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
 const validationPluginReducer = (tr, state, action) => {
+    if (!action) {
+        return state;
+    }
     switch (action.type) {
         case NEW_HOVER_ID:
             return handleNewHoverId(tr, state, action);
-        case VALIDATION_REQUEST_PENDING:
-            return handleValidationRequestPending(tr, state, action);
         case VALIDATION_REQUEST_START:
             return handleValidationRequestStart(tr, state, action);
         case VALIDATION_REQUEST_SUCCESS:
@@ -19813,6 +19785,8 @@ const validationPluginReducer = (tr, state, action) => {
             return handleValidationRequestError(tr, state, action);
         case SELECT_VALIDATION:
             return handleSelectValidation(tr, state, action);
+        case HANDLE_NEW_DIRTY_RANGES:
+            return handleNewDirtyRanges(tr, state, action);
         default:
             return state;
     }
@@ -19826,28 +19800,27 @@ const handleNewHoverId = (tr, state, action) => {
     const currentHoverId = state.hoverId;
     const isHovering = !!action.payload.hoverId;
     const decorationsToRemove = currentHoverId
-        ? state.decorations.find(undefined, undefined, spec => spec.id === currentHoverId &&
-            (spec.type === DECORATION_VALIDATION ||
-                spec.type === DECORATION_VALIDATION_HEIGHT_MARKER))
+        ? state.decorations.find(undefined, undefined, spec => spec.id === currentHoverId && spec.type === DECORATION_VALIDATION)
         : [];
     decorations = decorations.remove(decorationsToRemove);
     if (incomingHoverId) {
         const incomingValidationOutput = selectValidationById(state, incomingHoverId);
         if (incomingValidationOutput) {
-            decorations = decorations.add(tr.doc, createDecorationForValidationRange(incomingValidationOutput, isHovering));
+            decorations = decorations.add(tr.doc, createDecorationForValidationRange(incomingValidationOutput, isHovering, false));
         }
     }
     if (currentHoverId) {
         const currentValidationOutput = selectValidationById(state, currentHoverId);
         if (currentValidationOutput) {
-            decorations = decorations.add(tr.doc, createDecorationForValidationRange(currentValidationOutput, false));
+            decorations = decorations.add(tr.doc, createDecorationForValidationRange(currentValidationOutput, false, false));
         }
     }
     return Object.assign({}, state, { decorations, hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
 };
-const handleValidationRequestPending = (_, state, action) => {
-    const decorations = removeDecorationsFromRanges(state.decorations, action.payload.ranges, [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]);
-    return Object.assign({}, state, { decorations, validationPending: true });
+const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } }) => {
+    let newDecorations = state.decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
+    newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
+    return Object.assign({}, state, { validationPending: true, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
 };
 const handleValidationRequestStart = (tr, state, action) => {
     const validationInputs = action.payload.ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
@@ -19880,6 +19853,34 @@ const handleValidationRequestError = (tr, state, action) => {
 };
 
 //# sourceMappingURL=state.js.map
+
+const MarkTypes = {
+    legal: "legal",
+    warn: "warn"
+};
+const createValidationMark = (markName) => ({
+    attrs: {},
+    inclusive: false,
+    parseDOM: [
+        {
+            tag: `span.${markName}`,
+            getAttrs: () => ({})
+        }
+    ],
+    toDOM: () => [`span.${markName}`]
+});
+const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
+    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
+}, {});
+
+
+
+const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
+    from: step.from,
+    to: step.to
+}));
+const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
+//# sourceMappingURL=prosemirror.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -19994,6 +19995,7 @@ const createValidatorPlugin = (options) => {
                     }
                     tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
                 });
+                tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(undefined, undefined));
                 dispatch(tr);
             }
             return true;
@@ -20022,32 +20024,23 @@ const createValidatorPlugin = (options) => {
                 };
             },
             apply(tr, state) {
+                const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), trHistory: state.trHistory.length > 25
+                        ? state.trHistory.slice(1).concat(tr)
+                        : state.trHistory.concat(tr) });
                 const action = tr.getMeta(VALIDATION_PLUGIN_ACTION);
-                const _a = action
-                    ? validationPluginReducer(tr, state, action)
-                    : state, { decorations, dirtiedRanges, trHistory } = _a, rest = __rest(_a, ["decorations", "dirtiedRanges", "trHistory"]);
-                let newDecorations = decorations.map(tr.mapping, tr.doc);
-                let newTrHistory = trHistory;
-                const newDirtiedRanges = getMergedDirtiedRanges(tr, dirtiedRanges);
-                const currentDirtiedRanges = getReplaceStepRangesFromTransaction(tr);
-                newDecorations = newDecorations.add(tr.doc, currentDirtiedRanges.map(range => createDebugDecorationFromRange(range)));
-                if (currentDirtiedRanges.length) {
-                    newDecorations = removeDecorationsFromRanges(newDecorations, newDirtiedRanges);
-                }
-                newTrHistory =
-                    newTrHistory.length > 25
-                        ? newTrHistory.slice(1).concat(tr)
-                        : newTrHistory.concat(tr);
-                return Object.assign({}, rest, { decorations: newDecorations, dirtiedRanges: newDirtiedRanges, trHistory: newTrHistory });
+                return validationPluginReducer(tr, newState, action);
             }
         },
         appendTransaction(trs, oldState, newState) {
             const oldPluginState = plugin.getState(oldState);
             const newPluginState = plugin.getState(newState);
-            if (newPluginState.dirtiedRanges.length &&
-                !newPluginState.validationPending) {
-                scheduleValidation();
-                return newState.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestPending(newPluginState.dirtiedRanges));
+            const tr = newState.tr;
+            const newDirtiedRanges = trs.reduce((acc, _) => acc.concat(getReplaceStepRangesFromTransaction(_)), []);
+            if (newDirtiedRanges.length) {
+                if (!newPluginState.validationPending) {
+                    scheduleValidation();
+                }
+                return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
             }
             if (!oldPluginState.validationInFlight &&
                 newPluginState.validationInFlight) {
@@ -20212,7 +20205,7 @@ const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, vo
         from: input.from + match.offset,
         to: input.from + match.offset + match.length,
         annotation: match.message,
-        type: match.rule.description,
+        type: match.rule.issueType,
         suggestions: match.replacements.map(_ => _.value)
     }));
 });
@@ -20927,17 +20920,15 @@ function render(vnode, parent, merge) {
 class ValidationOutput extends Component {
     render({ id, type, annotation, suggestions, applySuggestions }) {
         return (h("div", { className: "ValidationWidget__container" },
-            h("div", { className: "ValidationWidget", ref: _ => this.ref = _ },
-                h("div", { className: "ValidationWidget__label" }, type),
-                annotation,
-                suggestions &&
-                    !!suggestions.length &&
-                    applySuggestions && (h("div", { className: "ValidationWidget__suggestion-list" },
-                    h("div", { className: "ValidationWidget__label" }, "Suggestions"),
-                    suggestions.map((suggestion, suggestionIndex) => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestions([{
-                                validationId: id,
-                                suggestionIndex
-                            }]) }, suggestion))))))));
+            h("div", { className: "ValidationWidget", ref: _ => (this.ref = _) },
+                h("div", { className: "ValidationWidget__type" }, type),
+                h("div", { className: "ValidationWidget__annotation" }, annotation),
+                suggestions && !!suggestions.length && applySuggestions && (h("div", { className: "ValidationWidget__suggestion-list" }, suggestions.map((suggestion, suggestionIndex) => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestions([
+                        {
+                            validationId: id,
+                            suggestionIndex
+                        }
+                    ]) }, suggestion))))))));
     }
 }
 
@@ -21013,6 +21004,514 @@ class ValidationOverlay extends Component {
 
 //# sourceMappingURL=ValidationOverlay.js.map
 
+/**
+ * A specialized version of `_.reduce` for arrays without support for
+ * iteratee shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {boolean} [initAccum] Specify using the first element of `array` as
+ *  the initial value.
+ * @returns {*} Returns the accumulated value.
+ */
+function arrayReduce(array, iteratee, accumulator, initAccum) {
+  var index = -1,
+      length = array == null ? 0 : array.length;
+
+  if (initAccum && length) {
+    accumulator = array[++index];
+  }
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+  return accumulator;
+}
+
+var _arrayReduce = arrayReduce;
+
+/**
+ * The base implementation of `_.propertyOf` without support for deep paths.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Function} Returns the new accessor function.
+ */
+function basePropertyOf(object) {
+  return function(key) {
+    return object == null ? undefined : object[key];
+  };
+}
+
+var _basePropertyOf = basePropertyOf;
+
+var deburredLetters = {
+  // Latin-1 Supplement block.
+  '\xc0': 'A',  '\xc1': 'A', '\xc2': 'A', '\xc3': 'A', '\xc4': 'A', '\xc5': 'A',
+  '\xe0': 'a',  '\xe1': 'a', '\xe2': 'a', '\xe3': 'a', '\xe4': 'a', '\xe5': 'a',
+  '\xc7': 'C',  '\xe7': 'c',
+  '\xd0': 'D',  '\xf0': 'd',
+  '\xc8': 'E',  '\xc9': 'E', '\xca': 'E', '\xcb': 'E',
+  '\xe8': 'e',  '\xe9': 'e', '\xea': 'e', '\xeb': 'e',
+  '\xcc': 'I',  '\xcd': 'I', '\xce': 'I', '\xcf': 'I',
+  '\xec': 'i',  '\xed': 'i', '\xee': 'i', '\xef': 'i',
+  '\xd1': 'N',  '\xf1': 'n',
+  '\xd2': 'O',  '\xd3': 'O', '\xd4': 'O', '\xd5': 'O', '\xd6': 'O', '\xd8': 'O',
+  '\xf2': 'o',  '\xf3': 'o', '\xf4': 'o', '\xf5': 'o', '\xf6': 'o', '\xf8': 'o',
+  '\xd9': 'U',  '\xda': 'U', '\xdb': 'U', '\xdc': 'U',
+  '\xf9': 'u',  '\xfa': 'u', '\xfb': 'u', '\xfc': 'u',
+  '\xdd': 'Y',  '\xfd': 'y', '\xff': 'y',
+  '\xc6': 'Ae', '\xe6': 'ae',
+  '\xde': 'Th', '\xfe': 'th',
+  '\xdf': 'ss',
+  // Latin Extended-A block.
+  '\u0100': 'A',  '\u0102': 'A', '\u0104': 'A',
+  '\u0101': 'a',  '\u0103': 'a', '\u0105': 'a',
+  '\u0106': 'C',  '\u0108': 'C', '\u010a': 'C', '\u010c': 'C',
+  '\u0107': 'c',  '\u0109': 'c', '\u010b': 'c', '\u010d': 'c',
+  '\u010e': 'D',  '\u0110': 'D', '\u010f': 'd', '\u0111': 'd',
+  '\u0112': 'E',  '\u0114': 'E', '\u0116': 'E', '\u0118': 'E', '\u011a': 'E',
+  '\u0113': 'e',  '\u0115': 'e', '\u0117': 'e', '\u0119': 'e', '\u011b': 'e',
+  '\u011c': 'G',  '\u011e': 'G', '\u0120': 'G', '\u0122': 'G',
+  '\u011d': 'g',  '\u011f': 'g', '\u0121': 'g', '\u0123': 'g',
+  '\u0124': 'H',  '\u0126': 'H', '\u0125': 'h', '\u0127': 'h',
+  '\u0128': 'I',  '\u012a': 'I', '\u012c': 'I', '\u012e': 'I', '\u0130': 'I',
+  '\u0129': 'i',  '\u012b': 'i', '\u012d': 'i', '\u012f': 'i', '\u0131': 'i',
+  '\u0134': 'J',  '\u0135': 'j',
+  '\u0136': 'K',  '\u0137': 'k', '\u0138': 'k',
+  '\u0139': 'L',  '\u013b': 'L', '\u013d': 'L', '\u013f': 'L', '\u0141': 'L',
+  '\u013a': 'l',  '\u013c': 'l', '\u013e': 'l', '\u0140': 'l', '\u0142': 'l',
+  '\u0143': 'N',  '\u0145': 'N', '\u0147': 'N', '\u014a': 'N',
+  '\u0144': 'n',  '\u0146': 'n', '\u0148': 'n', '\u014b': 'n',
+  '\u014c': 'O',  '\u014e': 'O', '\u0150': 'O',
+  '\u014d': 'o',  '\u014f': 'o', '\u0151': 'o',
+  '\u0154': 'R',  '\u0156': 'R', '\u0158': 'R',
+  '\u0155': 'r',  '\u0157': 'r', '\u0159': 'r',
+  '\u015a': 'S',  '\u015c': 'S', '\u015e': 'S', '\u0160': 'S',
+  '\u015b': 's',  '\u015d': 's', '\u015f': 's', '\u0161': 's',
+  '\u0162': 'T',  '\u0164': 'T', '\u0166': 'T',
+  '\u0163': 't',  '\u0165': 't', '\u0167': 't',
+  '\u0168': 'U',  '\u016a': 'U', '\u016c': 'U', '\u016e': 'U', '\u0170': 'U', '\u0172': 'U',
+  '\u0169': 'u',  '\u016b': 'u', '\u016d': 'u', '\u016f': 'u', '\u0171': 'u', '\u0173': 'u',
+  '\u0174': 'W',  '\u0175': 'w',
+  '\u0176': 'Y',  '\u0177': 'y', '\u0178': 'Y',
+  '\u0179': 'Z',  '\u017b': 'Z', '\u017d': 'Z',
+  '\u017a': 'z',  '\u017c': 'z', '\u017e': 'z',
+  '\u0132': 'IJ', '\u0133': 'ij',
+  '\u0152': 'Oe', '\u0153': 'oe',
+  '\u0149': "'n", '\u017f': 's'
+};
+
+/**
+ * Used by `_.deburr` to convert Latin-1 Supplement and Latin Extended-A
+ * letters to basic Latin letters.
+ *
+ * @private
+ * @param {string} letter The matched letter to deburr.
+ * @returns {string} Returns the deburred letter.
+ */
+var deburrLetter = _basePropertyOf(deburredLetters);
+
+var _deburrLetter = deburrLetter;
+
+/**
+ * A specialized version of `_.map` for arrays without support for iteratee
+ * shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns the new mapped array.
+ */
+function arrayMap(array, iteratee) {
+  var index = -1,
+      length = array == null ? 0 : array.length,
+      result = Array(length);
+
+  while (++index < length) {
+    result[index] = iteratee(array[index], index, array);
+  }
+  return result;
+}
+
+var _arrayMap = arrayMap;
+
+var INFINITY = 1 / 0;
+
+/** Used to convert symbols to primitives and strings. */
+var symbolProto = _Symbol ? _Symbol.prototype : undefined;
+var symbolToString = symbolProto ? symbolProto.toString : undefined;
+
+/**
+ * The base implementation of `_.toString` which doesn't convert nullish
+ * values to empty strings.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ */
+function baseToString(value) {
+  // Exit early for strings to avoid a performance hit in some environments.
+  if (typeof value == 'string') {
+    return value;
+  }
+  if (isArray_1(value)) {
+    // Recursively convert values (susceptible to call stack limits).
+    return _arrayMap(value, baseToString) + '';
+  }
+  if (isSymbol_1(value)) {
+    return symbolToString ? symbolToString.call(value) : '';
+  }
+  var result = (value + '');
+  return (result == '0' && (1 / value) == -INFINITY) ? '-0' : result;
+}
+
+var _baseToString = baseToString;
+
+function toString(value) {
+  return value == null ? '' : _baseToString(value);
+}
+
+var toString_1 = toString;
+
+var reLatin = /[\xc0-\xd6\xd8-\xf6\xf8-\xff\u0100-\u017f]/g;
+
+/** Used to compose unicode character classes. */
+var rsComboMarksRange = '\\u0300-\\u036f';
+var reComboHalfMarksRange = '\\ufe20-\\ufe2f';
+var rsComboSymbolsRange = '\\u20d0-\\u20ff';
+var rsComboRange = rsComboMarksRange + reComboHalfMarksRange + rsComboSymbolsRange;
+
+/** Used to compose unicode capture groups. */
+var rsCombo = '[' + rsComboRange + ']';
+
+/**
+ * Used to match [combining diacritical marks](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks) and
+ * [combining diacritical marks for symbols](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks_for_Symbols).
+ */
+var reComboMark = RegExp(rsCombo, 'g');
+
+/**
+ * Deburrs `string` by converting
+ * [Latin-1 Supplement](https://en.wikipedia.org/wiki/Latin-1_Supplement_(Unicode_block)#Character_table)
+ * and [Latin Extended-A](https://en.wikipedia.org/wiki/Latin_Extended-A)
+ * letters to basic Latin letters and removing
+ * [combining diacritical marks](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks).
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category String
+ * @param {string} [string=''] The string to deburr.
+ * @returns {string} Returns the deburred string.
+ * @example
+ *
+ * _.deburr('déjà vu');
+ * // => 'deja vu'
+ */
+function deburr(string) {
+  string = toString_1(string);
+  return string && string.replace(reLatin, _deburrLetter).replace(reComboMark, '');
+}
+
+var deburr_1 = deburr;
+
+/** Used to match words composed of alphanumeric characters. */
+var reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
+
+/**
+ * Splits an ASCII `string` into an array of its words.
+ *
+ * @private
+ * @param {string} The string to inspect.
+ * @returns {Array} Returns the words of `string`.
+ */
+function asciiWords(string) {
+  return string.match(reAsciiWord) || [];
+}
+
+var _asciiWords = asciiWords;
+
+/** Used to detect strings that need a more robust regexp to match words. */
+var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+
+/**
+ * Checks if `string` contains a word composed of Unicode symbols.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {boolean} Returns `true` if a word is found, else `false`.
+ */
+function hasUnicodeWord(string) {
+  return reHasUnicodeWord.test(string);
+}
+
+var _hasUnicodeWord = hasUnicodeWord;
+
+/** Used to compose unicode character classes. */
+var rsAstralRange = '\\ud800-\\udfff';
+var rsComboMarksRange$1 = '\\u0300-\\u036f';
+var reComboHalfMarksRange$1 = '\\ufe20-\\ufe2f';
+var rsComboSymbolsRange$1 = '\\u20d0-\\u20ff';
+var rsComboRange$1 = rsComboMarksRange$1 + reComboHalfMarksRange$1 + rsComboSymbolsRange$1;
+var rsDingbatRange = '\\u2700-\\u27bf';
+var rsLowerRange = 'a-z\\xdf-\\xf6\\xf8-\\xff';
+var rsMathOpRange = '\\xac\\xb1\\xd7\\xf7';
+var rsNonCharRange = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf';
+var rsPunctuationRange = '\\u2000-\\u206f';
+var rsSpaceRange = ' \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000';
+var rsUpperRange = 'A-Z\\xc0-\\xd6\\xd8-\\xde';
+var rsVarRange = '\\ufe0e\\ufe0f';
+var rsBreakRange = rsMathOpRange + rsNonCharRange + rsPunctuationRange + rsSpaceRange;
+
+/** Used to compose unicode capture groups. */
+var rsApos$1 = "['\u2019]";
+var rsBreak = '[' + rsBreakRange + ']';
+var rsCombo$1 = '[' + rsComboRange$1 + ']';
+var rsDigits = '\\d+';
+var rsDingbat = '[' + rsDingbatRange + ']';
+var rsLower = '[' + rsLowerRange + ']';
+var rsMisc = '[^' + rsAstralRange + rsBreakRange + rsDigits + rsDingbatRange + rsLowerRange + rsUpperRange + ']';
+var rsFitz = '\\ud83c[\\udffb-\\udfff]';
+var rsModifier = '(?:' + rsCombo$1 + '|' + rsFitz + ')';
+var rsNonAstral = '[^' + rsAstralRange + ']';
+var rsRegional = '(?:\\ud83c[\\udde6-\\uddff]){2}';
+var rsSurrPair = '[\\ud800-\\udbff][\\udc00-\\udfff]';
+var rsUpper = '[' + rsUpperRange + ']';
+var rsZWJ = '\\u200d';
+
+/** Used to compose unicode regexes. */
+var rsMiscLower = '(?:' + rsLower + '|' + rsMisc + ')';
+var rsMiscUpper = '(?:' + rsUpper + '|' + rsMisc + ')';
+var rsOptContrLower = '(?:' + rsApos$1 + '(?:d|ll|m|re|s|t|ve))?';
+var rsOptContrUpper = '(?:' + rsApos$1 + '(?:D|LL|M|RE|S|T|VE))?';
+var reOptMod = rsModifier + '?';
+var rsOptVar = '[' + rsVarRange + ']?';
+var rsOptJoin = '(?:' + rsZWJ + '(?:' + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ')' + rsOptVar + reOptMod + ')*';
+var rsOrdLower = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])';
+var rsOrdUpper = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
+var rsSeq = rsOptVar + reOptMod + rsOptJoin;
+var rsEmoji = '(?:' + [rsDingbat, rsRegional, rsSurrPair].join('|') + ')' + rsSeq;
+
+/** Used to match complex or compound words. */
+var reUnicodeWord = RegExp([
+  rsUpper + '?' + rsLower + '+' + rsOptContrLower + '(?=' + [rsBreak, rsUpper, '$'].join('|') + ')',
+  rsMiscUpper + '+' + rsOptContrUpper + '(?=' + [rsBreak, rsUpper + rsMiscLower, '$'].join('|') + ')',
+  rsUpper + '?' + rsMiscLower + '+' + rsOptContrLower,
+  rsUpper + '+' + rsOptContrUpper,
+  rsOrdUpper,
+  rsOrdLower,
+  rsDigits,
+  rsEmoji
+].join('|'), 'g');
+
+/**
+ * Splits a Unicode `string` into an array of its words.
+ *
+ * @private
+ * @param {string} The string to inspect.
+ * @returns {Array} Returns the words of `string`.
+ */
+function unicodeWords(string) {
+  return string.match(reUnicodeWord) || [];
+}
+
+var _unicodeWords = unicodeWords;
+
+function words(string, pattern, guard) {
+  string = toString_1(string);
+  pattern = guard ? undefined : pattern;
+
+  if (pattern === undefined) {
+    return _hasUnicodeWord(string) ? _unicodeWords(string) : _asciiWords(string);
+  }
+  return string.match(pattern) || [];
+}
+
+var words_1 = words;
+
+var rsApos = "['\u2019]";
+
+/** Used to match apostrophes. */
+var reApos = RegExp(rsApos, 'g');
+
+/**
+ * Creates a function like `_.camelCase`.
+ *
+ * @private
+ * @param {Function} callback The function to combine each word.
+ * @returns {Function} Returns the new compounder function.
+ */
+function createCompounder(callback) {
+  return function(string) {
+    return _arrayReduce(words_1(deburr_1(string).replace(reApos, '')), callback, '');
+  };
+}
+
+var _createCompounder = createCompounder;
+
+/**
+ * The base implementation of `_.slice` without an iteratee call guard.
+ *
+ * @private
+ * @param {Array} array The array to slice.
+ * @param {number} [start=0] The start position.
+ * @param {number} [end=array.length] The end position.
+ * @returns {Array} Returns the slice of `array`.
+ */
+function baseSlice(array, start, end) {
+  var index = -1,
+      length = array.length;
+
+  if (start < 0) {
+    start = -start > length ? 0 : (length + start);
+  }
+  end = end > length ? length : end;
+  if (end < 0) {
+    end += length;
+  }
+  length = start > end ? 0 : ((end - start) >>> 0);
+  start >>>= 0;
+
+  var result = Array(length);
+  while (++index < length) {
+    result[index] = array[index + start];
+  }
+  return result;
+}
+
+var _baseSlice = baseSlice;
+
+function castSlice(array, start, end) {
+  var length = array.length;
+  end = end === undefined ? length : end;
+  return (!start && end >= length) ? array : _baseSlice(array, start, end);
+}
+
+var _castSlice = castSlice;
+
+/** Used to compose unicode character classes. */
+var rsAstralRange$1 = '\\ud800-\\udfff';
+var rsComboMarksRange$2 = '\\u0300-\\u036f';
+var reComboHalfMarksRange$2 = '\\ufe20-\\ufe2f';
+var rsComboSymbolsRange$2 = '\\u20d0-\\u20ff';
+var rsComboRange$2 = rsComboMarksRange$2 + reComboHalfMarksRange$2 + rsComboSymbolsRange$2;
+var rsVarRange$1 = '\\ufe0e\\ufe0f';
+
+/** Used to compose unicode capture groups. */
+var rsZWJ$1 = '\\u200d';
+
+/** Used to detect strings with [zero-width joiners or code points from the astral planes](http://eev.ee/blog/2015/09/12/dark-corners-of-unicode/). */
+var reHasUnicode = RegExp('[' + rsZWJ$1 + rsAstralRange$1  + rsComboRange$2 + rsVarRange$1 + ']');
+
+/**
+ * Checks if `string` contains Unicode symbols.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {boolean} Returns `true` if a symbol is found, else `false`.
+ */
+function hasUnicode(string) {
+  return reHasUnicode.test(string);
+}
+
+var _hasUnicode = hasUnicode;
+
+/**
+ * Converts an ASCII `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+function asciiToArray(string) {
+  return string.split('');
+}
+
+var _asciiToArray = asciiToArray;
+
+/** Used to compose unicode character classes. */
+var rsAstralRange$2 = '\\ud800-\\udfff';
+var rsComboMarksRange$3 = '\\u0300-\\u036f';
+var reComboHalfMarksRange$3 = '\\ufe20-\\ufe2f';
+var rsComboSymbolsRange$3 = '\\u20d0-\\u20ff';
+var rsComboRange$3 = rsComboMarksRange$3 + reComboHalfMarksRange$3 + rsComboSymbolsRange$3;
+var rsVarRange$2 = '\\ufe0e\\ufe0f';
+
+/** Used to compose unicode capture groups. */
+var rsAstral = '[' + rsAstralRange$2 + ']';
+var rsCombo$2 = '[' + rsComboRange$3 + ']';
+var rsFitz$1 = '\\ud83c[\\udffb-\\udfff]';
+var rsModifier$1 = '(?:' + rsCombo$2 + '|' + rsFitz$1 + ')';
+var rsNonAstral$1 = '[^' + rsAstralRange$2 + ']';
+var rsRegional$1 = '(?:\\ud83c[\\udde6-\\uddff]){2}';
+var rsSurrPair$1 = '[\\ud800-\\udbff][\\udc00-\\udfff]';
+var rsZWJ$2 = '\\u200d';
+
+/** Used to compose unicode regexes. */
+var reOptMod$1 = rsModifier$1 + '?';
+var rsOptVar$1 = '[' + rsVarRange$2 + ']?';
+var rsOptJoin$1 = '(?:' + rsZWJ$2 + '(?:' + [rsNonAstral$1, rsRegional$1, rsSurrPair$1].join('|') + ')' + rsOptVar$1 + reOptMod$1 + ')*';
+var rsSeq$1 = rsOptVar$1 + reOptMod$1 + rsOptJoin$1;
+var rsSymbol = '(?:' + [rsNonAstral$1 + rsCombo$2 + '?', rsCombo$2, rsRegional$1, rsSurrPair$1, rsAstral].join('|') + ')';
+
+/** Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode). */
+var reUnicode = RegExp(rsFitz$1 + '(?=' + rsFitz$1 + ')|' + rsSymbol + rsSeq$1, 'g');
+
+/**
+ * Converts a Unicode `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+function unicodeToArray(string) {
+  return string.match(reUnicode) || [];
+}
+
+var _unicodeToArray = unicodeToArray;
+
+function stringToArray(string) {
+  return _hasUnicode(string)
+    ? _unicodeToArray(string)
+    : _asciiToArray(string);
+}
+
+var _stringToArray = stringToArray;
+
+function createCaseFirst(methodName) {
+  return function(string) {
+    string = toString_1(string);
+
+    var strSymbols = _hasUnicode(string)
+      ? _stringToArray(string)
+      : undefined;
+
+    var chr = strSymbols
+      ? strSymbols[0]
+      : string.charAt(0);
+
+    var trailing = strSymbols
+      ? _castSlice(strSymbols, 1).join('')
+      : string.slice(1);
+
+    return chr[methodName]() + trailing;
+  };
+}
+
+var _createCaseFirst = createCaseFirst;
+
+var upperFirst = _createCaseFirst('toUpperCase');
+
+var upperFirst_1 = upperFirst;
+
+var startCase = _createCompounder(function(result, word, index) {
+  return result + (index ? ' ' : '') + upperFirst_1(word);
+});
+
+var startCase_1 = startCase;
+
 class ValidationSidebarOutput extends Component {
     constructor() {
         super(...arguments);
@@ -21020,16 +21519,18 @@ class ValidationSidebarOutput extends Component {
             isOpen: false
         };
         this.toggleOpen = () => {
-            if (!this.state.isOpen) {
-                this.props.selectValidation(this.props.output.id);
-                const decorationElement = document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${this.props.output.id}"]`);
-                if (decorationElement) {
-                    decorationElement.scrollIntoView({
-                        behavior: "smooth"
-                    });
-                }
-            }
             this.setState({ isOpen: !this.state.isOpen });
+        };
+        this.scrollToRange = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.props.selectValidation(this.props.output.id);
+            const decorationElement = document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${this.props.output.id}"]`);
+            if (decorationElement) {
+                decorationElement.scrollIntoView({
+                    behavior: "smooth"
+                });
+            }
         };
         this.handleMouseOver = () => {
             this.props.indicateHover(this.props.output.id);
@@ -21045,22 +21546,20 @@ class ValidationSidebarOutput extends Component {
                 : ""}`, onMouseOver: this.handleMouseOver, onMouseLeave: this.handleMouseLeave },
             h("div", { className: "ValidationSidebarOutput__header", onClick: this.toggleOpen },
                 h("div", { className: "ValidationSidebarOutput__header-label" },
-                    output.type,
-                    h("span", { className: "ValidationSidebarOutput__header-range" },
+                    startCase_1(output.type),
+                    h("span", { className: "ValidationSidebarOutput__header-range", onClick: this.scrollToRange },
                         output.from,
                         "-",
                         output.to)),
                 h("div", { className: "ValidationSidebarOutput__header-toggle-status" }, this.state.isOpen ? "-" : "+")),
             this.state.isOpen && (h("div", { className: "ValidationSidebarOutput__content" },
                 h("div", { className: "ValidationSidebarOutput__annotation" }, output.annotation),
-                output.suggestions && (h("div", { className: "ValidationSidebarOutput__suggestion-list" },
-                    h("div", { className: "ValidationSidebarOutput__suggestion-list-title" }, "Suggestions"),
-                    output.suggestions.map((suggestion, suggestionIndex) => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestions([
-                            {
-                                validationId: output.id,
-                                suggestionIndex
-                            }
-                        ]) }, suggestion)))))))));
+                output.suggestions && (h("div", { className: "ValidationSidebarOutput__suggestion-list" }, output.suggestions.map((suggestion, suggestionIndex) => (h("div", { class: "ValidationWidget__suggestion", onClick: () => applySuggestions([
+                        {
+                            validationId: output.id,
+                            suggestionIndex
+                        }
+                    ]) }, suggestion)))))))));
     }
 }
 

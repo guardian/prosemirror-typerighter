@@ -1,6 +1,7 @@
 :root {
   --validation-color: #3dcde6;
   --validation-color-hover: #3dcde624;
+  --validation-gray: #a0a0a0;
 }
 
 .ValidationWidget {
@@ -11,20 +12,18 @@
   font-style: normal;
   font-weight: normal;
   background-color: white;
-  padding: 3px;
-  box-shadow: 3px 3px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: #4e56643b 0px 0px 1px 0px,
+    #3f48573a 0px 2px 7px 0px;
   border-radius: 3px;
-  border-bottom: 2px solid var(--validation-color);
   width: 200px;
   transition: opacity 0.1s, transform 0.1s;
   transform: translate3d(0, -3px, 0);
   z-index: 1;
+  overflow: hidden;
 }
 
 .ValidationWidget__container {
-  display: inline-block;
   position: relative;
-  top: -10px;
 }
 
 .ValidationWidget__container--is-hovering .ValidationWidget {
@@ -32,8 +31,23 @@
   transform: translate3d(0, 0, 0);
 }
 
+.ValidationWidget__type {
+  color: var(--validation-gray);
+  font-variant: small-caps;
+  letter-spacing: 0.3px;
+}
+
+.ValidationWidget__annotation,
+.ValidationWidget__suggestion,
+.ValidationWidget__type {
+  padding: var(--gutter-width);
+}
+
+.ValidationWidget__annotation {
+  padding-top: 0;
+}
+
 .ValidationWidget__label {
-  font-size: 0.7em;
   display: block;
   margin-bottom: 2px;
   transition: background-color 0.1s;
@@ -46,12 +60,16 @@
 
 .ValidationWidget__suggestion {
   display: block;
-  padding: 1px 3px;
+  padding: var(--gutter-width);
   cursor: pointer;
+  color: var(--validation-color);
+  font-weight: 700;
+  font-size: 16px;
 }
 
 .ValidationWidget__suggestion:hover {
-  background-color: #f2f2f2;
+  background-color: var(--validation-color);
+  color: white;
 }
 .ValidationWidget__suggestion + .ValidationWidget__suggestion {
   margin-top: 3px;

@@ -9,23 +9,21 @@ import {
   VALIDATION_PLUGIN_ACTION,
   validationPluginReducer,
   validationRequestError,
-  validationRequestPending,
   validationRequestStart,
   validationRequestSuccess,
   selectValidation,
-  IStateHoverInfo
+  IStateHoverInfo,
+  applyNewDirtiedRanges
 } from "./state";
 import {
-  createDebugDecorationFromRange,
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
-  DECORATION_ATTRIBUTE_ID,
-  removeDecorationsFromRanges
+  DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { DecorationSet, EditorView } from "prosemirror-view";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
 import {
   expandRangesToParentBlockNode,
-  getMergedDirtiedRanges
+  mapAndMergeRanges
 } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
@@ -224,6 +222,9 @@ const createValidatorPlugin = (options: IPluginOptions) => {
       state: EditorState,
       dispatch?: (tr: Transaction) => void
     ) => {
+      // @todo - there's a lot of transaction logic here, but it
+      // doesn't necessarily apply to the plugin state. Does it belong
+      // in the reducer, or is it best placed here?
       const pluginState = plugin.getState(state);
       const outputsAndSuggestions = suggestionOpts
         .reduce(
@@ -257,6 +258,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
           }
           tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
         });
+        tr.setMeta(
+          VALIDATION_PLUGIN_ACTION,
+          newHoverIdReceived(undefined, undefined)
+        );
         dispatch(tr);
       }
 
@@ -306,47 +311,25 @@ const createValidatorPlugin = (options: IPluginOptions) => {
         };
       },
       apply(tr: Transaction, state: IPluginState): IPluginState {
+        // There are certain things we need to do every time a transaction
+        // is dispatched, and the logic for that doesn't belong in the reducer.
+        const newState = {
+          ...state,
+          // Map our decorations and dirtied ranges through the new transaction.
+          decorations: state.decorations.map(tr.mapping, tr.doc),
+          dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges),
+          // Keep the transaction history up to date ... to a point! If we get a
+          // validation result older than this history, we can discard it and ask
+          // for another.
+          trHistory:
+            state.trHistory.length > 25
+              ? state.trHistory.slice(1).concat(tr)
+              : state.trHistory.concat(tr)
+        };
+
         // Apply our reducer.
         const action: Action | undefined = tr.getMeta(VALIDATION_PLUGIN_ACTION);
-        const { decorations, dirtiedRanges, trHistory, ...rest } = action
-          ? validationPluginReducer(tr, state, action)
-          : state;
-
-        // Map our dirtied ranges through the current transaction, and append
-        // any new ranges it has dirtied.
-        let newDecorations = decorations.map(tr.mapping, tr.doc);
-        let newTrHistory = trHistory;
-        const newDirtiedRanges = getMergedDirtiedRanges(tr, dirtiedRanges);
-        const currentDirtiedRanges = getReplaceStepRangesFromTransaction(tr);
-        newDecorations = newDecorations.add(
-          tr.doc,
-          currentDirtiedRanges.map(range =>
-            createDebugDecorationFromRange(range)
-          )
-        );
-
-        if (currentDirtiedRanges.length) {
-          // Remove any validations touched by the dirtied ranges from the doc
-          newDecorations = removeDecorationsFromRanges(
-            newDecorations,
-            newDirtiedRanges
-          );
-        }
-
-        // Keep the transaction history up to date ... to a point! If we get a
-        // validation result older than this history, we can discard it and ask
-        // for another.
-        newTrHistory =
-          newTrHistory.length > 25
-            ? newTrHistory.slice(1).concat(tr)
-            : newTrHistory.concat(tr);
-
-        return {
-          ...rest,
-          decorations: newDecorations,
-          dirtiedRanges: newDirtiedRanges,
-          trHistory: newTrHistory
-        };
+        return validationPluginReducer(tr, newState, action);
       }
     },
 
@@ -357,16 +340,23 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     appendTransaction(trs: Transaction[], oldState, newState) {
       const oldPluginState: IPluginState = plugin.getState(oldState);
       const newPluginState: IPluginState = plugin.getState(newState);
-      if (
-        newPluginState.dirtiedRanges.length &&
-        !newPluginState.validationPending
-      ) {
-        // Issue a delayed request to the validation service, and mark the
-        // state as pending validation.
-        scheduleValidation();
-        return newState.tr.setMeta(
+      const tr = newState.tr;
+
+      // Check for dirted ranges and update the state accordingly.
+      const newDirtiedRanges = trs.reduce(
+        (acc, _) => acc.concat(getReplaceStepRangesFromTransaction(_)),
+        [] as IRange[]
+      );
+      if (newDirtiedRanges.length) {
+        // If we haven't yet scheduled a validation request, issue a delayed
+        // request to the validation service, and mark the state as pending
+        // validation.
+        if (!newPluginState.validationPending) {
+          scheduleValidation();
+        }
+        return tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
-          validationRequestPending(newPluginState.dirtiedRanges)
+          applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
 

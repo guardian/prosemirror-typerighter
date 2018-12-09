@@ -13,10 +13,8 @@ import {
   DECORATION_INFLIGHT,
   getNewDecorationsForCurrentValidations as createNewDecorationsForCurrentValidations,
   removeDecorationsFromRanges,
-  createDecorationsForValidationRanges,
   createDecorationForValidationRange,
-  DECORATION_VALIDATION,
-  DECORATION_VALIDATION_HEIGHT_MARKER
+  DECORATION_VALIDATION
 } from "./utils/decoration";
 import {
   mapRangeThroughTransactions,
@@ -102,24 +100,16 @@ const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
  * Action types.
  */
 
-const VALIDATION_REQUEST_PENDING = "VALIDATION_REQUEST_PENDING";
 const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
 const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
+const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 
 /**
  * Action creators.
  */
-
-export const validationRequestPending = (ranges: IRange[]) => ({
-  type: VALIDATION_REQUEST_PENDING as typeof VALIDATION_REQUEST_PENDING,
-  payload: { ranges }
-});
-type ActionValidationRequestPending = ReturnType<
-  typeof validationRequestPending
->;
 
 export const validationRequestStart = (ranges: IRange[]) => ({
   type: VALIDATION_REQUEST_START as typeof VALIDATION_REQUEST_START,
@@ -149,6 +139,12 @@ export const newHoverIdReceived = (
   payload: { hoverId, hoverInfo }
 });
 
+export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
+  type: HANDLE_NEW_DIRTY_RANGES as typeof HANDLE_NEW_DIRTY_RANGES,
+  payload: { ranges }
+});
+type ActionHandleNewDirtyRanges = ReturnType<typeof applyNewDirtiedRanges>;
+
 export const selectValidation = (validationId: string) => ({
   type: SELECT_VALIDATION as typeof SELECT_VALIDATION,
   payload: { validationId }
@@ -161,9 +157,9 @@ type Action =
   | ActionNewHoverIdReceived
   | ActionValidationResponseReceived
   | ActionValidationRequestStart
-  | ActionValidationRequestPending
   | ActionValidationRequestError
-  | ActionSelectValidation;
+  | ActionSelectValidation
+  | ActionHandleNewDirtyRanges;
 
 /**
  * Selectors.
@@ -182,13 +178,14 @@ export const selectValidationById = (
 const validationPluginReducer = (
   tr: Transaction,
   state: IPluginState,
-  action: Action
+  action?: Action
 ): IPluginState => {
+  if (!action) {
+    return state;
+  }
   switch (action.type) {
     case NEW_HOVER_ID:
       return handleNewHoverId(tr, state, action);
-    case VALIDATION_REQUEST_PENDING:
-      return handleValidationRequestPending(tr, state, action);
     case VALIDATION_REQUEST_START:
       return handleValidationRequestStart(tr, state, action);
     case VALIDATION_REQUEST_SUCCESS:
@@ -197,6 +194,8 @@ const validationPluginReducer = (
       return handleValidationRequestError(tr, state, action);
     case SELECT_VALIDATION:
       return handleSelectValidation(tr, state, action);
+    case HANDLE_NEW_DIRTY_RANGES:
+      return handleNewDirtyRanges(tr, state, action);
     default:
       return state;
   }
@@ -243,9 +242,7 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
         undefined,
         undefined,
         spec =>
-          spec.id === currentHoverId &&
-          (spec.type === DECORATION_VALIDATION ||
-            spec.type === DECORATION_VALIDATION_HEIGHT_MARKER)
+          spec.id === currentHoverId && spec.type === DECORATION_VALIDATION
       )
     : [];
   decorations = decorations.remove(decorationsToRemove);
@@ -258,7 +255,11 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
     if (incomingValidationOutput) {
       decorations = decorations.add(
         tr.doc,
-        createDecorationForValidationRange(incomingValidationOutput, isHovering)
+        createDecorationForValidationRange(
+          incomingValidationOutput,
+          isHovering,
+          false
+        )
       );
     }
   }
@@ -267,7 +268,11 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
     if (currentValidationOutput) {
       decorations = decorations.add(
         tr.doc,
-        createDecorationForValidationRange(currentValidationOutput, false)
+        createDecorationForValidationRange(
+          currentValidationOutput,
+          false,
+          false
+        )
       );
     }
   }
@@ -280,20 +285,26 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
   };
 };
 
-const handleValidationRequestPending: ActionHandler<
-  ActionValidationRequestPending
-> = (_, state, action) => {
-  // Remove any validation ranges that apply to the dirtied ranges.
-  const decorations = removeDecorationsFromRanges(
-    state.decorations,
-    action.payload.ranges,
-    [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]
+const handleNewDirtyRanges: ActionHandler<ActionHandleNewDirtyRanges> = (
+  tr,
+  state,
+  { payload: { ranges: dirtiedRanges } }
+) => {
+  // Map our dirtied ranges through the current transaction, and append
+  // any new ranges it has dirtied.
+  let newDecorations = state.decorations.add(
+    tr.doc,
+    dirtiedRanges.map(range => createDebugDecorationFromRange(range))
   );
+
+  // Remove any validations touched by the dirtied ranges from the doc
+  newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
 
   return {
     ...state,
-    decorations,
-    validationPending: true
+    validationPending: true,
+    decorations: newDecorations,
+    dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges)
   };
 };
 
@@ -413,7 +424,6 @@ const handleValidationRequestError: ActionHandler<
 
 export {
   VALIDATION_PLUGIN_ACTION,
-  VALIDATION_REQUEST_PENDING,
   VALIDATION_REQUEST_START,
   VALIDATION_REQUEST_SUCCESS,
   VALIDATION_REQUEST_ERROR,
