@@ -19745,9 +19745,9 @@ const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
 const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
-const validationRequestStart = (ranges) => ({
+const validationRequestStart = (expandRanges) => ({
     type: VALIDATION_REQUEST_START,
-    payload: { ranges }
+    payload: { expandRanges }
 });
 const validationRequestSuccess = (response) => ({
     type: VALIDATION_REQUEST_SUCCESS,
@@ -19822,13 +19822,16 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
     newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
     return Object.assign({}, state, { validationPending: true, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
 };
-const handleValidationRequestStart = (tr, state, action) => {
-    const validationInputs = action.payload.ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
-    const decorations = removeDecorationsFromRanges(state.decorations, action.payload.ranges, [DECORATION_DIRTY]).add(tr.doc, action.payload.ranges.map(range => createDebugDecorationFromRange(range, false)));
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: {
+const handleValidationRequestStart = (tr, state, { payload: { expandRanges } }) => {
+    const ranges = expandRanges(state.dirtiedRanges, tr.doc);
+    const validationInputs = ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    const decorations = removeDecorationsFromRanges(state.decorations, ranges, [
+        DECORATION_DIRTY
+    ]).add(tr.doc, ranges.map(range => createDebugDecorationFromRange(range, false)));
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: ranges.length ? {
             validationInputs,
             id: tr.time
-        } });
+        } : undefined });
 };
 const handleValidationRequestSuccess = (tr, state, action) => {
     const response = action.payload.response;
@@ -19944,12 +19947,12 @@ const createValidatorPlugin = (options) => {
         if (pluginState.validationInFlight) {
             return scheduleValidation();
         }
-        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(expandRanges(pluginState.dirtiedRanges, localView.state.tr.doc))));
+        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(expandRanges)));
     };
     const scheduleValidation = () => setTimeout(requestValidation, plugin.getState(localView.state).currentThrottle);
     const commands = {
         validateDocument: (state, dispatch) => {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart([])));
+            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(expandRanges)));
             return true;
         },
         indicateHover: (id, hoverInfo) => (state, dispatch) => {
@@ -20028,7 +20031,8 @@ const createValidatorPlugin = (options) => {
                         ? state.trHistory.slice(1).concat(tr)
                         : state.trHistory.concat(tr) });
                 const action = tr.getMeta(VALIDATION_PLUGIN_ACTION);
-                return validationPluginReducer(tr, newState, action);
+                const reducedState = validationPluginReducer(tr, newState, action);
+                return reducedState;
             }
         },
         appendTransaction(trs, oldState, newState) {
