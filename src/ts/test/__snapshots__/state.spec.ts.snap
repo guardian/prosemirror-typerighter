@@ -13,6 +13,7 @@ Object {
       "type": "EXAMPLE_TYPE",
     },
   ],
+  "debug": false,
   "decorations": DecorationSet {
     "children": Array [
       0,
@@ -28,8 +29,7 @@ Object {
               "spec": Object {
                 "type": "DECORATION_VALIDATION_HEIGHT_MARKER",
               },
-              "widget": <span
-                class="ProseMirror-widget"
+              "toDOM": <span
                 data-height-marker-id="id"
               />,
             },
@@ -56,10 +56,10 @@ Object {
   "dirtiedRanges": Array [],
   "error": undefined,
   "hoverId": undefined,
-  "hoverRect": undefined,
+  "hoverInfo": undefined,
   "initialThrottle": 100,
-  "lastValidationTime": 0,
   "maxThrottle": 1000,
+  "selectedValidation": undefined,
   "trHistory": Array [
     Transaction {
       "curSelection": undefined,

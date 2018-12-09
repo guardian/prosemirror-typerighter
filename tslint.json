@@ -3,10 +3,9 @@
     "extends": [
         "tslint:recommended", "tslint-config-prettier"
     ],
-    "jsRules": {},
     "rules": {
         "max-classes-per-file": false,
-        "object-literal-sort-keys": false
-    },
-    "rulesDirectory": []
+        "object-literal-sort-keys": false,
+        "ordered-imports": false
+    }
 }

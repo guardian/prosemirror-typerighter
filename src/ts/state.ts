@@ -11,8 +11,12 @@ import {
   createDebugDecorationFromRange,
   DECORATION_DIRTY,
   DECORATION_INFLIGHT,
-  getNewDecorationsForCurrentValidations,
-  removeValidationDecorationsFromRanges
+  getNewDecorationsForCurrentValidations as createNewDecorationsForCurrentValidations,
+  removeDecorationsFromRanges,
+  createDecorationsForValidationRanges,
+  createDecorationForValidationRange,
+  DECORATION_VALIDATION,
+  DECORATION_VALIDATION_HEIGHT_MARKER
 } from "./utils/decoration";
 import {
   mapRangeThroughTransactions,
@@ -65,6 +69,8 @@ export interface IPluginState {
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last validation pass.
   dirtiedRanges: IRange[];
+  // The currently selected validation;
+  selectedValidation: string | undefined;
   // The id of the validation the user is currently hovering over.
   hoverId: string | undefined;
   // See StateHoverInfo.
@@ -101,13 +107,15 @@ const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
 const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
+const SELECT_VALIDATION = "SELECT_VALIDATION";
 
 /**
  * Action creators.
  */
 
-export const validationRequestPending = () => ({
-  type: VALIDATION_REQUEST_PENDING as typeof VALIDATION_REQUEST_PENDING
+export const validationRequestPending = (ranges: IRange[]) => ({
+  type: VALIDATION_REQUEST_PENDING as typeof VALIDATION_REQUEST_PENDING,
+  payload: { ranges }
 });
 type ActionValidationRequestPending = ReturnType<
   typeof validationRequestPending
@@ -135,11 +143,17 @@ type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
 
 export const newHoverIdReceived = (
   hoverId: string | undefined,
-  hoverInfo: IStateHoverInfo | undefined
+  hoverInfo?: IStateHoverInfo | undefined
 ) => ({
   type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
   payload: { hoverId, hoverInfo }
 });
+
+export const selectValidation = (validationId: string) => ({
+  type: SELECT_VALIDATION as typeof SELECT_VALIDATION,
+  payload: { validationId }
+});
+type ActionSelectValidation = ReturnType<typeof selectValidation>;
 
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
@@ -148,7 +162,8 @@ type Action =
   | ActionValidationResponseReceived
   | ActionValidationRequestStart
   | ActionValidationRequestPending
-  | ActionValidationRequestError;
+  | ActionValidationRequestError
+  | ActionSelectValidation;
 
 /**
  * Selectors.
@@ -180,6 +195,8 @@ const validationPluginReducer = (
       return handleValidationRequestSuccess(tr, state, action);
     case VALIDATION_REQUEST_ERROR:
       return handleValidationRequestError(tr, state, action);
+    case SELECT_VALIDATION:
+      return handleSelectValidation(tr, state, action);
     default:
       return state;
   }
@@ -196,15 +213,68 @@ type ActionHandler<ActionType> = (
 ) => IPluginState;
 
 /**
- * Handle the receipt of a new hover id.
+ * Handle the selection of a hover id.
  */
-const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
+const handleSelectValidation: ActionHandler<ActionSelectValidation> = (
   _,
   state,
   action
 ): IPluginState => {
   return {
     ...state,
+    selectedValidation: action.payload.validationId
+  };
+};
+
+/**
+ * Handle the receipt of a new hover id.
+ */
+const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
+  tr,
+  state,
+  action
+): IPluginState => {
+  let decorations = state.decorations;
+  const incomingHoverId = action.payload.hoverId;
+  const currentHoverId = state.hoverId;
+  const isHovering = !!action.payload.hoverId;
+  const decorationsToRemove = currentHoverId
+    ? state.decorations.find(
+        undefined,
+        undefined,
+        spec =>
+          spec.id === currentHoverId &&
+          (spec.type === DECORATION_VALIDATION ||
+            spec.type === DECORATION_VALIDATION_HEIGHT_MARKER)
+      )
+    : [];
+  decorations = decorations.remove(decorationsToRemove);
+  // @todo - crikey this is verbose!
+  if (incomingHoverId) {
+    const incomingValidationOutput = selectValidationById(
+      state,
+      incomingHoverId
+    );
+    if (incomingValidationOutput) {
+      decorations = decorations.add(
+        tr.doc,
+        createDecorationForValidationRange(incomingValidationOutput, isHovering)
+      );
+    }
+  }
+  if (currentHoverId) {
+    const currentValidationOutput = selectValidationById(state, currentHoverId);
+    if (currentValidationOutput) {
+      decorations = decorations.add(
+        tr.doc,
+        createDecorationForValidationRange(currentValidationOutput, false)
+      );
+    }
+  }
+
+  return {
+    ...state,
+    decorations,
     hoverId: action.payload.hoverId,
     hoverInfo: action.payload.hoverInfo
   };
@@ -212,9 +282,17 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
 
 const handleValidationRequestPending: ActionHandler<
   ActionValidationRequestPending
-> = (_, state) => {
+> = (_, state, action) => {
+  // Remove any validation ranges that apply to the dirtied ranges.
+  const decorations = removeDecorationsFromRanges(
+    state.decorations,
+    action.payload.ranges,
+    [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]
+  );
+
   return {
     ...state,
+    decorations,
     validationPending: true
   };
 };
@@ -232,16 +310,17 @@ const handleValidationRequestStart: ActionHandler<
     })
   );
   // Remove any debug decorations, if they exist.
-  const decorations = removeValidationDecorationsFromRanges(
+  const decorations = removeDecorationsFromRanges(
     state.decorations,
     action.payload.ranges,
-    DECORATION_DIRTY
+    [DECORATION_DIRTY]
   ).add(
     tr.doc,
     action.payload.ranges.map(range =>
       createDebugDecorationFromRange(range, false)
     )
   );
+
   return {
     ...state,
     decorations,
@@ -269,7 +348,7 @@ const handleValidationRequestSuccess: ActionHandler<
       state.currentValidations,
       state.trHistory
     );
-    const decorations = getNewDecorationsForCurrentValidations(
+    const decorations = createNewDecorationsForCurrentValidations(
       currentValidations,
       state.decorations,
       tr.doc

@@ -1,8 +1,3 @@
-/**
- * @module createValidationPlugin
- */
-
-import defaultView from "./view";
 import ValidationService, {
   ValidationEvents
 } from "./services/ValidationAPIService";
@@ -16,13 +11,15 @@ import {
   validationRequestError,
   validationRequestPending,
   validationRequestStart,
-  validationRequestSuccess
+  validationRequestSuccess,
+  selectValidation,
+  IStateHoverInfo
 } from "./state";
 import {
   createDebugDecorationFromRange,
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
   DECORATION_ATTRIBUTE_ID,
-  removeValidationDecorationsFromRanges
+  removeDecorationsFromRanges
 } from "./utils/decoration";
 import { DecorationSet, EditorView } from "prosemirror-view";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
@@ -35,10 +32,16 @@ import { getStateHoverInfoFromEvent } from "./utils/dom";
 import {
   IRange,
   IValidationError,
-  IValidationResponse
+  IValidationResponse,
+  IValidationOutput
 } from "./interfaces/IValidation";
 import { IValidationAPIAdapter } from "./interfaces/IValidationAPIAdapter";
 import { Node, Schema } from "prosemirror-model";
+import Store from "./store";
+
+/**
+ * @module createValidationPlugin
+ */
 
 export type ViewHandler = (
   plugin: Plugin,
@@ -52,12 +55,16 @@ export type ViewHandler = (
   destroy?: (() => void) | null;
 });
 
+export type ApplySuggestionOptions = Array<{
+  validationId: string;
+  suggestionIndex: number;
+}>;
+
 /**
  * Applies a suggestion from a validation to the document.
  */
-type ApplySuggestionCommand = (
-  validationId: string,
-  suggestionIndex: number
+type ApplySuggestionsCommand = (
+  suggestionOpts: ApplySuggestionOptions
 ) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
 
 /**
@@ -69,11 +76,30 @@ type ValidateDocumentCommand = (
 ) => boolean;
 
 /**
+ * Mark a given validation as active.
+ */
+type SelectValidationCommand = (
+  validationId: string
+) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
+
+/**
+ * Indicate new hover information is available. This could include
+ * details on hover coords if available (for example, if hovering
+ * over a validation decoration) to allow the positioning of e.g. tooltips.
+ */
+type IndicateHoverCommand = (
+  validationId: string | undefined,
+  hoverInfo?: IStateHoverInfo | undefined
+) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
+
+/**
  * The commands available to the plugin consumer.
  */
 export interface ICommands {
-  applySuggestion: ApplySuggestionCommand;
+  applySuggestions: ApplySuggestionsCommand;
   validateDocument: ValidateDocumentCommand;
+  selectValidation: SelectValidationCommand;
+  indicateHover: IndicateHoverCommand;
 }
 
 interface IPluginOptions {
@@ -81,13 +107,6 @@ interface IPluginOptions {
    * The adapter the plugin uses to asynchonously request validations.
    */
   adapter: IValidationAPIAdapter;
-
-  /**
-   * The view handler responsible for rendering any UI beyond the inline
-   * decorations applied by the plugin. The default implementation shows
-   * additional validation information on hover.
-   */
-  createViewHandler?: ViewHandler;
 
   /**
    * A function that receives ranges that have been dirtied since the
@@ -119,12 +138,14 @@ interface IPluginOptions {
 const createValidatorPlugin = (options: IPluginOptions) => {
   const {
     adapter,
-    createViewHandler = defaultView as ViewHandler,
     expandRanges = expandRangesToParentBlockNode,
     throttleInMs = 2000,
     maxThrottle = 8000
   } = options;
   let localView: EditorView;
+
+  // Set up our store, which we'll use to notify consumer code of state updates.
+  const store = new Store();
 
   // Set up our validation methods, which run outside of the plugin state lifecycle.
   const validationService = new ValidationService(adapter);
@@ -170,29 +191,75 @@ const createValidatorPlugin = (options: IPluginOptions) => {
       return true;
     },
 
-    applySuggestion: (validationId: string, suggestionIndex: number) => (
+    indicateHover: (id, hoverInfo) => (state, dispatch) => {
+      if (dispatch) {
+        dispatch(
+          state.tr.setMeta(
+            VALIDATION_PLUGIN_ACTION,
+            newHoverIdReceived(id, hoverInfo)
+          )
+        );
+      }
+      return true;
+    },
+
+    selectValidation: validationId => (state, dispatch) => {
+      const pluginState = plugin.getState(state);
+      const output = selectValidationById(pluginState, validationId);
+      if (!output) {
+        return false;
+      }
+      if (dispatch) {
+        dispatch(
+          state.tr.setMeta(
+            VALIDATION_PLUGIN_ACTION,
+            selectValidation(validationId)
+          )
+        );
+      }
+      return true;
+    },
+
+    applySuggestions: suggestionOpts => (
       state: EditorState,
       dispatch?: (tr: Transaction) => void
     ) => {
       const pluginState = plugin.getState(state);
-      const validationOutput = selectValidationById(pluginState, validationId);
-      if (!validationOutput) {
+      const outputsAndSuggestions = suggestionOpts
+        .reduce(
+          (acc, _) => {
+            const output = selectValidationById(pluginState, _.validationId);
+            if (!output) {
+              return acc;
+            }
+            return acc.concat({
+              output,
+              suggestionIndex: _.suggestionIndex
+            });
+          },
+          [] as Array<{
+            output: IValidationOutput;
+            suggestionIndex: number;
+          }>
+        )
+        .filter(_ => !!_);
+      if (!outputsAndSuggestions.length) {
         return false;
       }
-      const suggestion =
-        validationOutput.suggestions &&
-        validationOutput.suggestions[suggestionIndex];
-      if (!suggestion) {
-        return false;
+
+      if (dispatch) {
+        const tr = state.tr;
+        outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
+          const suggestion =
+            output.suggestions && output.suggestions[suggestionIndex];
+          if (!suggestion) {
+            return false;
+          }
+          tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
+        });
+        dispatch(tr);
       }
-      dispatch &&
-        dispatch(
-          state.tr.replaceWith(
-            validationOutput.from,
-            validationOutput.to,
-            state.schema.text(suggestion)
-          )
-        );
+
       return true;
     }
   };
@@ -229,6 +296,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
           decorations: DecorationSet.create(doc, []),
           dirtiedRanges: [],
           currentValidations: [],
+          selectedValidation: undefined,
           hoverId: undefined,
           hoverInfo: undefined,
           trHistory: [],
@@ -259,7 +327,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
 
         if (currentDirtiedRanges.length) {
           // Remove any validations touched by the dirtied ranges from the doc
-          newDecorations = removeValidationDecorationsFromRanges(
+          newDecorations = removeDecorationsFromRanges(
             newDecorations,
             newDirtiedRanges
           );
@@ -298,7 +366,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
         scheduleValidation();
         return newState.tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
-          validationRequestPending()
+          validationRequestPending(newPluginState.dirtiedRanges)
         );
       }
 
@@ -338,34 +406,35 @@ const createValidatorPlugin = (options: IPluginOptions) => {
             newValidationId &&
             (!heightMarker || !(heightMarker instanceof HTMLElement))
           ) {
+            // tslint:disable-next-line no-console
             console.warn(
               `No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`
             );
             return false;
           }
-          view.dispatch(
-            view.state.tr.setMeta(
-              VALIDATION_PLUGIN_ACTION,
-              newHoverIdReceived(
-                newValidationId,
-                getStateHoverInfoFromEvent(event, localView.dom, heightMarker)
-              )
-            )
-          );
+
+          commands.indicateHover(
+            newValidationId,
+            getStateHoverInfoFromEvent(event, view.dom, heightMarker)
+          )(view.state, view.dispatch);
+
           return false;
         }
       }
     },
     view(view) {
       localView = view;
-      const viewHandler = createViewHandler(plugin, commands);
-      return viewHandler(view);
+      return {
+        // Update our store with the new state, which can then notify its subscribers.
+        update: _ => store.notify(plugin.getState(_.state))
+      };
     }
   });
 
   return {
     plugin,
-    commands
+    commands,
+    store
   };
 };
 

@@ -1,24 +1,25 @@
-import { h, Component } from "preact";
+import { Component, h } from 'preact';
+import { ApplySuggestionOptions } from '..';
 
-export interface DecorationComponentProps {
+export interface IDecorationComponentProps {
+  id: string;
   type: string;
   from: number;
   to: number;
   annotation: string;
   suggestions?: string[];
-  applySuggestion?: (suggestion: string, from: number, to: number) => void;
+  applySuggestions?: (opts: ApplySuggestionOptions) => void;
 }
 
-class Decoration extends Component<DecorationComponentProps> {
+class ValidationOutput extends Component<IDecorationComponentProps> {
   public ref: HTMLDivElement;
-  render({
+  public render({
+    id,
     type,
-    from,
-    to,
     annotation,
     suggestions,
-    applySuggestion
-  }: DecorationComponentProps) {
+    applySuggestions
+  }: IDecorationComponentProps) {
     return (
       <div className="ValidationWidget__container">
         <div className="ValidationWidget" ref={_ => this.ref = _}>
@@ -26,13 +27,16 @@ class Decoration extends Component<DecorationComponentProps> {
           {annotation}
           {suggestions &&
             !!suggestions.length &&
-            applySuggestion && (
+            applySuggestions && (
               <div className="ValidationWidget__suggestion-list">
                 <div className="ValidationWidget__label">Suggestions</div>
-                {suggestions.map(suggestion => (
+                {suggestions.map((suggestion, suggestionIndex) => (
                   <div
                     class="ValidationWidget__suggestion"
-                    onClick={() => applySuggestion(suggestion, from, to)}
+                    onClick={() => applySuggestions([{
+                      validationId: id,
+                      suggestionIndex
+                    }])}
                   >
                     {suggestion}
                   </div>
@@ -45,4 +49,4 @@ class Decoration extends Component<DecorationComponentProps> {
   }
 }
 
-export default Decoration;
+export default ValidationOutput;

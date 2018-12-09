@@ -1,31 +1,33 @@
-import IHoverEvent from "./interfaces/IHoverEvent";
-import ValidationOverlay from "./components/ValidationOverlay";
-import { ICommands } from ".";
 import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
-import { IPluginState } from "./state";
-import { Plugin } from "prosemirror-state";
-import { Schema } from "prosemirror-model";
-import { selectValidationById } from "./state";
+import { ICommands, ApplySuggestionOptions } from ".";
+import ValidationOverlay from "./components/ValidationOverlay";
+import Store from "./store";
+import ValidationSidebar from "./components/ValidationSidebar";
 
 /**
- * Accepts a plugin schema and creates a view function.
+ * Scaffolding for an example view.
  */
-const createView = (plugin: Plugin, commands: ICommands) => (view: EditorView) => {
-  const notificationSubscribers: Array<(hoverEvent: IHoverEvent) => void> = [];
-  const subscribe = (callback: (hoverEvent: IHoverEvent) => void) => {
-    notificationSubscribers.push(callback);
-    return () => {
-      notificationSubscribers.splice(
-        notificationSubscribers.indexOf(callback),
-        1
-      );
-    };
-  };
-
+const createView = (
+  view: EditorView,
+  store: Store,
+  commands: ICommands,
+  sidebarNode: Element
+) => {
   // Create our overlay node, which is responsible for displaying
   // validation messages when the user hovers over highlighted ranges.
   const overlayNode = document.createElement("div");
+
+  // Bind our commands function to simplify our component interface
+  const applySuggestions = (suggestionOpts: ApplySuggestionOptions) =>
+    commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
+
+  const selectValidation = (id: string) =>
+    commands.selectValidation(id)(view.state, view.dispatch);
+
+  const indicateHover = (id: string) =>
+    commands.indicateHover(id)(view.state, view.dispatch);
+
 
   // We wrap this in a container to allow the overlay to be positioned
   // relative to the editable document.
@@ -35,37 +37,20 @@ const createView = (plugin: Plugin, commands: ICommands) => (view: EditorView) =
   wrapperNode.appendChild(view.dom);
   view.dom.insertAdjacentElement("afterend", overlayNode);
   render(
-    <ValidationOverlay
-      subscribe={subscribe}
-      applySuggestion={(validationId: string, suggestionIndex: number) =>
-        commands.applySuggestion(validationId, suggestionIndex)(
-          view.state,
-          view.dispatch
-        )
-      }
-    />,
+    <ValidationOverlay store={store} applySuggestions={applySuggestions} />,
     overlayNode
   );
 
-  // Create a function that will notify subscribers on state change.
-  const notify = (state: IPluginState) =>
-    notificationSubscribers.forEach(sub => {
-      if (state.hoverId) {
-        const validationOutput = selectValidationById(state, state.hoverId);
-        return sub({
-          hoverInfo: state.hoverInfo,
-          validationOutput
-        });
-      }
-      sub({
-        hoverInfo: undefined,
-        validationOutput: undefined
-      });
-    });
-
-  return {
-    update: (view: EditorView<Schema>) => notify(plugin.getState(view.state))
-  };
+  // Create our sidebar.
+  render(
+    <ValidationSidebar
+      store={store}
+      applySuggestions={applySuggestions}
+      selectValidation={selectValidation}
+      indicateHover={indicateHover}
+    />,
+    sidebarNode
+  );
 };
 
 export default createView;

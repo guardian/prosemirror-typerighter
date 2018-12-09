@@ -8,13 +8,13 @@ export default [
   {
     input: "src/ts/index.ts",
     output: {
-      file: "dist/noting.js",
+      file: "dist/validation.js",
       format: "cjs"
     },
     plugins: [
       typescript(),
       scss({
-        output: "dist/noting.css"
+        output: "dist/validation.css"
       }),
       babel()
     ]

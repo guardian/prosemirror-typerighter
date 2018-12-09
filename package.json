@@ -16,7 +16,7 @@
     "watch": "rollup -c -w",
     "format": "prettier --write './src/**/*.js'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
-    "build:doc": "typedoc --options ./docs/typedoc.js ./src/ts/index.ts && mv ./docs/output/README.md ./README.md"
+    "build:doc": "typedoc --options ./docs/typedoc.js ./src/ts/index.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
@@ -48,7 +48,7 @@
     "rollup-plugin-typescript": "^1.0.0",
     "ts-jest": "^23.10.3",
     "tslib": "^1.9.3",
-    "tslint": "^5.11.0",
+    "tslint": "5.10",
     "tslint-config-prettier": "^1.17.0",
     "typedoc": "^0.13.0",
     "typedoc-plugin-external-module-name": "^1.1.3",

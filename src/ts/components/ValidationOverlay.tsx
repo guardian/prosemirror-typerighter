@@ -1,9 +1,10 @@
 import clamp from 'lodash/clamp';
-import Decoration from './Decoration';
-import IHoverEvent from '../interfaces/IHoverEvent';
+import ValidationOutput from './ValidationOutputContainer';
 import { Component, h } from 'preact';
-import { IStateHoverInfo } from '../state';
+import { IStateHoverInfo, selectValidationById, IPluginState } from '../state';
 import { IValidationOutput } from '../interfaces/IValidation';
+import Store from '../store';
+import { ApplySuggestionOptions } from '..';
 
 interface IState {
   left: number | undefined;
@@ -13,15 +14,14 @@ interface IState {
   isVisible: boolean;
 }
 interface IProps {
-  subscribe: (callback: (hoverEvent: IHoverEvent) => void) => () => void;
-  applySuggestion: (suggestion: string, from: number, to: number) => void;
+  store: Store;
+  applySuggestions: (opts: ApplySuggestionOptions) => void;
 }
 
 /**
  * An overlay to display validation tooltips. Subscribes to hover events.
  */
 class ValidationOverlay extends Component<IProps, IState> {
-  private decorationRef: Decoration;
   public state: IState = {
     isVisible: false,
     left: undefined,
@@ -29,9 +29,10 @@ class ValidationOverlay extends Component<IProps, IState> {
     hoverInfo: undefined,
     validationOutput: undefined
   };
+  private decorationRef: ValidationOutput;
 
   public componentWillMount() {
-    this.props.subscribe(this.handleValidationHoverEvent);
+    this.props.store.subscribe(this.handleNotify);
   }
 
   public componentDidUpdate() {
@@ -57,10 +58,10 @@ class ValidationOverlay extends Component<IProps, IState> {
           class="ValidationPlugin__decoration-container"
           style={{ top: top - 1, left }}
         >
-          <Decoration
+          <ValidationOutput
             ref={_ => (this.decorationRef = _)}
             {...validationOutput}
-            applySuggestion={this.props.applySuggestion}
+            applySuggestions={this.props.applySuggestions}
           />
         </div>
       </div>
@@ -69,19 +70,31 @@ class ValidationOverlay extends Component<IProps, IState> {
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleValidationHoverEvent = (hoverEvent: IHoverEvent) => {
-    this.setState({
-      ...this.state,
-      ...hoverEvent,
+  private handleNotify = (state: IPluginState) => {
+    const newState = {
       isVisible: false,
       left: 0,
       top: 0
+    }
+    if (state.hoverId && state.hoverInfo) {
+      const validationOutput = selectValidationById(state, state.hoverId);
+      return this.setState({
+        hoverInfo: state.hoverInfo,
+        validationOutput,
+        ...newState
+      });
+    }
+    this.setState({
+      hoverInfo: undefined,
+      validationOutput: undefined,
+      ...newState,
     });
   };
 
   private getCoordsFromHoverEvent = () => {
-    if (!this.decorationRef || !this.state.hoverInfo)
+    if (!this.decorationRef || !this.state.hoverInfo) {
       return { left: 0, top: 0 };
+    }
 
     // Get the ideal tooltip position.
     const { left: tooltipLeft, top: tooltipTop } = this.getTooltipCoords(

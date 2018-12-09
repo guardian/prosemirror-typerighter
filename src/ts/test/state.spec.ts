@@ -3,7 +3,7 @@ import { marks, nodes } from 'prosemirror-schema-basic';
 import { Transaction } from 'prosemirror-state';
 import { builders } from 'prosemirror-test-builder';
 import { DecorationSet } from 'prosemirror-view';
-import { IPluginState } from '../state';
+import { IPluginState, selectValidation } from '../state';
 import {
   newHoverIdReceived,
   selectValidationById,
@@ -42,6 +42,7 @@ const initialState: IPluginState = {
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
   currentValidations: [],
+  selectedValidation: undefined,
   hoverId: undefined,
   hoverInfo: undefined,
   trHistory: [initialTr],
@@ -237,6 +238,26 @@ describe("State management", () => {
         });
       });
     });
+    describe("selectValidation", () => {
+      it('should apply the selected validation id', () => {
+        const otherState = {
+          ...initialState,
+          currentValidations: [{
+            str: "example",
+            from: 1,
+            to: 1,
+            annotation: "example",
+            suggestions: [],
+            type: "example",
+            id: "exampleId"
+          }]
+        }
+        expect(validationPluginReducer(new Transaction(doc), otherState, selectValidation("exampleId"))).toEqual({
+          ...otherState,
+          selectedValidation: "exampleId"
+        })
+      });
+    })
   });
   describe("selectors", () => {
     describe("selectValidationById", () => {

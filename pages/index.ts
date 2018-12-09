@@ -10,9 +10,11 @@ import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
 import "prosemirror-example-setup/style/style.css";
-import "../src/css/noting.scss";
+import "../src/css/validation.scss";
+import "../src/css/validationSidebar.scss";
 import createValidatorPlugin from "../src/ts/index";
 import createLanguageToolAdapter from "../src/ts/adapters/languageTool";
+import createView from "../src/ts/view";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -22,14 +24,18 @@ const mySchema = new Schema({
 const contentElement =
   document.querySelector("#content") || document.createElement("content");
 const doc = DOMParser.fromSchema(mySchema).parse(contentElement);
+if (contentElement && contentElement.parentElement) {
+  contentElement.parentElement.removeChild(contentElement);
+}
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
-const { plugin: validatorPlugin, commands } = createValidatorPlugin({
+const sidebarElement = document.querySelector("#sidebar");
+const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
   adapter: createLanguageToolAdapter("http://localhost:9001")
 });
 
-editorElement &&
-  ((window as any).editor = new EditorView(editorElement, {
+if (editorElement && sidebarElement) {
+  const view = new EditorView(editorElement, {
     state: EditorState.create({
       doc,
       plugins: [
@@ -45,4 +51,7 @@ editorElement &&
         validatorPlugin
       ]
     })
-  }));
+  });
+  (window as any).editor = view;
+  createView(view, store, commands, sidebarElement);
+}

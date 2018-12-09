@@ -6,6 +6,7 @@ import { IPluginState } from "../state";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
+export const DECORATION_VALIDATION_IS_HOVERING = "DECORATION_VALIDATION_IS_HOVERING";
 export const DECORATION_VALIDATION_HEIGHT_MARKER =
   "DECORATION_VALIDATION_HEIGHT_MARKER";
 export const DECORATION_DIRTY = "DECORATION_DIRTY";
@@ -14,7 +15,8 @@ export const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
 export const DecorationClassMap = {
   [DECORATION_DIRTY]: "ValidationDebugDirty",
   [DECORATION_INFLIGHT]: "ValidationDebugInflight",
-  [DECORATION_VALIDATION]: "ValidationDecoration"
+  [DECORATION_VALIDATION]: "ValidationDecoration",
+  [DECORATION_VALIDATION_IS_HOVERING]: "ValidationDecoration--is-hovering"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
@@ -34,16 +36,16 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
   );
 };
 
-export const removeValidationDecorationsFromRanges = (
+export const removeDecorationsFromRanges = (
   decorations: DecorationSet,
   ranges: IRange[],
-  type = DECORATION_VALIDATION
+  types = [DECORATION_VALIDATION]
 ) =>
   ranges.reduce((acc, range) => {
     const decorationsToRemove = decorations.find(
       range.from,
       range.to,
-      spec => spec.type === type
+      spec => types.indexOf(spec.type) !== -1
     );
     return acc.remove(decorationsToRemove);
   }, decorations);
@@ -58,13 +60,13 @@ export const getNewDecorationsForCurrentValidations = (
   doc: Node
 ) => {
   // Remove existing validations for the ranges
-  const newDecorationSet = removeValidationDecorationsFromRanges(
+  const newDecorationSet = removeDecorationsFromRanges(
     decorationSet,
     outputs
   );
 
   // There are new validations available; apply them to the document.
-  const decorationsToAdd = getDecorationsForValidationRanges(outputs);
+  const decorationsToAdd = createDecorationsForValidationRanges(outputs);
 
   // Finally, we add the existing decorations to this new map.
   return newDecorationSet.add(doc, decorationsToAdd);
@@ -86,8 +88,14 @@ const createHeightMarkerNode = (id: string) => {
  * Create a validation decoration for the given range.
  */
 export const createDecorationForValidationRange = (
-  output: IValidationOutput
+  output: IValidationOutput,
+  isHovering = false
 ) => {
+  const className = isHovering
+    ? `${DecorationClassMap[DECORATION_VALIDATION]} ${
+        DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]
+      }`
+    : DecorationClassMap[DECORATION_VALIDATION];
   return [
     Decoration.widget(output.from, createHeightMarkerNode(output.id), {
       type: DECORATION_VALIDATION_HEIGHT_MARKER
@@ -96,19 +104,21 @@ export const createDecorationForValidationRange = (
       output.from,
       output.to,
       {
-        class: DecorationClassMap[DECORATION_VALIDATION],
+        class: className,
         [DECORATION_ATTRIBUTE_ID]: output.id
       } as any,
       {
         type: DECORATION_VALIDATION,
+        id: output.id,
         inclusiveStart: true
       } as any
     )
   ];
 };
 
-export const getDecorationsForValidationRanges = (ranges: IValidationOutput[]) =>
-  flatten(ranges.map(createDecorationForValidationRange));
+export const createDecorationsForValidationRanges = (
+  ranges: IValidationOutput[]
+) => flatten(ranges.map(_ => createDecorationForValidationRange(_)));
 
 export const findSingleDecoration = (
   state: IPluginState,

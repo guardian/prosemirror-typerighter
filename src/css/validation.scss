@@ -1,3 +1,8 @@
+:root {
+  --validation-color: #3dcde6;
+  --validation-color-hover: #3dcde624;
+}
+
 .ValidationWidget {
   display: inline-block;
   font-family: sans-serif;
@@ -9,7 +14,7 @@
   padding: 3px;
   box-shadow: 3px 3px 20px rgba(0, 0, 0, 0.2);
   border-radius: 3px;
-  border-bottom: 2px solid yellow;
+  border-bottom: 2px solid var(--validation-color);
   width: 200px;
   transition: opacity 0.1s, transform 0.1s;
   transform: translate3d(0, -3px, 0);
@@ -41,16 +46,23 @@
 
 .ValidationWidget__suggestion {
   display: block;
-  &:hover {
-    background-color: #f2f2f2;
-  }
-  & + .ValidationWidget__suggestion {
-    margin-top: 3px;
-  }
+  padding: 1px 3px;
+  cursor: pointer;
+}
+
+.ValidationWidget__suggestion:hover {
+  background-color: #f2f2f2;
+}
+.ValidationWidget__suggestion + .ValidationWidget__suggestion {
+  margin-top: 3px;
 }
 
 .ValidationDecoration {
-  background-color: #ffff00;
+  border-bottom: 2px solid var(--validation-color);
+}
+
+.ValidationDecoration--is-hovering {
+  background-color: var(--validation-color-hover);
 }
 
 .ValidationDebugDirty,
