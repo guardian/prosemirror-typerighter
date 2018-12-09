@@ -100,6 +100,8 @@ export interface ICommands {
   indicateHover: IndicateHoverCommand;
 }
 
+export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
+
 interface IPluginOptions {
   /**
    * The adapter the plugin uses to asynchonously request validations.
@@ -112,7 +114,7 @@ interface IPluginOptions {
    * default implementation expands the dirtied ranges to cover the parent
    * block node.
    */
-  expandRanges?: (ranges: IRange[], doc: Node<any>) => IRange[];
+  expandRanges?: ExpandRanges;
 
   /**
    * The throttle duration for validation requests, in ms.
@@ -161,9 +163,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     localView.dispatch(
       localView.state.tr.setMeta(
         VALIDATION_PLUGIN_ACTION,
-        validationRequestStart(
-          expandRanges(pluginState.dirtiedRanges, localView.state.tr.doc)
-        )
+        validationRequestStart(expandRanges)
       )
     );
   };
@@ -181,9 +181,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
       dispatch(
         state.tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
-          validationRequestStart(
-            [] // @todo: get ranges of all top level block nodes
-          )
+          validationRequestStart(expandRanges)
         )
       );
       return true;
@@ -326,10 +324,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
               ? state.trHistory.slice(1).concat(tr)
               : state.trHistory.concat(tr)
         };
-
         // Apply our reducer.
         const action: Action | undefined = tr.getMeta(VALIDATION_PLUGIN_ACTION);
-        return validationPluginReducer(tr, newState, action);
+        const reducedState = validationPluginReducer(tr, newState, action);
+        return reducedState;
       }
     },
 

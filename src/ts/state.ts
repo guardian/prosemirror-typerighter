@@ -20,8 +20,10 @@ import {
   mapRangeThroughTransactions,
   mergeOutputsFromValidationResponse,
   mergeRanges,
-  validationInputToRange
+  validationInputToRange,
+  expandRangesToParentBlockNode
 } from "./utils/range";
+import { ExpandRanges } from ".";
 
 /**
  * Information about the span element the user is hovering over.
@@ -111,9 +113,9 @@ const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
  * Action creators.
  */
 
-export const validationRequestStart = (ranges: IRange[]) => ({
+export const validationRequestStart = (expandRanges: ExpandRanges) => ({
   type: VALIDATION_REQUEST_START as typeof VALIDATION_REQUEST_START,
-  payload: { ranges }
+  payload: { expandRanges }
 });
 type ActionValidationRequestStart = ReturnType<typeof validationRequestStart>;
 
@@ -313,23 +315,18 @@ const handleNewDirtyRanges: ActionHandler<ActionHandleNewDirtyRanges> = (
  */
 const handleValidationRequestStart: ActionHandler<
   ActionValidationRequestStart
-> = (tr, state, action) => {
-  const validationInputs: IValidationInput[] = action.payload.ranges.map(
-    range => ({
-      str: tr.doc.textBetween(range.from, range.to),
-      ...range
-    })
-  );
+> = (tr, state, { payload: { expandRanges } }) => {
+  const ranges = expandRanges(state.dirtiedRanges, tr.doc);
+  const validationInputs: IValidationInput[] = ranges.map(range => ({
+    str: tr.doc.textBetween(range.from, range.to),
+    ...range
+  }));
   // Remove any debug decorations, if they exist.
-  const decorations = removeDecorationsFromRanges(
-    state.decorations,
-    action.payload.ranges,
-    [DECORATION_DIRTY]
-  ).add(
+  const decorations = removeDecorationsFromRanges(state.decorations, ranges, [
+    DECORATION_DIRTY
+  ]).add(
     tr.doc,
-    action.payload.ranges.map(range =>
-      createDebugDecorationFromRange(range, false)
-    )
+    ranges.map(range => createDebugDecorationFromRange(range, false))
   );
 
   return {
@@ -338,10 +335,10 @@ const handleValidationRequestStart: ActionHandler<
     // We reset the dirty ranges, as they've been expanded and sent for validation.
     dirtiedRanges: [],
     validationPending: false,
-    validationInFlight: {
+    validationInFlight: ranges.length ? {
       validationInputs,
       id: tr.time
-    }
+    } : undefined
   };
 };
 

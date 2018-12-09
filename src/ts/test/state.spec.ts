@@ -9,11 +9,11 @@ import {
   selectValidationById,
   validationPluginReducer,
   validationRequestError,
-  validationRequestPending,
   validationRequestStart,
   validationRequestSuccess
   } from '../state';
 import { createDebugDecorationFromRange } from '../utils/decoration';
+import { expandRangesToParentBlockNode } from '../utils/range';
 
 jest.mock("uuid/v4", () => () => "uuid");
 
@@ -53,20 +53,6 @@ const initialState: IPluginState = {
 
 describe("State management", () => {
   describe("Action handlers", () => {
-    describe("validationRequestPending", () => {
-      it("should mark the state as pending validation", () => {
-        expect(
-          validationPluginReducer(
-            initialTr,
-            initialState,
-            validationRequestPending()
-          )
-        ).toEqual({
-          ...initialState,
-          validationPending: true
-        });
-      });
-    });
     describe("validationRequestStart", () => {
       it("should remove the pending status and any dirtied ranges, and mark the validation as in flight", () => {
         const docToValidate = doc(p("Example text to validate"));
@@ -81,7 +67,7 @@ describe("State management", () => {
               dirtiedRanges: [{ from: 5, to: 10 }],
               validationPending: true
             },
-            validationRequestStart([{from: 1, to: 25}])
+            validationRequestStart(expandRangesToParentBlockNode)
           )
         ).toEqual({
           ...initialState,
@@ -118,7 +104,7 @@ describe("State management", () => {
               ]),
               validationPending: true
             },
-            validationRequestStart([{from: 1, to: 25}])
+            validationRequestStart(expandRangesToParentBlockNode)
           )
         ).toEqual({
           ...initialState,
@@ -148,6 +134,7 @@ describe("State management", () => {
             initialState,
             validationRequestSuccess({
               validationOutputs: [],
+              validationInputs: [],
               id: "1337"
             })
           )
@@ -163,6 +150,11 @@ describe("State management", () => {
             tr,
             initialState,
             validationRequestSuccess({
+              validationInputs: [{
+                str: "Example text to validate",
+                from: 5,
+                to: 10,
+              }],
               validationOutputs: [
                 {
                   id: "id",

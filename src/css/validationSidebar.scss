@@ -2,6 +2,7 @@
   padding: calc(var(--gutter-width) / 2);
 }
 
+
 .ValidationSidebarOutput__container--is-selected {
   border-left: 2px solid var(--validation-color);
 }
@@ -27,6 +28,10 @@
 
 .ValidationSidebar__list-item {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.ValidationSidebarOutput__list-item:last-child {
+  border-bottom: none;
 }
 
 .ValidationSidebarOutput__header {

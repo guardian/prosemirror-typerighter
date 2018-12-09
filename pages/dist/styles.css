@@ -360,6 +360,9 @@ li.ProseMirror-selectednode:after {
 .ValidationSidebar__list-item {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2); }
 
+.ValidationSidebarOutput__list-item:last-child {
+  border-bottom: none; }
+
 .ValidationSidebarOutput__header {
   display: flex;
   justify-content: space-between;

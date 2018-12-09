@@ -1,8 +1,10 @@
-import fetchMock from 'fetch-mock';
-import { ILTReplacement } from '../adapters/interfaces/ILanguageTool';
-import createLanguageToolAdapter from '../adapters/languageTool';
-import { IValidationOutput } from '../interfaces/IValidation';
-import ValidationAPIService, { ValidationEvents } from '../services/ValidationAPIService';
+import fetchMock from "fetch-mock";
+import { ILTReplacement } from "../adapters/interfaces/ILanguageTool";
+import createLanguageToolAdapter from "../adapters/languageTool";
+import { IValidationOutput } from "../interfaces/IValidation";
+import ValidationAPIService, {
+  ValidationEvents
+} from "../services/ValidationAPIService";
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -41,10 +43,18 @@ const createOutput = (str: string, offset: number = 0) =>
     from: offset,
     to: offset + str.length,
     str,
-    type: "Some type - use constants, jeez",
+    type: "issueType",
     suggestions: [],
     annotation: "It's just a bunch of numbers, mate"
   } as IValidationOutput);
+
+const validationInputs = [
+  {
+    from: 0,
+    to: 10,
+    str: "1234567890"
+  }
+];
 
 jest.mock("uuid/v4", () => () => "id");
 
@@ -61,17 +71,12 @@ describe("ValidationAPIService", () => {
     service.on(ValidationEvents.VALIDATION_SUCCESS, _ => {
       expect(_).toEqual({
         id: "id",
+        validationInputs,
         validationOutputs: [createOutput("1234567890")]
       });
     });
     const output = await service.validate(
-      [
-        {
-          from: 0,
-          to: 10,
-          str: "1234567890"
-        }
-      ],
+      validationInputs,
       "id"
     );
     expect(output).toEqual([createOutput("1234567890")]);
@@ -80,6 +85,18 @@ describe("ValidationAPIService", () => {
     const service = new ValidationAPIService(
       createLanguageToolAdapter("endpoint/check")
     );
+    const validationInputs = [
+      {
+        from: 0,
+        to: 10,
+        str: "1234567890"
+      },
+      {
+        from: 20,
+        to: 30,
+        str: "1234567890"
+      }
+    ];
     fetchMock
       .once("endpoint/check", createResponse(["1234567890"]))
       .once("endpoint/check", createResponse(["1234567890"]), {
@@ -87,18 +104,7 @@ describe("ValidationAPIService", () => {
       });
 
     const output = await service.validate(
-      [
-        {
-          from: 0,
-          to: 10,
-          str: "1234567890"
-        },
-        {
-          from: 20,
-          to: 30,
-          str: "1234567890"
-        }
-      ],
+      validationInputs,
       "id"
     );
     expect(output).toEqual([
@@ -123,5 +129,14 @@ describe("ValidationAPIService", () => {
       "id"
     );
     expect(output).toMatchSnapshot();
+  });
+  it("should handle requests with no inputs", async () => {
+    const service = new ValidationAPIService(
+      createLanguageToolAdapter("endpoint/check")
+    );
+    fetchMock.once("endpoint/check", 400);
+
+    const output = await service.validate([], "id");
+    expect(output).toEqual([]);
   });
 });

@@ -27,6 +27,7 @@ Object {
             "type": WidgetType {
               "side": 0,
               "spec": Object {
+                "id": "id",
                 "type": "DECORATION_VALIDATION_HEIGHT_MARKER",
               },
               "toDOM": <span
@@ -43,6 +44,7 @@ Object {
                 "data-validation-id": "id",
               },
               "spec": Object {
+                "id": "id",
                 "inclusiveStart": true,
                 "type": "DECORATION_VALIDATION",
               },

@@ -1,7 +1,7 @@
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, IValidationOutput } from "../interfaces/IValidation";
+import { IRange, IValidationOutput, IValidationInput } from "../interfaces/IValidation";
 import { IPluginState } from "../state";
 
 // Our decoration types.
