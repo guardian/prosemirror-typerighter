@@ -7,43 +7,58 @@
     <title>Document</title>
     <link rel="stylesheet" href="./styles.css" />
     <style>
-      .ProseMirror {
-        padding: 4px 8px 4px 14px;
-        line-height: 1.5;
-        outline: none;
+      :root {
+        --gutter-width: 10px;
       }
 
-      .editor {
-        background: white;
-        color: black;
-        background-clip: padding-box;
+      body {
+        background-color: #f3f3f3;
+        -webkit-font-smoothing: antialiased;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      }
+
+      .Container {
+        display: flex;
+        margin: 0 calc(var(--gutter-width) / -2)
+      }
+
+      .Editor, .Sidebar {
+        background-color: white;
         border-radius: 4px;
-        border: 2px solid rgba(0, 0, 0, 0.2);
-        padding: 5px 0;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        margin: 0 calc(var(--gutter-width) / 2);
       }
 
-      .content-container {
-        position: relative;
+      .Editor {
+        flex: 1
+      }
+
+      .Sidebar {
+        flex: 1;
+        min-width: 400px;
+        margin-left: calc(var(--gutter-width) / 2);
       }
 
       .hide {
         display: none;
       }
 
-      gu-flag.note {
-        background-color: #fea;
+      .ProseMirror {
+        position: relative;
+        padding: 1px var(--gutter-width);
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        -webkit-font-variant-ligatures: none;
+        font-variant-ligatures: none;
       }
 
-      .note-wrapper--flag {
-        background-color: #fea;
+      .ProseMirror:focus {
+        outline: none;
       }
 
-      gu-correct.note {
-        background-color: #afa;
-      }
-
-      .note-wrapper--correct {
-        background-color: #afa;
+      .ProseMirror-menubar {
+        padding: calc(var(--gutter-width)) calc(var(--gutter-width) / 2);
+        background: transparent;
       }
     </style>
   </head>
@@ -52,23 +67,25 @@
     <h1>
       Prosemirror Validator
     </h1>
-    <p>This plugin allows you to validate a Prosemirror document.</p>
-    <p>
-      To verify that the validation activity doesn't block the main thead, the
-      spinning bar above is animated in javascript.
-    </p>
-    <div id="editor" class="editor"></div>
-      <div id="content" class="hide">
-        <p>
-          LanguageTool offers spell and grammar checking. Just paste your text
-          here and click the 'Check Text' button. Click the colored phrases for
-          details on potential errors. or use this text too see an few of of the
-          problems that LanguageTool can detecd. What do you thinks of grammar
-          checkers? Please not that they are not perfect. Style issues get a
-          blue marker: It's 5 P.M. in the afternoon. The weather was nice on
-          Thursday, 27 June 2017.
-        </p>
+    <p>This plugin provides a scaffold for document validation. It's presented here with an example UI.</p>
+    <div class="Container">
+      <div class="EditorContainer">
+        <div id="editor" class="Editor"></div>
+          <div id="content" class="hide">
+            <p>
+              LanguageTool offers spell and grammar checking. Just paste your text
+              here and click the 'Check Text' button. Click the colored phrases for
+              details on potential errors. or use this text too see an few of of the
+              problems that LanguageTool can detecd. What do you thinks of grammar
+              checkers? Please not that they are not perfect. Style issues get a
+              blue marker: It's 5 P.M. in the afternoon. The weather was nice on
+              Thursday, 27 June 2017.
+            </p>
+          </div>
+        </div>
+        <div id="sidebar" class="Sidebar"></div>
       </div>
+    </div>
     <script src="./bundle.js"></script>
   </body>
 </html>
