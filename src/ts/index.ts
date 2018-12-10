@@ -2,7 +2,6 @@ import ValidationService, {
   ValidationEvents
 } from "./services/ValidationAPIService";
 import {
-  Action,
   IPluginState,
   newHoverIdReceived,
   selectValidationById,

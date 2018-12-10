@@ -33,7 +33,10 @@ export const mapAndMergeRanges = (tr: Transaction, ranges: IRange[]) =>
 /**
  * Return the first set of ranges with any members overlapping the second set removed.
  */
-export const removeOverlappingRanges = <FirstRange extends IRange, SecondRange extends IRange>(
+export const removeOverlappingRanges = <
+  FirstRange extends IRange,
+  SecondRange extends IRange
+>(
   firstRanges: FirstRange[],
   secondRanges: SecondRange[]
 ) => {
@@ -127,6 +130,7 @@ export const mergeOutputsFromValidationResponse = (
     return currentOutputs;
   }
 
+  // Map _all_ the things.
   const mappedInputs = mapRangeThroughTransactions(
     [response.validationInput],
     validationId,
@@ -139,7 +143,9 @@ export const mergeOutputsFromValidationResponse = (
     trs
   );
 
-  return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
+  return removeOverlappingRanges(currentOutputs, mappedInputs).concat(
+    newOutputs
+  );
 };
 
 /**
