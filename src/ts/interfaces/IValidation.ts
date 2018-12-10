@@ -16,7 +16,7 @@ export interface IValidationError {
 }
 
 export interface IValidationResponse {
-  validationInputs: IValidationInput[];
+  validationInput: IValidationInput;
   validationOutputs: IValidationOutput[];
   id: string;
 }

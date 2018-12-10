@@ -128,7 +128,7 @@ export const mergeOutputsFromValidationResponse = (
   }
 
   const mappedInputs = mapRangeThroughTransactions(
-    response.validationInputs,
+    [response.validationInput],
     validationId,
     trs
   );

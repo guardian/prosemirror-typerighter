@@ -31,7 +31,7 @@ class ValidationService extends EventEmitter implements IValidationService {
       inputs.map(async input => {
         try {
           const result = await this.adapter(input);
-          this.handleCompleteValidation(id, inputs, result);
+          this.handleCompleteValidation(id, input, result);
           return result;
         } catch (e) {
           this.handleError(input, id, e.message);
@@ -73,12 +73,12 @@ class ValidationService extends EventEmitter implements IValidationService {
    */
   private handleCompleteValidation = (
     id: string | number,
-    validationInputs: IValidationInput[],
+    validationInput: IValidationInput,
     validationOutputs: IValidationOutput[]
   ) => {
     this.emit(ValidationEvents.VALIDATION_SUCCESS, {
       id,
-      validationInputs,
+      validationInput,
       validationOutputs
     } as IValidationResponse);
   };
