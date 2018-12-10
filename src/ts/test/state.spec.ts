@@ -134,7 +134,11 @@ describe("State management", () => {
             initialState,
             validationRequestSuccess({
               validationOutputs: [],
-              validationInputs: [],
+              validationInput: {
+                str: 'hai',
+                from: 0,
+                to: 25
+              },
               id: "1337"
             })
           )
@@ -150,11 +154,11 @@ describe("State management", () => {
             tr,
             initialState,
             validationRequestSuccess({
-              validationInputs: [{
+              validationInput: {
                 str: "Example text to validate",
                 from: 5,
                 to: 10,
-              }],
+              },
               validationOutputs: [
                 {
                   id: "id",

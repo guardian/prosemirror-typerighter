@@ -325,9 +325,11 @@ const createValidatorPlugin = (options: IPluginOptions) => {
               : state.trHistory.concat(tr)
         };
         // Apply our reducer.
-        const action: Action | undefined = tr.getMeta(VALIDATION_PLUGIN_ACTION);
-        const reducedState = validationPluginReducer(tr, newState, action);
-        return reducedState;
+        return validationPluginReducer(
+          tr,
+          newState,
+          tr.getMeta(VALIDATION_PLUGIN_ACTION)
+        );
       }
     },
 

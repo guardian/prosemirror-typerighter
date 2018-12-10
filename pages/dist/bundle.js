@@ -15708,10 +15708,10 @@ class ValidationService extends EventEmitter {
                 message
             });
         };
-        this.handleCompleteValidation = (id, validationInputs, validationOutputs) => {
+        this.handleCompleteValidation = (id, validationInput, validationOutputs) => {
             this.emit(ValidationEvents.VALIDATION_SUCCESS, {
                 id,
-                validationInputs,
+                validationInput,
                 validationOutputs
             });
         };
@@ -15721,7 +15721,7 @@ class ValidationService extends EventEmitter {
             const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const result = yield this.adapter(input);
-                    this.handleCompleteValidation(id, inputs, result);
+                    this.handleCompleteValidation(id, input, result);
                     return result;
                 }
                 catch (e) {
@@ -15800,6 +15800,8 @@ const createDecorationForValidationRange = (output, isHovering = false, addHeigh
         : decorationArray;
 };
 const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
+
+//# sourceMappingURL=decoration.js.map
 
 /**
  * The base implementation of `_.clamp` which doesn't coerce arguments.
@@ -19685,7 +19687,7 @@ const mergeOutputsFromValidationResponse = (response, currentOutputs, trs) => {
     if (!initialTransaction && trs.length > 1) {
         return currentOutputs;
     }
-    const mappedInputs = mapRangeThroughTransactions(response.validationInputs, validationId, trs);
+    const mappedInputs = mapRangeThroughTransactions([response.validationInput], validationId, trs);
     const newOutputs = mapRangeThroughTransactions(response.validationOutputs, validationId, trs);
     return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
 };
@@ -19734,7 +19736,6 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
     }), range)));
 }));
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
-//# sourceMappingURL=range.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
@@ -20028,9 +20029,7 @@ const createValidatorPlugin = (options) => {
                 const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), trHistory: state.trHistory.length > 25
                         ? state.trHistory.slice(1).concat(tr)
                         : state.trHistory.concat(tr) });
-                const action = tr.getMeta(VALIDATION_PLUGIN_ACTION);
-                const reducedState = validationPluginReducer(tr, newState, action);
-                return reducedState;
+                return validationPluginReducer(tr, newState, tr.getMeta(VALIDATION_PLUGIN_ACTION));
             }
         },
         appendTransaction(trs, oldState, newState) {
