@@ -1,0 +1,13 @@
+.ValidationControls__row {
+	display: flex;
+	padding: calc(var(--gutter-width) / 2);
+}
+
+.ValidationControls__label {
+
+}
+
+.ValidationControls__input {
+	min-width: 30px;
+	text-align: right;
+}

@@ -1,0 +1,68 @@
+.Sidebar__section {
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  margin: 0 calc(var(--gutter-width) / 2);
+}
+
+.Sidebar__container + .Sidebar__container {
+  margin-top: var(--gutter-width);
+}
+
+.Sidebar__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: calc(var(--gutter-width)) calc(var(--gutter-width) / 2);
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+}
+
+.Sidebar__header-option {
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.Sidebar__awaiting-validation {
+  padding: calc(var(--gutter-width) / 2);
+  color: gray;
+}
+
+.Sidebar__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.Sidebar__awaiting-validation {
+  padding: calc(var(--gutter-width) / 2);
+  color: gray;
+}
+
+.Sidebar__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.Sidebar__list-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.Sidebar__loading-spinner {
+  display: inline-block;
+  margin-top: 1px;
+  margin-left: calc(var(--gutter-width) / 2);
+  line-height: 1;
+  animation-duration: 0.5s;
+  animation-name: spin;
+  animation-iteration-count: infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
