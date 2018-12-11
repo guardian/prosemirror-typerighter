@@ -21524,6 +21524,8 @@ class ValidationControls extends Component {
     }
 }
 
+//# sourceMappingURL=ValidationControls.js.map
+
 const createView = (view, store, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
     const applySuggestions = (suggestionOpts) => commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
