@@ -8,8 +8,8 @@ It's still in its early stages - see the 'pages' directory for an example implem
 
 Roadmap:
 
+*   ~~Adding a 'debug' flag to turn off debug marks, which currently signify dirty ranges and inflight ranges. This is handy when observing the expansion strategy at work during realtime validation.~~
 *   Health work - this project was created during a hack week and there are plenty of bugs and debt.
-*   Adding a 'debug' flag to turn off debug marks, which currently signify dirty ranges and inflight ranges. This is handy when observing the expansion strategy at work during realtime validation.
 *   Validating whole documents in one pass via a command.
 *   Toggling realtime validation.
 *   Grouping validations and applying grouped validations simultaneously.
