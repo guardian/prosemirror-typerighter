@@ -23,12 +23,17 @@ export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
 };
 
 export const mapAndMergeRanges = (tr: Transaction, ranges: IRange[]) =>
-  mergeRanges(
-    ranges.map(range => ({
-      from: tr.mapping.map(range.from),
-      to: tr.mapping.map(range.to)
-    }))
-  );
+  mergeRanges(mapRanges(tr, ranges));
+
+export const mapRanges = <T extends IRange>(
+  tr: Transaction,
+  ranges: T[]
+): T[] =>
+  ranges.map(range => ({
+    ...range,
+    from: tr.mapping.map(range.from),
+    to: tr.mapping.map(range.to)
+  }));
 
 /**
  * Return the first set of ranges with any members overlapping the second set removed.

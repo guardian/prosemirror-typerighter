@@ -22,7 +22,8 @@ import { DecorationSet, EditorView } from "prosemirror-view";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
 import {
   expandRangesToParentBlockNode,
-  mapAndMergeRanges
+  mapAndMergeRanges,
+  mapRanges
 } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
@@ -312,9 +313,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
         // is dispatched, and the logic for that doesn't belong in the reducer.
         const newState = {
           ...state,
-          // Map our decorations and dirtied ranges through the new transaction.
+          // Map our decorations, dirtied ranges and validations through the new transaction.
           decorations: state.decorations.map(tr.mapping, tr.doc),
           dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges),
+          currentValidations: mapRanges(tr, state.currentValidations),
           // Keep the transaction history up to date ... to a point! If we get a
           // validation result older than this history, we can discard it and ask
           // for another.

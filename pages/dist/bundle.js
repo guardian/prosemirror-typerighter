@@ -19652,10 +19652,8 @@ const findOverlappingRangeIndex = (range, ranges) => {
         (localRange.to >= range.to && localRange.from <= range.to) ||
         (localRange.from >= range.from && localRange.to <= range.to));
 };
-const mapAndMergeRanges = (tr, ranges) => mergeRanges(ranges.map(range => ({
-    from: tr.mapping.map(range.from),
-    to: tr.mapping.map(range.to)
-})));
+const mapAndMergeRanges = (tr, ranges) => mergeRanges(mapRanges(tr, ranges));
+const mapRanges = (tr, ranges) => ranges.map(range => (Object.assign({}, range, { from: tr.mapping.map(range.from), to: tr.mapping.map(range.to) })));
 const removeOverlappingRanges = (firstRanges, secondRanges) => {
     return firstRanges.reduce((acc, range) => {
         return findOverlappingRangeIndex(range, secondRanges) === -1
@@ -19736,6 +19734,7 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
     }), range)));
 }));
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
+//# sourceMappingURL=range.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
@@ -20026,7 +20025,7 @@ const createValidatorPlugin = (options) => {
                 };
             },
             apply(tr, state) {
-                const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), trHistory: state.trHistory.length > 25
+                const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), currentValidations: mapRanges(tr, state.currentValidations), trHistory: state.trHistory.length > 25
                         ? state.trHistory.slice(1).concat(tr)
                         : state.trHistory.concat(tr) });
                 return validationPluginReducer(tr, newState, tr.getMeta(VALIDATION_PLUGIN_ACTION));
