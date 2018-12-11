@@ -19652,10 +19652,8 @@ const findOverlappingRangeIndex = (range, ranges) => {
         (localRange.to >= range.to && localRange.from <= range.to) ||
         (localRange.from >= range.from && localRange.to <= range.to));
 };
-const mapAndMergeRanges = (tr, ranges) => mergeRanges(ranges.map(range => ({
-    from: tr.mapping.map(range.from),
-    to: tr.mapping.map(range.to)
-})));
+const mapAndMergeRanges = (tr, ranges) => mergeRanges(mapRanges(tr, ranges));
+const mapRanges = (tr, ranges) => ranges.map(range => (Object.assign({}, range, { from: tr.mapping.map(range.from), to: tr.mapping.map(range.to) })));
 const removeOverlappingRanges = (firstRanges, secondRanges) => {
     return firstRanges.reduce((acc, range) => {
         return findOverlappingRangeIndex(range, secondRanges) === -1
@@ -19736,6 +19734,7 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
     }), range)));
 }));
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
+//# sourceMappingURL=range.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
@@ -19744,6 +19743,7 @@ const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
 const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
+const SET_DEBUG_STATE = "SET_DEBUG_STATE";
 const validationRequestStart = (expandRanges) => ({
     type: VALIDATION_REQUEST_START,
     payload: { expandRanges }
@@ -19768,6 +19768,10 @@ const selectValidation = (validationId) => ({
     type: SELECT_VALIDATION,
     payload: { validationId }
 });
+const setDebugState = (debug) => ({
+    type: SET_DEBUG_STATE,
+    payload: { debug }
+});
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
 const validationPluginReducer = (tr, state, action) => {
     if (!action) {
@@ -19786,6 +19790,8 @@ const validationPluginReducer = (tr, state, action) => {
             return handleSelectValidation(tr, state, action);
         case HANDLE_NEW_DIRTY_RANGES:
             return handleNewDirtyRanges(tr, state, action);
+        case SET_DEBUG_STATE:
+            return handleSetDebugState(tr, state, action);
         default:
             return state;
     }
@@ -19817,27 +19823,35 @@ const handleNewHoverId = (tr, state, action) => {
     return Object.assign({}, state, { decorations, hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
 };
 const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } }) => {
-    let newDecorations = state.decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
+    let newDecorations = state.debug
+        ? state.decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)))
+        : state.decorations;
     newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
     return Object.assign({}, state, { validationPending: true, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
 };
 const handleValidationRequestStart = (tr, state, { payload: { expandRanges } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
     const validationInputs = ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
-    const decorations = removeDecorationsFromRanges(state.decorations, ranges, [
-        DECORATION_DIRTY
-    ]).add(tr.doc, ranges.map(range => createDebugDecorationFromRange(range, false)));
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: ranges.length ? {
-            validationInputs,
-            id: tr.time
-        } : undefined });
+    const decorations = state.debug
+        ? removeDecorationsFromRanges(state.decorations, ranges, [
+            DECORATION_DIRTY
+        ]).add(tr.doc, ranges.map(range => createDebugDecorationFromRange(range, false)))
+        : state.decorations;
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: ranges.length
+            ? {
+                validationInputs,
+                id: tr.time
+            }
+            : undefined });
 };
 const handleValidationRequestSuccess = (tr, state, action) => {
     const response = action.payload.response;
     if (response && response.validationOutputs.length) {
         const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
         const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
-        const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
+        const decsToRemove = state.debug
+            ? state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
+            : [];
         return Object.assign({}, state, { validationInFlight: undefined, currentValidations, decorations: decorations.remove(decsToRemove) });
     }
     return state;
@@ -19852,6 +19866,9 @@ const handleValidationRequestError = (tr, state, action) => {
     return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
             ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
             : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
+};
+const handleSetDebugState = (_, state, { payload: { debug } }) => {
+    return Object.assign({}, state, { debug });
 };
 
 //# sourceMappingURL=state.js.map
@@ -19971,6 +19988,12 @@ const createValidatorPlugin = (options) => {
             }
             return true;
         },
+        setDebugState: debug => (state, dispatch) => {
+            if (dispatch) {
+                dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
+            }
+            return true;
+        },
         applySuggestions: suggestionOpts => (state, dispatch) => {
             const pluginState = plugin.getState(state);
             const outputsAndSuggestions = suggestionOpts
@@ -20026,7 +20049,7 @@ const createValidatorPlugin = (options) => {
                 };
             },
             apply(tr, state) {
-                const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), trHistory: state.trHistory.length > 25
+                const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), currentValidations: mapRanges(tr, state.currentValidations), trHistory: state.trHistory.length > 25
                         ? state.trHistory.slice(1).concat(tr)
                         : state.trHistory.concat(tr) });
                 return validationPluginReducer(tr, newState, tr.getMeta(VALIDATION_PLUGIN_ACTION));
@@ -20089,129 +20112,6 @@ const createValidatorPlugin = (options) => {
 };
 
 //# sourceMappingURL=index.js.map
-
-var rngBrowser = createCommonjsModule(function (module) {
-// Unique ID creation requires a high quality random # generator.  In the
-// browser this is a little complicated due to unknown quality of Math.random()
-// and inconsistent support for the `crypto` API.  We do the best we can via
-// feature-detection
-
-// getRandomValues needs to be invoked in a context where "this" is a Crypto
-// implementation. Also, find the complete implementation of crypto on IE11.
-var getRandomValues = (typeof(crypto) != 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto)) ||
-                      (typeof(msCrypto) != 'undefined' && typeof window.msCrypto.getRandomValues == 'function' && msCrypto.getRandomValues.bind(msCrypto));
-
-if (getRandomValues) {
-  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
-  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
-
-  module.exports = function whatwgRNG() {
-    getRandomValues(rnds8);
-    return rnds8;
-  };
-} else {
-  // Math.random()-based (RNG)
-  //
-  // If all else fails, use Math.random().  It's fast, but is of unspecified
-  // quality.
-  var rnds = new Array(16);
-
-  module.exports = function mathRNG() {
-    for (var i = 0, r; i < 16; i++) {
-      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
-    }
-
-    return rnds;
-  };
-}
-});
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-var byteToHex = [];
-for (var i$1 = 0; i$1 < 256; ++i$1) {
-  byteToHex[i$1] = (i$1 + 0x100).toString(16).substr(1);
-}
-
-function bytesToUuid(buf, offset) {
-  var i = offset || 0;
-  var bth = byteToHex;
-  // join used to fix memory issue caused by concatenation: https://bugs.chromium.org/p/v8/issues/detail?id=3175#c4
-  return ([bth[buf[i++]], bth[buf[i++]], 
-	bth[buf[i++]], bth[buf[i++]], '-',
-	bth[buf[i++]], bth[buf[i++]], '-',
-	bth[buf[i++]], bth[buf[i++]], '-',
-	bth[buf[i++]], bth[buf[i++]], '-',
-	bth[buf[i++]], bth[buf[i++]],
-	bth[buf[i++]], bth[buf[i++]],
-	bth[buf[i++]], bth[buf[i++]]]).join('');
-}
-
-var bytesToUuid_1 = bytesToUuid;
-
-function v4(options, buf, offset) {
-  var i = buf && offset || 0;
-
-  if (typeof(options) == 'string') {
-    buf = options === 'binary' ? new Array(16) : null;
-    options = null;
-  }
-  options = options || {};
-
-  var rnds = options.random || (options.rng || rngBrowser)();
-
-  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-  rnds[6] = (rnds[6] & 0x0f) | 0x40;
-  rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-  // Copy bytes to buffer, if provided
-  if (buf) {
-    for (var ii = 0; ii < 16; ++ii) {
-      buf[i + ii] = rnds[ii];
-    }
-  }
-
-  return buf || bytesToUuid_1(rnds);
-}
-
-var v4_1 = v4;
-
-const createLanguageToolAdapter = (apiUrl) => (input) => __awaiter(undefined, void 0, void 0, function* () {
-    const body = new URLSearchParams();
-    body.append("data", JSON.stringify({
-        annotation: [
-            {
-                text: input.str
-            }
-        ]
-    }));
-    body.append("language", "en-US");
-    const response = yield fetch(apiUrl, {
-        method: "POST",
-        headers: new Headers({
-            "Content-Type": "x-www-form-urlencoded"
-        }),
-        body
-    });
-    if (response.status !== 200) {
-        throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
-    }
-    const validationData = yield response.json();
-    return validationData.matches.map(match => ({
-        id: v4_1(),
-        str: match.sentence,
-        from: input.from + match.offset,
-        to: input.from + match.offset + match.length,
-        annotation: match.message,
-        type: match.rule.issueType,
-        suggestions: match.replacements.map(_ => _.value)
-    }));
-});
-
-//# sourceMappingURL=languageTool.js.map
 
 var VNode = function VNode() {};
 
@@ -21548,7 +21448,7 @@ class ValidationSidebarOutput extends Component {
             h("div", { className: "ValidationSidebarOutput__header", onClick: this.toggleOpen },
                 h("div", { className: "ValidationSidebarOutput__header-label" },
                     startCase_1(output.type),
-                    h("span", { className: "ValidationSidebarOutput__header-range", onClick: this.scrollToRange },
+                    h("span", { className: "Button ValidationSidebarOutput__header-range", onClick: this.scrollToRange },
                         output.from,
                         "-",
                         output.to)),
@@ -21580,31 +21480,58 @@ class ValidationSidebar extends Component {
         const { applySuggestions, selectValidation, indicateHover } = this.props;
         const { currentValidations, validationInFlight, validationPending, selectedValidation } = this.state;
         const hasValidations = !!(currentValidations && currentValidations.length);
-        return (h("div", null,
-            h("div", { className: "ValidationSidebar__header" },
+        return (h("div", { className: "Sidebar__section" },
+            h("div", { className: "Sidebar__header" },
                 h("span", null,
                     "Validation results",
                     " ",
                     hasValidations && h("span", null,
                         "(",
                         currentValidations.length,
-                        ")")),
-                validationInFlight ||
-                    (validationPending && (h("span", { className: "ValidationSidebar__loading-spinner" }, "|")))),
-            h("div", { className: "ValidationSidebar__content" },
-                hasValidations && (h("ul", { className: "ValidationSidebar__list" }, currentValidations.map(output => (h("li", { className: "ValidationSidebar__list-item" },
+                        ") "),
+                    (validationInFlight ||
+                        validationPending) && (h("span", { className: "Sidebar__loading-spinner" }, "|")))),
+            h("div", { className: "Sidebar__content" },
+                hasValidations && (h("ul", { className: "Sidebar__list" }, currentValidations.map(output => (h("li", { className: "Sidebar__list-item" },
                     h(ValidationSidebarOutput, { output: output, selectedValidation: selectedValidation, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover })))))),
-                !hasValidations && (h("div", { className: "ValidationSidebar__awaiting-validation" }, "No validations to report.")))));
+                !hasValidations && (h("div", { className: "Sidebar__awaiting-validation" }, "No validations to report.")))));
     }
 }
 
 //# sourceMappingURL=ValidationSidebar.js.map
 
-const createView = (view, store, commands, sidebarNode) => {
+class ValidationControls extends Component {
+    constructor() {
+        super(...arguments);
+        this.handleNotify = (state) => {
+            this.setState(state);
+        };
+    }
+    componentWillMount() {
+        this.props.store.subscribe(this.handleNotify);
+    }
+    render() {
+        const { setDebugState } = this.props;
+        return (h("div", { className: "Sidebar__section" },
+            h("div", { className: "Sidebar__header" }, "Controls"),
+            h("div", { className: "Sidebar__content" },
+                h("div", { className: "ValidationControls__row" },
+                    h("label", { className: "ValidationControls__label" },
+                        "Debug mode ",
+                        h("small", null, "(makes dirty and pending ranges visible)")),
+                    h("div", { class: "ValidationControls__input" },
+                        h("input", { type: "checkbox", checked: this.state.debug, className: "Input", onClick: () => setDebugState(!this.state.debug) }))))));
+    }
+}
+
+//# sourceMappingURL=ValidationControls.js.map
+
+const createView = (view, store, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
     const applySuggestions = (suggestionOpts) => commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
     const selectValidation = (id) => commands.selectValidation(id)(view.state, view.dispatch);
     const indicateHover = (id) => commands.indicateHover(id)(view.state, view.dispatch);
+    const setDebugState = (debugState) => commands.setDebugState(debugState)(view.state, view.dispatch);
     const wrapperNode = document.createElement("div");
     wrapperNode.classList.add("ValidationPlugin__container");
     view.dom.parentNode.replaceChild(wrapperNode, view.dom);
@@ -21612,9 +21539,132 @@ const createView = (view, store, commands, sidebarNode) => {
     view.dom.insertAdjacentElement("afterend", overlayNode);
     render(h(ValidationOverlay, { store: store, applySuggestions: applySuggestions }), overlayNode);
     render(h(ValidationSidebar, { store: store, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover }), sidebarNode);
+    render(h(ValidationControls, { store: store, setDebugState: setDebugState }), controlsNode);
 };
 
 //# sourceMappingURL=view.js.map
+
+var rngBrowser = createCommonjsModule(function (module) {
+// Unique ID creation requires a high quality random # generator.  In the
+// browser this is a little complicated due to unknown quality of Math.random()
+// and inconsistent support for the `crypto` API.  We do the best we can via
+// feature-detection
+
+// getRandomValues needs to be invoked in a context where "this" is a Crypto
+// implementation. Also, find the complete implementation of crypto on IE11.
+var getRandomValues = (typeof(crypto) != 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto)) ||
+                      (typeof(msCrypto) != 'undefined' && typeof window.msCrypto.getRandomValues == 'function' && msCrypto.getRandomValues.bind(msCrypto));
+
+if (getRandomValues) {
+  // WHATWG crypto RNG - http://wiki.whatwg.org/wiki/Crypto
+  var rnds8 = new Uint8Array(16); // eslint-disable-line no-undef
+
+  module.exports = function whatwgRNG() {
+    getRandomValues(rnds8);
+    return rnds8;
+  };
+} else {
+  // Math.random()-based (RNG)
+  //
+  // If all else fails, use Math.random().  It's fast, but is of unspecified
+  // quality.
+  var rnds = new Array(16);
+
+  module.exports = function mathRNG() {
+    for (var i = 0, r; i < 16; i++) {
+      if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+      rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+    }
+
+    return rnds;
+  };
+}
+});
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+var byteToHex = [];
+for (var i$1 = 0; i$1 < 256; ++i$1) {
+  byteToHex[i$1] = (i$1 + 0x100).toString(16).substr(1);
+}
+
+function bytesToUuid(buf, offset) {
+  var i = offset || 0;
+  var bth = byteToHex;
+  // join used to fix memory issue caused by concatenation: https://bugs.chromium.org/p/v8/issues/detail?id=3175#c4
+  return ([bth[buf[i++]], bth[buf[i++]], 
+	bth[buf[i++]], bth[buf[i++]], '-',
+	bth[buf[i++]], bth[buf[i++]], '-',
+	bth[buf[i++]], bth[buf[i++]], '-',
+	bth[buf[i++]], bth[buf[i++]], '-',
+	bth[buf[i++]], bth[buf[i++]],
+	bth[buf[i++]], bth[buf[i++]],
+	bth[buf[i++]], bth[buf[i++]]]).join('');
+}
+
+var bytesToUuid_1 = bytesToUuid;
+
+function v4(options, buf, offset) {
+  var i = buf && offset || 0;
+
+  if (typeof(options) == 'string') {
+    buf = options === 'binary' ? new Array(16) : null;
+    options = null;
+  }
+  options = options || {};
+
+  var rnds = options.random || (options.rng || rngBrowser)();
+
+  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+  rnds[6] = (rnds[6] & 0x0f) | 0x40;
+  rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+  // Copy bytes to buffer, if provided
+  if (buf) {
+    for (var ii = 0; ii < 16; ++ii) {
+      buf[i + ii] = rnds[ii];
+    }
+  }
+
+  return buf || bytesToUuid_1(rnds);
+}
+
+var v4_1 = v4;
+
+const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* () {
+    const outputs = [];
+    const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
+    const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
+    let result;
+    while ((result = threeLetterExpr.exec(input.str))) {
+        outputs.push({
+            from: input.from + result.index,
+            to: input.from + result.index + result[0].length,
+            str: result[0],
+            annotation: "This word has three letters. Consider a larger, grander word.",
+            type: "3 letter word",
+            id: v4_1(),
+            suggestions: ["replace", "with", "grand", "word"]
+        });
+    }
+    while ((result = sixLetterExpr.exec(input.str))) {
+        outputs.push({
+            from: input.from + result.index,
+            to: input.from + result.index + result[0].length,
+            str: result[0],
+            annotation: "This word has six letters. Consider a smaller, less fancy word.",
+            type: "6 letter word",
+            id: v4_1(),
+            suggestions: ["replace", "with", "bijou", "word"]
+        });
+    }
+    yield new Promise(_ => setTimeout(_, 1000));
+    return outputs;
+});
+
+//# sourceMappingURL=regex.js.map
 
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
@@ -21628,10 +21678,11 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
+const controlsElement = document.querySelector('#controls');
 const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
-    adapter: createLanguageToolAdapter("http://localhost:9001")
+    adapter: regexAdapter
 });
-if (editorElement && sidebarElement) {
+if (editorElement && sidebarElement && controlsElement) {
     const view = new dist_1$3(editorElement, {
         state: dist_7.create({
             doc,
@@ -21650,7 +21701,11 @@ if (editorElement && sidebarElement) {
         })
     });
     window.editor = view;
-    createView(view, store, commands, sidebarElement);
+    const debugButton = document.getElementById('debug-button');
+    if (debugButton) {
+        debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch);
+    }
+    createView(view, store, commands, sidebarElement, controlsElement);
 }
 //# sourceMappingURL=index.js.map
 

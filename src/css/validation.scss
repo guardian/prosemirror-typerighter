@@ -2,6 +2,28 @@
   --validation-color: #3dcde6;
   --validation-color-hover: #3dcde624;
   --validation-gray: #a0a0a0;
+  --validation-debug-color-dirty: #f7a85e66;
+  --validation-debug-color-inflight: #f7a85ea1;
+}
+
+.Button {
+  padding: 1px 4px;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.Button:hover {
+  background-color: #eee;
+}
+
+.Input[type=checkbox] {
+  margin-left: calc(var(--gutter-width));
+}
+
+.Button:active, .Button:focus {
+  outline: none;
 }
 
 .ValidationWidget {
@@ -83,13 +105,12 @@
   background-color: var(--validation-color-hover);
 }
 
-.ValidationDebugDirty,
-.ValidationDebugDirty.ValidationDebugInflight {
-  background-color: rgba(0, 128, 128, 0.4);
+.ValidationDebugDirty {
+  background-color: var(--validation-debug-color-dirty);
 }
 
 .ValidationDebugInflight {
-  background-color: rgba(0, 128, 128, 0.2);
+  background-color: var(--validation-debug-color-inflight);
 }
 
 .ValidationPlugin__overlay {

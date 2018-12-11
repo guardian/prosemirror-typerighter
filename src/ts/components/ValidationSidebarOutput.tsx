@@ -42,7 +42,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
         >
           <div className="ValidationSidebarOutput__header-label">
             {titleCase(output.type)}
-            <span className="ValidationSidebarOutput__header-range" onClick={this.scrollToRange}>
+            <span className="Button ValidationSidebarOutput__header-range" onClick={this.scrollToRange}>
               {output.from}-{output.to}
             </span>
           </div>

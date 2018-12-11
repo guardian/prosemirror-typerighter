@@ -1,0 +1,46 @@
+
+.ValidationSidebarOutput__container {
+  padding: calc(var(--gutter-width) / 2);
+}
+
+.ValidationSidebarOutput__container--is-selected {
+  border-left: 2px solid var(--validation-color);
+}
+
+
+
+.ValidationSidebarOutput__list-item:last-child {
+  border-bottom: none;
+}
+
+.ValidationSidebarOutput__header {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.ValidationSidebarOutput__header-range {
+  margin-left: calc(var(--gutter-width) / 2);
+  font-size: 12px;
+  color: grey;
+}
+
+.ValidationSidebarOutput__header-toggle-status {
+  min-width: 20px;
+  color: grey;
+  text-align: right;
+}
+
+.ValidationSidebarOutput__content {
+  margin-top: calc(var(--gutter-width) / 2);
+  font-size: 14px;
+}
+
+.ValidationSidebarOutput__suggestion-list {
+  margin-top: calc(var(--gutter-width) / 2);
+}
+
+.ValidationSidebarOutput__suggestion-list-title {
+  font-style: italic;
+  margin-bottom: calc(var(--gutter-width) / 2);
+}

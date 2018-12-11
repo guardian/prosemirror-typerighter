@@ -14,7 +14,10 @@ interface IProps {
 /**
  * A sidebar to display current validations and allow users to apply suggestions.
  */
-class ValidationSidebar extends Component<IProps, IPluginState> {
+class ValidationSidebar extends Component<
+  IProps,
+  IPluginState & { groupResults: boolean }
+> {
   public componentWillMount() {
     this.props.store.subscribe(this.handleNotify);
   }
@@ -29,22 +32,22 @@ class ValidationSidebar extends Component<IProps, IPluginState> {
     } = this.state;
     const hasValidations = !!(currentValidations && currentValidations.length);
     return (
-      <div>
-        <div className="ValidationSidebar__header">
+      <div className="Sidebar__section">
+        <div className="Sidebar__header">
           <span>
             Validation results{" "}
-            {hasValidations && <span>({currentValidations.length})</span>}
+            {hasValidations && <span>({currentValidations.length}) </span>}
+            {(validationInFlight ||
+              validationPending) && (
+                <span className="Sidebar__loading-spinner">|</span>
+              )}
           </span>
-          {validationInFlight ||
-            (validationPending && (
-              <span className="ValidationSidebar__loading-spinner">|</span>
-            ))}
         </div>
-        <div className="ValidationSidebar__content">
+        <div className="Sidebar__content">
           {hasValidations && (
-            <ul className="ValidationSidebar__list">
+            <ul className="Sidebar__list">
               {currentValidations.map(output => (
-                <li className="ValidationSidebar__list-item">
+                <li className="Sidebar__list-item">
                   <ValidationSidebarOutput
                     output={output}
                     selectedValidation={selectedValidation}
@@ -57,7 +60,7 @@ class ValidationSidebar extends Component<IProps, IPluginState> {
             </ul>
           )}
           {!hasValidations && (
-            <div className="ValidationSidebar__awaiting-validation">
+            <div className="Sidebar__awaiting-validation">
               No validations to report.
             </div>
           )}

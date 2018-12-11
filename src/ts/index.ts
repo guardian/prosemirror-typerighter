@@ -2,7 +2,6 @@ import ValidationService, {
   ValidationEvents
 } from "./services/ValidationAPIService";
 import {
-  Action,
   IPluginState,
   newHoverIdReceived,
   selectValidationById,
@@ -13,7 +12,8 @@ import {
   validationRequestSuccess,
   selectValidation,
   IStateHoverInfo,
-  applyNewDirtiedRanges
+  applyNewDirtiedRanges,
+  setDebugState
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -23,7 +23,8 @@ import { DecorationSet, EditorView } from "prosemirror-view";
 import { EditorState, Plugin, Transaction } from "prosemirror-state";
 import {
   expandRangesToParentBlockNode,
-  mapAndMergeRanges
+  mapAndMergeRanges,
+  mapRanges
 } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
@@ -90,6 +91,10 @@ type IndicateHoverCommand = (
   hoverInfo?: IStateHoverInfo | undefined
 ) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
 
+type SetDebugStateCommand = (
+  debug: boolean
+) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
+
 /**
  * The commands available to the plugin consumer.
  */
@@ -98,6 +103,7 @@ export interface ICommands {
   validateDocument: ValidateDocumentCommand;
   selectValidation: SelectValidationCommand;
   indicateHover: IndicateHoverCommand;
+  setDebugState: SetDebugStateCommand;
 }
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
@@ -216,6 +222,13 @@ const createValidatorPlugin = (options: IPluginOptions) => {
       return true;
     },
 
+    setDebugState: debug => (state, dispatch) => {
+      if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
+      }
+      return true;
+    },
+
     applySuggestions: suggestionOpts => (
       state: EditorState,
       dispatch?: (tr: Transaction) => void
@@ -313,9 +326,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
         // is dispatched, and the logic for that doesn't belong in the reducer.
         const newState = {
           ...state,
-          // Map our decorations and dirtied ranges through the new transaction.
+          // Map our decorations, dirtied ranges and validations through the new transaction.
           decorations: state.decorations.map(tr.mapping, tr.doc),
           dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges),
+          currentValidations: mapRanges(tr, state.currentValidations),
           // Keep the transaction history up to date ... to a point! If we get a
           // validation result older than this history, we can discard it and ask
           // for another.
