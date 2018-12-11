@@ -34,6 +34,9 @@ class ValidationControls extends Component<IProps, IPluginState> {
               />
             </div>
           </div>
+          <div className="ValidationControls__row">
+            <button className="Button">Validate whole document</button>
+          </div>
         </div>
       </div>
     );
