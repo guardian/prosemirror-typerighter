@@ -23,15 +23,11 @@
         margin: 0 calc(var(--gutter-width) / -2)
       }
 
-      .Editor, .Sidebar {
+      .Editor {
         background-color: white;
         border-radius: 4px;
         border: 1px solid rgba(0, 0, 0, 0.2);
         margin: 0 calc(var(--gutter-width) / 2);
-      }
-
-      .Editor {
-        flex: 1
       }
 
       .Sidebar {
@@ -39,6 +35,11 @@
         min-width: 400px;
         margin-left: calc(var(--gutter-width) / 2);
       }
+
+      .Editor {
+        flex: 1
+      }
+
 
       .hide {
         display: none;
@@ -80,7 +81,10 @@
             <p>Dinosaurs had adaptations which helped make them success. The first known dinosaurs were small predators that walked on two legs. All their descendants had an upright posture, with the legs underneath the body. This transformed their whole life-style. There were other features. Most of the smaller dinosaurs had feathers, and were probably warm-blooded. This would make them active, with a higher metabolism than modern reptiles. Social interaction, with living in herds and co-operation seems very likely for some types.</p>
           </div>
         </div>
-        <div id="sidebar" class="Sidebar"></div>
+        <div class="Sidebar">
+            <div id="controls" class="Sidebar__container"></div>
+            <div id="sidebar" class="Sidebar__container"></div>
+        </div>
       </div>
     </div>
     <script src="./bundle.js"></script>
