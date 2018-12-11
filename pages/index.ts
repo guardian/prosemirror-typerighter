@@ -11,10 +11,12 @@ import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
 import "prosemirror-example-setup/style/style.css";
 import "../src/css/validation.scss";
-import "../src/css/validationSidebar.scss";
+import "../src/css/sidebar.scss";
+import "../src/css/validationControls.scss";
+import "../src/css/validationSidebarOutput.scss";
 import createValidatorPlugin from "../src/ts/index";
-import createLanguageToolAdapter from "../src/ts/adapters/languageTool";
 import createView from "../src/ts/view";
+import regexAdapter from "../src/ts/adapters/regex";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -30,11 +32,12 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
+const controlsElement = document.querySelector('#controls');
 const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
-  adapter: createLanguageToolAdapter("http://localhost:9001")
+  adapter: regexAdapter
 });
 
-if (editorElement && sidebarElement) {
+if (editorElement && sidebarElement && controlsElement) {
   const view = new EditorView(editorElement, {
     state: EditorState.create({
       doc,
@@ -53,5 +56,9 @@ if (editorElement && sidebarElement) {
     })
   });
   (window as any).editor = view;
-  createView(view, store, commands, sidebarElement);
+  const debugButton = document.getElementById('debug-button');
+  if (debugButton) {
+    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch)
+  }
+  createView(view, store, commands, sidebarElement, controlsElement);
 }

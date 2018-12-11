@@ -1,9 +1,9 @@
-import { Schema } from 'prosemirror-model';
-import { marks, nodes } from 'prosemirror-schema-basic';
-import { Transaction } from 'prosemirror-state';
-import { builders } from 'prosemirror-test-builder';
-import { DecorationSet } from 'prosemirror-view';
-import { IPluginState, selectValidation } from '../state';
+import { Schema } from "prosemirror-model";
+import { marks, nodes } from "prosemirror-schema-basic";
+import { Transaction } from "prosemirror-state";
+import { builders } from "prosemirror-test-builder";
+import { DecorationSet } from "prosemirror-view";
+import { IPluginState, selectValidation, setDebugState } from "../state";
 import {
   newHoverIdReceived,
   selectValidationById,
@@ -11,9 +11,9 @@ import {
   validationRequestError,
   validationRequestStart,
   validationRequestSuccess
-  } from '../state';
-import { createDebugDecorationFromRange } from '../utils/decoration';
-import { expandRangesToParentBlockNode } from '../utils/range';
+} from "../state";
+import { createDebugDecorationFromRange } from "../utils/decoration";
+import { expandRangesToParentBlockNode } from "../utils/range";
 
 jest.mock("uuid/v4", () => () => "uuid");
 
@@ -135,7 +135,7 @@ describe("State management", () => {
             validationRequestSuccess({
               validationOutputs: [],
               validationInput: {
-                str: 'hai',
+                str: "hai",
                 from: 0,
                 to: 25
               },
@@ -157,7 +157,7 @@ describe("State management", () => {
               validationInput: {
                 str: "Example text to validate",
                 from: 5,
-                to: 10,
+                to: 10
               },
               validationOutputs: [
                 {
@@ -235,25 +235,44 @@ describe("State management", () => {
       });
     });
     describe("selectValidation", () => {
-      it('should apply the selected validation id', () => {
+      it("should apply the selected validation id", () => {
         const otherState = {
           ...initialState,
-          currentValidations: [{
-            str: "example",
-            from: 1,
-            to: 1,
-            annotation: "example",
-            suggestions: [],
-            type: "example",
-            id: "exampleId"
-          }]
-        }
-        expect(validationPluginReducer(new Transaction(doc), otherState, selectValidation("exampleId"))).toEqual({
+          currentValidations: [
+            {
+              str: "example",
+              from: 1,
+              to: 1,
+              annotation: "example",
+              suggestions: [],
+              type: "example",
+              id: "exampleId"
+            }
+          ]
+        };
+        expect(
+          validationPluginReducer(
+            new Transaction(doc),
+            otherState,
+            selectValidation("exampleId")
+          )
+        ).toEqual({
           ...otherState,
           selectedValidation: "exampleId"
-        })
+        });
       });
-    })
+    });
+    describe("setDebug", () => {
+      it("should set the debug state", () => {
+        expect(
+          validationPluginReducer(
+            new Transaction(doc),
+            initialState,
+            setDebugState(true)
+          )
+        ).toEqual({ ...initialState, debug: true });
+      });
+    });
   });
   describe("selectors", () => {
     describe("selectValidationById", () => {

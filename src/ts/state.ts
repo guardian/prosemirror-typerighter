@@ -107,6 +107,7 @@ const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
 const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
+const SET_DEBUG_STATE = "SET_DEBUG_STATE";
 
 /**
  * Action creators.
@@ -139,6 +140,7 @@ export const newHoverIdReceived = (
   type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
   payload: { hoverId, hoverInfo }
 });
+type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
 export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
   type: HANDLE_NEW_DIRTY_RANGES as typeof HANDLE_NEW_DIRTY_RANGES,
@@ -152,7 +154,11 @@ export const selectValidation = (validationId: string) => ({
 });
 type ActionSelectValidation = ReturnType<typeof selectValidation>;
 
-type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
+export const setDebugState = (debug: boolean) => ({
+  type: SET_DEBUG_STATE as typeof SET_DEBUG_STATE,
+  payload: { debug }
+});
+type ActionSetDebugState = ReturnType<typeof setDebugState>;
 
 type Action =
   | ActionNewHoverIdReceived
@@ -160,7 +166,8 @@ type Action =
   | ActionValidationRequestStart
   | ActionValidationRequestError
   | ActionSelectValidation
-  | ActionHandleNewDirtyRanges;
+  | ActionHandleNewDirtyRanges
+  | ActionSetDebugState;
 
 /**
  * Selectors.
@@ -197,6 +204,8 @@ const validationPluginReducer = (
       return handleSelectValidation(tr, state, action);
     case HANDLE_NEW_DIRTY_RANGES:
       return handleNewDirtyRanges(tr, state, action);
+    case SET_DEBUG_STATE:
+      return handleSetDebugState(tr, state, action);
     default:
       return state;
   }
@@ -293,10 +302,12 @@ const handleNewDirtyRanges: ActionHandler<ActionHandleNewDirtyRanges> = (
 ) => {
   // Map our dirtied ranges through the current transaction, and append
   // any new ranges it has dirtied.
-  let newDecorations = state.decorations.add(
-    tr.doc,
-    dirtiedRanges.map(range => createDebugDecorationFromRange(range))
-  );
+  let newDecorations = state.debug
+    ? state.decorations.add(
+        tr.doc,
+        dirtiedRanges.map(range => createDebugDecorationFromRange(range))
+      )
+    : state.decorations;
 
   // Remove any validations touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
@@ -320,13 +331,16 @@ const handleValidationRequestStart: ActionHandler<
     str: tr.doc.textBetween(range.from, range.to),
     ...range
   }));
-  // Remove any debug decorations, if they exist.
-  const decorations = removeDecorationsFromRanges(state.decorations, ranges, [
-    DECORATION_DIRTY
-  ]).add(
-    tr.doc,
-    ranges.map(range => createDebugDecorationFromRange(range, false))
-  );
+
+  // Replace any debug decorations, if they exist.
+  const decorations = state.debug
+    ? removeDecorationsFromRanges(state.decorations, ranges, [
+        DECORATION_DIRTY
+      ]).add(
+        tr.doc,
+        ranges.map(range => createDebugDecorationFromRange(range, false))
+      )
+    : state.decorations;
 
   return {
     ...state,
@@ -334,10 +348,12 @@ const handleValidationRequestStart: ActionHandler<
     // We reset the dirty ranges, as they've been expanded and sent for validation.
     dirtiedRanges: [],
     validationPending: false,
-    validationInFlight: ranges.length ? {
-      validationInputs,
-      id: tr.time
-    } : undefined
+    validationInFlight: ranges.length
+      ? {
+          validationInputs,
+          id: tr.time
+        }
+      : undefined
   };
 };
 
@@ -360,12 +376,15 @@ const handleValidationRequestSuccess: ActionHandler<
       state.decorations,
       tr.doc
     );
+
     // Ditch any decorations marking inflight validations
-    const decsToRemove = state.decorations.find(
-      undefined,
-      undefined,
-      _ => _.type === DECORATION_INFLIGHT
-    );
+    const decsToRemove = state.debug
+      ? state.decorations.find(
+          undefined,
+          undefined,
+          _ => _.type === DECORATION_INFLIGHT
+        )
+      : [];
 
     return {
       ...state,
@@ -415,6 +434,17 @@ const handleValidationRequestError: ActionHandler<
     decorations,
     validationInFlight: undefined,
     error: action.payload.validationError.message
+  };
+};
+
+const handleSetDebugState: ActionHandler<ActionSetDebugState> = (
+  _,
+  state,
+  { payload: { debug } }
+) => {
+  return {
+    ...state,
+    debug
   };
 };
 

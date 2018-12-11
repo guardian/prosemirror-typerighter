@@ -249,7 +249,25 @@ li.ProseMirror-selectednode:after {
 :root {
   --validation-color: #3dcde6;
   --validation-color-hover: #3dcde624;
-  --validation-gray: #a0a0a0; }
+  --validation-gray: #a0a0a0;
+  --validation-debug-color-dirty: #f7a85e66;
+  --validation-debug-color-inflight: #f7a85ea1; }
+
+.Button {
+  padding: 1px 4px;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  font-size: 16px;
+  cursor: pointer; }
+
+.Button:hover {
+  background-color: #eee; }
+
+.Input[type=checkbox] {
+  margin-left: calc(var(--gutter-width)); }
+
+.Button:active, .Button:focus {
+  outline: none; }
 
 .ValidationWidget {
   display: inline-block;
@@ -317,12 +335,11 @@ li.ProseMirror-selectednode:after {
 .ValidationDecoration--is-hovering {
   background-color: var(--validation-color-hover); }
 
-.ValidationDebugDirty,
-.ValidationDebugDirty.ValidationDebugInflight {
-  background-color: rgba(0, 128, 128, 0.4); }
+.ValidationDebugDirty {
+  background-color: var(--validation-debug-color-dirty); }
 
 .ValidationDebugInflight {
-  background-color: rgba(0, 128, 128, 0.2); }
+  background-color: var(--validation-debug-color-inflight); }
 
 .ValidationPlugin__overlay {
   position: absolute;
@@ -344,13 +361,6 @@ li.ProseMirror-selectednode:after {
 .ValidationSidebar__awaiting-validation {
   padding: calc(var(--gutter-width) / 2);
   color: gray; }
-
-.ValidationSidebar__header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  padding: calc(var(--gutter-width)) calc(var(--gutter-width) / 2);
-  display: flex;
-  justify-content: space-between;
-  font-weight: 500; }
 
 .ValidationSidebar__list {
   margin: 0;
@@ -409,3 +419,102 @@ li.ProseMirror-selectednode:after {
     transform: rotate(0deg); }
   to {
     transform: rotate(360deg); } }
+
+.Sidebar__section {
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  margin: 0 calc(var(--gutter-width) / 2); }
+
+.Sidebar__container + .Sidebar__container {
+  margin-top: var(--gutter-width); }
+
+.Sidebar__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: calc(var(--gutter-width)) calc(var(--gutter-width) / 2);
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between; }
+
+.Sidebar__header-option {
+  font-weight: 400;
+  font-size: 14px; }
+
+.Sidebar__awaiting-validation {
+  padding: calc(var(--gutter-width) / 2);
+  color: gray; }
+
+.Sidebar__list {
+  margin: 0;
+  padding: 0;
+  list-style: none; }
+
+.Sidebar__awaiting-validation {
+  padding: calc(var(--gutter-width) / 2);
+  color: gray; }
+
+.Sidebar__list {
+  margin: 0;
+  padding: 0;
+  list-style: none; }
+
+.Sidebar__list-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2); }
+
+.Sidebar__loading-spinner {
+  display: inline-block;
+  margin-top: 1px;
+  margin-left: calc(var(--gutter-width) / 2);
+  line-height: 1;
+  animation-duration: 0.5s;
+  animation-name: spin;
+  animation-iteration-count: infinite; }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg); }
+  to {
+    transform: rotate(360deg); } }
+
+.ValidationSidebarOutput__container {
+  padding: calc(var(--gutter-width) / 2); }
+
+.ValidationSidebarOutput__container--is-selected {
+  border-left: 2px solid var(--validation-color); }
+
+.ValidationSidebarOutput__list-item:last-child {
+  border-bottom: none; }
+
+.ValidationSidebarOutput__header {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer; }
+
+.ValidationSidebarOutput__header-range {
+  margin-left: calc(var(--gutter-width) / 2);
+  font-size: 12px;
+  color: grey; }
+
+.ValidationSidebarOutput__header-toggle-status {
+  min-width: 20px;
+  color: grey;
+  text-align: right; }
+
+.ValidationSidebarOutput__content {
+  margin-top: calc(var(--gutter-width) / 2);
+  font-size: 14px; }
+
+.ValidationSidebarOutput__suggestion-list {
+  margin-top: calc(var(--gutter-width) / 2); }
+
+.ValidationSidebarOutput__suggestion-list-title {
+  font-style: italic;
+  margin-bottom: calc(var(--gutter-width) / 2); }
+
+.ValidationControls__row {
+  display: flex;
+  padding: calc(var(--gutter-width) / 2); }
+
+.ValidationControls__input {
+  min-width: 30px;
+  text-align: right; }

@@ -12,7 +12,8 @@ import {
   validationRequestSuccess,
   selectValidation,
   IStateHoverInfo,
-  applyNewDirtiedRanges
+  applyNewDirtiedRanges,
+  setDebugState
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -90,6 +91,10 @@ type IndicateHoverCommand = (
   hoverInfo?: IStateHoverInfo | undefined
 ) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
 
+type SetDebugStateCommand = (
+  debug: boolean
+) => (state: EditorState, dispatch?: (tr: Transaction) => void) => boolean;
+
 /**
  * The commands available to the plugin consumer.
  */
@@ -98,6 +103,7 @@ export interface ICommands {
   validateDocument: ValidateDocumentCommand;
   selectValidation: SelectValidationCommand;
   indicateHover: IndicateHoverCommand;
+  setDebugState: SetDebugStateCommand;
 }
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
@@ -212,6 +218,13 @@ const createValidatorPlugin = (options: IPluginOptions) => {
             selectValidation(validationId)
           )
         );
+      }
+      return true;
+    },
+
+    setDebugState: debug => (state, dispatch) => {
+      if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
       }
       return true;
     },
