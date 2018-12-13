@@ -71,7 +71,7 @@ describe("ValidationAPIService", () => {
     service.on(ValidationEvents.VALIDATION_SUCCESS, _ => {
       expect(_).toEqual({
         id: "id",
-        validationInputs,
+        validationInput: validationInputs[0],
         validationOutputs: [createOutput("1234567890")]
       });
     });

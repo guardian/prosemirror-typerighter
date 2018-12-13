@@ -1,7 +1,4 @@
-import { Schema } from "prosemirror-model";
-import { marks, nodes } from "prosemirror-schema-basic";
 import { Transaction } from "prosemirror-state";
-import { builders } from "prosemirror-test-builder";
 import { DecorationSet } from "prosemirror-view";
 import { IPluginState, selectValidation, setDebugState } from "../state";
 import {
@@ -14,21 +11,9 @@ import {
 } from "../state";
 import { createDebugDecorationFromRange } from "../utils/decoration";
 import { expandRangesToParentBlockNode } from "../utils/range";
+import { doc, p } from './helpers/prosemirror';
 
 jest.mock("uuid/v4", () => () => "uuid");
-
-const noteSchema = new Schema({
-  nodes,
-  marks
-});
-
-const build = builders(noteSchema, {
-  p: {
-    markType: "paragraph"
-  }
-});
-
-const { doc, p } = build;
 
 const initialDocToValidate = doc(p("Example text to validate"));
 const initialTr = new Transaction(initialDocToValidate);
@@ -98,6 +83,7 @@ describe("State management", () => {
             tr,
             {
               ...initialState,
+              debug: true,
               dirtiedRanges: [{ from: 5, to: 10 }],
               decorations: new DecorationSet().add(docToValidate, [
                 createDebugDecorationFromRange({ from: 1, to: 3 })
@@ -108,6 +94,7 @@ describe("State management", () => {
           )
         ).toEqual({
           ...initialState,
+          debug: true,
           dirtiedRanges: [],
           decorations: new DecorationSet().add(docToValidate, [
             createDebugDecorationFromRange({ from: 1, to: 25 }, false)

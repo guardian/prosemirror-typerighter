@@ -1,7 +1,7 @@
 import { MarkSpec, Node, DOMOutputSpec } from 'prosemirror-model';
 import { Transaction } from 'prosemirror-state';
 import { ReplaceAroundStep, ReplaceStep } from 'prosemirror-transform';
-import { IValidationInput } from '../interfaces/IValidation';
+import { IValidationInput, IRange } from '../interfaces/IValidation';
 
 /**
  * Get a single string of text, and an array of position mappings,
@@ -119,6 +119,20 @@ export const findChildren = (
   }
   return flatten(node, descend).filter(child => predicate(child.node));
 };
+
+export const findLeafBlockRanges = (node: Node): IRange[] => {
+  const ranges = [] as IRange[];
+  node.descendants((descNode, pos) => {
+    if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
+      ranges.push({
+        from: pos,
+        to: pos + descNode.nodeSize
+      })
+      return false;
+    }
+  });
+  return ranges;
+}
 
 /**
  * Find any text nodes in the given node.
