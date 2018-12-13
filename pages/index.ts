@@ -16,7 +16,7 @@ import "../src/css/validationControls.scss";
 import "../src/css/validationSidebarOutput.scss";
 import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
-import regexAdapter from "../src/ts/adapters/regex";
+import createTyperighterAdapter from "../src/ts/adapters/typerighter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -34,7 +34,7 @@ const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector('#controls');
 const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
-  adapter: regexAdapter
+  adapter: createTyperighterAdapter('https://typerighter.code.dev-gutools.co.uk')
 });
 
 if (editorElement && sidebarElement && controlsElement) {
