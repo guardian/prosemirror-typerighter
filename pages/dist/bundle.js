@@ -19782,7 +19782,7 @@ const createValidationInputsForDocument = (node) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
             ranges.push({
                 str: descNode.textContent,
-                from: pos,
+                from: pos + 1,
                 to: pos + descNode.nodeSize
             });
             return false;
@@ -19796,7 +19796,6 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
     to: step.to
 }));
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
-//# sourceMappingURL=prosemirror.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
