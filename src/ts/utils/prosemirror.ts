@@ -120,11 +120,12 @@ export const findChildren = (
   return flatten(node, descend).filter(child => predicate(child.node));
 };
 
-export const findLeafBlockRanges = (node: Node): IRange[] => {
-  const ranges = [] as IRange[];
+export const createValidationInputsForDocument = (node: Node): IValidationInput[] => {
+  const ranges = [] as IValidationInput[];
   node.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push({
+        str: descNode.textContent,
         from: pos,
         to: pos + descNode.nodeSize
       })

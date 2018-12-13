@@ -49,6 +49,7 @@ describe("State management", () => {
             tr,
             {
               ...initialState,
+              debug: true,
               dirtiedRanges: [{ from: 5, to: 10 }],
               validationPending: true
             },
@@ -56,6 +57,7 @@ describe("State management", () => {
           )
         ).toEqual({
           ...initialState,
+          debug: true,
           dirtiedRanges: [],
           decorations: new DecorationSet().add(docToValidate, [
             createDebugDecorationFromRange({ from: 1, to: 25 }, false)
