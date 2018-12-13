@@ -295,6 +295,7 @@ li.ProseMirror-selectednode:after {
 .ValidationWidget__type {
   color: var(--validation-gray);
   font-variant: small-caps;
+  text-transform: lowercase;
   letter-spacing: 0.3px; }
 
 .ValidationWidget__annotation,

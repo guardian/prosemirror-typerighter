@@ -3566,7 +3566,7 @@ exports.MarkType = MarkType;
 exports.ContentMatch = ContentMatch;
 exports.DOMParser = DOMParser;
 exports.DOMSerializer = DOMSerializer;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$1);
@@ -5313,7 +5313,7 @@ exports.RemoveMarkStep = RemoveMarkStep;
 exports.ReplaceStep = ReplaceStep;
 exports.ReplaceAroundStep = ReplaceAroundStep;
 exports.replaceStep = replaceStep;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$2);
@@ -6477,7 +6477,7 @@ exports.Transaction = Transaction;
 exports.EditorState = EditorState;
 exports.Plugin = Plugin;
 exports.PluginKey = PluginKey;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist);
@@ -11283,7 +11283,7 @@ exports.Decoration = Decoration;
 exports.DecorationSet = DecorationSet;
 exports.__serializeForClipboard = serializeForClipboard;
 exports.__parseFromClipboard = parseFromClipboard;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$3);
@@ -11454,7 +11454,7 @@ var schema = new dist$1.Schema({nodes: nodes, marks: marks});
 exports.nodes = nodes;
 exports.marks = marks;
 exports.schema = schema;
-
+//# sourceMappingURL=schema-basic.js.map
 });
 
 unwrapExports(schemaBasic);
@@ -11716,7 +11716,7 @@ exports.wrapInList = wrapInList;
 exports.splitListItem = splitListItem;
 exports.liftListItem = liftListItem;
 exports.sinkListItem = sinkListItem;
-
+//# sourceMappingURL=schema-list.js.map
 });
 
 unwrapExports(schemaList);
@@ -12390,7 +12390,7 @@ exports.undo = undo;
 exports.redo = redo;
 exports.undoDepth = undoDepth;
 exports.redoDepth = redoDepth;
-
+//# sourceMappingURL=history.js.map
 });
 
 unwrapExports(history_1);
@@ -12630,7 +12630,7 @@ function keydownHandler(bindings) {
 
 exports.keymap = keymap;
 exports.keydownHandler = keydownHandler;
-
+//# sourceMappingURL=keymap.js.map
 });
 
 unwrapExports(keymap_1);
@@ -13299,7 +13299,7 @@ exports.chainCommands = chainCommands;
 exports.pcBaseKeymap = pcBaseKeymap;
 exports.macBaseKeymap = macBaseKeymap;
 exports.baseKeymap = baseKeymap;
-
+//# sourceMappingURL=commands.js.map
 });
 
 unwrapExports(commands$1);
@@ -13449,7 +13449,7 @@ DropCursorView.prototype.dragleave = function dragleave (event) {
 };
 
 exports.dropCursor = dropCursor;
-
+//# sourceMappingURL=dropcursor.js.map
 });
 
 unwrapExports(dropcursor);
@@ -13646,7 +13646,7 @@ function drawGapCursor(state) {
 
 exports.gapCursor = gapCursor;
 exports.GapCursor = GapCursor;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$7);
@@ -14490,7 +14490,7 @@ exports.redoItem = redoItem;
 exports.wrapItem = wrapItem;
 exports.blockTypeItem = blockTypeItem;
 exports.menuBar = menuBar;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$8);
@@ -14681,7 +14681,7 @@ exports.closeSingleQuote = closeSingleQuote;
 exports.smartQuotes = smartQuotes;
 exports.wrappingInputRule = wrappingInputRule;
 exports.textblockTypeInputRule = textblockTypeInputRule;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$9);
@@ -15325,7 +15325,7 @@ exports.buildMenuItems = buildMenuItems;
 exports.buildKeymap = buildKeymap;
 exports.buildInputRules = buildInputRules;
 exports.exampleSetup = exampleSetup;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$6);
@@ -15392,12 +15392,10 @@ function arrayPush(array, values) {
 
 var _arrayPush = arrayPush;
 
-/** Detect free variable `global` from Node.js. */
 var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
 
 var _freeGlobal = freeGlobal;
 
-/** Detect free variable `self`. */
 var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
 
 /** Used as a reference to the global object. */
@@ -15405,12 +15403,10 @@ var root = _freeGlobal || freeSelf || Function('return this')();
 
 var _root = root;
 
-/** Built-in value references. */
 var Symbol$1 = _root.Symbol;
 
 var _Symbol = Symbol$1;
 
-/** Used for built-in method references. */
 var objectProto$1 = Object.prototype;
 
 /** Used to check objects for own properties. */
@@ -15478,7 +15474,6 @@ function objectToString(value) {
 
 var _objectToString = objectToString;
 
-/** `Object#toString` result references. */
 var nullTag = '[object Null]';
 var undefinedTag = '[object Undefined]';
 
@@ -15533,7 +15528,6 @@ function isObjectLike(value) {
 
 var isObjectLike_1 = isObjectLike;
 
-/** `Object#toString` result references. */
 var argsTag = '[object Arguments]';
 
 /**
@@ -15549,7 +15543,6 @@ function baseIsArguments(value) {
 
 var _baseIsArguments = baseIsArguments;
 
-/** Used for built-in method references. */
 var objectProto = Object.prototype;
 
 /** Used to check objects for own properties. */
@@ -15610,7 +15603,6 @@ var isArray = Array.isArray;
 
 var isArray_1 = isArray;
 
-/** Built-in value references. */
 var spreadableSymbol = _Symbol ? _Symbol.isConcatSpreadable : undefined;
 
 /**
@@ -15627,17 +15619,6 @@ function isFlattenable(value) {
 
 var _isFlattenable = isFlattenable;
 
-/**
- * The base implementation of `_.flatten` with support for restricting flattening.
- *
- * @private
- * @param {Array} array The array to flatten.
- * @param {number} depth The maximum recursion depth.
- * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
- * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
- * @param {Array} [result=[]] The initial result value.
- * @returns {Array} Returns the new flattened array.
- */
 function baseFlatten(array, depth, predicate, isStrict, result) {
   var index = -1,
       length = array.length;
@@ -15663,20 +15644,6 @@ function baseFlatten(array, depth, predicate, isStrict, result) {
 
 var _baseFlatten = baseFlatten;
 
-/**
- * Flattens `array` a single level deep.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Array
- * @param {Array} array The array to flatten.
- * @returns {Array} Returns the new flattened array.
- * @example
- *
- * _.flatten([1, [2, [3, [4]], 5]]);
- * // => [1, 2, [3, [4]], 5]
- */
 function flatten(array) {
   var length = array == null ? 0 : array.length;
   return length ? _baseFlatten(array, 1) : [];
@@ -15721,6 +15688,7 @@ class EventEmitter {
         return remove;
     }
 }
+//# sourceMappingURL=EventEmitter.js.map
 
 const ValidationEvents = {
     VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
@@ -15769,6 +15737,8 @@ class ValidationService extends EventEmitter {
         });
     }
 }
+
+//# sourceMappingURL=ValidationAPIService.js.map
 
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
 const DECORATION_VALIDATION_IS_HOVERING = "DECORATION_VALIDATION_IS_HOVERING";
@@ -15831,6 +15801,8 @@ const createDecorationForValidationRange = (output, isHovering = false, addHeigh
 };
 const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
 
+//# sourceMappingURL=decoration.js.map
+
 /**
  * The base implementation of `_.clamp` which doesn't coerce arguments.
  *
@@ -15886,7 +15858,6 @@ function isObject(value) {
 
 var isObject_1 = isObject;
 
-/** `Object#toString` result references. */
 var symbolTag = '[object Symbol]';
 
 /**
@@ -15913,7 +15884,6 @@ function isSymbol(value) {
 
 var isSymbol_1 = isSymbol;
 
-/** Used as references for various `Number` constants. */
 var NAN = 0 / 0;
 
 /** Used to match leading and trailing whitespace. */
@@ -15977,25 +15947,6 @@ function toNumber(value) {
 
 var toNumber_1 = toNumber;
 
-/**
- * Clamps `number` within the inclusive `lower` and `upper` bounds.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Number
- * @param {number} number The number to clamp.
- * @param {number} [lower] The lower bound.
- * @param {number} upper The upper bound.
- * @returns {number} Returns the clamped number.
- * @example
- *
- * _.clamp(-10, -5, 5);
- * // => -5
- *
- * _.clamp(10, -5, 5);
- * // => 5
- */
 function clamp(number, lower, upper) {
   if (upper === undefined) {
     upper = lower;
@@ -18173,7 +18124,7 @@ exports.toggleHeaderColumn = toggleHeaderColumn;
 exports.toggleHeaderCell = toggleHeaderCell;
 exports.goToNextCell = goToNextCell;
 exports.deleteTable = deleteTable;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$11);
@@ -19632,7 +19583,7 @@ exports.safeInsert = safeInsert;
 exports.setParentNodeMarkup = setParentNodeMarkup;
 exports.selectParentNodeOfType = selectParentNodeOfType;
 exports.removeNodeBefore = removeNodeBefore;
-
+//# sourceMappingURL=index.js.map
 });
 
 unwrapExports(dist$10);
@@ -19783,6 +19734,7 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
     }), range)));
 }));
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
+//# sourceMappingURL=range.js.map
 
 const MarkTypes = {
     legal: "legal",
@@ -19844,6 +19796,7 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
     to: step.to
 }));
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
+//# sourceMappingURL=prosemirror.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
@@ -19992,6 +19945,8 @@ const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
 };
 
+//# sourceMappingURL=state.js.map
+
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
         !(event.target instanceof HTMLElement) ||
@@ -20017,6 +19972,7 @@ function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement
         heightOfSingleLine: heightMarkerElement.offsetHeight
     };
 }
+//# sourceMappingURL=dom.js.map
 
 class Store {
     constructor() {
@@ -20040,6 +19996,8 @@ class Store {
         this.subscribers.splice(index, 1);
     }
 }
+
+//# sourceMappingURL=store.js.map
 
 const createCommands = (getState) => ({
     validateDocument: (state, dispatch) => {
@@ -20101,6 +20059,8 @@ const createCommands = (getState) => ({
         return true;
     }
 });
+
+//# sourceMappingURL=createCommands.js.map
 
 const createValidatorPlugin = (options) => {
     const { adapter, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
@@ -20193,13 +20153,15 @@ const createValidatorPlugin = (options) => {
             };
         }
     });
-    const commands = createCommands(plugin.getState);
+    const commands = createCommands(plugin.getState.bind(plugin));
     return {
         plugin,
         commands,
         store
     };
 };
+
+//# sourceMappingURL=createValidationPlugin.js.map
 
 var VNode = function VNode() {};
 
@@ -20903,6 +20865,9 @@ function render(vnode, parent, merge) {
   return diff(merge, vnode, {}, false, parent, false);
 }
 
+
+//# sourceMappingURL=preact.mjs.map
+
 class ValidationOutput extends Component {
     render({ id, type, annotation, suggestions, applySuggestions }) {
         return (h("div", { className: "ValidationWidget__container" },
@@ -20917,6 +20882,8 @@ class ValidationOutput extends Component {
                     ]) }, suggestion))))))));
     }
 }
+
+//# sourceMappingURL=ValidationOutputContainer.js.map
 
 class ValidationOverlay extends Component {
     constructor() {
@@ -20986,6 +20953,8 @@ class ValidationOverlay extends Component {
     }
 }
 
+//# sourceMappingURL=ValidationOverlay.js.map
+
 /**
  * A specialized version of `_.reduce` for arrays without support for
  * iteratee shorthands.
@@ -21028,7 +20997,6 @@ function basePropertyOf(object) {
 
 var _basePropertyOf = basePropertyOf;
 
-/** Used to map Latin Unicode letters to basic Latin letters. */
 var deburredLetters = {
   // Latin-1 Supplement block.
   '\xc0': 'A',  '\xc1': 'A', '\xc2': 'A', '\xc3': 'A', '\xc4': 'A', '\xc5': 'A',
@@ -21120,7 +21088,6 @@ function arrayMap(array, iteratee) {
 
 var _arrayMap = arrayMap;
 
-/** Used as references for various `Number` constants. */
 var INFINITY = 1 / 0;
 
 /** Used to convert symbols to primitives and strings. */
@@ -21153,34 +21120,12 @@ function baseToString(value) {
 
 var _baseToString = baseToString;
 
-/**
- * Converts `value` to a string. An empty string is returned for `null`
- * and `undefined` values. The sign of `-0` is preserved.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to convert.
- * @returns {string} Returns the converted string.
- * @example
- *
- * _.toString(null);
- * // => ''
- *
- * _.toString(-0);
- * // => '-0'
- *
- * _.toString([1, 2, 3]);
- * // => '1,2,3'
- */
 function toString(value) {
   return value == null ? '' : _baseToString(value);
 }
 
 var toString_1 = toString;
 
-/** Used to match Latin Unicode letters (excluding mathematical operators). */
 var reLatin = /[\xc0-\xd6\xd8-\xf6\xf8-\xff\u0100-\u017f]/g;
 
 /** Used to compose unicode character classes. */
@@ -21325,25 +21270,6 @@ function unicodeWords(string) {
 
 var _unicodeWords = unicodeWords;
 
-/**
- * Splits `string` into an array of its words.
- *
- * @static
- * @memberOf _
- * @since 3.0.0
- * @category String
- * @param {string} [string=''] The string to inspect.
- * @param {RegExp|string} [pattern] The pattern to match words.
- * @param- {Object} [guard] Enables use as an iteratee for methods like `_.map`.
- * @returns {Array} Returns the words of `string`.
- * @example
- *
- * _.words('fred, barney, & pebbles');
- * // => ['fred', 'barney', 'pebbles']
- *
- * _.words('fred, barney, & pebbles', /[^, ]+/g);
- * // => ['fred', 'barney', '&', 'pebbles']
- */
 function words(string, pattern, guard) {
   string = toString_1(string);
   pattern = guard ? undefined : pattern;
@@ -21356,7 +21282,6 @@ function words(string, pattern, guard) {
 
 var words_1 = words;
 
-/** Used to compose unicode capture groups. */
 var rsApos = "['\u2019]";
 
 /** Used to match apostrophes. */
@@ -21409,15 +21334,6 @@ function baseSlice(array, start, end) {
 
 var _baseSlice = baseSlice;
 
-/**
- * Casts `array` to a slice if it's needed.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {number} start The start position.
- * @param {number} [end=array.length] The end position.
- * @returns {Array} Returns the cast slice.
- */
 function castSlice(array, start, end) {
   var length = array.length;
   end = end === undefined ? length : end;
@@ -21507,13 +21423,6 @@ function unicodeToArray(string) {
 
 var _unicodeToArray = unicodeToArray;
 
-/**
- * Converts `string` to an array.
- *
- * @private
- * @param {string} string The string to convert.
- * @returns {Array} Returns the converted array.
- */
 function stringToArray(string) {
   return _hasUnicode(string)
     ? _unicodeToArray(string)
@@ -21522,13 +21431,6 @@ function stringToArray(string) {
 
 var _stringToArray = stringToArray;
 
-/**
- * Creates a function like `_.lowerFirst`.
- *
- * @private
- * @param {string} methodName The name of the `String` case method to use.
- * @returns {Function} Returns the new case function.
- */
 function createCaseFirst(methodName) {
   return function(string) {
     string = toString_1(string);
@@ -21551,48 +21453,10 @@ function createCaseFirst(methodName) {
 
 var _createCaseFirst = createCaseFirst;
 
-/**
- * Converts the first character of `string` to upper case.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category String
- * @param {string} [string=''] The string to convert.
- * @returns {string} Returns the converted string.
- * @example
- *
- * _.upperFirst('fred');
- * // => 'Fred'
- *
- * _.upperFirst('FRED');
- * // => 'FRED'
- */
 var upperFirst = _createCaseFirst('toUpperCase');
 
 var upperFirst_1 = upperFirst;
 
-/**
- * Converts `string` to
- * [start case](https://en.wikipedia.org/wiki/Letter_case#Stylistic_or_specialised_usage).
- *
- * @static
- * @memberOf _
- * @since 3.1.0
- * @category String
- * @param {string} [string=''] The string to convert.
- * @returns {string} Returns the start cased string.
- * @example
- *
- * _.startCase('--foo-bar--');
- * // => 'Foo Bar'
- *
- * _.startCase('fooBar');
- * // => 'Foo Bar'
- *
- * _.startCase('__FOO_BAR__');
- * // => 'FOO BAR'
- */
 var startCase = _createCompounder(function(result, word, index) {
   return result + (index ? ' ' : '') + upperFirst_1(word);
 });
@@ -21650,6 +21514,8 @@ class ValidationSidebarOutput extends Component {
     }
 }
 
+//# sourceMappingURL=ValidationSidebarOutput.js.map
+
 class ValidationSidebar extends Component {
     constructor() {
         super(...arguments);
@@ -21682,6 +21548,8 @@ class ValidationSidebar extends Component {
     }
 }
 
+//# sourceMappingURL=ValidationSidebar.js.map
+
 class ValidationControls extends Component {
     constructor() {
         super(...arguments);
@@ -21708,6 +21576,8 @@ class ValidationControls extends Component {
     }
 }
 
+//# sourceMappingURL=ValidationControls.js.map
+
 const createView = (view, store, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
     const applySuggestions = (suggestionOpts) => commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
@@ -21724,6 +21594,8 @@ const createView = (view, store, commands, sidebarNode, controlsNode) => {
     render(h(ValidationSidebar, { store: store, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover }), sidebarNode);
     render(h(ValidationControls, { store: store, setDebugState: setDebugState, validateDocument: validateDocument }), controlsNode);
 };
+
+//# sourceMappingURL=createView.js.map
 
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
@@ -21814,29 +21686,35 @@ function v4(options, buf, offset) {
 
 var v4_1 = v4;
 
-const createTyperighterAdapter = (apiUrl) => (input) => __awaiter(undefined, void 0, void 0, function* () {
-    const response = yield fetch(apiUrl, {
-        method: "POST",
-        headers: new Headers({
-            "Content-Type": "application/json"
-        }),
-        body: JSON.stringify({
-            text: input.str
-        })
-    });
-    if (response.status !== 200) {
-        throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
+const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* () {
+    const outputs = [];
+    const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
+    const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
+    let result;
+    while ((result = threeLetterExpr.exec(input.str))) {
+        outputs.push({
+            from: input.from + result.index,
+            to: input.from + result.index + result[0].length,
+            str: result[0],
+            annotation: "This word has three letters. Consider a larger, grander word.",
+            type: "3 letter word",
+            id: v4_1(),
+            suggestions: ["replace", "with", "grand", "word"]
+        });
     }
-    const validationData = yield response.json();
-    return validationData.results.map(match => ({
-        id: v4_1(),
-        str: input.str,
-        from: input.from + match.fromPos,
-        to: input.from + match.toPos,
-        annotation: match.message,
-        type: match.rule.description,
-        suggestions: match.suggestedReplacements
-    }));
+    while ((result = sixLetterExpr.exec(input.str))) {
+        outputs.push({
+            from: input.from + result.index,
+            to: input.from + result.index + result[0].length,
+            str: result[0],
+            annotation: "This word has six letters. Consider a smaller, less fancy word.",
+            type: "6 letter word",
+            id: v4_1(),
+            suggestions: ["replace", "with", "bijou", "word"]
+        });
+    }
+    yield new Promise(_ => setTimeout(_, 1000));
+    return outputs;
 });
 
 const mySchema = new dist_8$1({
@@ -21853,7 +21731,7 @@ const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector('#controls');
 const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
-    adapter: createTyperighterAdapter('https://typerighter.code.dev-gutools.co.uk')
+    adapter: regexAdapter
 });
 if (editorElement && sidebarElement && controlsElement) {
     const view = new dist_1$3(editorElement, {

@@ -265,7 +265,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     }
   });
 
-  const commands = createCommands(plugin.getState)
+  const commands = createCommands(plugin.getState.bind(plugin))
 
   return {
     plugin,
