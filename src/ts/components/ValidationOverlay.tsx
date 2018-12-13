@@ -4,7 +4,7 @@ import { Component, h } from 'preact';
 import { IStateHoverInfo, selectValidationById, IPluginState } from '../state';
 import { IValidationOutput } from '../interfaces/IValidation';
 import Store from '../store';
-import { ApplySuggestionOptions } from '..';
+import { ApplySuggestionOptions } from '../createCommands';
 
 interface IState {
   left: number | undefined;

@@ -1,10 +1,10 @@
 import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
-import { ICommands, ApplySuggestionOptions } from ".";
 import ValidationOverlay from "./components/ValidationOverlay";
 import Store from "./store";
 import ValidationSidebar from "./components/ValidationSidebar";
 import ValidationControls from "./components/ValidationControls";
+import { ApplySuggestionOptions, ICommands } from "./createCommands";
 
 /**
  * Scaffolding for an example view.
