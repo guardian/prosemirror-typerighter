@@ -22,7 +22,7 @@ import {
   mergeRanges,
   validationInputToRange
 } from "./utils/range";
-import { ExpandRanges } from ".";
+import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
 
 /**
