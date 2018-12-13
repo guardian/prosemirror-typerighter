@@ -1,8 +1,8 @@
 import { IValidationOutput } from "../interfaces/IValidation";
 import { Component, h } from "preact";
-import { ApplySuggestionOptions } from "..";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
+import { ApplySuggestionOptions } from "../createCommands";
 
 interface IProps {
   output: IValidationOutput;

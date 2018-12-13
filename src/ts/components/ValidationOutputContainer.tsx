@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
-import { ApplySuggestionOptions } from "..";
 import { IValidationOutput } from "../interfaces/IValidation";
+import { ApplySuggestionOptions } from "../createCommands";
 
 export interface IDecorationComponentProps extends IValidationOutput {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;

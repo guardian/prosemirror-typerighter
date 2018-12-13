@@ -14,7 +14,7 @@ import "../src/css/validation.scss";
 import "../src/css/sidebar.scss";
 import "../src/css/validationControls.scss";
 import "../src/css/validationSidebarOutput.scss";
-import createValidatorPlugin from "../src/ts/index";
+import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import regexAdapter from "../src/ts/adapters/regex";
 
