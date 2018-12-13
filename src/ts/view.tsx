@@ -30,8 +30,10 @@ const createView = (
   const indicateHover = (id: string) =>
     commands.indicateHover(id)(view.state, view.dispatch);
 
-  const setDebugState = (debugState: boolean) => commands.setDebugState(debugState)(view.state, view.dispatch);
+  const validateDocument = () =>
+    commands.validateDocument(view.state, view.dispatch);
 
+  const setDebugState = (debugState: boolean) => commands.setDebugState(debugState)(view.state, view.dispatch);
 
   // We wrap this in a container to allow the overlay to be positioned
   // relative to the editable document.
@@ -57,7 +59,7 @@ const createView = (
     sidebarNode
   );
 
-  render(<ValidationControls store={store} setDebugState={setDebugState} />, controlsNode)
+  render(<ValidationControls store={store} setDebugState={setDebugState} validateDocument={validateDocument} />, controlsNode)
 };
 
 export default createView;

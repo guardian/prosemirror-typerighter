@@ -8,12 +8,13 @@ import {
   VALIDATION_PLUGIN_ACTION,
   validationPluginReducer,
   validationRequestError,
-  validationRequestStart,
+  validationRequestForDocument,
   validationRequestSuccess,
   selectValidation,
   IStateHoverInfo,
   applyNewDirtiedRanges,
-  setDebugState
+  setDebugState,
+  validationRequestForDirtyRanges
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -169,7 +170,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     localView.dispatch(
       localView.state.tr.setMeta(
         VALIDATION_PLUGIN_ACTION,
-        validationRequestStart(expandRanges)
+        validationRequestForDirtyRanges(expandRanges)
       )
     );
   };
@@ -187,7 +188,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
       dispatch(
         state.tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
-          validationRequestStart(expandRanges)
+          validationRequestForDocument()
         )
       );
       return true;

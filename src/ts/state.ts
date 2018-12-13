@@ -23,6 +23,7 @@ import {
   validationInputToRange
 } from "./utils/range";
 import { ExpandRanges } from ".";
+import { createValidationInputsForDocument } from "./utils/prosemirror";
 
 /**
  * Information about the span element the user is hovering over.
@@ -101,7 +102,8 @@ const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
  * Action types.
  */
 
-const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
 const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
@@ -113,11 +115,22 @@ const SET_DEBUG_STATE = "SET_DEBUG_STATE";
  * Action creators.
  */
 
-export const validationRequestStart = (expandRanges: ExpandRanges) => ({
-  type: VALIDATION_REQUEST_START as typeof VALIDATION_REQUEST_START,
+export const validationRequestForDirtyRanges = (
+  expandRanges: ExpandRanges
+) => ({
+  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES,
   payload: { expandRanges }
 });
-type ActionValidationRequestStart = ReturnType<typeof validationRequestStart>;
+type ActionValidationRequestForDirtyRanges = ReturnType<
+  typeof validationRequestForDirtyRanges
+>;
+
+export const validationRequestForDocument = () => ({
+  type: VALIDATION_REQUEST_FOR_DOCUMENT as typeof VALIDATION_REQUEST_FOR_DOCUMENT
+});
+type ActionValidationRequestForDocument = ReturnType<
+  typeof validationRequestForDocument
+>;
 
 export const validationRequestSuccess = (response: IValidationResponse) => ({
   type: VALIDATION_REQUEST_SUCCESS as typeof VALIDATION_REQUEST_SUCCESS,
@@ -163,7 +176,8 @@ type ActionSetDebugState = ReturnType<typeof setDebugState>;
 type Action =
   | ActionNewHoverIdReceived
   | ActionValidationResponseReceived
-  | ActionValidationRequestStart
+  | ActionValidationRequestForDirtyRanges
+  | ActionValidationRequestForDocument
   | ActionValidationRequestError
   | ActionSelectValidation
   | ActionHandleNewDirtyRanges
@@ -194,8 +208,10 @@ const validationPluginReducer = (
   switch (action.type) {
     case NEW_HOVER_ID:
       return handleNewHoverId(tr, state, action);
-    case VALIDATION_REQUEST_START:
-      return handleValidationRequestStart(tr, state, action);
+    case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
+      return handleValidationRequestForDirtyRanges(tr, state, action);
+    case VALIDATION_REQUEST_FOR_DOCUMENT:
+      return handleValidationRequestForDocument(tr, state, action);
     case VALIDATION_REQUEST_SUCCESS:
       return handleValidationRequestSuccess(tr, state, action);
     case VALIDATION_REQUEST_ERROR:
@@ -321,24 +337,46 @@ const handleNewDirtyRanges: ActionHandler<ActionHandleNewDirtyRanges> = (
 };
 
 /**
- * Handle a validation request start.
+ * Handle a validation request for the current set of dirty ranges.
  */
-const handleValidationRequestStart: ActionHandler<
-  ActionValidationRequestStart
+const handleValidationRequestForDirtyRanges: ActionHandler<
+  ActionValidationRequestForDirtyRanges
 > = (tr, state, { payload: { expandRanges } }) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const validationInputs: IValidationInput[] = ranges.map(range => ({
     str: tr.doc.textBetween(range.from, range.to),
     ...range
   }));
+  return handleValidationRequestStart(validationInputs)(tr, state);
+};
 
+/**
+ * Handle a validation request for the entire document.
+ */
+const handleValidationRequestForDocument: ActionHandler<
+  ActionValidationRequestForDocument
+> = (tr, state) => {
+  return handleValidationRequestStart(
+    createValidationInputsForDocument(tr.doc)
+  )(tr, state);
+};
+
+/**
+ * Handle a validation request for a given set of validation inputs.
+ */
+const handleValidationRequestStart = (validationInputs: IValidationInput[]) => (
+  tr: Transaction,
+  state: IPluginState
+) => {
   // Replace any debug decorations, if they exist.
   const decorations = state.debug
-    ? removeDecorationsFromRanges(state.decorations, ranges, [
+    ? removeDecorationsFromRanges(state.decorations, validationInputs, [
         DECORATION_DIRTY
       ]).add(
         tr.doc,
-        ranges.map(range => createDebugDecorationFromRange(range, false))
+        validationInputs.map(range =>
+          createDebugDecorationFromRange(range, false)
+        )
       )
     : state.decorations;
 
@@ -348,7 +386,7 @@ const handleValidationRequestStart: ActionHandler<
     // We reset the dirty ranges, as they've been expanded and sent for validation.
     dirtiedRanges: [],
     validationPending: false,
-    validationInFlight: ranges.length
+    validationInFlight: validationInputs.length
       ? {
           validationInputs,
           id: tr.time
@@ -450,7 +488,7 @@ const handleSetDebugState: ActionHandler<ActionSetDebugState> = (
 
 export {
   VALIDATION_PLUGIN_ACTION,
-  VALIDATION_REQUEST_START,
+  VALIDATION_REQUEST_FOR_DIRTY_RANGES,
   VALIDATION_REQUEST_SUCCESS,
   VALIDATION_REQUEST_ERROR,
   NEW_HOVER_ID,

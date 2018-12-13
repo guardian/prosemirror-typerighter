@@ -5,6 +5,7 @@ import { IPluginState } from "../state";
 interface IProps {
   store: Store;
   setDebugState: (debug: boolean) => void;
+  validateDocument: () => void;
 }
 
 /**
@@ -33,6 +34,9 @@ class ValidationControls extends Component<IProps, IPluginState> {
                 onClick={() => setDebugState(!this.state.debug)}
               />
             </div>
+          </div>
+          <div className="ValidationControls__row">
+            <button className="Button" onClick={this.props.validateDocument}>Validate whole document</button>
           </div>
         </div>
       </div>

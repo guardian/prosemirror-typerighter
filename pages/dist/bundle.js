@@ -19736,17 +19736,82 @@ const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
 //# sourceMappingURL=range.js.map
 
+const MarkTypes = {
+    legal: "legal",
+    warn: "warn"
+};
+const createValidationMark = (markName) => ({
+    attrs: {},
+    inclusive: false,
+    parseDOM: [
+        {
+            tag: `span.${markName}`,
+            getAttrs: () => ({})
+        }
+    ],
+    toDOM: () => [`span.${markName}`]
+});
+const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
+    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
+}, {});
+const flatten$2 = (node, descend = true) => {
+    if (!node) {
+        throw new Error('Invalid "node" parameter');
+    }
+    const result = [];
+    node.descendants((child, pos, parent) => {
+        result.push({ node: child, parent, pos });
+        if (!descend) {
+            return false;
+        }
+    });
+    return result;
+};
+const findChildren = (node, predicate, descend) => {
+    if (!node) {
+        throw new Error('Invalid "node" parameter');
+    }
+    else if (!predicate) {
+        throw new Error('Invalid "predicate" parameter');
+    }
+    return flatten$2(node, descend).filter(child => predicate(child.node));
+};
+const createValidationInputsForDocument = (node) => {
+    const ranges = [];
+    node.descendants((descNode, pos) => {
+        if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
+            ranges.push({
+                str: descNode.textContent,
+                from: pos + 1,
+                to: pos + descNode.nodeSize
+            });
+            return false;
+        }
+    });
+    return ranges;
+};
+
+const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
+    from: step.from,
+    to: step.to
+}));
+const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
+
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
-const VALIDATION_REQUEST_START = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
 const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
 const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const SET_DEBUG_STATE = "SET_DEBUG_STATE";
-const validationRequestStart = (expandRanges) => ({
-    type: VALIDATION_REQUEST_START,
+const validationRequestForDirtyRanges = (expandRanges) => ({
+    type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
     payload: { expandRanges }
+});
+const validationRequestForDocument = () => ({
+    type: VALIDATION_REQUEST_FOR_DOCUMENT
 });
 const validationRequestSuccess = (response) => ({
     type: VALIDATION_REQUEST_SUCCESS,
@@ -19780,8 +19845,10 @@ const validationPluginReducer = (tr, state, action) => {
     switch (action.type) {
         case NEW_HOVER_ID:
             return handleNewHoverId(tr, state, action);
-        case VALIDATION_REQUEST_START:
-            return handleValidationRequestStart(tr, state, action);
+        case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
+            return handleValidationRequestForDirtyRanges(tr, state, action);
+        case VALIDATION_REQUEST_FOR_DOCUMENT:
+            return handleValidationRequestForDocument(tr, state, action);
         case VALIDATION_REQUEST_SUCCESS:
             return handleValidationRequestSuccess(tr, state, action);
         case VALIDATION_REQUEST_ERROR:
@@ -19829,15 +19896,21 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
     newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
     return Object.assign({}, state, { validationPending: true, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
 };
-const handleValidationRequestStart = (tr, state, { payload: { expandRanges } }) => {
+const handleValidationRequestForDirtyRanges = (tr, state, { payload: { expandRanges } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
     const validationInputs = ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    return handleValidationRequestStart(validationInputs)(tr, state);
+};
+const handleValidationRequestForDocument = (tr, state) => {
+    return handleValidationRequestStart(createValidationInputsForDocument(tr.doc))(tr, state);
+};
+const handleValidationRequestStart = (validationInputs) => (tr, state) => {
     const decorations = state.debug
-        ? removeDecorationsFromRanges(state.decorations, ranges, [
+        ? removeDecorationsFromRanges(state.decorations, validationInputs, [
             DECORATION_DIRTY
-        ]).add(tr.doc, ranges.map(range => createDebugDecorationFromRange(range, false)))
+        ]).add(tr.doc, validationInputs.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: ranges.length
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: validationInputs.length
             ? {
                 validationInputs,
                 id: tr.time
@@ -19872,34 +19945,6 @@ const handleSetDebugState = (_, state, { payload: { debug } }) => {
 };
 
 //# sourceMappingURL=state.js.map
-
-const MarkTypes = {
-    legal: "legal",
-    warn: "warn"
-};
-const createValidationMark = (markName) => ({
-    attrs: {},
-    inclusive: false,
-    parseDOM: [
-        {
-            tag: `span.${markName}`,
-            getAttrs: () => ({})
-        }
-    ],
-    toDOM: () => [`span.${markName}`]
-});
-const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
-    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
-}, {});
-
-
-
-const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
-    from: step.from,
-    to: step.to
-}));
-const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
-//# sourceMappingURL=prosemirror.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -19963,12 +20008,12 @@ const createValidatorPlugin = (options) => {
         if (pluginState.validationInFlight) {
             return scheduleValidation();
         }
-        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(expandRanges)));
+        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges(expandRanges)));
     };
     const scheduleValidation = () => setTimeout(requestValidation, plugin.getState(localView.state).currentThrottle);
     const commands = {
         validateDocument: (state, dispatch) => {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestStart(expandRanges)));
+            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
             return true;
         },
         indicateHover: (id, hoverInfo) => (state, dispatch) => {
@@ -21520,7 +21565,9 @@ class ValidationControls extends Component {
                         "Debug mode ",
                         h("small", null, "(makes dirty and pending ranges visible)")),
                     h("div", { class: "ValidationControls__input" },
-                        h("input", { type: "checkbox", checked: this.state.debug, className: "Input", onClick: () => setDebugState(!this.state.debug) }))))));
+                        h("input", { type: "checkbox", checked: this.state.debug, className: "Input", onClick: () => setDebugState(!this.state.debug) }))),
+                h("div", { className: "ValidationControls__row" },
+                    h("button", { className: "Button", onClick: this.props.validateDocument }, "Validate whole document")))));
     }
 }
 
@@ -21531,6 +21578,7 @@ const createView = (view, store, commands, sidebarNode, controlsNode) => {
     const applySuggestions = (suggestionOpts) => commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
     const selectValidation = (id) => commands.selectValidation(id)(view.state, view.dispatch);
     const indicateHover = (id) => commands.indicateHover(id)(view.state, view.dispatch);
+    const validateDocument = () => commands.validateDocument(view.state, view.dispatch);
     const setDebugState = (debugState) => commands.setDebugState(debugState)(view.state, view.dispatch);
     const wrapperNode = document.createElement("div");
     wrapperNode.classList.add("ValidationPlugin__container");
@@ -21539,7 +21587,7 @@ const createView = (view, store, commands, sidebarNode, controlsNode) => {
     view.dom.insertAdjacentElement("afterend", overlayNode);
     render(h(ValidationOverlay, { store: store, applySuggestions: applySuggestions }), overlayNode);
     render(h(ValidationSidebar, { store: store, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover }), sidebarNode);
-    render(h(ValidationControls, { store: store, setDebugState: setDebugState }), controlsNode);
+    render(h(ValidationControls, { store: store, setDebugState: setDebugState, validateDocument: validateDocument }), controlsNode);
 };
 
 //# sourceMappingURL=view.js.map
