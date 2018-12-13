@@ -6,7 +6,7 @@ import {
   selectValidationById,
   validationPluginReducer,
   validationRequestError,
-  validationRequestStart,
+  validationRequestForDirtyRanges,
   validationRequestSuccess
 } from "../state";
 import { createDebugDecorationFromRange } from "../utils/decoration";
@@ -53,7 +53,7 @@ describe("State management", () => {
               dirtiedRanges: [{ from: 5, to: 10 }],
               validationPending: true
             },
-            validationRequestStart(expandRangesToParentBlockNode)
+            validationRequestForDirtyRanges(expandRangesToParentBlockNode)
           )
         ).toEqual({
           ...initialState,
@@ -92,7 +92,7 @@ describe("State management", () => {
               ]),
               validationPending: true
             },
-            validationRequestStart(expandRangesToParentBlockNode)
+            validationRequestForDirtyRanges(expandRangesToParentBlockNode)
           )
         ).toEqual({
           ...initialState,
