@@ -13,6 +13,7 @@ Roadmap:
 *   Health work - this project was created during a hack week and there are still a few bugs and some technical debt to work out.
 *   Toggling realtime validation.
 *   Grouping validations and applying grouped validations simultaneously.
+*   Correct tooltip positioning.
 
 ## Index
 
