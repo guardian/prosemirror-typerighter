@@ -2,9 +2,9 @@
 prosemirror-typerighter
 =======================
 
-This Prosemirror plugin adds the ability to validate a document by sending it, or some parts of it, to an external service for validation. Once instantiated, it provides a store object that allows consumer code to subscribe to state updates for UI updates etc.
+This Prosemirror plugin adds the ability to validate a document by sending it, or some parts of it, to an external service for validation. Once instantiated, it provides a store object that allows consumer code to subscribe to state updates for UI updates etc. It's still in its early stages.
 
-It's still in its early stages - see the 'pages' directory for an example implementation.
+[See a demo here,](https://guardian.github.io/prosemirror-typerighter/) with an example UI and validation adapter.
 
 Roadmap:
 
