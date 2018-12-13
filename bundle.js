@@ -19900,6 +19900,7 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
     to: step.to
 }));
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
+//# sourceMappingURL=prosemirror.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -21472,12 +21473,6 @@ class ValidationSidebar extends Component {
         this.handleNotify = (state) => {
             this.setState(state);
         };
-        this.handleChangeGroupResults = (e) => {
-            if (!e.target || !(e.target instanceof HTMLInputElement)) {
-                return;
-            }
-            this.setState({ groupResults: e.target.checked });
-        };
     }
     componentWillMount() {
         this.props.store.subscribe(this.handleNotify);
@@ -21496,10 +21491,7 @@ class ValidationSidebar extends Component {
                         currentValidations.length,
                         ") "),
                     (validationInFlight ||
-                        validationPending) && (h("span", { className: "Sidebar__loading-spinner" }, "|"))),
-                h("span", { className: "Sidebar__header-option" },
-                    "Group results",
-                    h("input", { type: "checkbox", class: "Input", checked: this.state.groupResults, onChange: this.handleChangeGroupResults }))),
+                        validationPending) && (h("span", { className: "Sidebar__loading-spinner" }, "|")))),
             h("div", { className: "Sidebar__content" },
                 hasValidations && (h("ul", { className: "Sidebar__list" }, currentValidations.map(output => (h("li", { className: "Sidebar__list-item" },
                     h(ValidationSidebarOutput, { output: output, selectedValidation: selectedValidation, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover })))))),
@@ -21529,7 +21521,9 @@ class ValidationControls extends Component {
                         "Debug mode ",
                         h("small", null, "(makes dirty and pending ranges visible)")),
                     h("div", { class: "ValidationControls__input" },
-                        h("input", { type: "checkbox", checked: this.state.debug, className: "Input", onClick: () => setDebugState(!this.state.debug) }))))));
+                        h("input", { type: "checkbox", checked: this.state.debug, className: "Input", onClick: () => setDebugState(!this.state.debug) }))),
+                h("div", { className: "ValidationControls__row" },
+                    h("button", { className: "Button" }, "Validate whole document")))));
     }
 }
 
