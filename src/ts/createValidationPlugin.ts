@@ -26,12 +26,12 @@ import { getStateHoverInfoFromEvent } from "./utils/dom";
 import {
   IRange,
   IValidationError,
-  IValidationResponse,
+  IValidationResponse
 } from "./interfaces/IValidation";
 import { IValidationAPIAdapter } from "./interfaces/IValidationAPIAdapter";
 import { Node } from "prosemirror-model";
 import Store from "./store";
-import createCommands from "./createCommands";
+import { createBoundCommands } from "./commands";
 
 /**
  * @module createValidationPlugin
@@ -250,7 +250,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
           commands.indicateHover(
             newValidationId,
             getStateHoverInfoFromEvent(event, view.dom, heightMarker)
-          )(view.state, view.dispatch);
+          );
 
           return false;
         }
@@ -265,7 +265,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     }
   });
 
-  const commands = createCommands(plugin.getState.bind(plugin))
+  const commands = createBoundCommands(
+    localView!,
+    plugin.getState.bind(plugin)
+  );
 
   return {
     plugin,
