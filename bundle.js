@@ -19838,6 +19838,22 @@ const setDebugState = (debug) => ({
     type: SET_DEBUG_STATE,
     payload: { debug }
 });
+const createInitialState = (doc, throttleInMs, maxThrottle) => ({
+    debug: false,
+    currentThrottle: throttleInMs,
+    initialThrottle: throttleInMs,
+    maxThrottle,
+    decorations: dist_3$3.create(doc, []),
+    dirtiedRanges: [],
+    currentValidations: [],
+    selectedValidation: undefined,
+    hoverId: undefined,
+    hoverInfo: undefined,
+    trHistory: [],
+    validationInFlight: undefined,
+    validationPending: false,
+    error: undefined
+});
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
 const validationPluginReducer = (tr, state, action) => {
     if (!action) {
@@ -19999,68 +20015,89 @@ class Store {
 
 //# sourceMappingURL=store.js.map
 
-const createCommands = (getState) => ({
-    validateDocument: (state, dispatch) => {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
-        return true;
-    },
-    indicateHover: (id, hoverInfo) => (state, dispatch) => {
-        if (dispatch) {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(id, hoverInfo)));
-        }
-        return true;
-    },
-    selectValidation: validationId => (state, dispatch) => {
-        const pluginState = getState(state);
-        const output = selectValidationById(pluginState, validationId);
-        if (!output) {
-            return false;
-        }
-        if (dispatch) {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectValidation(validationId)));
-        }
-        return true;
-    },
-    setDebugState: debug => (state, dispatch) => {
-        if (dispatch) {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
-        }
-        return true;
-    },
-    applySuggestions: suggestionOpts => (state, dispatch) => {
-        const pluginState = getState(state);
-        const outputsAndSuggestions = suggestionOpts
-            .reduce((acc, _) => {
-            const output = selectValidationById(pluginState, _.validationId);
-            if (!output) {
-                return acc;
-            }
-            return acc.concat({
-                output,
-                suggestionIndex: _.suggestionIndex
-            });
-        }, [])
-            .filter(_ => !!_);
-        if (!outputsAndSuggestions.length) {
-            return false;
-        }
-        if (dispatch) {
-            const tr = state.tr;
-            outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
-                const suggestion = output.suggestions && output.suggestions[suggestionIndex];
-                if (!suggestion) {
-                    return false;
-                }
-                tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
-            });
-            tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(undefined, undefined));
-            dispatch(tr);
-        }
-        return true;
+const validateDocumentCommand = (state, dispatch) => {
+    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
+    return true;
+};
+const indicateHoverCommand = (id, hoverInfo) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(id, hoverInfo)));
     }
-});
-
-//# sourceMappingURL=createCommands.js.map
+    return true;
+};
+const selectValidationCommand = (validationId, getState) => (state, dispatch) => {
+    const pluginState = getState(state);
+    const output = selectValidationById(pluginState, validationId);
+    if (!output) {
+        return false;
+    }
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectValidation(validationId)));
+    }
+    return true;
+};
+const setDebugStateCommand = (debug) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
+    }
+    return true;
+};
+const applyValidationResponseCommand = (validationResponse) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestSuccess(validationResponse)));
+    }
+    return true;
+};
+const applyValidationErrorCommand = (validationError) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestError(validationError)));
+    }
+    return true;
+};
+const applySuggestionsCommand = (suggestionOpts, getState) => (state, dispatch) => {
+    const pluginState = getState(state);
+    const outputsAndSuggestions = suggestionOpts
+        .reduce((acc, _) => {
+        const output = selectValidationById(pluginState, _.validationId);
+        if (!output) {
+            return acc;
+        }
+        return acc.concat({
+            output,
+            suggestionIndex: _.suggestionIndex
+        });
+    }, [])
+        .filter(_ => !!_);
+    if (!outputsAndSuggestions.length) {
+        return false;
+    }
+    if (dispatch) {
+        const tr = state.tr;
+        outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
+            const suggestion = output.suggestions && output.suggestions[suggestionIndex];
+            if (!suggestion) {
+                return false;
+            }
+            tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
+        });
+        tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(undefined, undefined));
+        dispatch(tr);
+    }
+    return true;
+};
+const createBoundCommands = ({ state, dispatch }, getState) => {
+    const bindCommand = (action) => (...args) => action(...args)(state, dispatch);
+    return {
+        validateDocument: () => validateDocumentCommand(state, dispatch),
+        applyValidationResult: bindCommand(applyValidationResponseCommand),
+        applyValidationError: bindCommand(applyValidationErrorCommand),
+        applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(state, dispatch),
+        selectValidation: (validationId) => selectValidationCommand(validationId, getState)(state, dispatch),
+        indicateHover: bindCommand(indicateHoverCommand),
+        setDebugState: bindCommand(setDebugStateCommand)
+    };
+};
+//# sourceMappingURL=commands.js.map
 
 const createValidatorPlugin = (options) => {
     const { adapter, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
@@ -20080,22 +20117,7 @@ const createValidatorPlugin = (options) => {
             init(_, { doc }) {
                 validationService.on(ValidationEvents.VALIDATION_SUCCESS, (validationResponse) => localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestSuccess(validationResponse))));
                 validationService.on(ValidationEvents.VALIDATION_ERROR, (validationError) => localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestError(validationError))));
-                return {
-                    debug: false,
-                    currentThrottle: throttleInMs,
-                    initialThrottle: throttleInMs,
-                    maxThrottle,
-                    decorations: dist_3$3.create(doc, []),
-                    dirtiedRanges: [],
-                    currentValidations: [],
-                    selectedValidation: undefined,
-                    hoverId: undefined,
-                    hoverInfo: undefined,
-                    trHistory: [],
-                    validationInFlight: undefined,
-                    validationPending: false,
-                    error: undefined
-                };
+                return createInitialState(doc, throttleInMs, maxThrottle);
             },
             apply(tr, state) {
                 const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), currentValidations: mapRanges(tr, state.currentValidations), trHistory: state.trHistory.length > 25
@@ -20141,7 +20163,7 @@ const createValidatorPlugin = (options) => {
                         console.warn(`No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
                         return false;
                     }
-                    commands.indicateHover(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(view.state, view.dispatch);
+                    commands.indicateHover(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker));
                     return false;
                 }
             }
@@ -20153,7 +20175,7 @@ const createValidatorPlugin = (options) => {
             };
         }
     });
-    const commands = createCommands(plugin.getState.bind(plugin));
+    const commands = createBoundCommands(localView, plugin.getState.bind(plugin));
     return {
         plugin,
         commands,
@@ -21580,19 +21602,14 @@ class ValidationControls extends Component {
 
 const createView = (view, store, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
-    const applySuggestions = (suggestionOpts) => commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
-    const selectValidation = (id) => commands.selectValidation(id)(view.state, view.dispatch);
-    const indicateHover = (id) => commands.indicateHover(id)(view.state, view.dispatch);
-    const validateDocument = () => commands.validateDocument(view.state, view.dispatch);
-    const setDebugState = (debugState) => commands.setDebugState(debugState)(view.state, view.dispatch);
     const wrapperNode = document.createElement("div");
     wrapperNode.classList.add("ValidationPlugin__container");
     view.dom.parentNode.replaceChild(wrapperNode, view.dom);
     wrapperNode.appendChild(view.dom);
     view.dom.insertAdjacentElement("afterend", overlayNode);
-    render(h(ValidationOverlay, { store: store, applySuggestions: applySuggestions }), overlayNode);
-    render(h(ValidationSidebar, { store: store, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover }), sidebarNode);
-    render(h(ValidationControls, { store: store, setDebugState: setDebugState, validateDocument: validateDocument }), controlsNode);
+    render(h(ValidationOverlay, { store: store, applySuggestions: commands.applySuggestions }), overlayNode);
+    render(h(ValidationSidebar, { store: store, applySuggestions: commands.applySuggestions, selectValidation: commands.selectValidation, indicateHover: commands.indicateHover }), sidebarNode);
+    render(h(ValidationControls, { store: store, setDebugState: commands.setDebugState, validateDocument: commands.validateDocument }), controlsNode);
 };
 
 //# sourceMappingURL=createView.js.map
@@ -21717,6 +21734,8 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
     return outputs;
 });
 
+//# sourceMappingURL=regex.js.map
+
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: schemaBasic_2
@@ -21754,9 +21773,10 @@ if (editorElement && sidebarElement && controlsElement) {
     window.editor = view;
     const debugButton = document.getElementById('debug-button');
     if (debugButton) {
-        debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch);
+        debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug);
     }
     createView(view, store, commands, sidebarElement, controlsElement);
 }
+//# sourceMappingURL=index.js.map
 
 }());
