@@ -8,7 +8,8 @@ import {
   validationRequestError,
   validationRequestSuccess,
   applyNewDirtiedRanges,
-  validationRequestForDirtyRanges
+  validationRequestForDirtyRanges,
+  createInitialState
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -134,22 +135,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
               )
             )
         );
-        return {
-          debug: false,
-          currentThrottle: throttleInMs,
-          initialThrottle: throttleInMs,
-          maxThrottle,
-          decorations: DecorationSet.create(doc, []),
-          dirtiedRanges: [],
-          currentValidations: [],
-          selectedValidation: undefined,
-          hoverId: undefined,
-          hoverInfo: undefined,
-          trHistory: [],
-          validationInFlight: undefined,
-          validationPending: false,
-          error: undefined
-        };
+        return createInitialState(doc, throttleInMs, maxThrottle);
       },
       apply(tr: Transaction, state: IPluginState): IPluginState {
         // There are certain things we need to do every time a transaction
