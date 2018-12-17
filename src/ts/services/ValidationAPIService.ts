@@ -3,11 +3,12 @@ import { EventEmitter } from "./EventEmitter";
 import {
   IValidationError,
   IValidationInput,
-  IValidationOutput,
-  IValidationResponse
+  IValidationOutput
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import IValidationService from "../interfaces/IValidationService";
+import Store from "../store";
+import { Commands } from "../commands";
 
 export const ValidationEvents = {
   VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
@@ -19,8 +20,21 @@ export const ValidationEvents = {
  * for ranges. Validation results and errors are emitted as events.
  */
 class ValidationService extends EventEmitter implements IValidationService {
-  constructor(private adapter: IValidationAPIAdapter) {
+  constructor(
+    private store: Store,
+    private commands: Commands,
+    private adapter: IValidationAPIAdapter
+  ) {
     super();
+    this.store.subscribe((state, prevState) => {
+      // If we have a new validation, send it to the validation service.
+      if (!prevState.validationInFlight && state.validationInFlight) {
+        this.validate(
+          state.validationInFlight.validationInputs,
+          state.trHistory[state.trHistory.length - 1].time
+        );
+      }
+    });
   }
 
   /**
@@ -61,11 +75,11 @@ class ValidationService extends EventEmitter implements IValidationService {
     id: string | number,
     message: string
   ) => {
-    this.emit(ValidationEvents.VALIDATION_ERROR, {
+    this.commands.applyValidationError({
       validationInput,
       id,
       message
-    } as IValidationError);
+    });
   };
 
   /**
@@ -76,11 +90,11 @@ class ValidationService extends EventEmitter implements IValidationService {
     validationInput: IValidationInput,
     validationOutputs: IValidationOutput[]
   ) => {
-    this.emit(ValidationEvents.VALIDATION_SUCCESS, {
+    this.commands.applyValidationResult({
       id,
       validationInput,
       validationOutputs
-    } as IValidationResponse);
+    });
   };
 }
 

@@ -17,6 +17,7 @@ import "../src/css/validationSidebarOutput.scss";
 import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import regexAdapter from "../src/ts/adapters/regex";
+import ValidationService from "../src/ts/services/ValidationAPIService";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -32,10 +33,13 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
-const controlsElement = document.querySelector('#controls');
-const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
-  adapter: regexAdapter
-});
+const controlsElement = document.querySelector("#controls");
+const { plugin: validatorPlugin, store, commands } = createValidatorPlugin();
+
+/**
+ * The plugin leaves it to consuming code to handle sending and receiving validations.
+ */
+const validationService = new ValidationService(store, commands, regexAdapter);
 
 if (editorElement && sidebarElement && controlsElement) {
   const view = new EditorView(editorElement, {
@@ -56,9 +60,10 @@ if (editorElement && sidebarElement && controlsElement) {
     })
   });
   (window as any).editor = view;
-  const debugButton = document.getElementById('debug-button');
+  const debugButton = document.getElementById("debug-button");
   if (debugButton) {
-    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch)
+    debugButton.onclick = () =>
+      commands.setDebugState(!!validatorPlugin.getState(view.state).debug);
   }
   createView(view, store, commands, sidebarElement, controlsElement);
 }

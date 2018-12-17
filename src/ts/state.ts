@@ -24,6 +24,7 @@ import {
 } from "./utils/range";
 import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
+import { Node } from "prosemirror-model";
 
 /**
  * Information about the span element the user is hovering over.
@@ -182,6 +183,30 @@ type Action =
   | ActionSelectValidation
   | ActionHandleNewDirtyRanges
   | ActionSetDebugState;
+
+/**
+ * Initial state.
+ */
+export const createInitialState = (
+  doc: Node,
+  throttleInMs: number,
+  maxThrottle: number
+) => ({
+  debug: false,
+  currentThrottle: throttleInMs,
+  initialThrottle: throttleInMs,
+  maxThrottle,
+  decorations: DecorationSet.create(doc, []),
+  dirtiedRanges: [],
+  currentValidations: [],
+  selectedValidation: undefined,
+  hoverId: undefined,
+  hoverInfo: undefined,
+  trHistory: [],
+  validationInFlight: undefined,
+  validationPending: false,
+  error: undefined
+});
 
 /**
  * Selectors.
