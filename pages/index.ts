@@ -58,7 +58,7 @@ if (editorElement && sidebarElement && controlsElement) {
   (window as any).editor = view;
   const debugButton = document.getElementById('debug-button');
   if (debugButton) {
-    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch)
+    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)
   }
   createView(view, store, commands, sidebarElement, controlsElement);
 }
