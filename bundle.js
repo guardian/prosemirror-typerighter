@@ -15334,43 +15334,6 @@ var dist_2$4 = dist$6.buildKeymap;
 var dist_3$4 = dist$6.buildInputRules;
 var dist_4$4 = dist$6.exampleSetup;
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-
-
-
-
-
-
-
-
-
-
-
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
-
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -15650,95 +15613,6 @@ function flatten(array) {
 }
 
 var flatten_1 = flatten;
-
-class EventEmitter {
-    constructor() {
-        this.events = {};
-    }
-    on(event, listener) {
-        if (typeof this.events[event] !== "object") {
-            this.events[event] = [];
-        }
-        this.events[event].push(listener);
-        return () => this.removeListener(event, listener);
-    }
-    removeListener(event, listener) {
-        if (typeof this.events[event] !== "object") {
-            return;
-        }
-        const idx = this.events[event].indexOf(listener);
-        if (idx > -1) {
-            this.events[event].splice(idx, 1);
-        }
-    }
-    removeAllListeners() {
-        Object.keys(this.events).forEach((event) => this.events[event].splice(0, this.events[event].length));
-    }
-    emit(event, ...args) {
-        if (typeof this.events[event] !== "object") {
-            return;
-        }
-        [...this.events[event]].forEach(listener => listener.apply(this, args));
-    }
-    once(event, listener) {
-        const remove = this.on(event, (...args) => {
-            remove();
-            listener.apply(this, args);
-        });
-        return remove;
-    }
-}
-//# sourceMappingURL=EventEmitter.js.map
-
-const ValidationEvents = {
-    VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
-    VALIDATION_ERROR: "VALIDATION_ERROR"
-};
-class ValidationService extends EventEmitter {
-    constructor(adapter) {
-        super();
-        this.adapter = adapter;
-        this.cancelValidation = () => {
-            this.cancelValidation();
-        };
-        this.handleError = (validationInput, id, message) => {
-            this.emit(ValidationEvents.VALIDATION_ERROR, {
-                validationInput,
-                id,
-                message
-            });
-        };
-        this.handleCompleteValidation = (id, validationInput, validationOutputs) => {
-            this.emit(ValidationEvents.VALIDATION_SUCCESS, {
-                id,
-                validationInput,
-                validationOutputs
-            });
-        };
-    }
-    validate(inputs, id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const result = yield this.adapter(input);
-                    this.handleCompleteValidation(id, input, result);
-                    return result;
-                }
-                catch (e) {
-                    this.handleError(input, id, e.message);
-                    return {
-                        validationInput: input,
-                        message: e.message,
-                        id
-                    };
-                }
-            })));
-            return flatten_1(results);
-        });
-    }
-}
-
-//# sourceMappingURL=ValidationAPIService.js.map
 
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
 const DECORATION_VALIDATION_IS_HOVERING = "DECORATION_VALIDATION_IS_HOVERING";
@@ -19838,6 +19712,22 @@ const setDebugState = (debug) => ({
     type: SET_DEBUG_STATE,
     payload: { debug }
 });
+const createInitialState = (doc, throttleInMs, maxThrottle) => ({
+    debug: false,
+    currentThrottle: throttleInMs,
+    initialThrottle: throttleInMs,
+    maxThrottle,
+    decorations: dist_3$3.create(doc, []),
+    dirtiedRanges: [],
+    currentValidations: [],
+    selectedValidation: undefined,
+    hoverId: undefined,
+    hoverInfo: undefined,
+    trHistory: [],
+    validationInFlight: undefined,
+    validationPending: false,
+    error: undefined
+});
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
 const validationPluginReducer = (tr, state, action) => {
     if (!action) {
@@ -19978,9 +19868,9 @@ class Store {
     constructor() {
         this.subscribers = [];
     }
-    notify(state) {
+    notify(state, prevState) {
         this.state = state;
-        this.subscribers.forEach(_ => _(state));
+        this.subscribers.forEach(_ => _(state, prevState));
     }
     getState() {
         return this.state;
@@ -19999,74 +19889,94 @@ class Store {
 
 //# sourceMappingURL=store.js.map
 
-const createCommands = (getState) => ({
-    validateDocument: (state, dispatch) => {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
-        return true;
-    },
-    indicateHover: (id, hoverInfo) => (state, dispatch) => {
-        if (dispatch) {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(id, hoverInfo)));
-        }
-        return true;
-    },
-    selectValidation: validationId => (state, dispatch) => {
-        const pluginState = getState(state);
-        const output = selectValidationById(pluginState, validationId);
-        if (!output) {
-            return false;
-        }
-        if (dispatch) {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectValidation(validationId)));
-        }
-        return true;
-    },
-    setDebugState: debug => (state, dispatch) => {
-        if (dispatch) {
-            dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
-        }
-        return true;
-    },
-    applySuggestions: suggestionOpts => (state, dispatch) => {
-        const pluginState = getState(state);
-        const outputsAndSuggestions = suggestionOpts
-            .reduce((acc, _) => {
-            const output = selectValidationById(pluginState, _.validationId);
-            if (!output) {
-                return acc;
-            }
-            return acc.concat({
-                output,
-                suggestionIndex: _.suggestionIndex
-            });
-        }, [])
-            .filter(_ => !!_);
-        if (!outputsAndSuggestions.length) {
-            return false;
-        }
-        if (dispatch) {
-            const tr = state.tr;
-            outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
-                const suggestion = output.suggestions && output.suggestions[suggestionIndex];
-                if (!suggestion) {
-                    return false;
-                }
-                tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
-            });
-            tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(undefined, undefined));
-            dispatch(tr);
-        }
-        return true;
+const validateDocumentCommand = (state, dispatch) => {
+    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
+    return true;
+};
+const indicateHoverCommand = (id, hoverInfo) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(id, hoverInfo)));
     }
-});
+    return true;
+};
+const selectValidationCommand = (validationId, getState) => (state, dispatch) => {
+    const pluginState = getState(state);
+    const output = selectValidationById(pluginState, validationId);
+    if (!output) {
+        return false;
+    }
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectValidation(validationId)));
+    }
+    return true;
+};
+const setDebugStateCommand = (debug) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
+    }
+    return true;
+};
+const applyValidationResponseCommand = (validationResponse) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestSuccess(validationResponse)));
+    }
+    return true;
+};
+const applyValidationErrorCommand = (validationError) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestError(validationError)));
+    }
+    return true;
+};
+const applySuggestionsCommand = (suggestionOpts, getState) => (state, dispatch) => {
+    const pluginState = getState(state);
+    const outputsAndSuggestions = suggestionOpts
+        .reduce((acc, _) => {
+        const output = selectValidationById(pluginState, _.validationId);
+        if (!output) {
+            return acc;
+        }
+        return acc.concat({
+            output,
+            suggestionIndex: _.suggestionIndex
+        });
+    }, [])
+        .filter(_ => !!_);
+    if (!outputsAndSuggestions.length) {
+        return false;
+    }
+    if (dispatch) {
+        const tr = state.tr;
+        outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
+            const suggestion = output.suggestions && output.suggestions[suggestionIndex];
+            if (!suggestion) {
+                return false;
+            }
+            tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
+        });
+        tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(undefined, undefined));
+        dispatch(tr);
+    }
+    return true;
+};
+const createBoundCommands = ({ state, dispatch }, getState) => {
+    const bindCommand = (action) => (...args) => action(...args)(state, dispatch);
+    return {
+        validateDocument: () => validateDocumentCommand(state, dispatch),
+        applyValidationResult: bindCommand(applyValidationResponseCommand),
+        applyValidationError: bindCommand(applyValidationErrorCommand),
+        applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(state, dispatch),
+        selectValidation: (validationId) => selectValidationCommand(validationId, getState)(state, dispatch),
+        indicateHover: bindCommand(indicateHoverCommand),
+        setDebugState: bindCommand(setDebugStateCommand)
+    };
+};
+//# sourceMappingURL=commands.js.map
 
-//# sourceMappingURL=createCommands.js.map
-
-const createValidatorPlugin = (options) => {
-    const { adapter, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
+const createValidatorPlugin = (options = {}) => {
+    const { expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
     let localView;
     const store = new Store();
-    const validationService = new ValidationService(adapter);
     const requestValidation = () => {
         const pluginState = plugin.getState(localView.state);
         if (pluginState.validationInFlight) {
@@ -20077,26 +19987,7 @@ const createValidatorPlugin = (options) => {
     const scheduleValidation = () => setTimeout(requestValidation, plugin.getState(localView.state).currentThrottle);
     const plugin = new dist_8({
         state: {
-            init(_, { doc }) {
-                validationService.on(ValidationEvents.VALIDATION_SUCCESS, (validationResponse) => localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestSuccess(validationResponse))));
-                validationService.on(ValidationEvents.VALIDATION_ERROR, (validationError) => localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestError(validationError))));
-                return {
-                    debug: false,
-                    currentThrottle: throttleInMs,
-                    initialThrottle: throttleInMs,
-                    maxThrottle,
-                    decorations: dist_3$3.create(doc, []),
-                    dirtiedRanges: [],
-                    currentValidations: [],
-                    selectedValidation: undefined,
-                    hoverId: undefined,
-                    hoverInfo: undefined,
-                    trHistory: [],
-                    validationInFlight: undefined,
-                    validationPending: false,
-                    error: undefined
-                };
-            },
+            init: (_, { doc }) => createInitialState(doc, throttleInMs, maxThrottle),
             apply(tr, state) {
                 const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), currentValidations: mapRanges(tr, state.currentValidations), trHistory: state.trHistory.length > 25
                         ? state.trHistory.slice(1).concat(tr)
@@ -20104,20 +19995,15 @@ const createValidatorPlugin = (options) => {
                 return validationPluginReducer(tr, newState, tr.getMeta(VALIDATION_PLUGIN_ACTION));
             }
         },
-        appendTransaction(trs, oldState, newState) {
-            const oldPluginState = plugin.getState(oldState);
-            const newPluginState = plugin.getState(newState);
+        appendTransaction(trs, _, newState) {
+            const pluginState = plugin.getState(newState);
             const tr = newState.tr;
-            const newDirtiedRanges = trs.reduce((acc, _) => acc.concat(getReplaceStepRangesFromTransaction(_)), []);
+            const newDirtiedRanges = trs.reduce((acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)), []);
             if (newDirtiedRanges.length) {
-                if (!newPluginState.validationPending) {
+                if (!pluginState.validationPending) {
                     scheduleValidation();
                 }
                 return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
-            }
-            if (!oldPluginState.validationInFlight &&
-                newPluginState.validationInFlight) {
-                validationService.validate(newPluginState.validationInFlight.validationInputs, trs[trs.length - 1].time);
             }
         },
         props: {
@@ -20141,7 +20027,7 @@ const createValidatorPlugin = (options) => {
                         console.warn(`No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
                         return false;
                     }
-                    commands.indicateHover(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(view.state, view.dispatch);
+                    commands.indicateHover(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker));
                     return false;
                 }
             }
@@ -20149,11 +20035,11 @@ const createValidatorPlugin = (options) => {
         view(view) {
             localView = view;
             return {
-                update: _ => store.notify(plugin.getState(_.state))
+                update: (_, prevState) => store.notify(plugin.getState(view.state), plugin.getState(prevState))
             };
         }
     });
-    const commands = createCommands(plugin.getState.bind(plugin));
+    const commands = createBoundCommands(localView, plugin.getState.bind(plugin));
     return {
         plugin,
         commands,
@@ -21580,22 +21466,54 @@ class ValidationControls extends Component {
 
 const createView = (view, store, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
-    const applySuggestions = (suggestionOpts) => commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
-    const selectValidation = (id) => commands.selectValidation(id)(view.state, view.dispatch);
-    const indicateHover = (id) => commands.indicateHover(id)(view.state, view.dispatch);
-    const validateDocument = () => commands.validateDocument(view.state, view.dispatch);
-    const setDebugState = (debugState) => commands.setDebugState(debugState)(view.state, view.dispatch);
     const wrapperNode = document.createElement("div");
     wrapperNode.classList.add("ValidationPlugin__container");
     view.dom.parentNode.replaceChild(wrapperNode, view.dom);
     wrapperNode.appendChild(view.dom);
     view.dom.insertAdjacentElement("afterend", overlayNode);
-    render(h(ValidationOverlay, { store: store, applySuggestions: applySuggestions }), overlayNode);
-    render(h(ValidationSidebar, { store: store, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover }), sidebarNode);
-    render(h(ValidationControls, { store: store, setDebugState: setDebugState, validateDocument: validateDocument }), controlsNode);
+    render(h(ValidationOverlay, { store: store, applySuggestions: commands.applySuggestions }), overlayNode);
+    render(h(ValidationSidebar, { store: store, applySuggestions: commands.applySuggestions, selectValidation: commands.selectValidation, indicateHover: commands.indicateHover }), sidebarNode);
+    render(h(ValidationControls, { store: store, setDebugState: commands.setDebugState, validateDocument: commands.validateDocument }), controlsNode);
 };
 
 //# sourceMappingURL=createView.js.map
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+
+
+
+
+
+
+
+
+
+
+
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
 
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
@@ -21717,6 +21635,100 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
     return outputs;
 });
 
+//# sourceMappingURL=regex.js.map
+
+class EventEmitter {
+    constructor() {
+        this.events = {};
+    }
+    on(event, listener) {
+        if (typeof this.events[event] !== "object") {
+            this.events[event] = [];
+        }
+        this.events[event].push(listener);
+        return () => this.removeListener(event, listener);
+    }
+    removeListener(event, listener) {
+        if (typeof this.events[event] !== "object") {
+            return;
+        }
+        const idx = this.events[event].indexOf(listener);
+        if (idx > -1) {
+            this.events[event].splice(idx, 1);
+        }
+    }
+    removeAllListeners() {
+        Object.keys(this.events).forEach((event) => this.events[event].splice(0, this.events[event].length));
+    }
+    emit(event, ...args) {
+        if (typeof this.events[event] !== "object") {
+            return;
+        }
+        [...this.events[event]].forEach(listener => listener.apply(this, args));
+    }
+    once(event, listener) {
+        const remove = this.on(event, (...args) => {
+            remove();
+            listener.apply(this, args);
+        });
+        return remove;
+    }
+}
+//# sourceMappingURL=EventEmitter.js.map
+
+class ValidationService extends EventEmitter {
+    constructor(store, commands, adapter) {
+        super();
+        this.store = store;
+        this.commands = commands;
+        this.adapter = adapter;
+        this.cancelValidation = () => {
+            this.cancelValidation();
+        };
+        this.handleError = (validationInput, id, message) => {
+            this.commands.applyValidationError({
+                validationInput,
+                id,
+                message
+            });
+        };
+        this.handleCompleteValidation = (id, validationInput, validationOutputs) => {
+            this.commands.applyValidationResult({
+                id,
+                validationInput,
+                validationOutputs
+            });
+        };
+        this.store.subscribe((state, prevState) => {
+            if (!prevState.validationInFlight && state.validationInFlight) {
+                this.validate(state.validationInFlight.validationInputs, state.trHistory[state.trHistory.length - 1].time);
+            }
+        });
+    }
+    validate(inputs, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const result = yield this.adapter(input);
+                    this.handleCompleteValidation(id, input, result);
+                    return result;
+                }
+                catch (e) {
+                    this.handleError(input, id, e.message);
+                    return {
+                        validationInput: input,
+                        message: e.message,
+                        id
+                    };
+                }
+            })));
+            return flatten_1(results);
+        });
+    }
+}
+
+//# sourceMappingURL=ValidationAPIService.js.map
+
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: schemaBasic_2
@@ -21729,10 +21741,9 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
-const controlsElement = document.querySelector('#controls');
-const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
-    adapter: regexAdapter
-});
+const controlsElement = document.querySelector("#controls");
+const { plugin: validatorPlugin, store, commands } = createValidatorPlugin();
+const validationService = new ValidationService(store, commands, regexAdapter);
 if (editorElement && sidebarElement && controlsElement) {
     const view = new dist_1$3(editorElement, {
         state: dist_7.create({
@@ -21752,11 +21763,12 @@ if (editorElement && sidebarElement && controlsElement) {
         })
     });
     window.editor = view;
-    const debugButton = document.getElementById('debug-button');
+    const debugButton = document.getElementById("debug-button");
     if (debugButton) {
-        debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch);
+        debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug);
     }
     createView(view, store, commands, sidebarElement, controlsElement);
 }
+//# sourceMappingURL=index.js.map
 
 }());
