@@ -32,7 +32,7 @@ import {
 import { IValidationAPIAdapter } from "./interfaces/IValidationAPIAdapter";
 import { Node } from "prosemirror-model";
 import Store from "./store";
-import { createBoundCommands } from "./commands";
+import { createBoundCommands, indicateHoverCommand } from "./commands";
 
 /**
  * @module createValidationPlugin
@@ -233,10 +233,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
             return false;
           }
 
-          commands.indicateHover(
+          indicateHoverCommand(
             newValidationId,
             getStateHoverInfoFromEvent(event, view.dom, heightMarker)
-          );
+          )(localView.state, localView.dispatch)
 
           return false;
         }
@@ -251,15 +251,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     }
   });
 
-  const commands = createBoundCommands(
-    localView!,
-    plugin.getState.bind(plugin)
-  );
-
   return {
     plugin,
-    commands,
-    store
+    store,
+    getState: plugin.getState
   };
 };
 
