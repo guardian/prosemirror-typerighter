@@ -28,7 +28,7 @@ type GetState = (state: EditorState) => IPluginState;
 /**
  * Validates an entire document.
  */
-const validateDocumentCommand = (
+export const validateDocumentCommand = (
   state: EditorState,
   dispatch: (tr: Transaction) => void
 ) => {
@@ -43,7 +43,7 @@ const validateDocumentCommand = (
  * details on hover coords if available (for example, if hovering
  * over a validation decoration) to allow the positioning of e.g. tooltips.
  */
-const indicateHoverCommand = (
+export const indicateHoverCommand = (
   id: string | undefined,
   hoverInfo: IStateHoverInfo | undefined
 ): Command => (state, dispatch) => {
@@ -61,7 +61,7 @@ const indicateHoverCommand = (
 /**
  * Mark a given validation as active.
  */
-const selectValidationCommand = (
+export const selectValidationCommand = (
   validationId: string,
   getState: GetState
 ): Command => (state, dispatch) => {
@@ -82,7 +82,7 @@ const selectValidationCommand = (
  * Set the debug state. Enabling debug mode provides additional marks
  * to reveal dirty ranges and ranges sent for validation.
  */
-const setDebugStateCommand = (debug: boolean): Command => (state, dispatch) => {
+export const setDebugStateCommand = (debug: boolean): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
   }
@@ -92,7 +92,7 @@ const setDebugStateCommand = (debug: boolean): Command => (state, dispatch) => {
 /**
  * Apply a successful validation response to the document.
  */
-const applyValidationResponseCommand = (
+export const applyValidationResponseCommand = (
   validationResponse: IValidationResponse
 ): Command => (state, dispatch) => {
   if (dispatch) {
@@ -111,7 +111,7 @@ const applyValidationResponseCommand = (
  * that failed validation requests are reapplied as dirtied ranges
  * to be resent on the next request.
  */
-const applyValidationErrorCommand = (
+export const applyValidationErrorCommand = (
   validationError: IValidationError
 ): Command => (state, dispatch) => {
   if (dispatch) {
@@ -133,7 +133,7 @@ export type ApplySuggestionOptions = Array<{
 /**
  * Applies a suggestion from a validation to the document.
  */
-const applySuggestionsCommand = (
+export const applySuggestionsCommand = (
   suggestionOpts: ApplySuggestionOptions,
   getState: GetState
 ): Command => (state, dispatch) => {
@@ -184,20 +184,20 @@ const applySuggestionsCommand = (
 };
 
 export const createBoundCommands = (
-  { state, dispatch }: EditorView,
+  view: EditorView,
   getState: GetState
 ) => {
   const bindCommand = <CommandArgs extends any[]>(action: (...args: CommandArgs) => Command) => (
     ...args: CommandArgs
-  ) => action(...args)(state, dispatch);
+  ) => action(...args)(view.state, view.dispatch);
   return {
-    validateDocument: () => validateDocumentCommand(state, dispatch),
+    validateDocument: () => validateDocumentCommand(view.state, view.dispatch),
     applyValidationResult: bindCommand(applyValidationResponseCommand),
     applyValidationError: bindCommand(applyValidationErrorCommand),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
-      applySuggestionsCommand(suggestionOpts, getState)(state, dispatch),
+      applySuggestionsCommand(suggestionOpts, getState)(view.state, view.dispatch),
     selectValidation: (validationId: string) =>
-      selectValidationCommand(validationId, getState)(state, dispatch),
+      selectValidationCommand(validationId, getState)(view.state, view.dispatch),
     indicateHover: bindCommand(indicateHoverCommand),
     setDebugState: bindCommand(setDebugStateCommand)
   };

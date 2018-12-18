@@ -12637,7 +12637,7 @@ unwrapExports(keymap_1);
 var keymap_2 = keymap_1.keymap;
 var keymap_3 = keymap_1.keydownHandler;
 
-var commands$1 = createCommonjsModule(function (module, exports) {
+var commands = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 
@@ -13302,31 +13302,31 @@ exports.baseKeymap = baseKeymap;
 //# sourceMappingURL=commands.js.map
 });
 
-unwrapExports(commands$1);
-var commands_1 = commands$1.deleteSelection;
-var commands_2 = commands$1.joinBackward;
-var commands_3 = commands$1.selectNodeBackward;
-var commands_4 = commands$1.joinForward;
-var commands_5 = commands$1.selectNodeForward;
-var commands_6 = commands$1.joinUp;
-var commands_7 = commands$1.joinDown;
-var commands_8 = commands$1.lift;
-var commands_9 = commands$1.newlineInCode;
-var commands_10 = commands$1.exitCode;
-var commands_11 = commands$1.createParagraphNear;
-var commands_12 = commands$1.liftEmptyBlock;
-var commands_13 = commands$1.splitBlock;
-var commands_14 = commands$1.splitBlockKeepMarks;
-var commands_15 = commands$1.selectParentNode;
-var commands_16 = commands$1.selectAll;
-var commands_17 = commands$1.wrapIn;
-var commands_18 = commands$1.setBlockType;
-var commands_19 = commands$1.toggleMark;
-var commands_20 = commands$1.autoJoin;
-var commands_21 = commands$1.chainCommands;
-var commands_22 = commands$1.pcBaseKeymap;
-var commands_23 = commands$1.macBaseKeymap;
-var commands_24 = commands$1.baseKeymap;
+unwrapExports(commands);
+var commands_1 = commands.deleteSelection;
+var commands_2 = commands.joinBackward;
+var commands_3 = commands.selectNodeBackward;
+var commands_4 = commands.joinForward;
+var commands_5 = commands.selectNodeForward;
+var commands_6 = commands.joinUp;
+var commands_7 = commands.joinDown;
+var commands_8 = commands.lift;
+var commands_9 = commands.newlineInCode;
+var commands_10 = commands.exitCode;
+var commands_11 = commands.createParagraphNear;
+var commands_12 = commands.liftEmptyBlock;
+var commands_13 = commands.splitBlock;
+var commands_14 = commands.splitBlockKeepMarks;
+var commands_15 = commands.selectParentNode;
+var commands_16 = commands.selectAll;
+var commands_17 = commands.wrapIn;
+var commands_18 = commands.setBlockType;
+var commands_19 = commands.toggleMark;
+var commands_20 = commands.autoJoin;
+var commands_21 = commands.chainCommands;
+var commands_22 = commands.pcBaseKeymap;
+var commands_23 = commands.macBaseKeymap;
+var commands_24 = commands.baseKeymap;
 
 var dropcursor = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -14222,8 +14222,8 @@ var icons = {
 // Menu item for the `joinUp` command.
 var joinUpItem = new MenuItem({
   title: "Join with above block",
-  run: commands$1.joinUp,
-  select: function (state) { return commands$1.joinUp(state); },
+  run: commands.joinUp,
+  select: function (state) { return commands.joinUp(state); },
   icon: icons.join
 });
 
@@ -14231,8 +14231,8 @@ var joinUpItem = new MenuItem({
 // Menu item for the `lift` command.
 var liftItem = new MenuItem({
   title: "Lift out of enclosing block",
-  run: commands$1.lift,
-  select: function (state) { return commands$1.lift(state); },
+  run: commands.lift,
+  select: function (state) { return commands.lift(state); },
   icon: icons.lift
 });
 
@@ -14240,8 +14240,8 @@ var liftItem = new MenuItem({
 // Menu item for the `selectParentNode` command.
 var selectParentNodeItem = new MenuItem({
   title: "Select parent node",
-  run: commands$1.selectParentNode,
-  select: function (state) { return commands$1.selectParentNode(state); },
+  run: commands.selectParentNode,
+  select: function (state) { return commands.selectParentNode(state); },
   icon: icons.selectParentNode
 });
 
@@ -14271,10 +14271,10 @@ function wrapItem(nodeType, options) {
   var passedOptions = {
     run: function run(state, dispatch) {
       // FIXME if (options.attrs instanceof Function) options.attrs(state, attrs => wrapIn(nodeType, attrs)(state))
-      return commands$1.wrapIn(nodeType, options.attrs)(state, dispatch)
+      return commands.wrapIn(nodeType, options.attrs)(state, dispatch)
     },
     select: function select(state) {
-      return commands$1.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
+      return commands.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
     }
   };
   for (var prop in options) { passedOptions[prop] = options[prop]; }
@@ -14287,7 +14287,7 @@ function wrapItem(nodeType, options) {
 // properties. Others must be given in `options`. `options.attrs` may
 // be an object to provide the attributes for the textblock node.
 function blockTypeItem(nodeType, options) {
-  var command = commands$1.setBlockType(nodeType, options.attrs);
+  var command = commands.setBlockType(nodeType, options.attrs);
   var passedOptions = {
     run: command,
     enable: function enable(state) { return command(state) },
@@ -14952,7 +14952,7 @@ function markItem(markType, options) {
     enable: true
   };
   for (var prop in options) { passedOptions[prop] = options[prop]; }
-  return cmdItem(commands$1.toggleMark(markType), passedOptions)
+  return cmdItem(commands.toggleMark(markType), passedOptions)
 }
 
 function linkItem(markType) {
@@ -14963,7 +14963,7 @@ function linkItem(markType) {
     enable: function enable(state) { return !state.selection.empty },
     run: function run(state, dispatch, view) {
       if (markActive(state, markType)) {
-        commands$1.toggleMark(markType)(state, dispatch);
+        commands.toggleMark(markType)(state, dispatch);
         return true
       }
       openPrompt({
@@ -14976,7 +14976,7 @@ function linkItem(markType) {
           title: new TextField({label: "Title"})
         },
         callback: function callback(attrs) {
-          commands$1.toggleMark(markType, attrs)(view.state, view.dispatch);
+          commands.toggleMark(markType, attrs)(view.state, view.dispatch);
           view.focus();
         }
       });
@@ -15162,26 +15162,26 @@ function buildKeymap(schema, mapKeys) {
   bind("Backspace", dist$9.undoInputRule);
   if (!mac) { bind("Mod-y", history_1.redo); }
 
-  bind("Alt-ArrowUp", commands$1.joinUp);
-  bind("Alt-ArrowDown", commands$1.joinDown);
-  bind("Mod-BracketLeft", commands$1.lift);
-  bind("Escape", commands$1.selectParentNode);
+  bind("Alt-ArrowUp", commands.joinUp);
+  bind("Alt-ArrowDown", commands.joinDown);
+  bind("Mod-BracketLeft", commands.lift);
+  bind("Escape", commands.selectParentNode);
 
   if (type = schema.marks.strong)
-    { bind("Mod-b", commands$1.toggleMark(type)); }
+    { bind("Mod-b", commands.toggleMark(type)); }
   if (type = schema.marks.em)
-    { bind("Mod-i", commands$1.toggleMark(type)); }
+    { bind("Mod-i", commands.toggleMark(type)); }
   if (type = schema.marks.code)
-    { bind("Mod-`", commands$1.toggleMark(type)); }
+    { bind("Mod-`", commands.toggleMark(type)); }
 
   if (type = schema.nodes.bullet_list)
     { bind("Shift-Ctrl-8", schemaList.wrapInList(type)); }
   if (type = schema.nodes.ordered_list)
     { bind("Shift-Ctrl-9", schemaList.wrapInList(type)); }
   if (type = schema.nodes.blockquote)
-    { bind("Ctrl->", commands$1.wrapIn(type)); }
+    { bind("Ctrl->", commands.wrapIn(type)); }
   if (type = schema.nodes.hard_break) {
-    var br = type, cmd = commands$1.chainCommands(commands$1.exitCode, function (state, dispatch) {
+    var br = type, cmd = commands.chainCommands(commands.exitCode, function (state, dispatch) {
       dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
       return true
     });
@@ -15195,11 +15195,11 @@ function buildKeymap(schema, mapKeys) {
     bind("Mod-]", schemaList.sinkListItem(type));
   }
   if (type = schema.nodes.paragraph)
-    { bind("Shift-Ctrl-0", commands$1.setBlockType(type)); }
+    { bind("Shift-Ctrl-0", commands.setBlockType(type)); }
   if (type = schema.nodes.code_block)
-    { bind("Shift-Ctrl-\\", commands$1.setBlockType(type)); }
+    { bind("Shift-Ctrl-\\", commands.setBlockType(type)); }
   if (type = schema.nodes.heading)
-    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, commands$1.setBlockType(type, {level: i})); } }
+    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, commands.setBlockType(type, {level: i})); } }
   if (type = schema.nodes.horizontal_rule) {
     var hr = type;
     bind("Mod-_", function (state, dispatch) {
@@ -15304,7 +15304,7 @@ function exampleSetup(options) {
   var plugins = [
     buildInputRules(options.schema),
     keymap_1.keymap(buildKeymap(options.schema, options.mapKeys)),
-    keymap_1.keymap(commands$1.baseKeymap),
+    keymap_1.keymap(commands.baseKeymap),
     dropcursor.dropCursor(),
     dist$7.gapCursor()
   ];
@@ -19959,14 +19959,14 @@ const applySuggestionsCommand = (suggestionOpts, getState) => (state, dispatch) 
     }
     return true;
 };
-const createBoundCommands = ({ state, dispatch }, getState) => {
-    const bindCommand = (action) => (...args) => action(...args)(state, dispatch);
+const createBoundCommands = (view, getState) => {
+    const bindCommand = (action) => (...args) => action(...args)(view.state, view.dispatch);
     return {
-        validateDocument: () => validateDocumentCommand(state, dispatch),
+        validateDocument: () => validateDocumentCommand(view.state, view.dispatch),
         applyValidationResult: bindCommand(applyValidationResponseCommand),
         applyValidationError: bindCommand(applyValidationErrorCommand),
-        applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(state, dispatch),
-        selectValidation: (validationId) => selectValidationCommand(validationId, getState)(state, dispatch),
+        applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(view.state, view.dispatch),
+        selectValidation: (validationId) => selectValidationCommand(validationId, getState)(view.state, view.dispatch),
         indicateHover: bindCommand(indicateHoverCommand),
         setDebugState: bindCommand(setDebugStateCommand)
     };
@@ -20027,7 +20027,7 @@ const createValidatorPlugin = (options = {}) => {
                         console.warn(`No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
                         return false;
                     }
-                    commands.indicateHover(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker));
+                    indicateHoverCommand(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(localView.state, localView.dispatch);
                     return false;
                 }
             }
@@ -20039,11 +20039,10 @@ const createValidatorPlugin = (options = {}) => {
             };
         }
     });
-    const commands = createBoundCommands(localView, plugin.getState.bind(plugin));
     return {
         plugin,
-        commands,
-        store
+        store,
+        getState: plugin.getState
     };
 };
 
@@ -21742,8 +21741,7 @@ const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector("#controls");
-const { plugin: validatorPlugin, store, commands } = createValidatorPlugin();
-const validationService = new ValidationService(store, commands, regexAdapter);
+const { plugin: validatorPlugin, store, getState } = createValidatorPlugin();
 if (editorElement && sidebarElement && controlsElement) {
     const view = new dist_1$3(editorElement, {
         state: dist_7.create({
@@ -21754,14 +21752,13 @@ if (editorElement && sidebarElement && controlsElement) {
                     history: false,
                     menuContent: dist_1$4(mySchema).fullMenu
                 }),
-                keymap_2({
-                    F6: commands.validateDocument
-                }),
                 historyPlugin,
                 validatorPlugin
             ]
         })
     });
+    const commands = createBoundCommands(view, getState);
+    const validationService = new ValidationService(store, commands, regexAdapter);
     window.editor = view;
     const debugButton = document.getElementById("debug-button");
     if (debugButton) {

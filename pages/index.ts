@@ -4,7 +4,6 @@ import { Schema, DOMParser } from "prosemirror-model";
 import { marks, schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
-import { keymap } from "prosemirror-keymap";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
 
 import "prosemirror-view/style/prosemirror.css";
@@ -18,6 +17,7 @@ import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import regexAdapter from "../src/ts/adapters/regex";
 import ValidationService from "../src/ts/services/ValidationAPIService";
+import { createBoundCommands } from "../src/ts/commands";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -34,12 +34,7 @@ const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector("#controls");
-const { plugin: validatorPlugin, store, commands } = createValidatorPlugin();
-
-/**
- * The plugin leaves it to consuming code to handle sending and receiving validations.
- */
-const validationService = new ValidationService(store, commands, regexAdapter);
+const { plugin: validatorPlugin, store, getState } = createValidatorPlugin();
 
 if (editorElement && sidebarElement && controlsElement) {
   const view = new EditorView(editorElement, {
@@ -51,14 +46,19 @@ if (editorElement && sidebarElement && controlsElement) {
           history: false,
           menuContent: buildMenuItems(mySchema).fullMenu
         }),
-        keymap({
-          F6: commands.validateDocument
-        }),
         historyPlugin,
         validatorPlugin
       ]
     })
   });
+
+  const commands = createBoundCommands(view, getState);
+
+  /**
+   * The plugin leaves it to consuming code to handle sending and receiving validations.
+   */
+  const validationService = new ValidationService(store, commands, regexAdapter);
+
   (window as any).editor = view;
   const debugButton = document.getElementById("debug-button");
   if (debugButton) {
