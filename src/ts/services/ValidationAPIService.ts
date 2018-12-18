@@ -1,12 +1,10 @@
 import flatten from "lodash/flatten";
-import { EventEmitter } from "./EventEmitter";
 import {
   IValidationError,
   IValidationInput,
   IValidationOutput
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
-import IValidationService from "../interfaces/IValidationService";
 import Store from "../store";
 import { Commands } from "../commands";
 
@@ -16,16 +14,16 @@ export const ValidationEvents = {
 };
 
 /**
- * The validation service. Calls to validate() begin validations
- * for ranges. Validation results and errors are emitted as events.
+ * An example validation service. Calls to validate() begin validations
+ * for ranges, configured via the supplied adapter. Validation results and
+ * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService extends EventEmitter implements IValidationService {
+class ValidationService {
   constructor(
     private store: Store,
     private commands: Commands,
     private adapter: IValidationAPIAdapter
   ) {
-    super();
     this.store.subscribe((state, prevState) => {
       // If we have a new validation, send it to the validation service.
       if (!prevState.validationInFlight && state.validationInFlight) {
@@ -59,13 +57,6 @@ class ValidationService extends EventEmitter implements IValidationService {
     );
     return flatten<IValidationOutput | IValidationError>(results);
   }
-
-  /**
-   * Cancel all running validations.
-   */
-  public cancelValidation = () => {
-    this.cancelValidation();
-  };
 
   /**
    * Handle an error.
