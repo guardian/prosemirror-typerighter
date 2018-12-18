@@ -8,7 +8,8 @@ import {
   validationRequestError,
   validationRequestSuccess,
   applyNewDirtiedRanges,
-  validationRequestForDirtyRanges
+  validationRequestForDirtyRanges,
+  createInitialState
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -26,12 +27,12 @@ import { getStateHoverInfoFromEvent } from "./utils/dom";
 import {
   IRange,
   IValidationError,
-  IValidationResponse,
+  IValidationResponse
 } from "./interfaces/IValidation";
 import { IValidationAPIAdapter } from "./interfaces/IValidationAPIAdapter";
 import { Node } from "prosemirror-model";
 import Store from "./store";
-import createCommands from "./createCommands";
+import { createBoundCommands, indicateHoverCommand } from "./commands";
 
 /**
  * @module createValidationPlugin
@@ -134,22 +135,7 @@ const createValidatorPlugin = (options: IPluginOptions) => {
               )
             )
         );
-        return {
-          debug: false,
-          currentThrottle: throttleInMs,
-          initialThrottle: throttleInMs,
-          maxThrottle,
-          decorations: DecorationSet.create(doc, []),
-          dirtiedRanges: [],
-          currentValidations: [],
-          selectedValidation: undefined,
-          hoverId: undefined,
-          hoverInfo: undefined,
-          trHistory: [],
-          validationInFlight: undefined,
-          validationPending: false,
-          error: undefined
-        };
+        return createInitialState(doc, throttleInMs, maxThrottle);
       },
       apply(tr: Transaction, state: IPluginState): IPluginState {
         // There are certain things we need to do every time a transaction
@@ -247,10 +233,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
             return false;
           }
 
-          commands.indicateHover(
+          indicateHoverCommand(
             newValidationId,
             getStateHoverInfoFromEvent(event, view.dom, heightMarker)
-          )(view.state, view.dispatch);
+          )(localView.state, localView.dispatch)
 
           return false;
         }
@@ -265,12 +251,10 @@ const createValidatorPlugin = (options: IPluginOptions) => {
     }
   });
 
-  const commands = createCommands(plugin.getState.bind(plugin))
-
   return {
     plugin,
-    commands,
-    store
+    store,
+    getState: plugin.getState
   };
 };
 

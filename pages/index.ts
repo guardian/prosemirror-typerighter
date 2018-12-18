@@ -17,6 +17,7 @@ import "../src/css/validationSidebarOutput.scss";
 import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import regexAdapter from "../src/ts/adapters/regex";
+import { createBoundCommands } from "../src/ts/commands";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -33,7 +34,7 @@ const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector('#controls');
-const { plugin: validatorPlugin, store, commands } = createValidatorPlugin({
+const { plugin: validatorPlugin, store, getState } = createValidatorPlugin({
   adapter: regexAdapter
 });
 
@@ -47,18 +48,17 @@ if (editorElement && sidebarElement && controlsElement) {
           history: false,
           menuContent: buildMenuItems(mySchema).fullMenu
         }),
-        keymap({
-          F6: commands.validateDocument
-        }),
         historyPlugin,
         validatorPlugin
       ]
     })
   });
+
+  const commands = createBoundCommands(view, getState);
   (window as any).editor = view;
   const debugButton = document.getElementById('debug-button');
   if (debugButton) {
-    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)(view.state, view.dispatch)
+    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)
   }
   createView(view, store, commands, sidebarElement, controlsElement);
 }

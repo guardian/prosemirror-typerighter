@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import Store from "../store";
-import { ApplySuggestionOptions } from "..";
+import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
 
@@ -8,7 +8,7 @@ interface IProps {
   store: Store;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   selectValidation: (validationId: string) => void;
-  indicateHover: (validationId: string) => void;
+  indicateHover: (validationId: string, _: any) => void;
 }
 
 /**

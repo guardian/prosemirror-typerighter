@@ -2,13 +2,13 @@ import { IValidationOutput } from "../interfaces/IValidation";
 import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
-import { ApplySuggestionOptions } from "../createCommands";
+import { ApplySuggestionOptions } from "../commands";
 
 interface IProps {
   output: IValidationOutput;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectValidation: (validationId: string) => void;
-  indicateHover: (validationId: string | undefined) => void;
+  indicateHover: (validationId: string | undefined, _?: any) => void;
   selectedValidation: string | undefined;
 }
 

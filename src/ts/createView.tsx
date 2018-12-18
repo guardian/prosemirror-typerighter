@@ -4,7 +4,7 @@ import ValidationOverlay from "./components/ValidationOverlay";
 import Store from "./store";
 import ValidationSidebar from "./components/ValidationSidebar";
 import ValidationControls from "./components/ValidationControls";
-import { ApplySuggestionOptions, ICommands } from "./createCommands";
+import { Commands } from "./commands";
 
 /**
  * Scaffolding for an example view.
@@ -12,28 +12,13 @@ import { ApplySuggestionOptions, ICommands } from "./createCommands";
 const createView = (
   view: EditorView,
   store: Store,
-  commands: ICommands,
+  commands: Commands,
   sidebarNode: Element,
   controlsNode: Element
 ) => {
   // Create our overlay node, which is responsible for displaying
   // validation messages when the user hovers over highlighted ranges.
   const overlayNode = document.createElement("div");
-
-  // Bind our commands function to simplify our component interface
-  const applySuggestions = (suggestionOpts: ApplySuggestionOptions) =>
-    commands.applySuggestions(suggestionOpts)(view.state, view.dispatch);
-
-  const selectValidation = (id: string) =>
-    commands.selectValidation(id)(view.state, view.dispatch);
-
-  const indicateHover = (id: string) =>
-    commands.indicateHover(id)(view.state, view.dispatch);
-
-  const validateDocument = () =>
-    commands.validateDocument(view.state, view.dispatch);
-
-  const setDebugState = (debugState: boolean) => commands.setDebugState(debugState)(view.state, view.dispatch);
 
   // We wrap this in a container to allow the overlay to be positioned
   // relative to the editable document.
@@ -45,21 +30,31 @@ const createView = (
 
   // Finally, render our components.
   render(
-    <ValidationOverlay store={store} applySuggestions={applySuggestions} />,
+    <ValidationOverlay
+      store={store}
+      applySuggestions={commands.applySuggestions}
+    />,
     overlayNode
   );
 
   render(
     <ValidationSidebar
       store={store}
-      applySuggestions={applySuggestions}
-      selectValidation={selectValidation}
-      indicateHover={indicateHover}
+      applySuggestions={commands.applySuggestions}
+      selectValidation={commands.selectValidation}
+      indicateHover={commands.indicateHover}
     />,
     sidebarNode
   );
 
-  render(<ValidationControls store={store} setDebugState={setDebugState} validateDocument={validateDocument} />, controlsNode)
+  render(
+    <ValidationControls
+      store={store}
+      setDebugState={commands.setDebugState}
+      validateDocument={commands.validateDocument}
+    />,
+    controlsNode
+  );
 };
 
 export default createView;
