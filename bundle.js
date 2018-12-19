@@ -19810,7 +19810,7 @@ const handleValidationRequestStart = (validationInputs) => (tr, state) => {
 };
 const handleValidationRequestSuccess = (tr, state, action) => {
     const response = action.payload.response;
-    if (response && response.validationOutputs.length) {
+    if (response) {
         const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
         const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
         const decsToRemove = state.debug
