@@ -4,6 +4,7 @@ import { Schema, DOMParser } from "prosemirror-model";
 import { marks, schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
+import { keymap } from "prosemirror-keymap";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
 
 import "prosemirror-view/style/prosemirror.css";
@@ -16,7 +17,6 @@ import "../src/css/validationSidebarOutput.scss";
 import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import regexAdapter from "../src/ts/adapters/regex";
-import ValidationService from "../src/ts/services/ValidationAPIService";
 import { createBoundCommands } from "../src/ts/commands";
 
 const mySchema = new Schema({
@@ -33,8 +33,10 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
-const controlsElement = document.querySelector("#controls");
-const { plugin: validatorPlugin, store, getState } = createValidatorPlugin();
+const controlsElement = document.querySelector('#controls');
+const { plugin: validatorPlugin, store, getState } = createValidatorPlugin({
+  adapter: regexAdapter
+});
 
 if (editorElement && sidebarElement && controlsElement) {
   const view = new EditorView(editorElement, {
@@ -53,17 +55,10 @@ if (editorElement && sidebarElement && controlsElement) {
   });
 
   const commands = createBoundCommands(view, getState);
-
-  /**
-   * The plugin leaves it to consuming code to handle sending and receiving validations.
-   */
-  const validationService = new ValidationService(store, commands, regexAdapter);
-
   (window as any).editor = view;
-  const debugButton = document.getElementById("debug-button");
+  const debugButton = document.getElementById('debug-button');
   if (debugButton) {
-    debugButton.onclick = () =>
-      commands.setDebugState(!!validatorPlugin.getState(view.state).debug);
+    debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug)
   }
   createView(view, store, commands, sidebarElement, controlsElement);
 }
