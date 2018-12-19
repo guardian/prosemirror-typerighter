@@ -8,11 +8,6 @@ import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import Store from "../store";
 import { Commands } from "../commands";
 
-export const ValidationEvents = {
-  VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
-  VALIDATION_ERROR: "VALIDATION_ERROR"
-};
-
 /**
  * An example validation service. Calls to validate() begin validations
  * for ranges, configured via the supplied adapter. Validation results and
