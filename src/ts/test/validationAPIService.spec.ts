@@ -2,9 +2,8 @@ import fetchMock from "fetch-mock";
 import { ILTReplacement } from "../adapters/interfaces/ILanguageTool";
 import createLanguageToolAdapter from "../adapters/languageTool";
 import { IValidationOutput } from "../interfaces/IValidation";
-import ValidationAPIService, {
-  ValidationEvents
-} from "../services/ValidationAPIService";
+import ValidationAPIService from "../services/ValidationAPIService";
+import Store from "../store";
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -56,36 +55,48 @@ const validationInputs = [
   }
 ];
 
+const commands = {
+  applyValidationResult: jest.fn(),
+  applyValidationError: jest.fn()
+};
+
+const store = new Store();
+
 jest.mock("uuid/v4", () => () => "id");
 
 describe("ValidationAPIService", () => {
-  afterEach(fetchMock.reset);
+  afterEach(() => {
+    fetchMock.reset();
+    commands.applyValidationResult.mockReset();
+  });
   it("should issue a fetch given a validation input, resolving with a validation output and broadcasting the correct event", async () => {
     const service = new ValidationAPIService(
+      store,
+      commands as any,
       createLanguageToolAdapter("endpoint/check")
     );
     fetchMock.mock("endpoint/check", createResponse(["1234567890"]));
 
     expect.assertions(2);
 
-    service.on(ValidationEvents.VALIDATION_SUCCESS, _ => {
-      expect(_).toEqual({
-        id: "id",
-        validationInput: validationInputs[0],
-        validationOutputs: [createOutput("1234567890")]
-      });
-    });
-    const output = await service.validate(
-      validationInputs,
-      "id"
-    );
+    const output = await service.validate(validationInputs, "id");
+
+    expect(commands.applyValidationResult.mock.calls[0]).toEqual([
+      {
+        validationOutputs: [createOutput("1234567890")],
+        validationInput: { from: 0, str: "1234567890", to: 10 },
+        id: "id"
+      }
+    ]);
     expect(output).toEqual([createOutput("1234567890")]);
   });
   it("should handle multiple validation inputs", async () => {
     const service = new ValidationAPIService(
+      store,
+      commands as any,
       createLanguageToolAdapter("endpoint/check")
     );
-    const validationInputs = [
+    const localValidationInputs = [
       {
         from: 0,
         to: 10,
@@ -103,10 +114,7 @@ describe("ValidationAPIService", () => {
         overwriteRoutes: false
       });
 
-    const output = await service.validate(
-      validationInputs,
-      "id"
-    );
+    const output = await service.validate(localValidationInputs, "id");
     expect(output).toEqual([
       createOutput("1234567890"),
       createOutput("1234567890", 20)
@@ -114,6 +122,8 @@ describe("ValidationAPIService", () => {
   });
   it("should handle validation errors", async () => {
     const service = new ValidationAPIService(
+      store,
+      commands as any,
       createLanguageToolAdapter("endpoint/check")
     );
     fetchMock.once("endpoint/check", 400);
@@ -132,6 +142,8 @@ describe("ValidationAPIService", () => {
   });
   it("should handle requests with no inputs", async () => {
     const service = new ValidationAPIService(
+      store,
+      commands as any,
       createLanguageToolAdapter("endpoint/check")
     );
     fetchMock.once("endpoint/check", 400);

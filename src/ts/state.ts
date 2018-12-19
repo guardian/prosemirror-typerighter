@@ -428,7 +428,7 @@ const handleValidationRequestSuccess: ActionHandler<
   ActionValidationResponseReceived
 > = (tr, state, action) => {
   const response = action.payload.response;
-  if (response && response.validationOutputs.length) {
+  if (response) {
     const currentValidations = mergeOutputsFromValidationResponse(
       response,
       state.currentValidations,

@@ -1,6 +1,6 @@
 import { IPluginState } from "./state";
 
-type Subscriber = (state: IPluginState) => void;
+type Subscriber = (state: IPluginState, prevState: IPluginState) => void;
 
 /**
  * A store to allow consumers to subscribe to validator state updates.
@@ -12,9 +12,9 @@ class Store {
   /**
    * Notify our subscribers of a state change.
    */
-  public notify(state: IPluginState) {
+  public notify(state: IPluginState, prevState: IPluginState) {
     this.state = state;
-    this.subscribers.forEach(_ => _(state));
+    this.subscribers.forEach(_ => _(state, prevState));
   }
 
   /**

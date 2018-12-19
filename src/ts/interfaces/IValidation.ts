@@ -16,9 +16,12 @@ export interface IValidationError {
 }
 
 export interface IValidationResponse {
+  // The validation input that produced these outputs.
   validationInput: IValidationInput;
+  // The validation outputs.
   validationOutputs: IValidationOutput[];
-  id: string;
+  // The ID of the validation request.
+  id: string | number;
 }
 
 export type IValidationLibrary = Array<Array<{

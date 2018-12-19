@@ -1,26 +1,33 @@
 import flatten from "lodash/flatten";
-import { EventEmitter } from "./EventEmitter";
 import {
   IValidationError,
   IValidationInput,
-  IValidationOutput,
-  IValidationResponse
+  IValidationOutput
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
-import IValidationService from "../interfaces/IValidationService";
-
-export const ValidationEvents = {
-  VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
-  VALIDATION_ERROR: "VALIDATION_ERROR"
-};
+import Store from "../store";
+import { Commands } from "../commands";
 
 /**
- * The validation service. Calls to validate() begin validations
- * for ranges. Validation results and errors are emitted as events.
+ * An example validation service. Calls to validate() begin validations
+ * for ranges, configured via the supplied adapter. Validation results and
+ * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService extends EventEmitter implements IValidationService {
-  constructor(private adapter: IValidationAPIAdapter) {
-    super();
+class ValidationService {
+  constructor(
+    private store: Store,
+    private commands: Commands,
+    private adapter: IValidationAPIAdapter
+  ) {
+    this.store.subscribe((state, prevState) => {
+      // If we have a new validation, send it to the validation service.
+      if (!prevState.validationInFlight && state.validationInFlight) {
+        this.validate(
+          state.validationInFlight.validationInputs,
+          state.trHistory[state.trHistory.length - 1].time
+        );
+      }
+    });
   }
 
   /**
@@ -47,13 +54,6 @@ class ValidationService extends EventEmitter implements IValidationService {
   }
 
   /**
-   * Cancel all running validations.
-   */
-  public cancelValidation = () => {
-    this.cancelValidation();
-  };
-
-  /**
    * Handle an error.
    */
   public handleError = (
@@ -61,11 +61,11 @@ class ValidationService extends EventEmitter implements IValidationService {
     id: string | number,
     message: string
   ) => {
-    this.emit(ValidationEvents.VALIDATION_ERROR, {
+    this.commands.applyValidationError({
       validationInput,
       id,
       message
-    } as IValidationError);
+    });
   };
 
   /**
@@ -76,11 +76,11 @@ class ValidationService extends EventEmitter implements IValidationService {
     validationInput: IValidationInput,
     validationOutputs: IValidationOutput[]
   ) => {
-    this.emit(ValidationEvents.VALIDATION_SUCCESS, {
+    this.commands.applyValidationResult({
       id,
       validationInput,
       validationOutputs
-    } as IValidationResponse);
+    });
   };
 }
 
