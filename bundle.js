@@ -15334,43 +15334,6 @@ var dist_2$4 = dist$6.buildKeymap;
 var dist_3$4 = dist$6.buildInputRules;
 var dist_4$4 = dist$6.exampleSetup;
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-
-
-
-
-
-
-
-
-
-
-
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
-
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -15650,95 +15613,6 @@ function flatten(array) {
 }
 
 var flatten_1 = flatten;
-
-class EventEmitter {
-    constructor() {
-        this.events = {};
-    }
-    on(event, listener) {
-        if (typeof this.events[event] !== "object") {
-            this.events[event] = [];
-        }
-        this.events[event].push(listener);
-        return () => this.removeListener(event, listener);
-    }
-    removeListener(event, listener) {
-        if (typeof this.events[event] !== "object") {
-            return;
-        }
-        const idx = this.events[event].indexOf(listener);
-        if (idx > -1) {
-            this.events[event].splice(idx, 1);
-        }
-    }
-    removeAllListeners() {
-        Object.keys(this.events).forEach((event) => this.events[event].splice(0, this.events[event].length));
-    }
-    emit(event, ...args) {
-        if (typeof this.events[event] !== "object") {
-            return;
-        }
-        [...this.events[event]].forEach(listener => listener.apply(this, args));
-    }
-    once(event, listener) {
-        const remove = this.on(event, (...args) => {
-            remove();
-            listener.apply(this, args);
-        });
-        return remove;
-    }
-}
-//# sourceMappingURL=EventEmitter.js.map
-
-const ValidationEvents = {
-    VALIDATION_SUCCESS: "VALIDATION_SUCCESS",
-    VALIDATION_ERROR: "VALIDATION_ERROR"
-};
-class ValidationService extends EventEmitter {
-    constructor(adapter) {
-        super();
-        this.adapter = adapter;
-        this.cancelValidation = () => {
-            this.cancelValidation();
-        };
-        this.handleError = (validationInput, id, message) => {
-            this.emit(ValidationEvents.VALIDATION_ERROR, {
-                validationInput,
-                id,
-                message
-            });
-        };
-        this.handleCompleteValidation = (id, validationInput, validationOutputs) => {
-            this.emit(ValidationEvents.VALIDATION_SUCCESS, {
-                id,
-                validationInput,
-                validationOutputs
-            });
-        };
-    }
-    validate(inputs, id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const result = yield this.adapter(input);
-                    this.handleCompleteValidation(id, input, result);
-                    return result;
-                }
-                catch (e) {
-                    this.handleError(input, id, e.message);
-                    return {
-                        validationInput: input,
-                        message: e.message,
-                        id
-                    };
-                }
-            })));
-            return flatten_1(results);
-        });
-    }
-}
-
-//# sourceMappingURL=ValidationAPIService.js.map
 
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
 const DECORATION_VALIDATION_IS_HOVERING = "DECORATION_VALIDATION_IS_HOVERING";
@@ -19680,13 +19554,12 @@ const validationInputToRange = (input) => ({
     to: input.to
 });
 const mergeOutputsFromValidationResponse = (response, currentOutputs, trs) => {
-    const validationId = parseInt(response.id, 10);
-    const initialTransaction = trs.find(tr => tr.time === validationId);
+    const initialTransaction = trs.find(tr => tr.time === response.id);
     if (!initialTransaction && trs.length > 1) {
         return currentOutputs;
     }
-    const mappedInputs = mapRangeThroughTransactions([response.validationInput], validationId, trs);
-    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, validationId, trs);
+    const mappedInputs = mapRangeThroughTransactions([response.validationInput], response.id, trs);
+    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, response.id, trs);
     return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
 };
 const expandRange = (range, doc) => {
@@ -19855,7 +19728,16 @@ const createInitialState = (doc, throttleInMs, maxThrottle) => ({
     error: undefined
 });
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
-const validationPluginReducer = (tr, state, action) => {
+const validationPluginReducer = (tr, incomingState, action) => {
+    const state = Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, incomingState.dirtiedRanges), currentValidations: mapRanges(tr, incomingState.currentValidations), validationsInFlight: incomingState.validationsInFlight.map(_ => {
+            const mapping = new dist_14();
+            mapping.appendMapping(_.mapping);
+            mapping.appendMapping(tr.mapping);
+            return {
+                id: _.id,
+                mapping
+            };
+        }) });
     if (!action) {
         return state;
     }
@@ -19927,16 +19809,14 @@ const handleValidationRequestStart = (validationInputs) => (tr, state) => {
             DECORATION_DIRTY
         ]).add(tr.doc, validationInputs.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: validationInputs.length
-            ? {
-                validationInputs,
-                id: tr.time
-            }
-            : undefined });
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: state.validationsInFlight.concat({
+            id: tr.time,
+            mapping: new dist_14()
+        }) });
 };
 const handleValidationRequestSuccess = (tr, state, action) => {
     const response = action.payload.response;
-    if (response && response.validationOutputs.length) {
+    if (response) {
         const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
         const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
         const decsToRemove = state.debug
@@ -19960,8 +19840,6 @@ const handleValidationRequestError = (tr, state, action) => {
 const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
 };
-
-//# sourceMappingURL=state.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -19994,9 +19872,9 @@ class Store {
     constructor() {
         this.subscribers = [];
     }
-    notify(state) {
+    notify(state, prevState) {
         this.state = state;
-        this.subscribers.forEach(_ => _(state));
+        this.subscribers.forEach(_ => _(state, prevState));
     }
     getState() {
         return this.state;
@@ -20097,15 +19975,15 @@ const createBoundCommands = (view, getState) => {
         setDebugState: bindCommand(setDebugStateCommand)
     };
 };
+//# sourceMappingURL=commands.js.map
 
-const createValidatorPlugin = (options) => {
-    const { adapter, expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
+const createValidatorPlugin = (options = {}) => {
+    const { expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
     let localView;
     const store = new Store();
-    const validationService = new ValidationService(adapter);
     const requestValidation = () => {
         const pluginState = plugin.getState(localView.state);
-        if (pluginState.validationInFlight) {
+        if (pluginState.validationsInFlight.length) {
             return scheduleValidation();
         }
         localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges(expandRanges)));
@@ -20113,32 +19991,20 @@ const createValidatorPlugin = (options) => {
     const scheduleValidation = () => setTimeout(requestValidation, plugin.getState(localView.state).currentThrottle);
     const plugin = new dist_8({
         state: {
-            init(_, { doc }) {
-                validationService.on(ValidationEvents.VALIDATION_SUCCESS, (validationResponse) => localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestSuccess(validationResponse))));
-                validationService.on(ValidationEvents.VALIDATION_ERROR, (validationError) => localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestError(validationError))));
-                return createInitialState(doc, throttleInMs, maxThrottle);
-            },
+            init: (_, { doc }) => createInitialState(doc, throttleInMs, maxThrottle),
             apply(tr, state) {
-                const newState = Object.assign({}, state, { decorations: state.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges), currentValidations: mapRanges(tr, state.currentValidations), trHistory: state.trHistory.length > 25
-                        ? state.trHistory.slice(1).concat(tr)
-                        : state.trHistory.concat(tr) });
-                return validationPluginReducer(tr, newState, tr.getMeta(VALIDATION_PLUGIN_ACTION));
+                return validationPluginReducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
             }
         },
-        appendTransaction(trs, oldState, newState) {
-            const oldPluginState = plugin.getState(oldState);
-            const newPluginState = plugin.getState(newState);
+        appendTransaction(trs, _, newState) {
+            const pluginState = plugin.getState(newState);
             const tr = newState.tr;
-            const newDirtiedRanges = trs.reduce((acc, _) => acc.concat(getReplaceStepRangesFromTransaction(_)), []);
+            const newDirtiedRanges = trs.reduce((acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)), []);
             if (newDirtiedRanges.length) {
-                if (!newPluginState.validationPending) {
+                if (!pluginState.validationPending) {
                     scheduleValidation();
                 }
                 return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
-            }
-            if (!oldPluginState.validationInFlight &&
-                newPluginState.validationInFlight) {
-                validationService.validate(newPluginState.validationInFlight.validationInputs, trs[trs.length - 1].time);
             }
         },
         props: {
@@ -20170,7 +20036,7 @@ const createValidatorPlugin = (options) => {
         view(view) {
             localView = view;
             return {
-                update: _ => store.notify(plugin.getState(_.state))
+                update: (_, prevState) => store.notify(plugin.getState(view.state), plugin.getState(prevState))
             };
         }
     });
@@ -21612,6 +21478,43 @@ const createView = (view, store, commands, sidebarNode, controlsNode) => {
 
 //# sourceMappingURL=createView.js.map
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+
+
+
+
+
+
+
+
+
+
+
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
 // browser this is a little complicated due to unknown quality of Math.random()
@@ -21734,6 +21637,55 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
 
 //# sourceMappingURL=regex.js.map
 
+class ValidationService {
+    constructor(store, commands, adapter) {
+        this.store = store;
+        this.commands = commands;
+        this.adapter = adapter;
+        this.handleError = (validationInput, id, message) => {
+            this.commands.applyValidationError({
+                validationInput,
+                id,
+                message
+            });
+        };
+        this.handleCompleteValidation = (id, validationInput, validationOutputs) => {
+            this.commands.applyValidationResult({
+                id,
+                validationInput,
+                validationOutputs
+            });
+        };
+        this.store.subscribe((state, prevState) => {
+            if (!prevState.validationInFlight && state.validationInFlight) {
+                this.validate(state.validationInFlight.validationInputs, state.trHistory[state.trHistory.length - 1].time);
+            }
+        });
+    }
+    validate(inputs, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const result = yield this.adapter(input);
+                    this.handleCompleteValidation(id, input, result);
+                    return result;
+                }
+                catch (e) {
+                    this.handleError(input, id, e.message);
+                    return {
+                        validationInput: input,
+                        message: e.message,
+                        id
+                    };
+                }
+            })));
+            return flatten_1(results);
+        });
+    }
+}
+
+//# sourceMappingURL=ValidationAPIService.js.map
+
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: schemaBasic_2
@@ -21746,10 +21698,8 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
-const controlsElement = document.querySelector('#controls');
-const { plugin: validatorPlugin, store, getState } = createValidatorPlugin({
-    adapter: regexAdapter
-});
+const controlsElement = document.querySelector("#controls");
+const { plugin: validatorPlugin, store, getState } = createValidatorPlugin();
 if (editorElement && sidebarElement && controlsElement) {
     const view = new dist_1$3(editorElement, {
         state: dist_7.create({
@@ -21766,8 +21716,9 @@ if (editorElement && sidebarElement && controlsElement) {
         })
     });
     const commands = createBoundCommands(view, getState);
+    const validationService = new ValidationService(store, commands, regexAdapter);
     window.editor = view;
-    const debugButton = document.getElementById('debug-button');
+    const debugButton = document.getElementById("debug-button");
     if (debugButton) {
         debugButton.onclick = () => commands.setDebugState(!!validatorPlugin.getState(view.state).debug);
     }
