@@ -129,8 +129,7 @@ export const mergeOutputsFromValidationResponse = (
   currentOutputs: IValidationOutput[],
   trs: Transaction[]
 ): IValidationOutput[] => {
-  const validationId = parseInt(response.id, 10);
-  const initialTransaction = trs.find(tr => tr.time === validationId);
+  const initialTransaction = trs.find(tr => tr.time === response.id);
   if (!initialTransaction && trs.length > 1) {
     return currentOutputs;
   }
@@ -138,13 +137,13 @@ export const mergeOutputsFromValidationResponse = (
   // Map _all_ the things.
   const mappedInputs = mapRangeThroughTransactions(
     [response.validationInput],
-    validationId,
+    response.id,
     trs
   );
 
   const newOutputs = mapRangeThroughTransactions(
     response.validationOutputs,
-    validationId,
+    response.id,
     trs
   );
 

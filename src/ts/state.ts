@@ -20,11 +20,14 @@ import {
   mapRangeThroughTransactions,
   mergeOutputsFromValidationResponse,
   mergeRanges,
-  validationInputToRange
+  validationInputToRange,
+  mapAndMergeRanges,
+  mapRanges
 } from "./utils/range";
 import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
 import { Node } from "prosemirror-model";
+import { Mapping } from "prosemirror-transform";
 
 /**
  * Information about the span element the user is hovering over.
@@ -86,12 +89,10 @@ export interface IPluginState {
   // Is a validation currently in flight - that is, has a validation
   // been sent to the validation service and we're awaiting its
   // return?
-  validationInFlight:
-    | {
-        validationInputs: IValidationInput[];
-        id: number;
-      }
-    | undefined;
+  validationsInFlight: Array<{
+    mapping: Mapping;
+    id: number;
+  }>;
   // The current error status.
   error: string | undefined;
 }
@@ -224,12 +225,33 @@ export const selectValidationById = (
 
 const validationPluginReducer = (
   tr: Transaction,
-  state: IPluginState,
+  incomingState: IPluginState,
   action?: Action
 ): IPluginState => {
+  // There are certain things we need to do every time a transaction is dispatched.
+  const state = {
+    ...incomingState,
+    // Map our decorations, dirtied ranges and validations through the new transaction.
+    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
+    dirtiedRanges: mapAndMergeRanges(tr, incomingState.dirtiedRanges),
+    currentValidations: mapRanges(tr, incomingState.currentValidations),
+    validationsInFlight: incomingState.validationsInFlight.map(_ => {
+      // We create a new mapping here to preserve state immutability, as
+      // appendMapping mutates an existing mapping.
+      const mapping = new Mapping();
+      mapping.appendMapping(_.mapping);
+      mapping.appendMapping(tr.mapping);
+      return {
+        id: _.id,
+        mapping
+      };
+    })
+  };
+
   if (!action) {
     return state;
   }
+
   switch (action.type) {
     case NEW_HOVER_ID:
       return handleNewHoverId(tr, state, action);
@@ -411,12 +433,10 @@ const handleValidationRequestStart = (validationInputs: IValidationInput[]) => (
     // We reset the dirty ranges, as they've been expanded and sent for validation.
     dirtiedRanges: [],
     validationPending: false,
-    validationInFlight: validationInputs.length
-      ? {
-          validationInputs,
-          id: tr.time
-        }
-      : undefined
+    validationInFlight: state.validationsInFlight.concat({
+      id: tr.time,
+      mapping: new Mapping()
+    })
   };
 };
 
