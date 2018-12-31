@@ -11,7 +11,8 @@ import {
 } from "../state";
 import { createDebugDecorationFromRange } from "../utils/decoration";
 import { expandRangesToParentBlockNode } from "../utils/range";
-import { doc, p } from './helpers/prosemirror';
+import { doc, p } from "./helpers/prosemirror";
+import { Mapping } from "prosemirror-transform";
 
 jest.mock("uuid/v4", () => () => "uuid");
 
@@ -31,7 +32,7 @@ const initialState: IPluginState = {
   hoverId: undefined,
   hoverInfo: undefined,
   trHistory: [initialTr],
-  validationInFlight: undefined,
+  validationsInFlight: [],
   validationPending: false,
   error: undefined
 };
@@ -63,16 +64,17 @@ describe("State management", () => {
             createDebugDecorationFromRange({ from: 1, to: 25 }, false)
           ]),
           validationPending: false,
-          validationInFlight: {
-            validationInputs: [
-              {
+          validationsInFlight: [
+            {
+              validationInput: {
                 str: "Example text to validate",
                 from: 1,
                 to: 25
-              }
-            ],
-            id: 1337
-          }
+              },
+              id: "1337",
+              mapping: new Mapping()
+            }
+          ]
         });
       });
       it("should remove debug decorations, if any", () => {
@@ -102,16 +104,17 @@ describe("State management", () => {
             createDebugDecorationFromRange({ from: 1, to: 25 }, false)
           ]),
           validationPending: false,
-          validationInFlight: {
-            validationInputs: [
-              {
+          validationsInFlight: [
+            {
+              validationInput: {
                 str: "Example text to validate",
                 from: 1,
                 to: 25
-              }
-            ],
-            id: 1337
-          }
+              },
+              id: "1337",
+              mapping: new Mapping()
+            }
+          ]
         });
       });
     });
@@ -123,11 +126,18 @@ describe("State management", () => {
             initialState,
             validationRequestSuccess({
               validationOutputs: [],
-              validationInput: {
-                str: "hai",
-                from: 0,
-                to: 25
-              },
+              id: "1337"
+            })
+          )
+        ).toEqual(initialState);
+      });
+      it("should add incoming validations to the state", () => {
+        expect(
+          validationPluginReducer(
+            initialTr,
+            initialState,
+            validationRequestSuccess({
+              validationOutputs: [],
               id: "1337"
             })
           )
@@ -143,11 +153,6 @@ describe("State management", () => {
             tr,
             initialState,
             validationRequestSuccess({
-              validationInput: {
-                str: "Example text to validate",
-                from: 5,
-                to: 10
-              },
               validationOutputs: [
                 {
                   id: "id",
@@ -171,16 +176,17 @@ describe("State management", () => {
             initialTr,
             {
               ...initialState,
-              validationInFlight: {
-                validationInputs: [
-                  {
+              validationsInFlight: [
+                {
+                  validationInput: {
                     str: "Example text to validate",
                     from: 1,
                     to: 25
-                  }
-                ],
-                id: 1337
-              }
+                  },
+                  id: "1337",
+                  mapping: new Mapping()
+                }
+              ]
             },
             validationRequestError({
               validationInput: {
@@ -188,7 +194,7 @@ describe("State management", () => {
                 from: 1,
                 to: 25
               },
-              id: 1337,
+              id: "1337",
               message: "Too many requests"
             })
           )

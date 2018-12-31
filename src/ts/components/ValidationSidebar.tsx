@@ -1,5 +1,5 @@
 import { Component, h } from "preact";
-import Store from "../store";
+import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
@@ -16,20 +16,20 @@ interface IProps {
  */
 class ValidationSidebar extends Component<
   IProps,
-  IPluginState & { groupResults: boolean }
+  { pluginState: IPluginState | undefined; groupResults: boolean }
 > {
   public componentWillMount() {
-    this.props.store.subscribe(this.handleNotify);
+    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
   }
 
   public render() {
     const { applySuggestions, selectValidation, indicateHover } = this.props;
     const {
-      currentValidations,
-      validationInFlight,
-      validationPending,
+      currentValidations = [],
+      validationsInFlight = [],
+      validationPending = false,
       selectedValidation
-    } = this.state;
+    } = this.state.pluginState || { selectedValidation: undefined };
     const hasValidations = !!(currentValidations && currentValidations.length);
     return (
       <div className="Sidebar__section">
@@ -37,10 +37,9 @@ class ValidationSidebar extends Component<
           <span>
             Validation results{" "}
             {hasValidations && <span>({currentValidations.length}) </span>}
-            {(validationInFlight ||
-              validationPending) && (
-                <span className="Sidebar__loading-spinner">|</span>
-              )}
+            {(validationsInFlight.length || validationPending) && (
+              <span className="Sidebar__loading-spinner">|</span>
+            )}
           </span>
         </div>
         <div className="Sidebar__content">
@@ -68,8 +67,8 @@ class ValidationSidebar extends Component<
       </div>
     );
   }
-  private handleNotify = (state: IPluginState) => {
-    this.setState(state);
+  private handleNotify = (pluginState: IPluginState) => {
+    this.setState({ pluginState });
   };
 }
 

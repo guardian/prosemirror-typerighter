@@ -1,5 +1,5 @@
 import { Component, h } from "preact";
-import Store from "../store";
+import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { IPluginState } from "../state";
 
 interface IProps {
@@ -13,7 +13,7 @@ interface IProps {
  */
 class ValidationControls extends Component<IProps, IPluginState> {
   public componentWillMount() {
-    this.props.store.subscribe(this.handleNotify);
+    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
   }
 
   public render() {

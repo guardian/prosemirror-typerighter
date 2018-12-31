@@ -4,7 +4,8 @@ import {
   validationPluginReducer,
   applyNewDirtiedRanges,
   validationRequestForDirtyRanges,
-  createInitialState
+  createInitialState,
+  selectNewValidationInFlight
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -17,7 +18,7 @@ import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
 import { IRange } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
-import Store from "./store";
+import Store, { STORE_EVENT_NEW_STATE, STORE_EVENT_NEW_VALIDATION } from "./store";
 import { indicateHoverCommand } from "./commands";
 
 /**
@@ -105,8 +106,9 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
      * We use appendTransaction to handle side effects and dispatch actions
      * in response to state transitions.
      */
-    appendTransaction(trs: Transaction[], _, newState) {
-      const pluginState: IPluginState = plugin.getState(newState);
+    appendTransaction(trs: Transaction[], oldState, newState) {
+      const oldPluginState: IPluginState = plugin.getState(oldState);
+      const newPluginState: IPluginState = plugin.getState(newState);
       const tr = newState.tr;
 
       // Check for dirted ranges and update the state accordingly.
@@ -118,7 +120,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
         // If we haven't yet scheduled a validation request, issue a delayed
         // request to the validation service, and mark the state as pending
         // validation.
-        if (!pluginState.validationPending) {
+        if (!newPluginState.validationPending) {
           scheduleValidation();
         }
         return tr.setMeta(
@@ -126,6 +128,8 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
+      const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
+      newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _))
     },
     props: {
       decorations: state => {
@@ -171,9 +175,9 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
     view(view) {
       localView = view;
       return {
-        // Update our store with the new state, which can then notify its subscribers.
-        update: (_, prevState) =>
-          store.notify(plugin.getState(view.state), plugin.getState(prevState))
+        // Update our store with the new state.
+        update: (_) =>
+          store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
       };
     }
   });
