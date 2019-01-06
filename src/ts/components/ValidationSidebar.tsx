@@ -19,7 +19,7 @@ class ValidationSidebar extends Component<
   { pluginState: IPluginState | undefined; groupResults: boolean }
 > {
   public componentWillMount() {
-    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
+    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
   }
 
   public render() {
@@ -67,8 +67,15 @@ class ValidationSidebar extends Component<
       </div>
     );
   }
-  private handleNotify = (pluginState: IPluginState) => {
-    this.setState({ pluginState });
+  private handleNewState = (pluginState: IPluginState) => {
+    this.setState({
+      pluginState: {
+        ...pluginState,
+        currentValidations: pluginState.currentValidations.sort((a, b) =>
+          a.from > b.from ? 1 : -1
+        )
+      }
+    });
   };
 }
 

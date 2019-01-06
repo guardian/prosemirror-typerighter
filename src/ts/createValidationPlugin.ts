@@ -185,7 +185,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
   return {
     plugin,
     store,
-    getState: plugin.getState
+    getState: plugin.getState.bind(plugin)
   };
 };
 
