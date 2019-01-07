@@ -21,7 +21,8 @@ import {
   validationInputToRange,
   mapAndMergeRanges,
   mapRanges,
-  mergeOutputsFromValidationResponse
+  mergeOutputsFromValidationResponse,
+  findOverlappingRangeIndex
 } from "./utils/range";
 import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
@@ -114,7 +115,7 @@ const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
-const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
+const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const SET_DEBUG_STATE = "SET_DEBUG_STATE";
 
 /**
@@ -162,7 +163,7 @@ export const newHoverIdReceived = (
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
 export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
-  type: HANDLE_NEW_DIRTY_RANGES as typeof HANDLE_NEW_DIRTY_RANGES,
+  type: APPLY_NEW_DIRTY_RANGES as typeof APPLY_NEW_DIRTY_RANGES,
   payload: { ranges }
 });
 type ActionHandleNewDirtyRanges = ReturnType<typeof applyNewDirtiedRanges>;
@@ -280,7 +281,7 @@ const validationPluginReducer = (
       return handleValidationRequestError(tr, state, action);
     case SELECT_VALIDATION:
       return handleSelectValidation(tr, state, action);
-    case HANDLE_NEW_DIRTY_RANGES:
+    case APPLY_NEW_DIRTY_RANGES:
       return handleNewDirtyRanges(tr, state, action);
     case SET_DEBUG_STATE:
       return handleSetDebugState(tr, state, action);
@@ -387,12 +388,17 @@ const handleNewDirtyRanges: ActionHandler<ActionHandleNewDirtyRanges> = (
       )
     : state.decorations;
 
-  // Remove any validations touched by the dirtied ranges from the doc
+  // Remove any validations and associated decorations
+  // touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
+  const currentValidations = state.currentValidations.filter(
+    output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
+  );
 
   return {
     ...state,
     validationPending: true,
+    currentValidations,
     decorations: newDecorations,
     dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges)
   };

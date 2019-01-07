@@ -1,11 +1,12 @@
 import { Transaction } from "prosemirror-state";
-import { DecorationSet } from "prosemirror-view";
+import { DecorationSet, Decoration } from "prosemirror-view";
 import {
   IPluginState,
   selectValidation,
   setDebugState,
   selectValidationInFlightById,
-  selectNewValidationInFlight
+  selectNewValidationInFlight,
+  applyNewDirtiedRanges
 } from "../state";
 import {
   newHoverIdReceived,
@@ -15,10 +16,14 @@ import {
   validationRequestForDirtyRanges,
   validationRequestSuccess
 } from "../state";
-import { createDebugDecorationFromRange } from "../utils/decoration";
+import {
+  createDebugDecorationFromRange,
+  getNewDecorationsForCurrentValidations
+} from "../utils/decoration";
 import { expandRangesToParentBlockNode } from "../utils/range";
 import { doc, p } from "./helpers/prosemirror";
 import { Mapping } from "prosemirror-transform";
+import { IValidationOutput } from "../interfaces/IValidation";
 
 jest.mock("uuid/v4", () => () => "uuid");
 
@@ -232,6 +237,40 @@ describe("State management", () => {
           ...initialState,
           hoverId: "exampleHoverId",
           hoverInfo: undefined
+        });
+      });
+    });
+    describe("handleNewDirtyRanges", () => {
+      it("should remove any decorations and validations that touch the passed ranges", () => {
+        const currentValidations: IValidationOutput[] = [
+          {
+            id: "1",
+            from: 1,
+            to: 7,
+            str: "Example",
+            annotation: "Annotation",
+            type: "Type"
+          }
+        ];
+        const stateWithCurrentValidationsAndDecorations = {
+          ...initialState,
+          currentValidations,
+          decorations: getNewDecorationsForCurrentValidations(
+            currentValidations,
+            initialState.decorations,
+            initialDocToValidate
+          )
+        };
+        expect(
+          validationPluginReducer(
+            new Transaction(initialDocToValidate),
+            stateWithCurrentValidationsAndDecorations,
+            applyNewDirtiedRanges([{ from: 1, to: 2 }])
+          )
+        ).toEqual({
+          ...initialState,
+          validationPending: true,
+          dirtiedRanges: [{ from: 1, to: 2 }]
         });
       });
     });

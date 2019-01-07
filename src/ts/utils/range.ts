@@ -5,11 +5,13 @@ import { findParentNode } from "prosemirror-utils";
 import {
   IRange,
   IValidationOutput,
-  IValidationResponse
 } from "../interfaces/IValidation";
 import { IValidationInput } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
 
+/**
+ * Find the index of the first range in the given range array that overlaps with the given range.
+ */
 export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   return ranges.findIndex(
     localRange =>
