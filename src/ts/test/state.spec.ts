@@ -1,6 +1,12 @@
 import { Transaction } from "prosemirror-state";
 import { DecorationSet } from "prosemirror-view";
-import { IPluginState, selectValidation, setDebugState } from "../state";
+import {
+  IPluginState,
+  selectValidation,
+  setDebugState,
+  selectValidationInFlightById,
+  selectNewValidationInFlight
+} from "../state";
 import {
   newHoverIdReceived,
   selectValidationById,
@@ -39,7 +45,7 @@ const initialState: IPluginState = {
 
 describe("State management", () => {
   describe("Action handlers", () => {
-    describe("validationRequestStart", () => {
+    describe("validationRequestForDirtyRanges", () => {
       it("should remove the pending status and any dirtied ranges, and mark the validation as in flight", () => {
         const docToValidate = doc(p("Example text to validate"));
         const tr = new Transaction(docToValidate);
@@ -304,6 +310,66 @@ describe("State management", () => {
             "3"
           )
         ).toEqual(undefined);
+      });
+    });
+    describe("selectValidationInFlightById", () => {
+      it("should find a single validation in flight by its id", () => {
+        expect(
+          selectValidationInFlightById(
+            {
+              validationsInFlight: [
+                {
+                  id: "1"
+                },
+                {
+                  id: "2"
+                }
+              ]
+            } as any,
+            "1"
+          )
+        ).toEqual({ id: "1" });
+      });
+    });
+    describe("selectNewValidationInFlight", () => {
+      it("should find the new inflight validations given an old and a new state", () => {
+        expect(
+          selectNewValidationInFlight(
+            {
+              validationsInFlight: [
+                {
+                  id: "1"
+                },
+                {
+                  id: "2"
+                }
+              ]
+            } as any,
+            {
+              validationsInFlight: [
+                {
+                  id: "1"
+                },
+                {
+                  id: "2"
+                },
+                {
+                  id: "3"
+                },
+                {
+                  id: "4"
+                }
+              ]
+            } as any
+          )
+        ).toEqual([
+          {
+            id: "1"
+          },
+          {
+            id: "2"
+          }
+        ]);
       });
     });
   });
