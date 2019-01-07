@@ -82,7 +82,10 @@ export const selectValidationCommand = (
  * Set the debug state. Enabling debug mode provides additional marks
  * to reveal dirty ranges and ranges sent for validation.
  */
-export const setDebugStateCommand = (debug: boolean): Command => (state, dispatch) => {
+export const setDebugStateCommand = (debug: boolean): Command => (
+  state,
+  dispatch
+) => {
   if (dispatch) {
     dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
   }
@@ -145,13 +148,12 @@ export const applySuggestionsCommand = (
     .reduce(
       (acc, _) => {
         const output = selectValidationById(pluginState, _.validationId);
-        if (!output) {
-          return acc;
-        }
-        return acc.concat({
-          output,
-          suggestionIndex: _.suggestionIndex
-        });
+        return !output
+          ? acc
+          : acc.concat({
+              output,
+              suggestionIndex: _.suggestionIndex
+            });
       },
       [] as Array<{
         output: IValidationOutput;
@@ -183,21 +185,24 @@ export const applySuggestionsCommand = (
   return true;
 };
 
-export const createBoundCommands = (
-  view: EditorView,
-  getState: GetState
-) => {
-  const bindCommand = <CommandArgs extends any[]>(action: (...args: CommandArgs) => Command) => (
-    ...args: CommandArgs
-  ) => action(...args)(view.state, view.dispatch);
+export const createBoundCommands = (view: EditorView, getState: GetState) => {
+  const bindCommand = <CommandArgs extends any[]>(
+    action: (...args: CommandArgs) => Command
+  ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
   return {
     validateDocument: () => validateDocumentCommand(view.state, view.dispatch),
     applyValidationResult: bindCommand(applyValidationResponseCommand),
     applyValidationError: bindCommand(applyValidationErrorCommand),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
-      applySuggestionsCommand(suggestionOpts, getState)(view.state, view.dispatch),
+      applySuggestionsCommand(suggestionOpts, getState)(
+        view.state,
+        view.dispatch
+      ),
     selectValidation: (validationId: string) =>
-      selectValidationCommand(validationId, getState)(view.state, view.dispatch),
+      selectValidationCommand(validationId, getState)(
+        view.state,
+        view.dispatch
+      ),
     indicateHover: bindCommand(indicateHoverCommand),
     setDebugState: bindCommand(setDebugStateCommand)
   };

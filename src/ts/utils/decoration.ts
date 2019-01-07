@@ -37,19 +37,31 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
   );
 };
 
+/**
+ * Remove decorations from the given ranges. If decorations are found,
+ * expand the search range to include their ranges, too.
+ */
 export const removeDecorationsFromRanges = (
-  decorations: DecorationSet,
+  decorationSet: DecorationSet,
   ranges: IRange[],
-  types = [DECORATION_VALIDATION]
+  types = [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]
 ) =>
   ranges.reduce((acc, range) => {
-    const decorationsToRemove = decorations.find(
-      range.from,
-      range.to,
-      spec => types.indexOf(spec.type) !== -1
+    const predicate = (spec: { type: string; [key: string]: any }) =>
+      types.indexOf(spec.type) !== -1;
+    const decorations = decorationSet.find(range.from, range.to, predicate);
+    if (!decorations.length) {
+      return acc;
+    }
+    // Expand the range out to the range of the found decorations.
+    const decorationsToRemove = flatten(
+      decorations.map(decoration =>
+        decorationSet.find(decoration.from, decoration.to, predicate)
+      )
     );
+    console.log(decorationsToRemove);
     return acc.remove(decorationsToRemove);
-  }, decorations);
+  }, decorationSet);
 
 /**
  * Given a validation response and the current decoration set,
