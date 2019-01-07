@@ -11,17 +11,15 @@ export type IValidationOutput = IValidationInput & {
 
 export interface IValidationError {
   validationInput: IValidationInput;
-  id: string | number;
+  id: string;
   message: string;
 }
 
 export interface IValidationResponse {
-  // The validation input that produced these outputs.
-  validationInput: IValidationInput;
   // The validation outputs.
   validationOutputs: IValidationOutput[];
   // The ID of the validation request.
-  id: string | number;
+  id: string;
 }
 
 export type IValidationLibrary = Array<Array<{

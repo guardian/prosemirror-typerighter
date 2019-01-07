@@ -3,56 +3,10 @@
 exports[`State management Action handlers validationRequestSuccess should create decorations for the incoming validations 1`] = `
 Object {
   "currentThrottle": 100,
-  "currentValidations": Array [
-    Object {
-      "annotation": "Summat ain't right",
-      "from": 5,
-      "id": "id",
-      "str": "Example text to validate",
-      "to": 10,
-      "type": "EXAMPLE_TYPE",
-    },
-  ],
+  "currentValidations": Array [],
   "debug": false,
   "decorations": DecorationSet {
-    "children": Array [
-      0,
-      26,
-      DecorationSet {
-        "children": Array [],
-        "local": Array [
-          Decoration {
-            "from": 4,
-            "to": 4,
-            "type": WidgetType {
-              "side": 0,
-              "spec": Object {
-                "id": "id",
-                "type": "DECORATION_VALIDATION_HEIGHT_MARKER",
-              },
-              "toDOM": <span
-                data-height-marker-id="id"
-              />,
-            },
-          },
-          Decoration {
-            "from": 4,
-            "to": 9,
-            "type": InlineType {
-              "attrs": Object {
-                "class": "ValidationDecoration",
-                "data-validation-id": "id",
-              },
-              "spec": Object {
-                "id": "id",
-                "inclusiveStart": true,
-                "type": "DECORATION_VALIDATION",
-              },
-            },
-          },
-        ],
-      },
-    ],
+    "children": Array [],
     "local": Array [],
   },
   "dirtiedRanges": Array [],
@@ -94,7 +48,7 @@ Object {
       "updated": 0,
     },
   ],
-  "validationInFlight": undefined,
   "validationPending": false,
+  "validationsInFlight": Array [],
 }
 `;

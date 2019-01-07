@@ -1,7 +1,6 @@
 import clamp from "lodash/clamp";
-import compact from "lodash/compact";
 import { Node } from "prosemirror-model";
-import { Transaction, TextSelection } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
 import {
   IRange,
@@ -9,6 +8,7 @@ import {
   IValidationResponse
 } from "../interfaces/IValidation";
 import { IValidationInput } from "../interfaces/IValidation";
+import { Mapping } from "prosemirror-transform";
 
 export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   return ranges.findIndex(
@@ -22,17 +22,17 @@ export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   );
 };
 
-export const mapAndMergeRanges = (tr: Transaction, ranges: IRange[]) =>
-  mergeRanges(mapRanges(tr, ranges));
+export const mapAndMergeRanges = <Range extends IRange>(ranges: Range[], mapping: Mapping): Range[] =>
+  mergeRanges(mapRanges(ranges, mapping));
 
-export const mapRanges = <T extends IRange>(
-  tr: Transaction,
-  ranges: T[]
-): T[] =>
+export const mapRanges = <Range extends IRange>(
+  ranges: Range[],
+  mapping: Mapping
+): Range[] =>
   ranges.map(range => ({
     ...range,
-    from: tr.mapping.map(range.from),
-    to: tr.mapping.map(range.to)
+    from: mapping.map(range.from),
+    to: mapping.map(range.to)
   }));
 
 /**
@@ -55,12 +55,13 @@ export const removeOverlappingRanges = <
   );
 };
 
-export const mergeRange = (range1: IRange, range2: IRange): IRange => ({
+export const mergeRange = <Range extends IRange>(range1: Range, range2: Range): Range => ({
+  ...range1,
   from: range1.from < range2.from ? range1.from : range2.from,
   to: range1.to > range2.to ? range1.to : range2.to
 });
 
-export const mergeRanges = (ranges: IRange[]): IRange[] =>
+export const mergeRanges = <Range extends IRange>(ranges: Range[]): Range[] =>
   ranges.reduce(
     (acc, range) => {
       const index = findOverlappingRangeIndex(range, acc);
@@ -71,7 +72,7 @@ export const mergeRanges = (ranges: IRange[]): IRange[] =>
       newRange.splice(index, 1, mergeRange(range, acc[index]));
       return newRange;
     },
-    [] as IRange[]
+    [] as Range[]
   );
 
 /**
@@ -125,27 +126,24 @@ export const validationInputToRange = (input: IValidationInput): IRange => ({
 });
 
 export const mergeOutputsFromValidationResponse = (
-  response: IValidationResponse,
+  input: IValidationInput,
+  incomingOutputs: IValidationOutput[],
   currentOutputs: IValidationOutput[],
-  trs: Transaction[]
+  mapping: Mapping
 ): IValidationOutput[] => {
-  const validationId = parseInt(response.id, 10);
-  const initialTransaction = trs.find(tr => tr.time === validationId);
-  if (!initialTransaction && trs.length > 1) {
+  if (!incomingOutputs.length) {
     return currentOutputs;
   }
 
   // Map _all_ the things.
-  const mappedInputs = mapRangeThroughTransactions(
-    [response.validationInput],
-    validationId,
-    trs
+  const mappedInputs = mapRanges(
+    [input],
+    mapping
   );
 
-  const newOutputs = mapRangeThroughTransactions(
-    response.validationOutputs,
-    validationId,
-    trs
+  const newOutputs = mapAndMergeRanges(
+    incomingOutputs,
+    mapping
   );
 
   return removeOverlappingRanges(currentOutputs, mappedInputs).concat(
@@ -200,36 +198,6 @@ export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
   );
   return mergeRanges(validationRanges);
 };
-
-export const mapRangeThroughTransactions = <T extends IRange>(
-  ranges: T[],
-  time: number,
-  trs: Transaction[]
-): T[] =>
-  compact(
-    ranges.map(range => {
-      const initialTransactionIndex = trs.findIndex(tr => tr.time === time);
-      // If we only have a single transaction in the history, we're dealing with
-      // an unaltered document, and so there's no mapping to do.
-      if (trs.length === 1) {
-        return range;
-      }
-
-      if (initialTransactionIndex === -1) {
-        return undefined;
-      }
-
-      return Object.assign(range, {
-        ...trs.slice(initialTransactionIndex).reduce(
-          (acc, tr) => ({
-            from: tr.mapping.map(acc.from),
-            to: tr.mapping.map(acc.to)
-          }),
-          range
-        )
-      });
-    })
-  );
 
 export const expandRangesToParentBlockNode = (ranges: IRange[], doc: Node) =>
   getRangesOfParentBlockNodes(ranges, doc);

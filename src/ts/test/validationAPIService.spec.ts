@@ -47,13 +47,11 @@ const createOutput = (str: string, offset: number = 0) =>
     annotation: "It's just a bunch of numbers, mate"
   } as IValidationOutput);
 
-const validationInputs = [
-  {
-    from: 0,
-    to: 10,
-    str: "1234567890"
-  }
-];
+const validationInput = {
+  from: 0,
+  to: 10,
+  str: "1234567890"
+};
 
 const commands = {
   applyValidationResult: jest.fn(),
@@ -79,46 +77,15 @@ describe("ValidationAPIService", () => {
 
     expect.assertions(2);
 
-    const output = await service.validate(validationInputs, "id");
+    const output = await service.validate(validationInput, "id");
 
     expect(commands.applyValidationResult.mock.calls[0]).toEqual([
       {
         validationOutputs: [createOutput("1234567890")],
-        validationInput: { from: 0, str: "1234567890", to: 10 },
         id: "id"
       }
     ]);
     expect(output).toEqual([createOutput("1234567890")]);
-  });
-  it("should handle multiple validation inputs", async () => {
-    const service = new ValidationAPIService(
-      store,
-      commands as any,
-      createLanguageToolAdapter("endpoint/check")
-    );
-    const localValidationInputs = [
-      {
-        from: 0,
-        to: 10,
-        str: "1234567890"
-      },
-      {
-        from: 20,
-        to: 30,
-        str: "1234567890"
-      }
-    ];
-    fetchMock
-      .once("endpoint/check", createResponse(["1234567890"]))
-      .once("endpoint/check", createResponse(["1234567890"]), {
-        overwriteRoutes: false
-      });
-
-    const output = await service.validate(localValidationInputs, "id");
-    expect(output).toEqual([
-      createOutput("1234567890"),
-      createOutput("1234567890", 20)
-    ]);
   });
   it("should handle validation errors", async () => {
     const service = new ValidationAPIService(
@@ -129,26 +96,13 @@ describe("ValidationAPIService", () => {
     fetchMock.once("endpoint/check", 400);
 
     const output = await service.validate(
-      [
-        {
-          from: 0,
-          to: 10,
-          str: "1234567890"
-        }
-      ],
+      {
+        from: 0,
+        to: 10,
+        str: "1234567890"
+      },
       "id"
     );
     expect(output).toMatchSnapshot();
-  });
-  it("should handle requests with no inputs", async () => {
-    const service = new ValidationAPIService(
-      store,
-      commands as any,
-      createLanguageToolAdapter("endpoint/check")
-    );
-    fetchMock.once("endpoint/check", 400);
-
-    const output = await service.validate([], "id");
-    expect(output).toEqual([]);
   });
 });

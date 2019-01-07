@@ -3,7 +3,7 @@ import ValidationOutput from './ValidationOutputContainer';
 import { Component, h } from 'preact';
 import { IStateHoverInfo, selectValidationById, IPluginState } from '../state';
 import { IValidationOutput } from '../interfaces/IValidation';
-import Store from '../store';
+import Store, { STORE_EVENT_NEW_STATE } from '../store';
 import { ApplySuggestionOptions } from '../commands';
 
 interface IState {
@@ -32,7 +32,7 @@ class ValidationOverlay extends Component<IProps, IState> {
   private decorationRef: ValidationOutput;
 
   public componentWillMount() {
-    this.props.store.subscribe(this.handleNotify);
+    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
   }
 
   public componentDidUpdate() {

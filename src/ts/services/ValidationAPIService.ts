@@ -1,11 +1,6 @@
-import flatten from "lodash/flatten";
-import {
-  IValidationError,
-  IValidationInput,
-  IValidationOutput
-} from "../interfaces/IValidation";
+import { IValidationInput } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
-import Store from "../store";
+import Store, { STORE_EVENT_NEW_VALIDATION } from "../store";
 import { Commands } from "../commands";
 
 /**
@@ -19,69 +14,39 @@ class ValidationService {
     private commands: Commands,
     private adapter: IValidationAPIAdapter
   ) {
-    this.store.subscribe((state, prevState) => {
+    this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
       // If we have a new validation, send it to the validation service.
-      if (!prevState.validationInFlight && state.validationInFlight) {
-        this.validate(
-          state.validationInFlight.validationInputs,
-          state.trHistory[state.trHistory.length - 1].time
-        );
-      }
+      this.validate(validationInFlight.validationInput, validationInFlight.id);
     });
   }
 
   /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
-  public async validate(inputs: IValidationInput[], id: string | number) {
-    const results = await Promise.all(
-      inputs.map(async input => {
-        try {
-          const result = await this.adapter(input);
-          this.handleCompleteValidation(id, input, result);
-          return result;
-        } catch (e) {
-          this.handleError(input, id, e.message);
-          return {
-            validationInput: input,
-            message: e.message,
-            id
-          };
-        }
-      })
-    );
-    return flatten<IValidationOutput | IValidationError>(results);
+  public async validate(
+    validationInput: IValidationInput,
+    id: string
+  ) {
+    try {
+      const validationOutputs = await this.adapter(validationInput);
+      this.commands.applyValidationResult({
+        id,
+        validationOutputs
+      });
+      return validationOutputs;
+    } catch (e) {
+      this.commands.applyValidationError({
+        validationInput,
+        id,
+        message: e.message
+      });
+      return {
+        validationInput,
+        message: e.message,
+        id
+      };
+    }
   }
-
-  /**
-   * Handle an error.
-   */
-  public handleError = (
-    validationInput: IValidationInput,
-    id: string | number,
-    message: string
-  ) => {
-    this.commands.applyValidationError({
-      validationInput,
-      id,
-      message
-    });
-  };
-
-  /**
-   * Handle a completed validation.
-   */
-  private handleCompleteValidation = (
-    id: string | number,
-    validationInput: IValidationInput,
-    validationOutputs: IValidationOutput[]
-  ) => {
-    this.commands.applyValidationResult({
-      id,
-      validationInput,
-      validationOutputs
-    });
-  };
 }
 
 export default ValidationService;

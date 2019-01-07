@@ -1,5 +1,5 @@
 import { Transaction } from "prosemirror-state";
-import { DecorationSet } from "prosemirror-view";
+import { DecorationSet, Decoration } from "prosemirror-view";
 import { IRange } from "./interfaces/IValidation";
 import {
   IValidationError,
@@ -17,14 +17,18 @@ import {
   DECORATION_VALIDATION
 } from "./utils/decoration";
 import {
-  mapRangeThroughTransactions,
-  mergeOutputsFromValidationResponse,
   mergeRanges,
-  validationInputToRange
+  validationInputToRange,
+  mapAndMergeRanges,
+  mapRanges,
+  mergeOutputsFromValidationResponse
 } from "./utils/range";
 import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
 import { Node } from "prosemirror-model";
+import { Mapping } from "prosemirror-transform";
+import difference from "lodash/difference";
+import without from "lodash/without";
 
 /**
  * Information about the span element the user is hovering over.
@@ -51,6 +55,12 @@ export interface IStateHoverInfo {
   // Useful when determining where to put a tooltip if the user
   // is hovering over a span that covers several lines.
   heightOfSingleLine: number;
+}
+
+export interface IValidationInFlight {
+  mapping: Mapping;
+  validationInput: IValidationInput;
+  id: string;
 }
 
 export interface IPluginState {
@@ -86,12 +96,7 @@ export interface IPluginState {
   // Is a validation currently in flight - that is, has a validation
   // been sent to the validation service and we're awaiting its
   // return?
-  validationInFlight:
-    | {
-        validationInputs: IValidationInput[];
-        id: number;
-      }
-    | undefined;
+  validationsInFlight: IValidationInFlight[];
   // The current error status.
   error: string | undefined;
 }
@@ -191,7 +196,7 @@ export const createInitialState = (
   doc: Node,
   throttleInMs: number,
   maxThrottle: number
-) => ({
+): IPluginState => ({
   debug: false,
   currentThrottle: throttleInMs,
   initialThrottle: throttleInMs,
@@ -203,7 +208,7 @@ export const createInitialState = (
   hoverId: undefined,
   hoverInfo: undefined,
   trHistory: [],
-  validationInFlight: undefined,
+  validationsInFlight: [],
   validationPending: false,
   error: undefined
 });
@@ -218,18 +223,50 @@ export const selectValidationById = (
 ): IValidationOutput | undefined =>
   state.currentValidations.find(validation => validation.id === id);
 
+export const selectValidationInFlightById = (
+  state: IPluginState,
+  id: string
+): IValidationInFlight | undefined =>
+  state.validationsInFlight.find(_ => _.id === id);
+
+export const selectNewValidationInFlight = (
+  state: IPluginState,
+  oldState: IPluginState
+) => difference(state.validationsInFlight, oldState.validationsInFlight);
+
 /**
  * Reducer.
  */
 
 const validationPluginReducer = (
   tr: Transaction,
-  state: IPluginState,
+  incomingState: IPluginState,
   action?: Action
 ): IPluginState => {
+  // There are certain things we need to do every time a transaction is dispatched.
+  const state = {
+    ...incomingState,
+    // Map our decorations, dirtied ranges and validations through the new transaction.
+    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
+    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
+    currentValidations: mapRanges(incomingState.currentValidations, tr.mapping),
+    validationsInFlight: incomingState.validationsInFlight.map(_ => {
+      // We create a new mapping here to preserve state immutability, as
+      // appendMapping mutates an existing mapping.
+      const mapping = new Mapping();
+      mapping.appendMapping(_.mapping);
+      mapping.appendMapping(tr.mapping);
+      return {
+        ..._,
+        mapping
+      };
+    })
+  };
+
   if (!action) {
     return state;
   }
+
   switch (action.type) {
     case NEW_HOVER_ID:
       return handleNewHoverId(tr, state, action);
@@ -411,12 +448,13 @@ const handleValidationRequestStart = (validationInputs: IValidationInput[]) => (
     // We reset the dirty ranges, as they've been expanded and sent for validation.
     dirtiedRanges: [],
     validationPending: false,
-    validationInFlight: validationInputs.length
-      ? {
-          validationInputs,
-          id: tr.time
-        }
-      : undefined
+    validationsInFlight: state.validationsInFlight.concat(
+      validationInputs.map(validationInput => ({
+        id: tr.time.toString(),
+        mapping: new Mapping(),
+        validationInput
+      }))
+    )
   };
 };
 
@@ -429,10 +467,15 @@ const handleValidationRequestSuccess: ActionHandler<
 > = (tr, state, action) => {
   const response = action.payload.response;
   if (response) {
+    const validationInFlight = selectValidationInFlightById(state, response.id);
+    if (!validationInFlight) {
+      return state;
+    }
     const currentValidations = mergeOutputsFromValidationResponse(
-      response,
+      validationInFlight.validationInput,
+      response.validationOutputs,
       state.currentValidations,
-      state.trHistory
+      validationInFlight.mapping
     );
     const decorations = createNewDecorationsForCurrentValidations(
       currentValidations,
@@ -451,7 +494,10 @@ const handleValidationRequestSuccess: ActionHandler<
 
     return {
       ...state,
-      validationInFlight: undefined,
+      validationsInFlight: without(
+        state.validationsInFlight,
+        validationInFlight
+      ),
       currentValidations,
       decorations: decorations.remove(decsToRemove)
     };
@@ -465,15 +511,28 @@ const handleValidationRequestSuccess: ActionHandler<
 const handleValidationRequestError: ActionHandler<
   ActionValidationRequestError
 > = (tr, state, action) => {
-  const decsToRemove = state.decorations.find(
-    undefined,
-    undefined,
-    _ => _.type === DECORATION_INFLIGHT
+  const validationInFlight = selectValidationInFlightById(
+    state,
+    action.payload.validationError.id
   );
-  const dirtiedRanges = mapRangeThroughTransactions(
-    [validationInputToRange(action.payload.validationError.validationInput)],
-    parseInt(String(action.payload.validationError.id), 10),
-    state.trHistory
+  const dirtiedRanges = validationInFlight
+    ? mapRanges(
+        [
+          validationInputToRange(action.payload.validationError.validationInput)
+        ],
+        validationInFlight.mapping
+      )
+    : [];
+  const decsToRemove = dirtiedRanges.reduce(
+    (acc, range) =>
+      acc.concat(
+        state.decorations.find(
+          range.from,
+          range.to,
+          _ => _.type === DECORATION_INFLIGHT
+        )
+      ),
+    [] as Decoration[]
   );
 
   // When we get errors, we map the ranges due to be validated back
@@ -495,7 +554,9 @@ const handleValidationRequestError: ActionHandler<
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    validationInFlight: undefined,
+    validationsInFlight: validationInFlight
+      ? without(state.validationsInFlight, validationInFlight)
+      : state.validationsInFlight,
     error: action.payload.validationError.message
   };
 };

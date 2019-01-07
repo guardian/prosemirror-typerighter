@@ -4,7 +4,8 @@ import {
   validationPluginReducer,
   applyNewDirtiedRanges,
   validationRequestForDirtyRanges,
-  createInitialState
+  createInitialState,
+  selectNewValidationInFlight
 } from "./state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -12,16 +13,12 @@ import {
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction } from "prosemirror-state";
-import {
-  expandRangesToParentBlockNode,
-  mapAndMergeRanges,
-  mapRanges
-} from "./utils/range";
+import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
 import { IRange } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
-import Store from "./store";
+import Store, { STORE_EVENT_NEW_STATE, STORE_EVENT_NEW_VALIDATION } from "./store";
 import { indicateHoverCommand } from "./commands";
 
 /**
@@ -76,7 +73,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
     const pluginState: IPluginState = plugin.getState(localView.state);
     // If there's already a validation in flight, defer validation
     // for another throttle tick
-    if (pluginState.validationInFlight) {
+    if (pluginState.validationsInFlight.length) {
       return scheduleValidation();
     }
     localView.dispatch(
@@ -96,26 +93,10 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
     state: {
       init: (_, { doc }) => createInitialState(doc, throttleInMs, maxThrottle),
       apply(tr: Transaction, state: IPluginState): IPluginState {
-        // There are certain things we need to do every time a transaction
-        // is dispatched, and the logic for that doesn't belong in the reducer.
-        const newState = {
-          ...state,
-          // Map our decorations, dirtied ranges and validations through the new transaction.
-          decorations: state.decorations.map(tr.mapping, tr.doc),
-          dirtiedRanges: mapAndMergeRanges(tr, state.dirtiedRanges),
-          currentValidations: mapRanges(tr, state.currentValidations),
-          // Keep the transaction history up to date ... to a point! If we get a
-          // validation result older than this history, we can discard it and ask
-          // for another.
-          trHistory:
-            state.trHistory.length > 25
-              ? state.trHistory.slice(1).concat(tr)
-              : state.trHistory.concat(tr)
-        };
-        // Apply our reducer.
+        // We use the reducer pattern to handle state transitions.
         return validationPluginReducer(
           tr,
-          newState,
+          state,
           tr.getMeta(VALIDATION_PLUGIN_ACTION)
         );
       }
@@ -125,8 +106,9 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
      * We use appendTransaction to handle side effects and dispatch actions
      * in response to state transitions.
      */
-    appendTransaction(trs: Transaction[], _, newState) {
-      const pluginState: IPluginState = plugin.getState(newState);
+    appendTransaction(trs: Transaction[], oldState, newState) {
+      const oldPluginState: IPluginState = plugin.getState(oldState);
+      const newPluginState: IPluginState = plugin.getState(newState);
       const tr = newState.tr;
 
       // Check for dirted ranges and update the state accordingly.
@@ -138,7 +120,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
         // If we haven't yet scheduled a validation request, issue a delayed
         // request to the validation service, and mark the state as pending
         // validation.
-        if (!pluginState.validationPending) {
+        if (!newPluginState.validationPending) {
           scheduleValidation();
         }
         return tr.setMeta(
@@ -146,6 +128,8 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
+      const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
+      newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _))
     },
     props: {
       decorations: state => {
@@ -182,7 +166,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
           indicateHoverCommand(
             newValidationId,
             getStateHoverInfoFromEvent(event, view.dom, heightMarker)
-          )(localView.state, localView.dispatch)
+          )(localView.state, localView.dispatch);
 
           return false;
         }
@@ -191,8 +175,9 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
     view(view) {
       localView = view;
       return {
-        // Update our store with the new state, which can then notify its subscribers.
-        update: (_, prevState) => store.notify(plugin.getState(view.state), plugin.getState(prevState))
+        // Update our store with the new state.
+        update: (_) =>
+          store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
       };
     }
   });
@@ -200,7 +185,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
   return {
     plugin,
     store,
-    getState: plugin.getState
+    getState: plugin.getState.bind(plugin)
   };
 };
 
