@@ -143,16 +143,44 @@ describe("State management", () => {
         ).toEqual(initialState);
       });
       it("should add incoming validations to the state", () => {
+        let state = validationPluginReducer(
+          initialTr,
+          initialState,
+          applyNewDirtiedRanges([{ from: 1, to: 3 }])
+        );
+        state = validationPluginReducer(
+          initialTr,
+          state,
+          validationRequestForDirtyRanges(expandRangesToParentBlockNode)
+        );
         expect(
           validationPluginReducer(
             initialTr,
-            initialState,
+            state,
             validationRequestSuccess({
-              validationOutputs: [],
-              id: "1337"
+              validationOutputs: [
+                {
+                  from: 1,
+                  to: 3,
+                  type: "type",
+                  annotation: "annotation",
+                  str: "str",
+                  id: "0"
+                }
+              ],
+              id: "0"
             })
-          )
-        ).toEqual(initialState);
+          ).currentValidations
+        ).toMatchObject([
+          {
+            annotation: "annotation",
+            from: 1,
+            id: "0",
+            str: "str",
+            to: 3,
+            type: "type"
+          }
+        ]);
       });
       it("should create decorations for the incoming validations", () => {
         const docToValidate = doc(p("Example text to validate"));
@@ -178,6 +206,47 @@ describe("State management", () => {
             })
           )
         ).toMatchSnapshot();
+      });
+      it("should not apply validations if the ranges they apply to have since been dirtied", () => {
+        let state = validationPluginReducer(
+          initialTr,
+          initialState,
+          applyNewDirtiedRanges([{ from: 1, to: 3 }])
+        );
+        state = validationPluginReducer(
+          initialTr,
+          state,
+          validationRequestForDirtyRanges(expandRangesToParentBlockNode)
+        );
+        state = validationPluginReducer(
+          initialTr,
+          state,
+          applyNewDirtiedRanges([{ from: 1, to: 3 }])
+        );
+        expect(
+          validationPluginReducer(
+            initialTr,
+            state,
+            validationRequestSuccess({
+              validationOutputs: [
+                {
+                  from: 1,
+                  to: 3,
+                  type: "type",
+                  annotation: "annotation",
+                  str: "str",
+                  id: "0"
+                }
+              ],
+              id: "0"
+            })
+          )
+        ).toEqual({
+          ...initialState,
+          dirtiedRanges: [{ from: 1, to: 3 }],
+          currentValidations: [],
+          validationPending: true
+        });
       });
     });
     describe("validationRequestError", () => {

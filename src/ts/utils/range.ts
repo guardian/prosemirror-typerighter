@@ -127,7 +127,10 @@ export const validationInputToRange = (input: IValidationInput): IRange => ({
   to: input.to
 });
 
-export const mergeOutputsFromValidationResponse = (
+/**
+ * Get the current set of validations for the given response.
+ */
+export const getCurrentValidationsFromValidationResponse = (
   input: IValidationInput,
   incomingOutputs: IValidationOutput[],
   currentOutputs: IValidationOutput[],

@@ -57,9 +57,8 @@ export const removeDecorationsFromRanges = (
     const decorationsToRemove = flatten(
       decorations.map(decoration =>
         decorationSet.find(decoration.from, decoration.to, predicate)
-      )
+      ).filter(_ => !!_)
     );
-    console.log(decorationsToRemove);
     return acc.remove(decorationsToRemove);
   }, decorationSet);
 
