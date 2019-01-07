@@ -21,8 +21,9 @@ import {
   validationInputToRange,
   mapAndMergeRanges,
   mapRanges,
-  mergeOutputsFromValidationResponse,
-  findOverlappingRangeIndex
+  getCurrentValidationsFromValidationResponse,
+  findOverlappingRangeIndex,
+  removeOverlappingRanges
 } from "./utils/range";
 import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
@@ -472,43 +473,47 @@ const handleValidationRequestSuccess: ActionHandler<
   ActionValidationResponseReceived
 > = (tr, state, action) => {
   const response = action.payload.response;
-  if (response) {
-    const validationInFlight = selectValidationInFlightById(state, response.id);
-    if (!validationInFlight) {
-      return state;
-    }
-    const currentValidations = mergeOutputsFromValidationResponse(
-      validationInFlight.validationInput,
-      response.validationOutputs,
-      state.currentValidations,
-      validationInFlight.mapping
-    );
-    const decorations = createNewDecorationsForCurrentValidations(
-      currentValidations,
-      state.decorations,
-      tr.doc
-    );
-
-    // Ditch any decorations marking inflight validations
-    const decsToRemove = state.debug
-      ? state.decorations.find(
-          undefined,
-          undefined,
-          _ => _.type === DECORATION_INFLIGHT
-        )
-      : [];
-
-    return {
-      ...state,
-      validationsInFlight: without(
-        state.validationsInFlight,
-        validationInFlight
-      ),
-      currentValidations,
-      decorations: decorations.remove(decsToRemove)
-    };
+  if (!response) {
+    return state;
   }
-  return state;
+
+  const validationInFlight = selectValidationInFlightById(state, response.id);
+  if (!validationInFlight) {
+    return state;
+  }
+
+  let currentValidations = getCurrentValidationsFromValidationResponse(
+    validationInFlight.validationInput,
+    response.validationOutputs,
+    state.currentValidations,
+    validationInFlight.mapping
+  );
+  // We don't apply incoming validations to ranges that have
+  // been dirtied since they were requested.
+  currentValidations = removeOverlappingRanges(currentValidations, state.dirtiedRanges);
+  
+  // Create our decorations for the newly current validations.
+  const decorations = createNewDecorationsForCurrentValidations(
+    currentValidations,
+    state.decorations,
+    tr.doc
+  );
+
+  // Ditch any decorations marking inflight validations
+  const decsToRemove = state.debug
+    ? state.decorations.find(
+        undefined,
+        undefined,
+        _ => _.type === DECORATION_INFLIGHT
+      )
+    : [];
+
+  return {
+    ...state,
+    validationsInFlight: without(state.validationsInFlight, validationInFlight),
+    currentValidations,
+    decorations: decorations.remove(decsToRemove)
+  };
 };
 
 /**
