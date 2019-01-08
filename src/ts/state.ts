@@ -236,6 +236,22 @@ export const selectNewValidationInFlight = (
   oldState: IPluginState
 ) => difference(state.validationsInFlight, oldState.validationsInFlight);
 
+export const selectSuggestionAndRange = (state: IPluginState, validationId: string, suggestionIndex: number) => {
+  const output = selectValidationById(state, validationId);
+  if (!output) {
+    return null;
+  }
+  const suggestion = output.suggestions && output.suggestions[suggestionIndex];
+  if (!suggestion) {
+    return null;
+  }
+  return {
+    from: output.from,
+    to: output.to,
+    suggestion
+  }
+}
+
 /**
  * Reducer.
  */

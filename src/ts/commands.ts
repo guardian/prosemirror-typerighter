@@ -9,7 +9,8 @@ import {
   setDebugState,
   IStateHoverInfo,
   validationRequestSuccess,
-  validationRequestError
+  validationRequestError,
+  selectSuggestionAndRange
 } from "./state";
 import {
   IValidationOutput,
@@ -17,6 +18,7 @@ import {
   IValidationError
 } from "./interfaces/IValidation";
 import { EditorView } from "prosemirror-view";
+import { compact } from "./utils/array";
 
 type Command = (
   state: EditorState,
@@ -137,47 +139,28 @@ export type ApplySuggestionOptions = Array<{
  * Applies a suggestion from a validation to the document.
  */
 export const applySuggestionsCommand = (
-  suggestionOpts: ApplySuggestionOptions,
+  suggestionOptions: ApplySuggestionOptions,
   getState: GetState
 ): Command => (state, dispatch) => {
-  // @todo - there's a lot of transaction logic here, but it
-  // doesn't necessarily apply to the plugin state. Does it belong
-  // in the reducer, or is it best placed here?
   const pluginState = getState(state);
-  const outputsAndSuggestions = suggestionOpts
-    .reduce(
-      (acc, _) => {
-        const output = selectValidationById(pluginState, _.validationId);
-        return !output
-          ? acc
-          : acc.concat({
-              output,
-              suggestionIndex: _.suggestionIndex
-            });
-      },
-      [] as Array<{
-        output: IValidationOutput;
-        suggestionIndex: number;
-      }>
+  const outputsAndSuggestions = suggestionOptions
+    .map(opt =>
+      selectSuggestionAndRange(
+        pluginState,
+        opt.validationId,
+        opt.suggestionIndex
+      )
     )
-    .filter(_ => !!_);
+    .filter(compact);
+
   if (!outputsAndSuggestions.length) {
     return false;
   }
 
   if (dispatch) {
     const tr = state.tr;
-    outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
-      const suggestion =
-        output.suggestions && output.suggestions[suggestionIndex];
-      if (!suggestion) {
-        return false;
-      }
-      tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
-    });
-    tr.setMeta(
-      VALIDATION_PLUGIN_ACTION,
-      newHoverIdReceived(undefined, undefined)
+    outputsAndSuggestions.forEach(({ from, to, suggestion }) =>
+      tr.replaceWith(from, to, state.schema.text(suggestion))
     );
     dispatch(tr);
   }
