@@ -6,7 +6,8 @@ import {
   setDebugState,
   selectValidationInFlightById,
   selectNewValidationInFlight,
-  applyNewDirtiedRanges
+  applyNewDirtiedRanges,
+  selectSuggestionAndRange
 } from "../state";
 import {
   newHoverIdReceived,
@@ -478,6 +479,41 @@ describe("State management", () => {
             id: "2"
           }
         ]);
+      });
+    });
+    describe("selectSuggestionAndRange", () => {
+      it("should select a suggestion and the range it should be applied to, given a validation id and suggestion index", () => {
+        const currentValidations = [
+          {
+            id: "id",
+            from: 0,
+            to: 5,
+            suggestions: ["example", "suggestion"],
+            annotation: "Annotation",
+            type: "Type",
+            str: "hai"
+          }
+        ];
+        expect(
+          selectSuggestionAndRange(
+            {
+              ...initialState,
+              currentValidations
+            },
+            "id",
+            0
+          )
+        ).toEqual({ from: 0, to: 5, suggestion: "example" });
+        expect(
+          selectSuggestionAndRange(
+            {
+              ...initialState,
+              currentValidations
+            },
+            "id",
+            1
+          )
+        ).toEqual({ from: 0, to: 5, suggestion: "suggestion" });
       });
     });
   });
