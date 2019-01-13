@@ -15635,10 +15635,15 @@ const createDebugDecorationFromRange = (range, dirty = true) => {
         type
     });
 };
-const removeDecorationsFromRanges = (decorations, ranges, types = [DECORATION_VALIDATION]) => ranges.reduce((acc, range) => {
-    const decorationsToRemove = decorations.find(range.from, range.to, spec => types.indexOf(spec.type) !== -1);
+const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]) => ranges.reduce((acc, range) => {
+    const predicate = (spec) => types.indexOf(spec.type) !== -1;
+    const decorations = decorationSet.find(range.from, range.to, predicate);
+    if (!decorations.length) {
+        return acc;
+    }
+    const decorationsToRemove = flatten_1(decorations.map(decoration => decorationSet.find(decoration.from, decoration.to, predicate)).filter(_ => !!_));
     return acc.remove(decorationsToRemove);
-}, decorations);
+}, decorationSet);
 const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
     const newDecorationSet = removeDecorationsFromRanges(decorationSet, outputs);
     const decorationsToAdd = createDecorationsForValidationRanges(outputs);
@@ -15838,38 +15843,6 @@ function clamp(number, lower, upper) {
 }
 
 var clamp_1 = clamp;
-
-/**
- * Creates an array with all falsey values removed. The values `false`, `null`,
- * `0`, `""`, `undefined`, and `NaN` are falsey.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Array
- * @param {Array} array The array to compact.
- * @returns {Array} Returns the new array of filtered values.
- * @example
- *
- * _.compact([0, 1, false, 2, '', 3]);
- * // => [1, 2, 3]
- */
-function compact(array) {
-  var index = -1,
-      length = array == null ? 0 : array.length,
-      resIndex = 0,
-      result = [];
-
-  while (++index < length) {
-    var value = array[index];
-    if (value) {
-      result[resIndex++] = value;
-    }
-  }
-  return result;
-}
-
-var compact_1 = compact;
 
 var dist$11 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -19526,8 +19499,8 @@ const findOverlappingRangeIndex = (range, ranges) => {
         (localRange.to >= range.to && localRange.from <= range.to) ||
         (localRange.from >= range.from && localRange.to <= range.to));
 };
-const mapAndMergeRanges = (tr, ranges) => mergeRanges(mapRanges(tr, ranges));
-const mapRanges = (tr, ranges) => ranges.map(range => (Object.assign({}, range, { from: tr.mapping.map(range.from), to: tr.mapping.map(range.to) })));
+const mapAndMergeRanges = (ranges, mapping) => mergeRanges(mapRanges(ranges, mapping));
+const mapRanges = (ranges, mapping) => ranges.map(range => (Object.assign({}, range, { from: mapping.map(range.from), to: mapping.map(range.to) })));
 const removeOverlappingRanges = (firstRanges, secondRanges) => {
     return firstRanges.reduce((acc, range) => {
         return findOverlappingRangeIndex(range, secondRanges) === -1
@@ -19535,10 +19508,7 @@ const removeOverlappingRanges = (firstRanges, secondRanges) => {
             : acc;
     }, []);
 };
-const mergeRange = (range1, range2) => ({
-    from: range1.from < range2.from ? range1.from : range2.from,
-    to: range1.to > range2.to ? range1.to : range2.to
-});
+const mergeRange = (range1, range2) => (Object.assign({}, range1, { from: range1.from < range2.from ? range1.from : range2.from, to: range1.to > range2.to ? range1.to : range2.to }));
 const mergeRanges = (ranges) => ranges.reduce((acc, range) => {
     const index$$1 = findOverlappingRangeIndex(range, acc);
     if (index$$1 === -1) {
@@ -19553,16 +19523,15 @@ const validationInputToRange = (input) => ({
     from: input.from,
     to: input.to
 });
-const mergeOutputsFromValidationResponse = (response, currentOutputs, trs) => {
-    const initialTransaction = trs.find(tr => tr.time === response.id);
-    if (!initialTransaction && trs.length > 1) {
+const getCurrentValidationsFromValidationResponse = (input, incomingOutputs, currentOutputs, mapping) => {
+    if (!incomingOutputs.length) {
         return currentOutputs;
     }
-    const mappedInputs = mapRangeThroughTransactions([response.validationInput], response.id, trs);
-    const newOutputs = mapRangeThroughTransactions(response.validationOutputs, response.id, trs);
+    const mappedInputs = mapRanges([input], mapping);
+    const newOutputs = mapAndMergeRanges(incomingOutputs, mapping);
     return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
 };
-const expandRange = (range, doc) => {
+const expandRangeToParentBlockNode = (range, doc) => {
     try {
         const $fromPos = doc.resolve(range.from);
         const $toPos = doc.resolve(range.to);
@@ -19581,7 +19550,7 @@ const expandRange = (range, doc) => {
 };
 const getRangesOfParentBlockNodes = (ranges, doc) => {
     const validationRanges = ranges.reduce((acc, range) => {
-        const expandedRange = expandRange({ from: range.from, to: range.to }, doc);
+        const expandedRange = expandRangeToParentBlockNode({ from: range.from, to: range.to }, doc);
         return acc.concat(expandedRange
             ? [
                 {
@@ -19593,21 +19562,7 @@ const getRangesOfParentBlockNodes = (ranges, doc) => {
     }, []);
     return mergeRanges(validationRanges);
 };
-const mapRangeThroughTransactions = (ranges, time, trs) => compact_1(ranges.map(range => {
-    const initialTransactionIndex = trs.findIndex(tr => tr.time === time);
-    if (trs.length === 1) {
-        return range;
-    }
-    if (initialTransactionIndex === -1) {
-        return undefined;
-    }
-    return Object.assign(range, Object.assign({}, trs.slice(initialTransactionIndex).reduce((acc, tr) => ({
-        from: tr.mapping.map(acc.from),
-        to: tr.mapping.map(acc.to)
-    }), range)));
-}));
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
-//# sourceMappingURL=range.js.map
 
 const MarkTypes = {
     legal: "legal",
@@ -19671,6 +19626,1006 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
 //# sourceMappingURL=prosemirror.js.map
 
+var asyncTag = '[object AsyncFunction]';
+var funcTag = '[object Function]';
+var genTag = '[object GeneratorFunction]';
+var proxyTag = '[object Proxy]';
+
+/**
+ * Checks if `value` is classified as a `Function` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a function, else `false`.
+ * @example
+ *
+ * _.isFunction(_);
+ * // => true
+ *
+ * _.isFunction(/abc/);
+ * // => false
+ */
+function isFunction(value) {
+  if (!isObject_1(value)) {
+    return false;
+  }
+  // The use of `Object#toString` avoids issues with the `typeof` operator
+  // in Safari 9 which returns 'object' for typed arrays and other constructors.
+  var tag = _baseGetTag(value);
+  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
+}
+
+var isFunction_1 = isFunction;
+
+var coreJsData = _root['__core-js_shared__'];
+
+var _coreJsData = coreJsData;
+
+var maskSrcKey = (function() {
+  var uid = /[^.]+$/.exec(_coreJsData && _coreJsData.keys && _coreJsData.keys.IE_PROTO || '');
+  return uid ? ('Symbol(src)_1.' + uid) : '';
+}());
+
+/**
+ * Checks if `func` has its source masked.
+ *
+ * @private
+ * @param {Function} func The function to check.
+ * @returns {boolean} Returns `true` if `func` is masked, else `false`.
+ */
+function isMasked(func) {
+  return !!maskSrcKey && (maskSrcKey in func);
+}
+
+var _isMasked = isMasked;
+
+/** Used for built-in method references. */
+var funcProto$1 = Function.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString$1 = funcProto$1.toString;
+
+/**
+ * Converts `func` to its source code.
+ *
+ * @private
+ * @param {Function} func The function to convert.
+ * @returns {string} Returns the source code.
+ */
+function toSource(func) {
+  if (func != null) {
+    try {
+      return funcToString$1.call(func);
+    } catch (e) {}
+    try {
+      return (func + '');
+    } catch (e) {}
+  }
+  return '';
+}
+
+var _toSource = toSource;
+
+var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+
+/** Used to detect host constructors (Safari). */
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+
+/** Used for built-in method references. */
+var funcProto = Function.prototype;
+var objectProto$3 = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var funcToString = funcProto.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$2 = objectProto$3.hasOwnProperty;
+
+/** Used to detect if a method is native. */
+var reIsNative = RegExp('^' +
+  funcToString.call(hasOwnProperty$2).replace(reRegExpChar, '\\$&')
+  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+);
+
+/**
+ * The base implementation of `_.isNative` without bad shim checks.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a native function,
+ *  else `false`.
+ */
+function baseIsNative(value) {
+  if (!isObject_1(value) || _isMasked(value)) {
+    return false;
+  }
+  var pattern = isFunction_1(value) ? reIsNative : reIsHostCtor;
+  return pattern.test(_toSource(value));
+}
+
+var _baseIsNative = baseIsNative;
+
+/**
+ * Gets the value at `key` of `object`.
+ *
+ * @private
+ * @param {Object} [object] The object to query.
+ * @param {string} key The key of the property to get.
+ * @returns {*} Returns the property value.
+ */
+function getValue(object, key) {
+  return object == null ? undefined : object[key];
+}
+
+var _getValue = getValue;
+
+function getNative(object, key) {
+  var value = _getValue(object, key);
+  return _baseIsNative(value) ? value : undefined;
+}
+
+var _getNative = getNative;
+
+var nativeCreate = _getNative(Object, 'create');
+
+var _nativeCreate = nativeCreate;
+
+function hashClear() {
+  this.__data__ = _nativeCreate ? _nativeCreate(null) : {};
+  this.size = 0;
+}
+
+var _hashClear = hashClear;
+
+/**
+ * Removes `key` and its value from the hash.
+ *
+ * @private
+ * @name delete
+ * @memberOf Hash
+ * @param {Object} hash The hash to modify.
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function hashDelete(key) {
+  var result = this.has(key) && delete this.__data__[key];
+  this.size -= result ? 1 : 0;
+  return result;
+}
+
+var _hashDelete = hashDelete;
+
+var HASH_UNDEFINED = '__lodash_hash_undefined__';
+
+/** Used for built-in method references. */
+var objectProto$4 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$3 = objectProto$4.hasOwnProperty;
+
+/**
+ * Gets the hash value for `key`.
+ *
+ * @private
+ * @name get
+ * @memberOf Hash
+ * @param {string} key The key of the value to get.
+ * @returns {*} Returns the entry value.
+ */
+function hashGet(key) {
+  var data = this.__data__;
+  if (_nativeCreate) {
+    var result = data[key];
+    return result === HASH_UNDEFINED ? undefined : result;
+  }
+  return hasOwnProperty$3.call(data, key) ? data[key] : undefined;
+}
+
+var _hashGet = hashGet;
+
+var objectProto$5 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$4 = objectProto$5.hasOwnProperty;
+
+/**
+ * Checks if a hash value for `key` exists.
+ *
+ * @private
+ * @name has
+ * @memberOf Hash
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function hashHas(key) {
+  var data = this.__data__;
+  return _nativeCreate ? (data[key] !== undefined) : hasOwnProperty$4.call(data, key);
+}
+
+var _hashHas = hashHas;
+
+var HASH_UNDEFINED$1 = '__lodash_hash_undefined__';
+
+/**
+ * Sets the hash `key` to `value`.
+ *
+ * @private
+ * @name set
+ * @memberOf Hash
+ * @param {string} key The key of the value to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns the hash instance.
+ */
+function hashSet(key, value) {
+  var data = this.__data__;
+  this.size += this.has(key) ? 0 : 1;
+  data[key] = (_nativeCreate && value === undefined) ? HASH_UNDEFINED$1 : value;
+  return this;
+}
+
+var _hashSet = hashSet;
+
+function Hash(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `Hash`.
+Hash.prototype.clear = _hashClear;
+Hash.prototype['delete'] = _hashDelete;
+Hash.prototype.get = _hashGet;
+Hash.prototype.has = _hashHas;
+Hash.prototype.set = _hashSet;
+
+var _Hash = Hash;
+
+/**
+ * Removes all key-value entries from the list cache.
+ *
+ * @private
+ * @name clear
+ * @memberOf ListCache
+ */
+function listCacheClear() {
+  this.__data__ = [];
+  this.size = 0;
+}
+
+var _listCacheClear = listCacheClear;
+
+/**
+ * Performs a
+ * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+ * comparison between two values to determine if they are equivalent.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+ * @example
+ *
+ * var object = { 'a': 1 };
+ * var other = { 'a': 1 };
+ *
+ * _.eq(object, object);
+ * // => true
+ *
+ * _.eq(object, other);
+ * // => false
+ *
+ * _.eq('a', 'a');
+ * // => true
+ *
+ * _.eq('a', Object('a'));
+ * // => false
+ *
+ * _.eq(NaN, NaN);
+ * // => true
+ */
+function eq(value, other) {
+  return value === other || (value !== value && other !== other);
+}
+
+var eq_1 = eq;
+
+function assocIndexOf(array, key) {
+  var length = array.length;
+  while (length--) {
+    if (eq_1(array[length][0], key)) {
+      return length;
+    }
+  }
+  return -1;
+}
+
+var _assocIndexOf = assocIndexOf;
+
+var arrayProto = Array.prototype;
+
+/** Built-in value references. */
+var splice = arrayProto.splice;
+
+/**
+ * Removes `key` and its value from the list cache.
+ *
+ * @private
+ * @name delete
+ * @memberOf ListCache
+ * @param {string} key The key of the value to remove.
+ * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+ */
+function listCacheDelete(key) {
+  var data = this.__data__,
+      index = _assocIndexOf(data, key);
+
+  if (index < 0) {
+    return false;
+  }
+  var lastIndex = data.length - 1;
+  if (index == lastIndex) {
+    data.pop();
+  } else {
+    splice.call(data, index, 1);
+  }
+  --this.size;
+  return true;
+}
+
+var _listCacheDelete = listCacheDelete;
+
+function listCacheGet(key) {
+  var data = this.__data__,
+      index = _assocIndexOf(data, key);
+
+  return index < 0 ? undefined : data[index][1];
+}
+
+var _listCacheGet = listCacheGet;
+
+function listCacheHas(key) {
+  return _assocIndexOf(this.__data__, key) > -1;
+}
+
+var _listCacheHas = listCacheHas;
+
+function listCacheSet(key, value) {
+  var data = this.__data__,
+      index = _assocIndexOf(data, key);
+
+  if (index < 0) {
+    ++this.size;
+    data.push([key, value]);
+  } else {
+    data[index][1] = value;
+  }
+  return this;
+}
+
+var _listCacheSet = listCacheSet;
+
+function ListCache(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `ListCache`.
+ListCache.prototype.clear = _listCacheClear;
+ListCache.prototype['delete'] = _listCacheDelete;
+ListCache.prototype.get = _listCacheGet;
+ListCache.prototype.has = _listCacheHas;
+ListCache.prototype.set = _listCacheSet;
+
+var _ListCache = ListCache;
+
+var Map = _getNative(_root, 'Map');
+
+var _Map = Map;
+
+function mapCacheClear() {
+  this.size = 0;
+  this.__data__ = {
+    'hash': new _Hash,
+    'map': new (_Map || _ListCache),
+    'string': new _Hash
+  };
+}
+
+var _mapCacheClear = mapCacheClear;
+
+/**
+ * Checks if `value` is suitable for use as unique object key.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is suitable, else `false`.
+ */
+function isKeyable(value) {
+  var type = typeof value;
+  return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
+    ? (value !== '__proto__')
+    : (value === null);
+}
+
+var _isKeyable = isKeyable;
+
+function getMapData(map, key) {
+  var data = map.__data__;
+  return _isKeyable(key)
+    ? data[typeof key == 'string' ? 'string' : 'hash']
+    : data.map;
+}
+
+var _getMapData = getMapData;
+
+function mapCacheDelete(key) {
+  var result = _getMapData(this, key)['delete'](key);
+  this.size -= result ? 1 : 0;
+  return result;
+}
+
+var _mapCacheDelete = mapCacheDelete;
+
+function mapCacheGet(key) {
+  return _getMapData(this, key).get(key);
+}
+
+var _mapCacheGet = mapCacheGet;
+
+function mapCacheHas(key) {
+  return _getMapData(this, key).has(key);
+}
+
+var _mapCacheHas = mapCacheHas;
+
+function mapCacheSet(key, value) {
+  var data = _getMapData(this, key),
+      size = data.size;
+
+  data.set(key, value);
+  this.size += data.size == size ? 0 : 1;
+  return this;
+}
+
+var _mapCacheSet = mapCacheSet;
+
+function MapCache(entries) {
+  var index = -1,
+      length = entries == null ? 0 : entries.length;
+
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+
+// Add methods to `MapCache`.
+MapCache.prototype.clear = _mapCacheClear;
+MapCache.prototype['delete'] = _mapCacheDelete;
+MapCache.prototype.get = _mapCacheGet;
+MapCache.prototype.has = _mapCacheHas;
+MapCache.prototype.set = _mapCacheSet;
+
+var _MapCache = MapCache;
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED$2 = '__lodash_hash_undefined__';
+
+/**
+ * Adds `value` to the array cache.
+ *
+ * @private
+ * @name add
+ * @memberOf SetCache
+ * @alias push
+ * @param {*} value The value to cache.
+ * @returns {Object} Returns the cache instance.
+ */
+function setCacheAdd(value) {
+  this.__data__.set(value, HASH_UNDEFINED$2);
+  return this;
+}
+
+var _setCacheAdd = setCacheAdd;
+
+/**
+ * Checks if `value` is in the array cache.
+ *
+ * @private
+ * @name has
+ * @memberOf SetCache
+ * @param {*} value The value to search for.
+ * @returns {number} Returns `true` if `value` is found, else `false`.
+ */
+function setCacheHas(value) {
+  return this.__data__.has(value);
+}
+
+var _setCacheHas = setCacheHas;
+
+function SetCache(values) {
+  var index = -1,
+      length = values == null ? 0 : values.length;
+
+  this.__data__ = new _MapCache;
+  while (++index < length) {
+    this.add(values[index]);
+  }
+}
+
+// Add methods to `SetCache`.
+SetCache.prototype.add = SetCache.prototype.push = _setCacheAdd;
+SetCache.prototype.has = _setCacheHas;
+
+var _SetCache = SetCache;
+
+/**
+ * The base implementation of `_.findIndex` and `_.findLastIndex` without
+ * support for iteratee shorthands.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Function} predicate The function invoked per iteration.
+ * @param {number} fromIndex The index to search from.
+ * @param {boolean} [fromRight] Specify iterating from right to left.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function baseFindIndex(array, predicate, fromIndex, fromRight) {
+  var length = array.length,
+      index = fromIndex + (fromRight ? 1 : -1);
+
+  while ((fromRight ? index-- : ++index < length)) {
+    if (predicate(array[index], index, array)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+var _baseFindIndex = baseFindIndex;
+
+/**
+ * The base implementation of `_.isNaN` without support for number objects.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is `NaN`, else `false`.
+ */
+function baseIsNaN(value) {
+  return value !== value;
+}
+
+var _baseIsNaN = baseIsNaN;
+
+/**
+ * A specialized version of `_.indexOf` which performs strict equality
+ * comparisons of values, i.e. `===`.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {*} value The value to search for.
+ * @param {number} fromIndex The index to search from.
+ * @returns {number} Returns the index of the matched value, else `-1`.
+ */
+function strictIndexOf(array, value, fromIndex) {
+  var index = fromIndex - 1,
+      length = array.length;
+
+  while (++index < length) {
+    if (array[index] === value) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+var _strictIndexOf = strictIndexOf;
+
+function baseIndexOf(array, value, fromIndex) {
+  return value === value
+    ? _strictIndexOf(array, value, fromIndex)
+    : _baseFindIndex(array, _baseIsNaN, fromIndex);
+}
+
+var _baseIndexOf = baseIndexOf;
+
+function arrayIncludes(array, value) {
+  var length = array == null ? 0 : array.length;
+  return !!length && _baseIndexOf(array, value, 0) > -1;
+}
+
+var _arrayIncludes = arrayIncludes;
+
+/**
+ * This function is like `arrayIncludes` except that it accepts a comparator.
+ *
+ * @private
+ * @param {Array} [array] The array to inspect.
+ * @param {*} target The value to search for.
+ * @param {Function} comparator The comparator invoked per element.
+ * @returns {boolean} Returns `true` if `target` is found, else `false`.
+ */
+function arrayIncludesWith(array, value, comparator) {
+  var index = -1,
+      length = array == null ? 0 : array.length;
+
+  while (++index < length) {
+    if (comparator(value, array[index])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+var _arrayIncludesWith = arrayIncludesWith;
+
+/**
+ * A specialized version of `_.map` for arrays without support for iteratee
+ * shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @returns {Array} Returns the new mapped array.
+ */
+function arrayMap(array, iteratee) {
+  var index = -1,
+      length = array == null ? 0 : array.length,
+      result = Array(length);
+
+  while (++index < length) {
+    result[index] = iteratee(array[index], index, array);
+  }
+  return result;
+}
+
+var _arrayMap = arrayMap;
+
+/**
+ * The base implementation of `_.unary` without support for storing metadata.
+ *
+ * @private
+ * @param {Function} func The function to cap arguments for.
+ * @returns {Function} Returns the new capped function.
+ */
+function baseUnary(func) {
+  return function(value) {
+    return func(value);
+  };
+}
+
+var _baseUnary = baseUnary;
+
+/**
+ * Checks if a `cache` value for `key` exists.
+ *
+ * @private
+ * @param {Object} cache The cache to query.
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function cacheHas(cache, key) {
+  return cache.has(key);
+}
+
+var _cacheHas = cacheHas;
+
+var LARGE_ARRAY_SIZE = 200;
+
+/**
+ * The base implementation of methods like `_.difference` without support
+ * for excluding multiple arrays or iteratee shorthands.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Array} values The values to exclude.
+ * @param {Function} [iteratee] The iteratee invoked per element.
+ * @param {Function} [comparator] The comparator invoked per element.
+ * @returns {Array} Returns the new array of filtered values.
+ */
+function baseDifference(array, values, iteratee, comparator) {
+  var index = -1,
+      includes = _arrayIncludes,
+      isCommon = true,
+      length = array.length,
+      result = [],
+      valuesLength = values.length;
+
+  if (!length) {
+    return result;
+  }
+  if (iteratee) {
+    values = _arrayMap(values, _baseUnary(iteratee));
+  }
+  if (comparator) {
+    includes = _arrayIncludesWith;
+    isCommon = false;
+  }
+  else if (values.length >= LARGE_ARRAY_SIZE) {
+    includes = _cacheHas;
+    isCommon = false;
+    values = new _SetCache(values);
+  }
+  outer:
+  while (++index < length) {
+    var value = array[index],
+        computed = iteratee == null ? value : iteratee(value);
+
+    value = (comparator || value !== 0) ? value : 0;
+    if (isCommon && computed === computed) {
+      var valuesIndex = valuesLength;
+      while (valuesIndex--) {
+        if (values[valuesIndex] === computed) {
+          continue outer;
+        }
+      }
+      result.push(value);
+    }
+    else if (!includes(values, computed, comparator)) {
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+var _baseDifference = baseDifference;
+
+/**
+ * This method returns the first argument it receives.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Util
+ * @param {*} value Any value.
+ * @returns {*} Returns `value`.
+ * @example
+ *
+ * var object = { 'a': 1 };
+ *
+ * console.log(_.identity(object) === object);
+ * // => true
+ */
+function identity(value) {
+  return value;
+}
+
+var identity_1 = identity;
+
+/**
+ * A faster alternative to `Function#apply`, this function invokes `func`
+ * with the `this` binding of `thisArg` and the arguments of `args`.
+ *
+ * @private
+ * @param {Function} func The function to invoke.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {Array} args The arguments to invoke `func` with.
+ * @returns {*} Returns the result of `func`.
+ */
+function apply(func, thisArg, args) {
+  switch (args.length) {
+    case 0: return func.call(thisArg);
+    case 1: return func.call(thisArg, args[0]);
+    case 2: return func.call(thisArg, args[0], args[1]);
+    case 3: return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+
+var _apply = apply;
+
+var nativeMax = Math.max;
+
+/**
+ * A specialized version of `baseRest` which transforms the rest array.
+ *
+ * @private
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @param {Function} transform The rest array transform.
+ * @returns {Function} Returns the new function.
+ */
+function overRest(func, start, transform) {
+  start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
+  return function() {
+    var args = arguments,
+        index = -1,
+        length = nativeMax(args.length - start, 0),
+        array = Array(length);
+
+    while (++index < length) {
+      array[index] = args[start + index];
+    }
+    index = -1;
+    var otherArgs = Array(start + 1);
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = transform(array);
+    return _apply(func, this, otherArgs);
+  };
+}
+
+var _overRest = overRest;
+
+/**
+ * Creates a function that returns `value`.
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Util
+ * @param {*} value The value to return from the new function.
+ * @returns {Function} Returns the new constant function.
+ * @example
+ *
+ * var objects = _.times(2, _.constant({ 'a': 1 }));
+ *
+ * console.log(objects);
+ * // => [{ 'a': 1 }, { 'a': 1 }]
+ *
+ * console.log(objects[0] === objects[1]);
+ * // => true
+ */
+function constant(value) {
+  return function() {
+    return value;
+  };
+}
+
+var constant_1 = constant;
+
+var defineProperty = (function() {
+  try {
+    var func = _getNative(Object, 'defineProperty');
+    func({}, '', {});
+    return func;
+  } catch (e) {}
+}());
+
+var _defineProperty = defineProperty;
+
+var baseSetToString = !_defineProperty ? identity_1 : function(func, string) {
+  return _defineProperty(func, 'toString', {
+    'configurable': true,
+    'enumerable': false,
+    'value': constant_1(string),
+    'writable': true
+  });
+};
+
+var _baseSetToString = baseSetToString;
+
+/** Used to detect hot functions by number of calls within a span of milliseconds. */
+var HOT_COUNT = 800;
+var HOT_SPAN = 16;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeNow = Date.now;
+
+/**
+ * Creates a function that'll short out and invoke `identity` instead
+ * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
+ * milliseconds.
+ *
+ * @private
+ * @param {Function} func The function to restrict.
+ * @returns {Function} Returns the new shortable function.
+ */
+function shortOut(func) {
+  var count = 0,
+      lastCalled = 0;
+
+  return function() {
+    var stamp = nativeNow(),
+        remaining = HOT_SPAN - (stamp - lastCalled);
+
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(undefined, arguments);
+  };
+}
+
+var _shortOut = shortOut;
+
+var setToString = _shortOut(_baseSetToString);
+
+var _setToString = setToString;
+
+function baseRest(func, start) {
+  return _setToString(_overRest(func, start, identity_1), func + '');
+}
+
+var _baseRest = baseRest;
+
+/** Used as references for various `Number` constants. */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/**
+ * Checks if `value` is a valid array-like length.
+ *
+ * **Note:** This method is loosely based on
+ * [`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+ * @example
+ *
+ * _.isLength(3);
+ * // => true
+ *
+ * _.isLength(Number.MIN_VALUE);
+ * // => false
+ *
+ * _.isLength(Infinity);
+ * // => false
+ *
+ * _.isLength('3');
+ * // => false
+ */
+function isLength(value) {
+  return typeof value == 'number' &&
+    value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+}
+
+var isLength_1 = isLength;
+
+function isArrayLike(value) {
+  return value != null && isLength_1(value.length) && !isFunction_1(value);
+}
+
+var isArrayLike_1 = isArrayLike;
+
+function isArrayLikeObject(value) {
+  return isObjectLike_1(value) && isArrayLike_1(value);
+}
+
+var isArrayLikeObject_1 = isArrayLikeObject;
+
+var difference = _baseRest(function(array, values) {
+  return isArrayLikeObject_1(array)
+    ? _baseDifference(array, _baseFlatten(values, 1, isArrayLikeObject_1, true))
+    : [];
+});
+
+var difference_1 = difference;
+
+var without = _baseRest(function(array, values) {
+  return isArrayLikeObject_1(array)
+    ? _baseDifference(array, values)
+    : [];
+});
+
+var without_1 = without;
+
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
 const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
@@ -19678,7 +20633,7 @@ const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
 const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
-const HANDLE_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
+const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const SET_DEBUG_STATE = "SET_DEBUG_STATE";
 const validationRequestForDirtyRanges = (expandRanges) => ({
     type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
@@ -19700,7 +20655,7 @@ const newHoverIdReceived = (hoverId, hoverInfo) => ({
     payload: { hoverId, hoverInfo }
 });
 const applyNewDirtiedRanges = (ranges) => ({
-    type: HANDLE_NEW_DIRTY_RANGES,
+    type: APPLY_NEW_DIRTY_RANGES,
     payload: { ranges }
 });
 const selectValidation = (validationId) => ({
@@ -19723,20 +20678,34 @@ const createInitialState = (doc, throttleInMs, maxThrottle) => ({
     hoverId: undefined,
     hoverInfo: undefined,
     trHistory: [],
-    validationInFlight: undefined,
+    validationsInFlight: [],
     validationPending: false,
     error: undefined
 });
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
+const selectValidationInFlightById = (state, id) => state.validationsInFlight.find(_ => _.id === id);
+const selectNewValidationInFlight = (state, oldState) => difference_1(state.validationsInFlight, oldState.validationsInFlight);
+const selectSuggestionAndRange = (state, validationId, suggestionIndex) => {
+    const output = selectValidationById(state, validationId);
+    if (!output) {
+        return null;
+    }
+    const suggestion = output.suggestions && output.suggestions[suggestionIndex];
+    if (!suggestion) {
+        return null;
+    }
+    return {
+        from: output.from,
+        to: output.to,
+        suggestion
+    };
+};
 const validationPluginReducer = (tr, incomingState, action) => {
-    const state = Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(tr, incomingState.dirtiedRanges), currentValidations: mapRanges(tr, incomingState.currentValidations), validationsInFlight: incomingState.validationsInFlight.map(_ => {
+    const state = Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentValidations: mapRanges(incomingState.currentValidations, tr.mapping), validationsInFlight: incomingState.validationsInFlight.map(_ => {
             const mapping = new dist_14();
             mapping.appendMapping(_.mapping);
             mapping.appendMapping(tr.mapping);
-            return {
-                id: _.id,
-                mapping
-            };
+            return Object.assign({}, _, { mapping });
         }) });
     if (!action) {
         return state;
@@ -19754,7 +20723,7 @@ const validationPluginReducer = (tr, incomingState, action) => {
             return handleValidationRequestError(tr, state, action);
         case SELECT_VALIDATION:
             return handleSelectValidation(tr, state, action);
-        case HANDLE_NEW_DIRTY_RANGES:
+        case APPLY_NEW_DIRTY_RANGES:
             return handleNewDirtyRanges(tr, state, action);
         case SET_DEBUG_STATE:
             return handleSetDebugState(tr, state, action);
@@ -19769,23 +20738,19 @@ const handleNewHoverId = (tr, state, action) => {
     let decorations = state.decorations;
     const incomingHoverId = action.payload.hoverId;
     const currentHoverId = state.hoverId;
-    const isHovering = !!action.payload.hoverId;
-    const decorationsToRemove = currentHoverId
-        ? state.decorations.find(undefined, undefined, spec => spec.id === currentHoverId && spec.type === DECORATION_VALIDATION)
-        : [];
-    decorations = decorations.remove(decorationsToRemove);
-    if (incomingHoverId) {
-        const incomingValidationOutput = selectValidationById(state, incomingHoverId);
-        if (incomingValidationOutput) {
-            decorations = decorations.add(tr.doc, createDecorationForValidationRange(incomingValidationOutput, isHovering, false));
-        }
-    }
     if (currentHoverId) {
-        const currentValidationOutput = selectValidationById(state, currentHoverId);
-        if (currentValidationOutput) {
-            decorations = decorations.add(tr.doc, createDecorationForValidationRange(currentValidationOutput, false, false));
-        }
+        decorations = decorations.remove(state.decorations.find(undefined, undefined, spec => spec.id === currentHoverId && spec.type === DECORATION_VALIDATION));
     }
+    decorations = [
+        { id: incomingHoverId, isHovering: true },
+        { id: currentHoverId, isHovering: false }
+    ].reduce((acc, hoverData) => {
+        const output = selectValidationById(state, hoverData.id || "");
+        if (!output) {
+            return acc;
+        }
+        return decorations.add(tr.doc, createDecorationForValidationRange(output, hoverData.isHovering, false));
+    }, decorations);
     return Object.assign({}, state, { decorations, hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
 };
 const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } }) => {
@@ -19793,7 +20758,8 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
         ? state.decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)))
         : state.decorations;
     newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
-    return Object.assign({}, state, { validationPending: true, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
+    const currentValidations = state.currentValidations.filter(output => findOverlappingRangeIndex(output, dirtiedRanges) === -1);
+    return Object.assign({}, state, { validationPending: true, currentValidations, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
 };
 const handleValidationRequestForDirtyRanges = (tr, state, { payload: { expandRanges } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
@@ -19809,37 +20775,52 @@ const handleValidationRequestStart = (validationInputs) => (tr, state) => {
             DECORATION_DIRTY
         ]).add(tr.doc, validationInputs.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationInFlight: state.validationsInFlight.concat({
-            id: tr.time,
-            mapping: new dist_14()
-        }) });
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationsInFlight: state.validationsInFlight.concat(validationInputs.map(validationInput => ({
+            id: tr.time.toString(),
+            mapping: new dist_14(),
+            validationInput
+        }))) });
 };
 const handleValidationRequestSuccess = (tr, state, action) => {
     const response = action.payload.response;
-    if (response) {
-        const currentValidations = mergeOutputsFromValidationResponse(response, state.currentValidations, state.trHistory);
-        const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
-        const decsToRemove = state.debug
-            ? state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
-            : [];
-        return Object.assign({}, state, { validationInFlight: undefined, currentValidations, decorations: decorations.remove(decsToRemove) });
+    if (!response) {
+        return state;
     }
-    return state;
+    const validationInFlight = selectValidationInFlightById(state, response.id);
+    if (!validationInFlight) {
+        return state;
+    }
+    let currentValidations = getCurrentValidationsFromValidationResponse(validationInFlight.validationInput, response.validationOutputs, state.currentValidations, validationInFlight.mapping);
+    currentValidations = removeOverlappingRanges(currentValidations, state.dirtiedRanges);
+    const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
+    const decsToRemove = state.debug
+        ? state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
+        : [];
+    return Object.assign({}, state, { validationsInFlight: without_1(state.validationsInFlight, validationInFlight), currentValidations, decorations: decorations.remove(decsToRemove) });
 };
 const handleValidationRequestError = (tr, state, action) => {
-    const decsToRemove = state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT);
-    const dirtiedRanges = mapRangeThroughTransactions([validationInputToRange(action.payload.validationError.validationInput)], parseInt(String(action.payload.validationError.id), 10), state.trHistory);
+    const validationInFlight = selectValidationInFlightById(state, action.payload.validationError.id);
+    const dirtiedRanges = validationInFlight
+        ? mapRanges([
+            validationInputToRange(action.payload.validationError.validationInput)
+        ], validationInFlight.mapping)
+        : [];
+    const decsToRemove = dirtiedRanges.reduce((acc, range) => acc.concat(state.decorations.find(range.from, range.to, _ => _.type === DECORATION_INFLIGHT)), []);
     let decorations = state.decorations.remove(decsToRemove);
     if (dirtiedRanges.length) {
         decorations = decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)));
     }
     return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
             ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-            : state.dirtiedRanges, decorations, validationInFlight: undefined, error: action.payload.validationError.message });
+            : state.dirtiedRanges, decorations, validationsInFlight: validationInFlight
+            ? without_1(state.validationsInFlight, validationInFlight)
+            : state.validationsInFlight, error: action.payload.validationError.message });
 };
 const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
 };
+
+//# sourceMappingURL=state.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -19868,30 +20849,34 @@ function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement
 }
 //# sourceMappingURL=dom.js.map
 
+const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
+const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
 class Store {
     constructor() {
-        this.subscribers = [];
+        this.subscribers = {
+            [STORE_EVENT_NEW_STATE]: [],
+            [STORE_EVENT_NEW_VALIDATION]: []
+        };
     }
-    notify(state, prevState) {
-        this.state = state;
-        this.subscribers.forEach(_ => _(state, prevState));
+    emit(eventName, ...args) {
+        this.subscribers[eventName].forEach((_) => _(...args));
     }
-    getState() {
-        return this.state;
-    }
-    subscribe(subscriber) {
-        this.subscribers.push(subscriber);
-    }
-    unsubscribe(subscriber) {
-        const index = this.subscribers.indexOf(subscriber);
+    removeEventListener(eventName, listener) {
+        const index = this.subscribers[eventName].indexOf(listener);
         if (index === -1) {
-            throw new Error("[Store]: Attempted to unsubscribe, but no subscriber found");
+            throw new Error(`[Store]: Attempted to unsubscribe, but no subscriber found for event ${eventName}`);
         }
-        this.subscribers.splice(index, 1);
+        this.subscribers[eventName].splice(index, 1);
+    }
+    on(eventName, listener) {
+        this.subscribers[eventName].push(listener);
     }
 }
 
 //# sourceMappingURL=store.js.map
+
+const compact = (value) => !!value;
+//# sourceMappingURL=array.js.map
 
 const validateDocumentCommand = (state, dispatch) => {
     dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
@@ -19932,33 +20917,17 @@ const applyValidationErrorCommand = (validationError) => (state, dispatch) => {
     }
     return true;
 };
-const applySuggestionsCommand = (suggestionOpts, getState) => (state, dispatch) => {
+const applySuggestionsCommand = (suggestionOptions, getState) => (state, dispatch) => {
     const pluginState = getState(state);
-    const outputsAndSuggestions = suggestionOpts
-        .reduce((acc, _) => {
-        const output = selectValidationById(pluginState, _.validationId);
-        if (!output) {
-            return acc;
-        }
-        return acc.concat({
-            output,
-            suggestionIndex: _.suggestionIndex
-        });
-    }, [])
-        .filter(_ => !!_);
+    const outputsAndSuggestions = suggestionOptions
+        .map(opt => selectSuggestionAndRange(pluginState, opt.validationId, opt.suggestionIndex))
+        .filter(compact);
     if (!outputsAndSuggestions.length) {
         return false;
     }
     if (dispatch) {
         const tr = state.tr;
-        outputsAndSuggestions.forEach(({ output, suggestionIndex }) => {
-            const suggestion = output.suggestions && output.suggestions[suggestionIndex];
-            if (!suggestion) {
-                return false;
-            }
-            tr.replaceWith(output.from, output.to, state.schema.text(suggestion));
-        });
-        tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(undefined, undefined));
+        outputsAndSuggestions.forEach(({ from, to, suggestion }) => tr.replaceWith(from, to, state.schema.text(suggestion)));
         dispatch(tr);
     }
     return true;
@@ -19996,16 +20965,19 @@ const createValidatorPlugin = (options = {}) => {
                 return validationPluginReducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
             }
         },
-        appendTransaction(trs, _, newState) {
-            const pluginState = plugin.getState(newState);
+        appendTransaction(trs, oldState, newState) {
+            const oldPluginState = plugin.getState(oldState);
+            const newPluginState = plugin.getState(newState);
             const tr = newState.tr;
             const newDirtiedRanges = trs.reduce((acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)), []);
             if (newDirtiedRanges.length) {
-                if (!pluginState.validationPending) {
+                if (!newPluginState.validationPending) {
                     scheduleValidation();
                 }
                 return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
             }
+            const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
+            newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _));
         },
         props: {
             decorations: state => {
@@ -20036,14 +21008,14 @@ const createValidatorPlugin = (options = {}) => {
         view(view) {
             localView = view;
             return {
-                update: (_, prevState) => store.notify(plugin.getState(view.state), plugin.getState(prevState))
+                update: (_) => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
             };
         }
     });
     return {
         plugin,
         store,
-        getState: plugin.getState
+        getState: plugin.getState.bind(plugin)
     };
 };
 
@@ -20815,7 +21787,7 @@ class ValidationOverlay extends Component {
         };
     }
     componentWillMount() {
-        this.props.store.subscribe(this.handleNotify);
+        this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
     }
     componentDidUpdate() {
         if (this.state.isVisible) {
@@ -20951,28 +21923,6 @@ var deburredLetters = {
 var deburrLetter = _basePropertyOf(deburredLetters);
 
 var _deburrLetter = deburrLetter;
-
-/**
- * A specialized version of `_.map` for arrays without support for iteratee
- * shorthands.
- *
- * @private
- * @param {Array} [array] The array to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array} Returns the new mapped array.
- */
-function arrayMap(array, iteratee) {
-  var index = -1,
-      length = array == null ? 0 : array.length,
-      result = Array(length);
-
-  while (++index < length) {
-    result[index] = iteratee(array[index], index, array);
-  }
-  return result;
-}
-
-var _arrayMap = arrayMap;
 
 var INFINITY = 1 / 0;
 
@@ -21405,16 +22355,18 @@ class ValidationSidebarOutput extends Component {
 class ValidationSidebar extends Component {
     constructor() {
         super(...arguments);
-        this.handleNotify = (state) => {
-            this.setState(state);
+        this.handleNewState = (pluginState) => {
+            this.setState({
+                pluginState: Object.assign({}, pluginState, { currentValidations: pluginState.currentValidations.sort((a, b) => a.from > b.from ? 1 : -1) })
+            });
         };
     }
     componentWillMount() {
-        this.props.store.subscribe(this.handleNotify);
+        this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
     }
     render() {
         const { applySuggestions, selectValidation, indicateHover } = this.props;
-        const { currentValidations, validationInFlight, validationPending, selectedValidation } = this.state;
+        const { currentValidations = [], validationsInFlight = [], validationPending = false, selectedValidation } = this.state.pluginState || { selectedValidation: undefined };
         const hasValidations = !!(currentValidations && currentValidations.length);
         return (h("div", { className: "Sidebar__section" },
             h("div", { className: "Sidebar__header" },
@@ -21425,8 +22377,7 @@ class ValidationSidebar extends Component {
                         "(",
                         currentValidations.length,
                         ") "),
-                    (validationInFlight ||
-                        validationPending) && (h("span", { className: "Sidebar__loading-spinner" }, "|")))),
+                    (validationsInFlight.length || validationPending) && (h("span", { className: "Sidebar__loading-spinner" }, "|")))),
             h("div", { className: "Sidebar__content" },
                 hasValidations && (h("ul", { className: "Sidebar__list" }, currentValidations.map(output => (h("li", { className: "Sidebar__list-item" },
                     h(ValidationSidebarOutput, { output: output, selectedValidation: selectedValidation, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover })))))),
@@ -21444,7 +22395,7 @@ class ValidationControls extends Component {
         };
     }
     componentWillMount() {
-        this.props.store.subscribe(this.handleNotify);
+        this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
     }
     render() {
         const { setDebugState } = this.props;
@@ -21642,44 +22593,32 @@ class ValidationService {
         this.store = store;
         this.commands = commands;
         this.adapter = adapter;
-        this.handleError = (validationInput, id, message) => {
-            this.commands.applyValidationError({
-                validationInput,
-                id,
-                message
-            });
-        };
-        this.handleCompleteValidation = (id, validationInput, validationOutputs) => {
-            this.commands.applyValidationResult({
-                id,
-                validationInput,
-                validationOutputs
-            });
-        };
-        this.store.subscribe((state, prevState) => {
-            if (!prevState.validationInFlight && state.validationInFlight) {
-                this.validate(state.validationInFlight.validationInputs, state.trHistory[state.trHistory.length - 1].time);
-            }
+        this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
+            this.validate(validationInFlight.validationInput, validationInFlight.id);
         });
     }
-    validate(inputs, id) {
+    validate(validationInput, id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const results = yield Promise.all(inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const result = yield this.adapter(input);
-                    this.handleCompleteValidation(id, input, result);
-                    return result;
-                }
-                catch (e) {
-                    this.handleError(input, id, e.message);
-                    return {
-                        validationInput: input,
-                        message: e.message,
-                        id
-                    };
-                }
-            })));
-            return flatten_1(results);
+            try {
+                const validationOutputs = yield this.adapter(validationInput);
+                this.commands.applyValidationResult({
+                    id,
+                    validationOutputs
+                });
+                return validationOutputs;
+            }
+            catch (e) {
+                this.commands.applyValidationError({
+                    validationInput,
+                    id,
+                    message: e.message
+                });
+                return {
+                    validationInput,
+                    message: e.message,
+                    id
+                };
+            }
         });
     }
 }
