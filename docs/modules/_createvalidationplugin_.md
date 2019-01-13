@@ -26,7 +26,7 @@
 
 **Ƭ ExpandRanges**: *`function`*
 
-*Defined in [createValidationPlugin.ts:28](https://github.com/guardian/prosemirror-typerighter/blob/ea379b2/src/ts/createValidationPlugin.ts#L28)*
+*Defined in [createValidationPlugin.ts:28](https://github.com/guardian/prosemirror-typerighter/blob/3241f62/src/ts/createValidationPlugin.ts#L28)*
 
 #### Type declaration
 ▸(ranges: *`IRange`[]*, doc: *`Node`<`any`>*): `IRange`[]
@@ -50,7 +50,7 @@ ___
 
 ▸ **createValidatorPlugin**(options?: *[IPluginOptions](../interfaces/_createvalidationplugin_.ipluginoptions.md)*): `object`
 
-*Defined in [createValidationPlugin.ts:58](https://github.com/guardian/prosemirror-typerighter/blob/ea379b2/src/ts/createValidationPlugin.ts#L58)*
+*Defined in [createValidationPlugin.ts:58](https://github.com/guardian/prosemirror-typerighter/blob/3241f62/src/ts/createValidationPlugin.ts#L58)*
 
 Creates a document validator plugin, responsible for issuing validation requests when the document is changed, decorating the document when they are returned, and applying suggestions.
 
