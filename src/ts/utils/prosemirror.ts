@@ -39,7 +39,7 @@ export const createValidationInputsForDocument = (node: Node): IValidationInput[
   node.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push({
-        str: descNode.textContent,
+        inputString: descNode.textContent,
         from: pos + 1,
         to: pos + descNode.nodeSize
       })

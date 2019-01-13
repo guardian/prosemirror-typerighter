@@ -420,7 +420,7 @@ const handleValidationRequestForDirtyRanges: ActionHandler<
 > = (tr, state, { payload: { expandRanges } }) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const validationInputs: IValidationInput[] = ranges.map(range => ({
-    str: tr.doc.textBetween(range.from, range.to),
+    inputString: tr.doc.textBetween(range.from, range.to),
     ...range
   }));
   return handleValidationRequestStart(validationInputs)(tr, state);

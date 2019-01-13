@@ -1,13 +1,16 @@
 export interface IRange { from: number; to: number }
 
-export interface IValidationInput { str: string; from: number; to: number }
+export interface IValidationInput { inputString: string; from: number; to: number }
 
-export type IValidationOutput = IValidationInput & {
+export interface IDefaultValidationMeta {
   annotation: string;
-  suggestions?: string[];
   type: string;
+}
+
+export type IValidationOutput<TValidationMeta = IDefaultValidationMeta> = IValidationInput & {
+  suggestions?: string[];
   id: string;
-};
+} & TValidationMeta;
 
 export interface IValidationError {
   validationInput: IValidationInput;

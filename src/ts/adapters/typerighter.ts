@@ -15,7 +15,7 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
       "Content-Type": "application/json"
     }),
     body: JSON.stringify({
-      text: input.str
+      text: input.inputString
     })
   });
   if (response.status !== 200) {
@@ -28,7 +28,7 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
   const validationData: ITypeRighterResponse = await response.json();
   return validationData.results.map(match => ({
     id: v4(),
-    str: input.str,
+    inputString: input.inputString,
     from: input.from + match.fromPos,
     to: input.from + match.toPos,
     annotation: match.message,

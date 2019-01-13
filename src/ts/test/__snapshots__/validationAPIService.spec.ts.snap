@@ -6,7 +6,7 @@ Object {
   "message": "Error fetching validations. The server responded with status code 400: Bad Request",
   "validationInput": Object {
     "from": 0,
-    "str": "1234567890",
+    "inputString": "1234567890",
     "to": 10,
   },
 }

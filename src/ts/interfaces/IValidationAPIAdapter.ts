@@ -7,8 +7,8 @@ import { IValidationInput, IValidationOutput } from "./IValidation";
 /**
  * @internal
  */
-export type IValidationAPIAdapter = (input: IValidationInput) => Promise<IValidationOutput[]>;
+export type IValidationAPIAdapter<TValidationMeta> = (input: IValidationInput) => Promise<Array<IValidationOutput<TValidationMeta>>>;
 
-type IValidationAPIAdapterCreator = (apiUrl: string) => IValidationAPIAdapter;
+type IValidationAPIAdapterCreator<TValidationMeta> = (apiUrl: string) => IValidationAPIAdapter<TValidationMeta>;
 
 export default IValidationAPIAdapterCreator;

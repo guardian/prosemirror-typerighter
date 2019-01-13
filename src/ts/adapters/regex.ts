@@ -10,11 +10,11 @@ const regexAdapter = async (input: IValidationInput) => {
   const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
   let result;
   // tslint:disable-next-line no-conditional-assignment
-  while ((result = threeLetterExpr.exec(input.str))) {
+  while ((result = threeLetterExpr.exec(input.inputString))) {
     outputs.push({
       from: input.from + result.index,
       to: input.from + result.index + result[0].length,
-      str: result[0],
+      inputString: result[0],
       annotation: "This word has three letters. Consider a larger, grander word.",
       type: "3 letter word",
       id: v4(),
@@ -22,11 +22,11 @@ const regexAdapter = async (input: IValidationInput) => {
     });
   }
   // tslint:disable-next-line no-conditional-assignment
-  while ((result = sixLetterExpr.exec(input.str))) {
+  while ((result = sixLetterExpr.exec(input.inputString))) {
     outputs.push({
       from: input.from + result.index,
       to: input.from + result.index + result[0].length,
-      str: result[0],
+      inputString: result[0],
       annotation: "This word has six letters. Consider a smaller, less fancy word.",
       type: "6 letter word",
       id: v4(),

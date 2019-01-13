@@ -36,12 +36,12 @@ const createResponse = (strs: string[]) => ({
   }))
 });
 
-const createOutput = (str: string, offset: number = 0) =>
+const createOutput = (inputString: string, offset: number = 0) =>
   ({
     id: "id",
     from: offset,
-    to: offset + str.length,
-    str,
+    to: offset + inputString.length,
+    inputString,
     type: "issueType",
     suggestions: [],
     annotation: "It's just a bunch of numbers, mate"
@@ -50,7 +50,7 @@ const createOutput = (str: string, offset: number = 0) =>
 const validationInput = {
   from: 0,
   to: 10,
-  str: "1234567890"
+  inputString: "1234567890"
 };
 
 const commands = {
@@ -99,7 +99,7 @@ describe("ValidationAPIService", () => {
       {
         from: 0,
         to: 10,
-        str: "1234567890"
+        inputString: "1234567890"
       },
       "id"
     );
