@@ -10,6 +10,7 @@
   },
   "scripts": {
     "test": "NODE_ENV=test jest --env=jsdom",
+    "coverage": "NODE_ENV=test jest --env=json --coverage",
     "pages": "npm run build && http-server ./pages/dist",
     "prepublishOnly": "yarn build",
     "build": "rollup -c",
