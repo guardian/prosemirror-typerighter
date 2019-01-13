@@ -23,13 +23,13 @@ import {
   createDecorationForValidationRange
 } from "../utils/decoration";
 import { expandRangesToParentBlockNode } from "../utils/range";
-import { doc, p } from "./helpers/prosemirror";
+import { createDoc, p } from "./helpers/prosemirror";
 import { Mapping } from "prosemirror-transform";
 import { IValidationOutput } from "../interfaces/IValidation";
 
 jest.mock("uuid/v4", () => () => "uuid");
 
-const initialDocToValidate = doc(p("Example text to validate"));
+const initialDocToValidate = createDoc(p("Example text to validate"));
 const createInitialTr = () => {
   const tr = new Transaction(initialDocToValidate);
   tr.doc = initialDocToValidate;
@@ -307,7 +307,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         expect(
           validationPluginReducer(
-            new Transaction(doc),
+            new Transaction(createDoc),
             state,
             newHoverIdReceived("exampleHoverId", undefined)
           )
@@ -352,6 +352,7 @@ describe("State management", () => {
           str: "Example",
           annotation: "Annotation",
           type: "Type",
+
           id: "exampleHoverId"
         };
         const localState = { 
@@ -431,7 +432,7 @@ describe("State management", () => {
         };
         expect(
           validationPluginReducer(
-            new Transaction(doc),
+            new Transaction(createDoc),
             otherState,
             selectValidation("exampleId")
           )
@@ -446,7 +447,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         expect(
           validationPluginReducer(
-            new Transaction(doc),
+            new Transaction(createDoc),
             state,
             setDebugState(true)
           )

@@ -236,7 +236,11 @@ export const selectNewValidationInFlight = (
   oldState: IPluginState
 ) => difference(state.validationsInFlight, oldState.validationsInFlight);
 
-export const selectSuggestionAndRange = (state: IPluginState, validationId: string, suggestionIndex: number) => {
+export const selectSuggestionAndRange = (
+  state: IPluginState,
+  validationId: string,
+  suggestionIndex: number
+) => {
   const output = selectValidationById(state, validationId);
   if (!output) {
     return null;
@@ -249,8 +253,8 @@ export const selectSuggestionAndRange = (state: IPluginState, validationId: stri
     from: output.from,
     to: output.to,
     suggestion
-  }
-}
+  };
+};
 
 /**
  * Reducer.
@@ -342,46 +346,33 @@ const handleNewHoverId: ActionHandler<ActionNewHoverIdReceived> = (
   let decorations = state.decorations;
   const incomingHoverId = action.payload.hoverId;
   const currentHoverId = state.hoverId;
-  const isHovering = !!action.payload.hoverId;
-  const decorationsToRemove = currentHoverId
-    ? state.decorations.find(
+
+  // The current hover decorations are no longer valid -- remove them.
+  if (currentHoverId) {
+    decorations = decorations.remove(
+      state.decorations.find(
         undefined,
         undefined,
         spec =>
           spec.id === currentHoverId && spec.type === DECORATION_VALIDATION
       )
-    : [];
-  decorations = decorations.remove(decorationsToRemove);
-  // @todo - crikey this is verbose!
-  if (incomingHoverId) {
-    const incomingValidationOutput = selectValidationById(
-      state,
-      incomingHoverId
     );
-    if (incomingValidationOutput) {
-      decorations = decorations.add(
-        tr.doc,
-        createDecorationForValidationRange(
-          incomingValidationOutput,
-          isHovering,
-          false
-        )
-      );
-    }
   }
-  if (currentHoverId) {
-    const currentValidationOutput = selectValidationById(state, currentHoverId);
-    if (currentValidationOutput) {
-      decorations = decorations.add(
-        tr.doc,
-        createDecorationForValidationRange(
-          currentValidationOutput,
-          false,
-          false
-        )
-      );
+
+  // Add the new decorations for the current and incoming validations.
+  decorations = [
+    { id: incomingHoverId, isHovering: true },
+    { id: currentHoverId, isHovering: false }
+  ].reduce((acc, hoverData) => {
+    const output = selectValidationById(state, hoverData.id || "");
+    if (!output) {
+      return acc;
     }
-  }
+    return decorations.add(
+      tr.doc,
+      createDecorationForValidationRange(output, hoverData.isHovering, false)
+    );
+  }, decorations);
 
   return {
     ...state,
@@ -506,8 +497,11 @@ const handleValidationRequestSuccess: ActionHandler<
   );
   // We don't apply incoming validations to ranges that have
   // been dirtied since they were requested.
-  currentValidations = removeOverlappingRanges(currentValidations, state.dirtiedRanges);
-  
+  currentValidations = removeOverlappingRanges(
+    currentValidations,
+    state.dirtiedRanges
+  );
+
   // Create our decorations for the newly current validations.
   const decorations = createNewDecorationsForCurrentValidations(
     currentValidations,

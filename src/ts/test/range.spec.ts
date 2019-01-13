@@ -2,13 +2,59 @@ import {
   diffRanges,
   findOverlappingRangeIndex,
   mergeRanges,
-  removeOverlappingRanges
-  } from '../utils/range';
+  removeOverlappingRanges,
+  getRangesOfParentBlockNodes
+} from "../utils/range";
+import { createDoc, p } from "./helpers/prosemirror";
 
 describe("Range utils", () => {
   describe("expandRange", () => {
+    const doc = createDoc(
+      p("Paragraph 1 - 1 - 21"),
+      p("Paragraph 2 - 23 - 44"),
+      p("Paragraph 3 - 46 - 67")
+    );
     it("should get the range of the nearest ancestor block node", () => {
-      // @todo
+      expect(getRangesOfParentBlockNodes([{ from: 1, to: 2 }], doc)).toEqual([
+        {
+          from: 1,
+          to: 21
+        }
+      ]);
+    });
+    it("should handle multiple ranges for the same node", () => {
+      expect(
+        getRangesOfParentBlockNodes(
+          [{ from: 1, to: 2 }, { from: 10, to: 12 }],
+          doc
+        )
+      ).toEqual([
+        {
+          from: 1,
+          to: 21
+        }
+      ]);
+    });
+    it("should handle multiple ranges for different nodes", () => {
+      expect(
+        getRangesOfParentBlockNodes(
+          [{ from: 1, to: 2 }, { from: 30, to: 32 }, { from: 50, to: 55 }],
+          doc
+        )
+      ).toEqual([
+        {
+          from: 1,
+          to: 21
+        },
+        {
+          from: 23,
+          to: 44
+        },
+        {
+          from: 46,
+          to: 67
+        }
+      ]);
     });
   });
   describe("findOverlappingRangeIndex", () => {
