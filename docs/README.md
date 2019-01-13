@@ -6,13 +6,10 @@ This Prosemirror plugin adds the ability to validate a document by sending it, o
 
 It's still in its early stages - see the 'pages' directory for an example implementation.
 
-Roadmap:
+Short-term roadmap:
 
-*   Health work - this project was created during a hack week and there are plenty of bugs and debt.
-*   Adding a 'debug' flag to turn off debug marks, which currently signify dirty ranges and inflight ranges. This is handy when observing the expansion strategy at work during realtime validation.
-*   Validating whole documents in one pass via a command.
-*   Toggling realtime validation.
-*   Grouping validations and applying grouped validations simultaneously.
+*   \[Plugin\] -- Toggling realtime validation.
+*   \[UI\] -- Grouping validations and applying grouped validations simultaneously.
 
 ## Index
 
