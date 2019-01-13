@@ -13,4 +13,4 @@ node_js:
 script:
   - yarn test && yarn build
 after_success:
-  - yarn coverage
+  - yarn report-coverage
