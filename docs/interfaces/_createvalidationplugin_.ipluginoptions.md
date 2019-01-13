@@ -24,7 +24,7 @@
 
 **● expandRanges**: *[ExpandRanges](../modules/_createvalidationplugin_.md#expandranges)*
 
-*Defined in [createValidationPlugin.ts:37](https://github.com/guardian/prosemirror-typerighter/blob/57b4475/src/ts/createValidationPlugin.ts#L37)*
+*Defined in [createValidationPlugin.ts:37](https://github.com/guardian/prosemirror-typerighter/blob/40013de/src/ts/createValidationPlugin.ts#L37)*
 
 A function that receives ranges that have been dirtied since the last validation request, and returns the new ranges to validate. The default implementation expands the dirtied ranges to cover the parent block node.
 
@@ -36,7 +36,7 @@ ___
 **● maxThrottle**: * `undefined` &#124; `number`
 *
 
-*Defined in [createValidationPlugin.ts:47](https://github.com/guardian/prosemirror-typerighter/blob/57b4475/src/ts/createValidationPlugin.ts#L47)*
+*Defined in [createValidationPlugin.ts:47](https://github.com/guardian/prosemirror-typerighter/blob/40013de/src/ts/createValidationPlugin.ts#L47)*
 
 The maximum throttle duration.
 
@@ -48,7 +48,7 @@ ___
 **● throttleInMs**: * `undefined` &#124; `number`
 *
 
-*Defined in [createValidationPlugin.ts:42](https://github.com/guardian/prosemirror-typerighter/blob/57b4475/src/ts/createValidationPlugin.ts#L42)*
+*Defined in [createValidationPlugin.ts:42](https://github.com/guardian/prosemirror-typerighter/blob/40013de/src/ts/createValidationPlugin.ts#L42)*
 
 The throttle duration for validation requests, in ms.
 
