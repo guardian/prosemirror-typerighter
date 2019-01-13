@@ -1,13 +1,13 @@
 import { Transaction } from "prosemirror-state";
-import { DecorationSet, Decoration } from "prosemirror-view";
+import { DecorationSet } from "prosemirror-view";
 import {
-  IPluginState,
   selectValidation,
   setDebugState,
   selectValidationInFlightById,
   selectNewValidationInFlight,
   applyNewDirtiedRanges,
-  selectSuggestionAndRange
+  selectSuggestionAndRange,
+  validationRequestForDocument
 } from "../state";
 import {
   newHoverIdReceived,
@@ -63,6 +63,44 @@ const createInitialData = (initialDoc = initialDocToValidate, time = 0) => {
 
 describe("State management", () => {
   describe("Action handlers", () => {
+    describe("No action", () => {
+      it("should just return the state", () => {
+        const { state, tr } = createInitialData();
+        expect(validationPluginReducer(tr, state)).toEqual(state);
+      });
+    });
+    describe("Unknown action", () => {
+      const { state, tr } = createInitialData();
+      expect(
+        validationPluginReducer(tr, state, { type: "UNKNOWN_ACTION" } as any)
+      ).toEqual(state);
+    });
+    describe("validationRequestForDocument", () => {
+      it("should apply dirty ranges for the entire doc", () => {
+        const { state, tr } = createInitialData();
+        expect(
+          validationPluginReducer(tr, state, validationRequestForDocument())
+        ).toEqual({
+          ...state,
+          validationsInFlight: [
+            {
+              id: "0",
+              mapping: {
+                from: 0,
+                maps: [],
+                mirror: undefined,
+                to: 0
+              },
+              validationInput: {
+                from: 1,
+                str: "Example text to validate",
+                to: 26
+              }
+            }
+          ]
+        });
+      });
+    });
     describe("validationRequestForDirtyRanges", () => {
       it("should remove the pending status and any dirtied ranges, and mark the validation as in flight", () => {
         const { state, tr } = createInitialData();
@@ -355,7 +393,7 @@ describe("State management", () => {
 
           id: "exampleHoverId"
         };
-        const localState = { 
+        const localState = {
           ...state,
           decorations: new DecorationSet().add(
             tr.doc,
@@ -553,6 +591,34 @@ describe("State management", () => {
       });
     });
     describe("selectSuggestionAndRange", () => {
+      it("should handle unknown outputs", () => {
+        const { state } = createInitialData();
+        expect(selectSuggestionAndRange(state, "invalidId", 5)).toEqual(null);
+      });
+      it("should handle unknown suggestions for found outputs", () => {
+        const { state } = createInitialData();
+        const currentValidations = [
+          {
+            id: "id",
+            from: 0,
+            to: 5,
+            suggestions: ["example", "suggestion"],
+            annotation: "Annotation",
+            type: "Type",
+            str: "hai"
+          }
+        ];
+        expect(
+          selectSuggestionAndRange(
+            {
+              ...state,
+              currentValidations
+            },
+            "id",
+            15
+          )
+        ).toEqual(null);
+      });
       it("should select a suggestion and the range it should be applied to, given a validation id and suggestion index", () => {
         const { state } = createInitialData();
         const currentValidations = [

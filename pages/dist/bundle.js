@@ -19563,29 +19563,9 @@ const getRangesOfParentBlockNodes = (ranges, doc) => {
     return mergeRanges(validationRanges);
 };
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
+//# sourceMappingURL=range.js.map
 
-const MarkTypes = {
-    legal: "legal",
-    warn: "warn"
-};
-const createValidationMark = (markName) => ({
-    attrs: {},
-    inclusive: false,
-    parseDOM: [
-        {
-            tag: `span.${markName}`,
-            getAttrs: () => ({})
-        }
-    ],
-    toDOM: () => [`span.${markName}`]
-});
-const validationMarks = Object.keys(MarkTypes).reduce((acc, markName) => {
-    return Object.assign({}, acc, { [markName]: createValidationMark(markName) });
-}, {});
 const flatten$2 = (node, descend = true) => {
-    if (!node) {
-        throw new Error('Invalid "node" parameter');
-    }
     const result = [];
     node.descendants((child, pos, parent) => {
         result.push({ node: child, parent, pos });
@@ -19596,12 +19576,6 @@ const flatten$2 = (node, descend = true) => {
     return result;
 };
 const findChildren = (node, predicate, descend) => {
-    if (!node) {
-        throw new Error('Invalid "node" parameter');
-    }
-    else if (!predicate) {
-        throw new Error('Invalid "predicate" parameter');
-    }
     return flatten$2(node, descend).filter(child => predicate(child.node));
 };
 const createValidationInputsForDocument = (node) => {
@@ -19618,7 +19592,6 @@ const createValidationInputsForDocument = (node) => {
     });
     return ranges;
 };
-
 const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).map((step) => ({
     from: step.from,
     to: step.to
@@ -20944,7 +20917,6 @@ const createBoundCommands = (view, getState) => {
         setDebugState: bindCommand(setDebugStateCommand)
     };
 };
-//# sourceMappingURL=commands.js.map
 
 const createValidatorPlugin = (options = {}) => {
     const { expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;

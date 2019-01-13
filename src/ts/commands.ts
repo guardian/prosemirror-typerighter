@@ -13,7 +13,6 @@ import {
   selectSuggestionAndRange
 } from "./state";
 import {
-  IValidationOutput,
   IValidationResponse,
   IValidationError
 } from "./interfaces/IValidation";
