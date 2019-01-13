@@ -2,7 +2,6 @@ language: node_js
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
 cache:
   yarn: true
   directories:
@@ -14,5 +13,4 @@ node_js:
 script:
   - yarn test && yarn build
 after_success:
-  - yarn report-coverage
-  - yarn semantic-release
+  - yarn coverage

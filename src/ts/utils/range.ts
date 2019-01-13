@@ -157,9 +157,9 @@ export const getCurrentValidationsFromValidationResponse = (
 };
 
 /**
- * Expand a range in a document to encompass the words adjacent to the range.
+ * Expand a range in a document to encompass the nearest ancestor block node.
  */
-export const expandRange = (range: IRange, doc: Node): IRange | undefined => {
+export const expandRangeToParentBlockNode = (range: IRange, doc: Node): IRange | undefined => {
   try {
     const $fromPos = doc.resolve(range.from);
     const $toPos = doc.resolve(range.to);
@@ -179,12 +179,12 @@ export const expandRange = (range: IRange, doc: Node): IRange | undefined => {
 };
 
 /**
- * Expand the given ranges to include their parent block nodes.
+ * Expand the given ranges to include their ancestor block nodes.
  */
 export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
   const validationRanges = ranges.reduce(
     (acc, range: IRange) => {
-      const expandedRange = expandRange(
+      const expandedRange = expandRangeToParentBlockNode(
         { from: range.from, to: range.to },
         doc
       );

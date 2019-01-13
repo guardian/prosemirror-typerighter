@@ -13,5 +13,5 @@ const build = builders(schema, {
   }
 });
 
-export const doc = build.doc;
+export const createDoc = build.doc;
 export const p = build.p;
