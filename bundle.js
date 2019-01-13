@@ -19583,7 +19583,7 @@ const createValidationInputsForDocument = (node) => {
     node.descendants((descNode, pos) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
             ranges.push({
-                str: descNode.textContent,
+                inputString: descNode.textContent,
                 from: pos + 1,
                 to: pos + descNode.nodeSize
             });
@@ -20736,7 +20736,7 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
 };
 const handleValidationRequestForDirtyRanges = (tr, state, { payload: { expandRanges } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-    const validationInputs = ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    const validationInputs = ranges.map(range => (Object.assign({ inputString: tr.doc.textBetween(range.from, range.to) }, range)));
     return handleValidationRequestStart(validationInputs)(tr, state);
 };
 const handleValidationRequestForDocument = (tr, state) => {
@@ -22536,7 +22536,7 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
-            str: result[0],
+            inputString: result[0],
             annotation: "This word has three letters. Consider a larger, grander word.",
             type: "3 letter word",
             id: v4_1(),
@@ -22547,7 +22547,7 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
-            str: result[0],
+            inputString: result[0],
             annotation: "This word has six letters. Consider a smaller, less fancy word.",
             type: "6 letter word",
             id: v4_1(),
