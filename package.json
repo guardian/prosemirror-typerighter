@@ -28,6 +28,7 @@
     "@types/uuid": "^3.4.4",
     "babel-core": "^7.0.0-0",
     "babel-jest": "^23.6.0",
+    "coveralls": "^3.0.2",
     "eslint": "^4.13.1",
     "fetch-mock": "^7.2.5",
     "http-server": "^0.10.0",
