@@ -10,11 +10,13 @@ import {
   IStateHoverInfo,
   validationRequestSuccess,
   validationRequestError,
-  selectSuggestionAndRange
+  selectSuggestionAndRange,
+  validationRequestForDirtyRanges
 } from "./state";
 import {
   IValidationResponse,
-  IValidationError
+  IValidationError,
+  IBaseValidationOutput
 } from "./interfaces/IValidation";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
@@ -24,7 +26,9 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState = (state: EditorState) => IPluginState;
+type GetState<TValidationOutput extends IBaseValidationOutput> = (
+  state: EditorState
+) => IPluginState<TValidationOutput>;
 
 /**
  * Validates an entire document.
@@ -35,6 +39,22 @@ export const validateDocumentCommand = (
 ) => {
   dispatch(
     state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument())
+  );
+  return true;
+};
+
+/**
+ * Validates the current set of dirty ranges.
+ */
+export const validateDirtyRangesCommand = (
+  state: EditorState,
+  dispatch: (tr: Transaction) => void
+) => {
+  dispatch(
+    state.tr.setMeta(
+      VALIDATION_PLUGIN_ACTION,
+      validationRequestForDirtyRanges()
+    )
   );
   return true;
 };
@@ -62,9 +82,11 @@ export const indicateHoverCommand = (
 /**
  * Mark a given validation as active.
  */
-export const selectValidationCommand = (
+export const selectValidationCommand = <
+  TValidationOutput extends IBaseValidationOutput
+>(
   validationId: string,
-  getState: GetState
+  getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const output = selectValidationById(pluginState, validationId);
@@ -137,9 +159,11 @@ export type ApplySuggestionOptions = Array<{
 /**
  * Applies a suggestion from a validation to the document.
  */
-export const applySuggestionsCommand = (
+export const applySuggestionsCommand = <
+  TValidationOutput extends IBaseValidationOutput
+>(
   suggestionOptions: ApplySuggestionOptions,
-  getState: GetState
+  getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const outputsAndSuggestions = suggestionOptions
@@ -167,14 +191,19 @@ export const applySuggestionsCommand = (
   return true;
 };
 
-export const createBoundCommands = (view: EditorView, getState: GetState) => {
+export const createBoundCommands = <
+  TValidationOutput extends IBaseValidationOutput
+>(
+  view: EditorView,
+  getState: GetState<TValidationOutput>
+) => {
   const bindCommand = <CommandArgs extends any[]>(
     action: (...args: CommandArgs) => Command
   ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
   return {
     validateDocument: () => validateDocumentCommand(view.state, view.dispatch),
-    applyValidationResult: bindCommand(applyValidationResponseCommand),
-    applyValidationError: bindCommand(applyValidationErrorCommand),
+    validateDirtyRangesCommand: () =>
+      validateDirtyRangesCommand(view.state, view.dispatch),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
       applySuggestionsCommand(suggestionOpts, getState)(
         view.state,
@@ -186,7 +215,9 @@ export const createBoundCommands = (view: EditorView, getState: GetState) => {
         view.dispatch
       ),
     indicateHover: bindCommand(indicateHoverCommand),
-    setDebugState: bindCommand(setDebugStateCommand)
+    setDebugState: bindCommand(setDebugStateCommand),
+    applyValidationResult: bindCommand(applyValidationResponseCommand),
+    applyValidationError: bindCommand(applyValidationErrorCommand)
   };
 };
 

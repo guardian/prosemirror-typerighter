@@ -1,9 +1,10 @@
 import { Component, h } from "preact";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { IPluginState } from "../state";
+import { IBaseValidationOutput } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store;
+  store: Store<IBaseValidationOutput>;
   setDebugState: (debug: boolean) => void;
   validateDocument: () => void;
 }
@@ -11,7 +12,7 @@ interface IProps {
 /**
  * A sidebar to display current validations and allow users to apply suggestions.
  */
-class ValidationControls extends Component<IProps, IPluginState> {
+class ValidationControls extends Component<IProps, IPluginState<IBaseValidationOutput>> {
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
   }
@@ -42,7 +43,7 @@ class ValidationControls extends Component<IProps, IPluginState> {
       </div>
     );
   }
-  private handleNotify = (state: IPluginState) => {
+  private handleNotify = (state: IPluginState<IBaseValidationOutput>) => {
     this.setState(state);
   };
 }

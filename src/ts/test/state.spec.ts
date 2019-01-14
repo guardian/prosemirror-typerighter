@@ -12,7 +12,7 @@ import {
 import {
   newHoverIdReceived,
   selectValidationById,
-  validationPluginReducer,
+  createValidationPluginReducer,
   validationRequestError,
   validationRequestForDirtyRanges,
   validationRequestSuccess
@@ -29,6 +29,7 @@ import { IValidationOutput } from "../interfaces/IValidation";
 
 jest.mock("uuid/v4", () => () => "uuid");
 
+const reducer = createValidationPluginReducer(expandRangesToParentBlockNode);
 const initialDocToValidate = createDoc(p("Example text to validate"));
 const createInitialTr = () => {
   const tr = new Transaction(initialDocToValidate);
@@ -66,21 +67,19 @@ describe("State management", () => {
     describe("No action", () => {
       it("should just return the state", () => {
         const { state, tr } = createInitialData();
-        expect(validationPluginReducer(tr, state)).toEqual(state);
+        expect(reducer(tr, state)).toEqual(state);
       });
     });
     describe("Unknown action", () => {
       const { state, tr } = createInitialData();
-      expect(
-        validationPluginReducer(tr, state, { type: "UNKNOWN_ACTION" } as any)
-      ).toEqual(state);
+      expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toEqual(
+        state
+      );
     });
     describe("validationRequestForDocument", () => {
       it("should apply dirty ranges for the entire doc", () => {
         const { state, tr } = createInitialData();
-        expect(
-          validationPluginReducer(tr, state, validationRequestForDocument())
-        ).toEqual({
+        expect(reducer(tr, state, validationRequestForDocument())).toEqual({
           ...state,
           validationsInFlight: [
             {
@@ -105,7 +104,7 @@ describe("State management", () => {
       it("should remove the pending status and any dirtied ranges, and mark the validation as in flight", () => {
         const { state, tr } = createInitialData();
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             {
               ...state,
@@ -113,7 +112,7 @@ describe("State management", () => {
               dirtiedRanges: [{ from: 5, to: 10 }],
               validationPending: true
             },
-            validationRequestForDirtyRanges(expandRangesToParentBlockNode)
+            validationRequestForDirtyRanges()
           )
         ).toEqual({
           ...state,
@@ -139,7 +138,7 @@ describe("State management", () => {
       it("should remove debug decorations, if any", () => {
         const { state, tr } = createInitialData();
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             {
               ...state,
@@ -150,7 +149,7 @@ describe("State management", () => {
               ]),
               validationPending: true
             },
-            validationRequestForDirtyRanges(expandRangesToParentBlockNode)
+            validationRequestForDirtyRanges()
           )
         ).toEqual({
           ...state,
@@ -178,7 +177,7 @@ describe("State management", () => {
       it("shouldn't do anything if there's nothing in the response", () => {
         const { state, tr } = createInitialData();
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             state,
             validationRequestSuccess({
@@ -190,18 +189,14 @@ describe("State management", () => {
       });
       it("should add incoming validations to the state", () => {
         const { state, tr } = createInitialData();
-        let localState = validationPluginReducer(
+        let localState = reducer(
           tr,
           state,
           applyNewDirtiedRanges([{ from: 1, to: 3 }])
         );
-        localState = validationPluginReducer(
-          tr,
-          localState,
-          validationRequestForDirtyRanges(expandRangesToParentBlockNode)
-        );
+        localState = reducer(tr, localState, validationRequestForDirtyRanges());
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             localState,
             validationRequestSuccess({
@@ -232,7 +227,7 @@ describe("State management", () => {
       it("should create decorations for the incoming validations", () => {
         const { state, tr } = createInitialData();
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             state,
             validationRequestSuccess({
@@ -253,23 +248,19 @@ describe("State management", () => {
       });
       it("should not apply validations if the ranges they apply to have since been dirtied", () => {
         const { state, tr } = createInitialData(initialDocToValidate, 1337);
-        let localState = validationPluginReducer(
+        let localState = reducer(
           tr,
           state,
           applyNewDirtiedRanges([{ from: 1, to: 3 }])
         );
-        localState = validationPluginReducer(
-          tr,
-          localState,
-          validationRequestForDirtyRanges(expandRangesToParentBlockNode)
-        );
-        localState = validationPluginReducer(
+        localState = reducer(tr, localState, validationRequestForDirtyRanges());
+        localState = reducer(
           tr,
           localState,
           applyNewDirtiedRanges([{ from: 1, to: 3 }])
         );
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             localState,
             validationRequestSuccess({
@@ -298,7 +289,7 @@ describe("State management", () => {
       it("Should re-add the in-flight validation ranges as dirty ranges, and remove the inflight validation", () => {
         const { state, tr } = createInitialData();
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             {
               ...state,
@@ -344,7 +335,7 @@ describe("State management", () => {
       it("should update the hover id", () => {
         const { state } = createInitialData();
         expect(
-          validationPluginReducer(
+          reducer(
             new Transaction(createDoc),
             state,
             newHoverIdReceived("exampleHoverId", undefined)
@@ -367,7 +358,7 @@ describe("State management", () => {
         };
         const localState = { ...state, currentValidations: [output] };
         expect(
-          validationPluginReducer(
+          reducer(
             tr,
             localState,
             newHoverIdReceived("exampleHoverId", undefined)
@@ -403,11 +394,7 @@ describe("State management", () => {
           hoverInfo: undefined
         };
         expect(
-          validationPluginReducer(
-            tr,
-            localState,
-            newHoverIdReceived(undefined, undefined)
-          )
+          reducer(tr, localState, newHoverIdReceived(undefined, undefined))
         ).toEqual({
           ...localState,
           decorations: new DecorationSet(),
@@ -439,7 +426,7 @@ describe("State management", () => {
           )
         };
         expect(
-          validationPluginReducer(
+          reducer(
             new Transaction(initialDocToValidate),
             stateWithCurrentValidationsAndDecorations,
             applyNewDirtiedRanges([{ from: 1, to: 2 }])
@@ -469,7 +456,7 @@ describe("State management", () => {
           ]
         };
         expect(
-          validationPluginReducer(
+          reducer(
             new Transaction(createDoc),
             otherState,
             selectValidation("exampleId")
@@ -484,11 +471,7 @@ describe("State management", () => {
       it("should set the debug state", () => {
         const { state } = createInitialData();
         expect(
-          validationPluginReducer(
-            new Transaction(createDoc),
-            state,
-            setDebugState(true)
-          )
+          reducer(new Transaction(createDoc), state, setDebugState(true))
         ).toEqual({ ...state, debug: true });
       });
     });

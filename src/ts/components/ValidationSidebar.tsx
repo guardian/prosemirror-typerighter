@@ -3,9 +3,10 @@ import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
+import { IBaseValidationOutput } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store;
+  store: Store<IBaseValidationOutput>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   selectValidation: (validationId: string) => void;
   indicateHover: (validationId: string, _: any) => void;
@@ -16,7 +17,7 @@ interface IProps {
  */
 class ValidationSidebar extends Component<
   IProps,
-  { pluginState: IPluginState | undefined; groupResults: boolean }
+  { pluginState: IPluginState<IBaseValidationOutput> | undefined; groupResults: boolean }
 > {
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
@@ -67,7 +68,7 @@ class ValidationSidebar extends Component<
       </div>
     );
   }
-  private handleNewState = (pluginState: IPluginState) => {
+  private handleNewState = (pluginState: IPluginState<IBaseValidationOutput>) => {
     this.setState({
       pluginState: {
         ...pluginState,

@@ -7,7 +7,7 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
-    "strictNullChecks": true,
+    "strict": true,
     "target": "es6",
     "esModuleInterop": true,
     "jsx": "react",

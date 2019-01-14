@@ -69,12 +69,6 @@ export interface IPluginState<TValidationMeta extends IBaseValidationOutput> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
-  // The initial throttle duration for pending validation requests.
-  initialThrottle: number;
-  // The current throttle duration, which increases during backof.
-  currentThrottle: number;
-  // The maximum possible throttle duration.
-  maxThrottle: number;
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current validation outputs for the document.
@@ -123,11 +117,8 @@ const SET_DEBUG_STATE = "SET_DEBUG_STATE";
  * Action creators.
  */
 
-export const validationRequestForDirtyRanges = (
-  expandRanges: ExpandRanges
-) => ({
-  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES,
-  payload: { expandRanges }
+export const validationRequestForDirtyRanges = () => ({
+  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES
 });
 type ActionValidationRequestForDirtyRanges = ReturnType<
   typeof validationRequestForDirtyRanges
@@ -205,14 +196,9 @@ type Action<TValidationMeta extends IBaseValidationOutput> =
 export const createInitialState = <
   TValidationMeta extends IBaseValidationOutput
 >(
-  doc: Node,
-  throttleInMs: number,
-  maxThrottle: number
+  doc: Node
 ): IPluginState<TValidationMeta> => ({
   debug: false,
-  currentThrottle: throttleInMs,
-  initialThrottle: throttleInMs,
-  maxThrottle,
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
   currentValidations: [],
@@ -228,6 +214,14 @@ export const createInitialState = <
 /**
  * Selectors.
  */
+
+export const selectValidationsInFlight = <
+  TValidationMeta extends IBaseValidationOutput
+>(
+  state: IPluginState<TValidationMeta>
+) => {
+  return state.validationsInFlight;
+};
 
 export const selectValidationById = <
   TValidationMeta extends IBaseValidationOutput
@@ -278,55 +272,63 @@ export const selectSuggestionAndRange = <
  * Reducer.
  */
 
-const validationPluginReducer = <TValidationMeta extends IBaseValidationOutput>(
-  tr: Transaction,
-  incomingState: IPluginState<TValidationMeta>,
-  action?: Action<TValidationMeta>
-): IPluginState<TValidationMeta> => {
-  // There are certain things we need to do every time a transaction is dispatched.
-  const state = {
-    ...incomingState,
-    // Map our decorations, dirtied ranges and validations through the new transaction.
-    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentValidations: mapRanges(incomingState.currentValidations, tr.mapping),
-    validationsInFlight: incomingState.validationsInFlight.map(_ => {
-      // We create a new mapping here to preserve state immutability, as
-      // appendMapping mutates an existing mapping.
-      const mapping = new Mapping();
-      mapping.appendMapping(_.mapping);
-      mapping.appendMapping(tr.mapping);
-      return {
-        ..._,
-        mapping
-      };
-    })
-  };
+const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
+  const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(
+    expandRanges
+  );
+  return <TValidationMeta extends IBaseValidationOutput>(
+    tr: Transaction,
+    incomingState: IPluginState<TValidationMeta>,
+    action?: Action<TValidationMeta>
+  ): IPluginState<TValidationMeta> => {
+    // There are certain things we need to do every time a transaction is dispatched.
+    const state = {
+      ...incomingState,
+      // Map our decorations, dirtied ranges and validations through the new transaction.
+      decorations: incomingState.decorations.map(tr.mapping, tr.doc),
+      dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
+      currentValidations: mapRanges(
+        incomingState.currentValidations,
+        tr.mapping
+      ),
+      validationsInFlight: incomingState.validationsInFlight.map(_ => {
+        // We create a new mapping here to preserve state immutability, as
+        // appendMapping mutates an existing mapping.
+        const mapping = new Mapping();
+        mapping.appendMapping(_.mapping);
+        mapping.appendMapping(tr.mapping);
+        return {
+          ..._,
+          mapping
+        };
+      })
+    };
 
-  if (!action) {
-    return state;
-  }
-
-  switch (action.type) {
-    case NEW_HOVER_ID:
-      return handleNewHoverId(tr, state, action);
-    case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
-      return handleValidationRequestForDirtyRanges(tr, state, action);
-    case VALIDATION_REQUEST_FOR_DOCUMENT:
-      return handleValidationRequestForDocument(tr, state);
-    case VALIDATION_REQUEST_SUCCESS:
-      return handleValidationRequestSuccess(tr, state, action);
-    case VALIDATION_REQUEST_ERROR:
-      return handleValidationRequestError(tr, state, action);
-    case SELECT_VALIDATION:
-      return handleSelectValidation(tr, state, action);
-    case APPLY_NEW_DIRTY_RANGES:
-      return handleNewDirtyRanges(tr, state, action);
-    case SET_DEBUG_STATE:
-      return handleSetDebugState(tr, state, action);
-    default:
+    if (!action) {
       return state;
-  }
+    }
+
+    switch (action.type) {
+      case NEW_HOVER_ID:
+        return handleNewHoverId(tr, state, action);
+      case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
+        return handleValidationRequestForDirtyRanges(tr, state);
+      case VALIDATION_REQUEST_FOR_DOCUMENT:
+        return handleValidationRequestForDocument(tr, state);
+      case VALIDATION_REQUEST_SUCCESS:
+        return handleValidationRequestSuccess(tr, state, action);
+      case VALIDATION_REQUEST_ERROR:
+        return handleValidationRequestError(tr, state, action);
+      case SELECT_VALIDATION:
+        return handleSelectValidation(tr, state, action);
+      case APPLY_NEW_DIRTY_RANGES:
+        return handleNewDirtyRanges(tr, state, action);
+      case SET_DEBUG_STATE:
+        return handleSetDebugState(tr, state, action);
+      default:
+        return state;
+    }
+  };
 };
 
 /**
@@ -427,12 +429,11 @@ const handleNewDirtyRanges = <TValidationMeta extends IBaseValidationOutput>(
 /**
  * Handle a validation request for the current set of dirty ranges.
  */
-const handleValidationRequestForDirtyRanges = <
-  TValidationMeta extends IBaseValidationOutput
->(
+const createHandleValidationRequestForDirtyRanges = (
+  expandRanges: ExpandRanges
+) => <TValidationMeta extends IBaseValidationOutput>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>,
-  { payload: { expandRanges } }: ActionValidationRequestForDirtyRanges
+  state: IPluginState<TValidationMeta>
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const validationInputs: IValidationInput[] = ranges.map(range => ({
@@ -631,5 +632,5 @@ export {
   VALIDATION_REQUEST_ERROR,
   NEW_HOVER_ID,
   Action,
-  validationPluginReducer
+  createValidationPluginReducer
 };
