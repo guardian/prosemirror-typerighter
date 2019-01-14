@@ -1,6 +1,6 @@
 import {
   IValidationInput,
-  IDefaultValidationMeta
+  IBaseValidationOutput
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import Store, { STORE_EVENT_NEW_VALIDATION } from "../store";
@@ -11,7 +11,7 @@ import { Commands } from "../commands";
  * for ranges, configured via the supplied adapter. Validation results and
  * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService<TValidationMeta extends IDefaultValidationMeta> {
+class ValidationService<TValidationMeta extends IBaseValidationOutput> {
   constructor(
     private store: Store<TValidationMeta>,
     private commands: Commands,

@@ -1,6 +1,6 @@
 import { Transaction } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import { IRange, IDefaultValidationMeta } from "./interfaces/IValidation";
+import { IRange, IBaseValidationOutput } from "./interfaces/IValidation";
 import {
   IValidationError,
   IValidationInput,
@@ -65,7 +65,7 @@ export interface IValidationInFlight {
   id: string;
 }
 
-export interface IPluginState<TValidationMeta extends IDefaultValidationMeta> {
+export interface IPluginState<TValidationMeta extends IBaseValidationOutput> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
@@ -141,7 +141,7 @@ type ActionValidationRequestForDocument = ReturnType<
 >;
 
 export const validationRequestSuccess = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   response: IValidationResponse<TValidationMeta>
 ) => ({
@@ -150,7 +150,7 @@ export const validationRequestSuccess = <
 });
 // tslint:disable-next-line:interface-over-type-literal
 type ActionValidationResponseReceived<
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 > = {
   type: "VALIDATION_REQUEST_SUCCESS";
   payload: { response: IValidationResponse<TValidationMeta> };
@@ -189,7 +189,7 @@ export const setDebugState = (debug: boolean) => ({
 });
 type ActionSetDebugState = ReturnType<typeof setDebugState>;
 
-type Action<TValidationMeta extends IDefaultValidationMeta> =
+type Action<TValidationMeta extends IBaseValidationOutput> =
   | ActionNewHoverIdReceived
   | ActionValidationResponseReceived<TValidationMeta>
   | ActionValidationRequestForDirtyRanges
@@ -203,7 +203,7 @@ type Action<TValidationMeta extends IDefaultValidationMeta> =
  * Initial state.
  */
 export const createInitialState = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   doc: Node,
   throttleInMs: number,
@@ -230,7 +230,7 @@ export const createInitialState = <
  */
 
 export const selectValidationById = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   state: IPluginState<TValidationMeta>,
   id: string
@@ -238,7 +238,7 @@ export const selectValidationById = <
   state.currentValidations.find(validation => validation.id === id);
 
 export const selectValidationInFlightById = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   state: IPluginState<TValidationMeta>,
   id: string
@@ -246,14 +246,14 @@ export const selectValidationInFlightById = <
   state.validationsInFlight.find(_ => _.id === id);
 
 export const selectNewValidationInFlight = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   state: IPluginState<TValidationMeta>,
   oldState: IPluginState<TValidationMeta>
 ) => difference(state.validationsInFlight, oldState.validationsInFlight);
 
 export const selectSuggestionAndRange = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   state: IPluginState<TValidationMeta>,
   validationId: string,
@@ -278,9 +278,7 @@ export const selectSuggestionAndRange = <
  * Reducer.
  */
 
-const validationPluginReducer = <
-  TValidationMeta extends IDefaultValidationMeta
->(
+const validationPluginReducer = <TValidationMeta extends IBaseValidationOutput>(
   tr: Transaction,
   incomingState: IPluginState<TValidationMeta>,
   action?: Action<TValidationMeta>
@@ -338,7 +336,7 @@ const validationPluginReducer = <
 /**
  * Handle the selection of a hover id.
  */
-const handleSelectValidation = <TValidationMeta extends IDefaultValidationMeta>(
+const handleSelectValidation = <TValidationMeta extends IBaseValidationOutput>(
   _: unknown,
   state: IPluginState<TValidationMeta>,
   action: ActionSelectValidation
@@ -352,7 +350,7 @@ const handleSelectValidation = <TValidationMeta extends IDefaultValidationMeta>(
 /**
  * Handle the receipt of a new hover id.
  */
-const handleNewHoverId = <TValidationMeta extends IDefaultValidationMeta>(
+const handleNewHoverId = <TValidationMeta extends IBaseValidationOutput>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   action: ActionNewHoverIdReceived
@@ -396,7 +394,7 @@ const handleNewHoverId = <TValidationMeta extends IDefaultValidationMeta>(
   };
 };
 
-const handleNewDirtyRanges = <TValidationMeta extends IDefaultValidationMeta>(
+const handleNewDirtyRanges = <TValidationMeta extends IBaseValidationOutput>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
@@ -430,7 +428,7 @@ const handleNewDirtyRanges = <TValidationMeta extends IDefaultValidationMeta>(
  * Handle a validation request for the current set of dirty ranges.
  */
 const handleValidationRequestForDirtyRanges = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
@@ -448,7 +446,7 @@ const handleValidationRequestForDirtyRanges = <
  * Handle a validation request for the entire document.
  */
 const handleValidationRequestForDocument = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   tr: Transaction,
   state: IPluginState<TValidationMeta>
@@ -462,7 +460,7 @@ const handleValidationRequestForDocument = <
  * Handle a validation request for a given set of validation inputs.
  */
 const handleValidationRequestStart = (validationInputs: IValidationInput[]) => <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   tr: Transaction,
   state: IPluginState<TValidationMeta>
@@ -500,7 +498,7 @@ const handleValidationRequestStart = (validationInputs: IValidationInput[]) => <
  * any validations we've received.
  */
 const handleValidationRequestSuccess = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
@@ -559,7 +557,7 @@ const handleValidationRequestSuccess = <
  * Handle a validation request error.
  */
 const handleValidationRequestError = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
@@ -615,7 +613,7 @@ const handleValidationRequestError = <
   };
 };
 
-const handleSetDebugState = <TValidationMeta extends IDefaultValidationMeta>(
+const handleSetDebugState = <TValidationMeta extends IBaseValidationOutput>(
   _: Transaction,
   state: IPluginState<TValidationMeta>,
   { payload: { debug } }: ActionSetDebugState

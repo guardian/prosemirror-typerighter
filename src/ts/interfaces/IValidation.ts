@@ -9,13 +9,13 @@ export interface IValidationInput {
   to: number;
 }
 
-export interface IDefaultValidationMeta {
+export interface IBaseValidationOutput {
   annotation: string;
   type: string;
 }
 
 export type IValidationOutput<
-  IValidationMeta = IDefaultValidationMeta
+  IValidationMeta = IBaseValidationOutput
 > = IValidationInput & {
   suggestions?: string[];
   id: string;
@@ -27,7 +27,7 @@ export interface IValidationError {
   message: string;
 }
 
-export interface IValidationResponse<IValidationMeta = IDefaultValidationMeta> {
+export interface IValidationResponse<IValidationMeta = IBaseValidationOutput> {
   // The validation outputs.
   validationOutputs: Array<IValidationOutput<IValidationMeta>>;
   // The ID of the validation request.

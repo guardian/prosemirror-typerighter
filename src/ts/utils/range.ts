@@ -5,7 +5,7 @@ import { findParentNode } from "prosemirror-utils";
 import {
   IRange,
   IValidationOutput,
-  IDefaultValidationMeta
+  IBaseValidationOutput
 } from "../interfaces/IValidation";
 import { IValidationInput } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
@@ -137,7 +137,7 @@ export const validationInputToRange = (input: IValidationInput): IRange => ({
  * Get the current set of validations for the given response.
  */
 export const getCurrentValidationsFromValidationResponse = <
-  TValidationMeta extends IDefaultValidationMeta
+  TValidationMeta extends IBaseValidationOutput
 >(
   input: IValidationInput,
   incomingOutputs: Array<IValidationOutput<TValidationMeta>>,

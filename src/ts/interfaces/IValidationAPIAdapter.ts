@@ -5,17 +5,17 @@
 import {
   IValidationInput,
   IValidationOutput,
-  IDefaultValidationMeta
+  IBaseValidationOutput
 } from "./IValidation";
 
 /**
  * @internal
  */
-export type IValidationAPIAdapter<TValidationMeta = IDefaultValidationMeta> = (
+export type IValidationAPIAdapter<TValidationMeta = IBaseValidationOutput> = (
   input: IValidationInput
 ) => Promise<Array<IValidationOutput<TValidationMeta>>>;
 
-type IValidationAPIAdapterCreator<TValidationMeta = IDefaultValidationMeta> = (
+type IValidationAPIAdapterCreator<TValidationMeta = IBaseValidationOutput> = (
   apiUrl: string
 ) => IValidationAPIAdapter<TValidationMeta>;
 

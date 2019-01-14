@@ -15682,6 +15682,8 @@ const createDecorationForValidationRange = (output, isHovering = false, addHeigh
 };
 const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
 
+//# sourceMappingURL=decoration.js.map
+
 /**
  * The base implementation of `_.clamp` which doesn't coerce arguments.
  *
@@ -19597,6 +19599,7 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
     to: step.to
 }));
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
+//# sourceMappingURL=prosemirror.js.map
 
 var asyncTag = '[object AsyncFunction]';
 var funcTag = '[object Function]';
@@ -20842,6 +20845,8 @@ class Store {
         this.subscribers[eventName].push(listener);
     }
 }
+
+//# sourceMappingURL=store.js.map
 
 const compact = (value) => !!value;
 //# sourceMappingURL=array.js.map

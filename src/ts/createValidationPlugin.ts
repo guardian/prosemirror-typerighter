@@ -16,7 +16,7 @@ import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
-import { IRange, IDefaultValidationMeta } from "./interfaces/IValidation";
+import { IRange, IBaseValidationOutput } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
@@ -58,7 +58,7 @@ interface IPluginOptions {
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createValidatorPlugin = <TValidationMeta extends IDefaultValidationMeta>(
+const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
   options: IPluginOptions = {}
 ) => {
   const {
