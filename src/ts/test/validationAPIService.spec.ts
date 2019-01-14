@@ -4,6 +4,11 @@ import createLanguageToolAdapter from "../adapters/languageTool";
 import { IValidationOutput } from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
+import { validateDirtyRangesCommand } from "../commands";
+import { createInitialState } from "../state";
+import { Node } from "prosemirror-model";
+import { Mapping } from "prosemirror-transform";
+import { doesNotReject } from "assert";
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -55,10 +60,12 @@ const validationInput = {
 
 const commands = {
   applyValidationResult: jest.fn(),
-  applyValidationError: jest.fn()
+  applyValidationError: jest.fn(),
+  validateDirtyRangesCommand: jest.fn()
 };
 
 const store = new Store();
+const state = createInitialState(new Node());
 
 jest.mock("uuid/v4", () => () => "id");
 
@@ -67,42 +74,50 @@ describe("ValidationAPIService", () => {
     fetchMock.reset();
     commands.applyValidationResult.mockReset();
   });
-  it("should issue a fetch given a validation input, resolving with a validation output and broadcasting the correct event", async () => {
+  it("should issue a fetch given a validation input, resolving with a validation output and broadcasting the correct event", done => {
     const service = new ValidationAPIService(
       store,
       commands as any,
       createLanguageToolAdapter("endpoint/check")
     );
-    fetchMock.mock("endpoint/check", createResponse(["1234567890"]));
+    fetchMock.post("endpoint/check", createResponse(["1234567890"]));
 
-    expect.assertions(2);
+    expect.assertions(1);
 
-    const output = await service.validate(validationInput, "id");
+    service.requestValidation();
+    store.emit("STORE_EVENT_NEW_VALIDATION", {
+      mapping: new Mapping(),
+      validationInput,
+      id: "id"
+    });
 
-    expect(commands.applyValidationResult.mock.calls[0]).toEqual([
-      {
-        validationOutputs: [createOutput("1234567890")],
-        id: "id"
-      }
-    ]);
-    expect(output).toEqual([createOutput("1234567890")]);
+    setTimeout(() => {
+      expect(commands.applyValidationResult.mock.calls[0]).toEqual([
+        {
+          validationOutputs: [createOutput("1234567890")],
+          id: "id"
+        }
+      ]);
+      done();
+    });
   });
-  it("should handle validation errors", async () => {
+  it("should handle validation errors", done => {
     const service = new ValidationAPIService(
       store,
       commands as any,
       createLanguageToolAdapter("endpoint/check")
     );
-    fetchMock.once("endpoint/check", 400);
+    fetchMock.post("endpoint/check", 400);
 
-    const output = await service.validate(
-      {
-        from: 0,
-        to: 10,
-        inputString: "1234567890"
-      },
-      "id"
-    );
-    expect(output).toMatchSnapshot();
+    service.requestValidation();
+    store.emit("STORE_EVENT_NEW_VALIDATION", {
+      mapping: new Mapping(),
+      validationInput,
+      id: "id"
+    });
+    setTimeout(() => {
+      expect(commands.applyValidationError.mock.calls[0][0]).toMatchSnapshot();
+      done();
+    });
   });
 });

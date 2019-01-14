@@ -1,9 +1,8 @@
 import {
   IPluginState,
   VALIDATION_PLUGIN_ACTION,
-  validationPluginReducer,
+  createValidationPluginReducer,
   applyNewDirtiedRanges,
-  validationRequestForDirtyRanges,
   createInitialState,
   selectNewValidationInFlight
 } from "./state";
@@ -38,16 +37,6 @@ interface IPluginOptions {
    * block node.
    */
   expandRanges?: ExpandRanges;
-
-  /**
-   * The throttle duration for validation requests, in ms.
-   */
-  throttleInMs?: number;
-
-  /**
-   * The maximum throttle duration.
-   */
-  maxThrottle?: number;
 }
 
 /**
@@ -61,51 +50,20 @@ interface IPluginOptions {
 const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
   options: IPluginOptions = {}
 ) => {
-  const {
-    expandRanges = expandRangesToParentBlockNode,
-    throttleInMs = 2000,
-    maxThrottle = 8000
-  } = options;
+  const { expandRanges = expandRangesToParentBlockNode } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TValidationMeta>;
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
-  let localView: EditorView;
-
-  /**
-   * Request a validation for the currently pending ranges.
-   */
-  const requestValidation = () => {
-    const pluginState: TPluginState = plugin.getState(localView.state);
-    // If there's already a validation in flight, defer validation
-    // for another throttle tick
-    if (pluginState.validationsInFlight.length) {
-      return scheduleValidation();
-    }
-    localView.dispatch(
-      localView.state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        validationRequestForDirtyRanges(expandRanges)
-      )
-    );
-  };
-  const scheduleValidation = () =>
-    setTimeout(
-      requestValidation,
-      plugin.getState(localView.state).currentThrottle
-    );
+  const reducer = createValidationPluginReducer(expandRanges);
 
   const plugin: Plugin = new Plugin({
     state: {
-      init: (_, { doc }) => createInitialState(doc, throttleInMs, maxThrottle),
+      init: (_, { doc }) => createInitialState(doc),
       apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
-        return validationPluginReducer(
-          tr,
-          state,
-          tr.getMeta(VALIDATION_PLUGIN_ACTION)
-        );
+        return reducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
       }
     },
 
@@ -124,12 +82,6 @@ const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
         [] as IRange[]
       );
       if (newDirtiedRanges.length) {
-        // If we haven't yet scheduled a validation request, issue a delayed
-        // request to the validation service, and mark the state as pending
-        // validation.
-        if (!newPluginState.validationPending) {
-          scheduleValidation();
-        }
         return tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
           applyNewDirtiedRanges(newDirtiedRanges)
@@ -178,14 +130,13 @@ const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
           indicateHoverCommand(
             newValidationId,
             getStateHoverInfoFromEvent(event, view.dom, heightMarker)
-          )(localView.state, localView.dispatch);
+          )(view.state, view.dispatch);
 
           return false;
         }
       }
     },
     view(view) {
-      localView = view;
       return {
         // Update our store with the new state.
         update: _ =>

@@ -5,13 +5,14 @@ import Store from "./store";
 import ValidationSidebar from "./components/ValidationSidebar";
 import ValidationControls from "./components/ValidationControls";
 import { Commands } from "./commands";
+import { IBaseValidationOutput } from "./interfaces/IValidation";
 
 /**
  * Scaffolding for an example view.
  */
 const createView = (
   view: EditorView,
-  store: Store,
+  store: Store<IBaseValidationOutput>,
   commands: Commands,
   sidebarNode: Element,
   controlsNode: Element
