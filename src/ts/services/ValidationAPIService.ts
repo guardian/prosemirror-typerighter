@@ -1,4 +1,7 @@
-import { IValidationInput } from "../interfaces/IValidation";
+import {
+  IValidationInput,
+  IBaseValidationOutput
+} from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import Store, { STORE_EVENT_NEW_VALIDATION } from "../store";
 import { Commands } from "../commands";
@@ -8,11 +11,11 @@ import { Commands } from "../commands";
  * for ranges, configured via the supplied adapter. Validation results and
  * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService {
+class ValidationService<TValidationMeta extends IBaseValidationOutput> {
   constructor(
-    private store: Store,
+    private store: Store<TValidationMeta>,
     private commands: Commands,
-    private adapter: IValidationAPIAdapter
+    private adapter: IValidationAPIAdapter<TValidationMeta>
   ) {
     this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
       // If we have a new validation, send it to the validation service.
@@ -23,10 +26,7 @@ class ValidationService {
   /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
-  public async validate(
-    validationInput: IValidationInput,
-    id: string
-  ) {
+  public async validate(validationInput: IValidationInput, id: string) {
     try {
       const validationOutputs = await this.adapter(validationInput);
       this.commands.applyValidationResult({

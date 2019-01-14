@@ -18,17 +18,17 @@ describe("Prosemirror utils", () => {
         p(ul(li("List item 1"), li("List item 2")))
       );
       expect(createValidationInputsForDocument(node)).toEqual([
-        { from: 1, to: 13, str: "Paragraph 1" },
-        { from: 14, to: 26, str: "Paragraph 2" },
+        { from: 1, to: 13, inputString: "Paragraph 1" },
+        { from: 14, to: 26, inputString: "Paragraph 2" },
         {
           from: 29,
           to: 41,
-          str: "List item 1"
+          inputString: "List item 1"
         },
         {
           from: 42,
           to: 54,
-          str: "List item 2"
+          inputString: "List item 2"
         }
       ]);
     });

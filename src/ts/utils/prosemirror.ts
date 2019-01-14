@@ -1,7 +1,7 @@
-import { Node } from 'prosemirror-model';
-import { Transaction } from 'prosemirror-state';
-import { ReplaceAroundStep, ReplaceStep } from 'prosemirror-transform';
-import { IValidationInput } from '../interfaces/IValidation';
+import { Node } from "prosemirror-model";
+import { Transaction } from "prosemirror-state";
+import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
+import { IValidationInput } from "../interfaces/IValidation";
 
 export const MarkTypes = {
   legal: "legal",
@@ -34,20 +34,22 @@ export const findChildren = (
   return flatten(node, descend).filter(child => predicate(child.node));
 };
 
-export const createValidationInputsForDocument = (node: Node): IValidationInput[] => {
+export const createValidationInputsForDocument = (
+  node: Node
+): IValidationInput[] => {
   const ranges = [] as IValidationInput[];
   node.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push({
-        str: descNode.textContent,
+        inputString: descNode.textContent,
         from: pos + 1,
         to: pos + descNode.nodeSize
-      })
+      });
       return false;
     }
   });
   return ranges;
-}
+};
 
 /**
  * Get all of the ranges of any replace steps in the given transaction.

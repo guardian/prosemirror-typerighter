@@ -232,19 +232,19 @@ describe("Range utils", () => {
       const outputs = removeOverlappingRanges(
         [
           {
-            str: "one",
+            inputString: "one",
             from: 0,
             to: 2
           },
           {
-            str: "two",
+            inputString: "two",
             from: 5,
             to: 7
           }
         ],
         [
           {
-            str: "one",
+            inputString: "one",
             from: 1,
             to: 3
           }
@@ -252,7 +252,7 @@ describe("Range utils", () => {
       );
       expect(outputs).toEqual([
         {
-          str: "two",
+          inputString: "two",
           from: 5,
           to: 7
         }
@@ -262,19 +262,19 @@ describe("Range utils", () => {
       const outputs = removeOverlappingRanges(
         [
           {
-            str: "one",
+            inputString: "one",
             from: 0,
             to: 2
           },
           {
-            str: "two",
+            inputString: "two",
             from: 5,
             to: 7
           }
         ],
         [
           {
-            str: "three",
+            inputString: "three",
             from: 10,
             to: 12
           }
@@ -282,12 +282,12 @@ describe("Range utils", () => {
       );
       expect(outputs).toEqual([
         {
-          str: "one",
+          inputString: "one",
           from: 0,
           to: 2
         },
         {
-          str: "two",
+          inputString: "two",
           from: 5,
           to: 7
         }

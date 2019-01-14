@@ -1,5 +1,6 @@
 import { IPluginState, IValidationInFlight } from "./state";
 import { ArgumentTypes } from "./utils/types";
+import { IBaseValidationOutput } from "./interfaces/IValidation";
 
 export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
@@ -9,7 +10,9 @@ type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 
 interface IStoreEvents {
   [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
-  [STORE_EVENT_NEW_STATE]: (state: IPluginState) => void;
+  [STORE_EVENT_NEW_STATE]: <TValidationMeta extends IBaseValidationOutput>(
+    state: IPluginState<TValidationMeta>
+  ) => void;
 }
 
 type EventNames = keyof IStoreEvents;
@@ -17,7 +20,7 @@ type EventNames = keyof IStoreEvents;
 /**
  * A store to allow consumers to subscribe to validator state updates.
  */
-class Store {
+class Store<TValidationMeta extends IBaseValidationOutput> {
   private subscribers: {
     [EventName in EventNames]: Array<IStoreEvents[EventName]>
   } = {

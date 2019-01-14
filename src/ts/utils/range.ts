@@ -5,6 +5,7 @@ import { findParentNode } from "prosemirror-utils";
 import {
   IRange,
   IValidationOutput,
+  IBaseValidationOutput
 } from "../interfaces/IValidation";
 import { IValidationInput } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
@@ -24,8 +25,10 @@ export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
   );
 };
 
-export const mapAndMergeRanges = <Range extends IRange>(ranges: Range[], mapping: Mapping): Range[] =>
-  mergeRanges(mapRanges(ranges, mapping));
+export const mapAndMergeRanges = <Range extends IRange>(
+  ranges: Range[],
+  mapping: Mapping
+): Range[] => mergeRanges(mapRanges(ranges, mapping));
 
 export const mapRanges = <Range extends IRange>(
   ranges: Range[],
@@ -57,7 +60,10 @@ export const removeOverlappingRanges = <
   );
 };
 
-export const mergeRange = <Range extends IRange>(range1: Range, range2: Range): Range => ({
+export const mergeRange = <Range extends IRange>(
+  range1: Range,
+  range2: Range
+): Range => ({
   ...range1,
   from: range1.from < range2.from ? range1.from : range2.from,
   to: range1.to > range2.to ? range1.to : range2.to
@@ -130,26 +136,22 @@ export const validationInputToRange = (input: IValidationInput): IRange => ({
 /**
  * Get the current set of validations for the given response.
  */
-export const getCurrentValidationsFromValidationResponse = (
+export const getCurrentValidationsFromValidationResponse = <
+  TValidationMeta extends IBaseValidationOutput
+>(
   input: IValidationInput,
-  incomingOutputs: IValidationOutput[],
-  currentOutputs: IValidationOutput[],
+  incomingOutputs: Array<IValidationOutput<TValidationMeta>>,
+  currentOutputs: Array<IValidationOutput<TValidationMeta>>,
   mapping: Mapping
-): IValidationOutput[] => {
+): Array<IValidationOutput<TValidationMeta>> => {
   if (!incomingOutputs.length) {
     return currentOutputs;
   }
 
   // Map _all_ the things.
-  const mappedInputs = mapRanges(
-    [input],
-    mapping
-  );
+  const mappedInputs = mapRanges([input], mapping);
 
-  const newOutputs = mapAndMergeRanges(
-    incomingOutputs,
-    mapping
-  );
+  const newOutputs = mapAndMergeRanges(incomingOutputs, mapping);
 
   return removeOverlappingRanges(currentOutputs, mappedInputs).concat(
     newOutputs
@@ -159,7 +161,10 @@ export const getCurrentValidationsFromValidationResponse = (
 /**
  * Expand a range in a document to encompass the nearest ancestor block node.
  */
-export const expandRangeToParentBlockNode = (range: IRange, doc: Node): IRange | undefined => {
+export const expandRangeToParentBlockNode = (
+  range: IRange,
+  doc: Node
+): IRange | undefined => {
   try {
     const $fromPos = doc.resolve(range.from);
     const $toPos = doc.resolve(range.to);

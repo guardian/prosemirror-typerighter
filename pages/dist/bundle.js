@@ -15641,7 +15641,9 @@ const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_
     if (!decorations.length) {
         return acc;
     }
-    const decorationsToRemove = flatten_1(decorations.map(decoration => decorationSet.find(decoration.from, decoration.to, predicate)).filter(_ => !!_));
+    const decorationsToRemove = flatten_1(decorations
+        .map(decoration => decorationSet.find(decoration.from, decoration.to, predicate))
+        .filter(_ => !!_));
     return acc.remove(decorationsToRemove);
 }, decorationSet);
 const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
@@ -19583,7 +19585,7 @@ const createValidationInputsForDocument = (node) => {
     node.descendants((descNode, pos) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
             ranges.push({
-                str: descNode.textContent,
+                inputString: descNode.textContent,
                 from: pos + 1,
                 to: pos + descNode.nodeSize
             });
@@ -20689,7 +20691,7 @@ const validationPluginReducer = (tr, incomingState, action) => {
         case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
             return handleValidationRequestForDirtyRanges(tr, state, action);
         case VALIDATION_REQUEST_FOR_DOCUMENT:
-            return handleValidationRequestForDocument(tr, state, action);
+            return handleValidationRequestForDocument(tr, state);
         case VALIDATION_REQUEST_SUCCESS:
             return handleValidationRequestSuccess(tr, state, action);
         case VALIDATION_REQUEST_ERROR:
@@ -20736,7 +20738,7 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
 };
 const handleValidationRequestForDirtyRanges = (tr, state, { payload: { expandRanges } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-    const validationInputs = ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    const validationInputs = ranges.map(range => (Object.assign({ inputString: tr.doc.textBetween(range.from, range.to) }, range)));
     return handleValidationRequestStart(validationInputs)(tr, state);
 };
 const handleValidationRequestForDocument = (tr, state) => {
@@ -20792,8 +20794,6 @@ const handleValidationRequestError = (tr, state, action) => {
 const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
 };
-
-//# sourceMappingURL=state.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -20917,11 +20917,12 @@ const createBoundCommands = (view, getState) => {
         setDebugState: bindCommand(setDebugStateCommand)
     };
 };
+//# sourceMappingURL=commands.js.map
 
 const createValidatorPlugin = (options = {}) => {
     const { expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
-    let localView;
     const store = new Store();
+    let localView;
     const requestValidation = () => {
         const pluginState = plugin.getState(localView.state);
         if (pluginState.validationsInFlight.length) {
@@ -20980,7 +20981,7 @@ const createValidatorPlugin = (options = {}) => {
         view(view) {
             localView = view;
             return {
-                update: (_) => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
+                update: _ => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
             };
         }
     });
@@ -22532,22 +22533,22 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
     const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
     const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
     let result;
-    while ((result = threeLetterExpr.exec(input.str))) {
+    while ((result = threeLetterExpr.exec(input.inputString))) {
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
-            str: result[0],
+            inputString: result[0],
             annotation: "This word has three letters. Consider a larger, grander word.",
             type: "3 letter word",
             id: v4_1(),
             suggestions: ["replace", "with", "grand", "word"]
         });
     }
-    while ((result = sixLetterExpr.exec(input.str))) {
+    while ((result = sixLetterExpr.exec(input.inputString))) {
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
-            str: result[0],
+            inputString: result[0],
             annotation: "This word has six letters. Consider a smaller, less fancy word.",
             type: "6 letter word",
             id: v4_1(),

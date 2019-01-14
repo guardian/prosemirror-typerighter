@@ -93,7 +93,7 @@ describe("State management", () => {
               },
               validationInput: {
                 from: 1,
-                str: "Example text to validate",
+                inputString: "Example text to validate",
                 to: 26
               }
             }
@@ -126,7 +126,7 @@ describe("State management", () => {
           validationsInFlight: [
             {
               validationInput: {
-                str: "Example text to validate",
+                inputString: "Example text to validate",
                 from: 1,
                 to: 25
               },
@@ -163,7 +163,7 @@ describe("State management", () => {
           validationsInFlight: [
             {
               validationInput: {
-                str: "Example text to validate",
+                inputString: "Example text to validate",
                 from: 1,
                 to: 25
               },
@@ -211,7 +211,7 @@ describe("State management", () => {
                   to: 3,
                   type: "type",
                   annotation: "annotation",
-                  str: "str",
+                  inputString: "str",
                   id: "0"
                 }
               ],
@@ -223,7 +223,7 @@ describe("State management", () => {
             annotation: "annotation",
             from: 1,
             id: "0",
-            str: "str",
+            inputString: "str",
             to: 3,
             type: "type"
           }
@@ -239,7 +239,7 @@ describe("State management", () => {
               validationOutputs: [
                 {
                   id: "id",
-                  str: "Example text to validate",
+                  inputString: "Example text to validate",
                   from: 5,
                   to: 10,
                   annotation: "Summat ain't right",
@@ -279,7 +279,7 @@ describe("State management", () => {
                   to: 3,
                   type: "type",
                   annotation: "annotation",
-                  str: "str",
+                  inputString: "str",
                   id: "0"
                 }
               ],
@@ -305,7 +305,7 @@ describe("State management", () => {
               validationsInFlight: [
                 {
                   validationInput: {
-                    str: "Example text to validate",
+                    inputString: "Example text to validate",
                     from: 1,
                     to: 25
                   },
@@ -316,7 +316,7 @@ describe("State management", () => {
             },
             validationRequestError({
               validationInput: {
-                str: "Example text to validate",
+                inputString: "Example text to validate",
                 from: 1,
                 to: 25
               },
@@ -360,7 +360,7 @@ describe("State management", () => {
         const output: IValidationOutput = {
           from: 0,
           to: 5,
-          str: "Example",
+          inputString: "Example",
           annotation: "Annotation",
           type: "Type",
           id: "exampleHoverId"
@@ -387,7 +387,7 @@ describe("State management", () => {
         const output: IValidationOutput = {
           from: 0,
           to: 5,
-          str: "Example",
+          inputString: "Example",
           annotation: "Annotation",
           type: "Type",
 
@@ -424,7 +424,7 @@ describe("State management", () => {
             id: "1",
             from: 1,
             to: 7,
-            str: "Example",
+            inputString: "Example",
             annotation: "Annotation",
             type: "Type"
           }
@@ -458,7 +458,7 @@ describe("State management", () => {
           ...state,
           currentValidations: [
             {
-              str: "example",
+              inputString: "example",
               from: 1,
               to: 1,
               annotation: "example",
@@ -605,7 +605,7 @@ describe("State management", () => {
             suggestions: ["example", "suggestion"],
             annotation: "Annotation",
             type: "Type",
-            str: "hai"
+            inputString: "hai"
           }
         ];
         expect(
@@ -629,7 +629,7 @@ describe("State management", () => {
             suggestions: ["example", "suggestion"],
             annotation: "Annotation",
             type: "Type",
-            str: "hai"
+            inputString: "hai"
           }
         ];
         expect(
