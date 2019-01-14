@@ -12,13 +12,16 @@ import {
   DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
-import { Plugin, Transaction } from "prosemirror-state";
+import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
-import { IRange } from "./interfaces/IValidation";
+import { IRange, IDefaultValidationMeta } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
-import Store, { STORE_EVENT_NEW_STATE, STORE_EVENT_NEW_VALIDATION } from "./store";
+import Store, {
+  STORE_EVENT_NEW_STATE,
+  STORE_EVENT_NEW_VALIDATION
+} from "./store";
 import { indicateHoverCommand } from "./commands";
 
 /**
@@ -55,22 +58,26 @@ interface IPluginOptions {
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createValidatorPlugin = (options: IPluginOptions = {}) => {
+const createValidatorPlugin = <TValidationMeta extends IDefaultValidationMeta>(
+  options: IPluginOptions = {}
+) => {
   const {
     expandRanges = expandRangesToParentBlockNode,
     throttleInMs = 2000,
     maxThrottle = 8000
   } = options;
-  let localView: EditorView;
+  // A handy alias to reduce repetition
+  type TPluginState = IPluginState<TValidationMeta>;
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
+  let localView: EditorView;
 
   /**
    * Request a validation for the currently pending ranges.
    */
   const requestValidation = () => {
-    const pluginState: IPluginState = plugin.getState(localView.state);
+    const pluginState: TPluginState = plugin.getState(localView.state);
     // If there's already a validation in flight, defer validation
     // for another throttle tick
     if (pluginState.validationsInFlight.length) {
@@ -92,7 +99,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
   const plugin: Plugin = new Plugin({
     state: {
       init: (_, { doc }) => createInitialState(doc, throttleInMs, maxThrottle),
-      apply(tr: Transaction, state: IPluginState): IPluginState {
+      apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
         return validationPluginReducer(
           tr,
@@ -107,8 +114,8 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
      * in response to state transitions.
      */
     appendTransaction(trs: Transaction[], oldState, newState) {
-      const oldPluginState: IPluginState = plugin.getState(oldState);
-      const newPluginState: IPluginState = plugin.getState(newState);
+      const oldPluginState: TPluginState = plugin.getState(oldState);
+      const newPluginState: TPluginState = plugin.getState(newState);
       const tr = newState.tr;
 
       // Check for dirted ranges and update the state accordingly.
@@ -128,8 +135,13 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
-      const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
-      newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _))
+      const newValidationsInFlight = selectNewValidationInFlight(
+        newPluginState,
+        oldPluginState
+      );
+      newValidationsInFlight.forEach(_ =>
+        store.emit(STORE_EVENT_NEW_VALIDATION, _)
+      );
     },
     props: {
       decorations: state => {
@@ -176,7 +188,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
       localView = view;
       return {
         // Update our store with the new state.
-        update: (_) =>
+        update: _ =>
           store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
       };
     }
@@ -185,7 +197,9 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
   return {
     plugin,
     store,
-    getState: plugin.getState.bind(plugin)
+    getState: plugin.getState.bind(plugin) as (
+      state: EditorState
+    ) => TPluginState
   };
 };
 

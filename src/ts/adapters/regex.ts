@@ -15,7 +15,8 @@ const regexAdapter = async (input: IValidationInput) => {
       from: input.from + result.index,
       to: input.from + result.index + result[0].length,
       inputString: result[0],
-      annotation: "This word has three letters. Consider a larger, grander word.",
+      annotation:
+        "This word has three letters. Consider a larger, grander word.",
       type: "3 letter word",
       id: v4(),
       suggestions: ["replace", "with", "grand", "word"]
@@ -27,7 +28,8 @@ const regexAdapter = async (input: IValidationInput) => {
       from: input.from + result.index,
       to: input.from + result.index + result[0].length,
       inputString: result[0],
-      annotation: "This word has six letters. Consider a smaller, less fancy word.",
+      annotation:
+        "This word has six letters. Consider a smaller, less fancy word.",
       type: "6 letter word",
       id: v4(),
       suggestions: ["replace", "with", "bijou", "word"]

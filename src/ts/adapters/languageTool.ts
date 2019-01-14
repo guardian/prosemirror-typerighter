@@ -1,12 +1,12 @@
-import v4 from 'uuid/v4';
+import v4 from "uuid/v4";
 import { IValidationInput } from "../interfaces/IValidation";
-import IValidationAPIAdapter from "../interfaces/IValidationAPIAdapter";
 import { ILTResponse } from "./interfaces/ILanguageTool";
+import IValidationAPIAdapterCreator from "../interfaces/IValidationAPIAdapter";
 
 /**
  * An adapter for the Typerighter service.
  */
-const createLanguageToolAdapter: IValidationAPIAdapter = (
+const createLanguageToolAdapter: IValidationAPIAdapterCreator = (
   apiUrl: string
 ) => async (input: IValidationInput) => {
   const body = new URLSearchParams();

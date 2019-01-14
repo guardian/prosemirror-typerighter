@@ -15641,7 +15641,9 @@ const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_
     if (!decorations.length) {
         return acc;
     }
-    const decorationsToRemove = flatten_1(decorations.map(decoration => decorationSet.find(decoration.from, decoration.to, predicate)).filter(_ => !!_));
+    const decorationsToRemove = flatten_1(decorations
+        .map(decoration => decorationSet.find(decoration.from, decoration.to, predicate))
+        .filter(_ => !!_));
     return acc.remove(decorationsToRemove);
 }, decorationSet);
 const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
@@ -15679,8 +15681,6 @@ const createDecorationForValidationRange = (output, isHovering = false, addHeigh
         : decorationArray;
 };
 const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
-
-//# sourceMappingURL=decoration.js.map
 
 /**
  * The base implementation of `_.clamp` which doesn't coerce arguments.
@@ -19597,7 +19597,6 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
     to: step.to
 }));
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
-//# sourceMappingURL=prosemirror.js.map
 
 var asyncTag = '[object AsyncFunction]';
 var funcTag = '[object Function]';
@@ -20689,7 +20688,7 @@ const validationPluginReducer = (tr, incomingState, action) => {
         case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
             return handleValidationRequestForDirtyRanges(tr, state, action);
         case VALIDATION_REQUEST_FOR_DOCUMENT:
-            return handleValidationRequestForDocument(tr, state, action);
+            return handleValidationRequestForDocument(tr, state);
         case VALIDATION_REQUEST_SUCCESS:
             return handleValidationRequestSuccess(tr, state, action);
         case VALIDATION_REQUEST_ERROR:
@@ -20793,8 +20792,6 @@ const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
 };
 
-//# sourceMappingURL=state.js.map
-
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
         !(event.target instanceof HTMLElement) ||
@@ -20845,8 +20842,6 @@ class Store {
         this.subscribers[eventName].push(listener);
     }
 }
-
-//# sourceMappingURL=store.js.map
 
 const compact = (value) => !!value;
 //# sourceMappingURL=array.js.map
@@ -20917,11 +20912,12 @@ const createBoundCommands = (view, getState) => {
         setDebugState: bindCommand(setDebugStateCommand)
     };
 };
+//# sourceMappingURL=commands.js.map
 
 const createValidatorPlugin = (options = {}) => {
     const { expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
-    let localView;
     const store = new Store();
+    let localView;
     const requestValidation = () => {
         const pluginState = plugin.getState(localView.state);
         if (pluginState.validationsInFlight.length) {
@@ -20980,7 +20976,7 @@ const createValidatorPlugin = (options = {}) => {
         view(view) {
             localView = view;
             return {
-                update: (_) => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
+                update: _ => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
             };
         }
     });
@@ -22532,7 +22528,7 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
     const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
     const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
     let result;
-    while ((result = threeLetterExpr.exec(input.str))) {
+    while ((result = threeLetterExpr.exec(input.inputString))) {
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
@@ -22543,7 +22539,7 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
             suggestions: ["replace", "with", "grand", "word"]
         });
     }
-    while ((result = sixLetterExpr.exec(input.str))) {
+    while ((result = sixLetterExpr.exec(input.inputString))) {
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
