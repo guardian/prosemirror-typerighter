@@ -41,7 +41,7 @@ const createOutput = (str: string, offset: number = 0) => {
   const from = offset;
   const to = offset + str.length;
   return {
-    id: `0-from:${from}-to:${to}`,
+    id: "id",
     from,
     to,
     str,
@@ -64,6 +64,8 @@ const commands = {
 };
 
 const store = new Store();
+
+jest.mock("uuid/v4", () => () => "id");
 
 describe("ValidationAPIService", () => {
   afterEach(() => {

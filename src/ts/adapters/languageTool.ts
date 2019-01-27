@@ -1,3 +1,4 @@
+import v4 from "uuid/v4";
 import { IValidationInput } from "../interfaces/IValidation";
 import IValidationAPIAdapter from "../interfaces/IValidationAPIAdapter";
 import { ILTResponse } from "./interfaces/ILanguageTool";
@@ -36,7 +37,7 @@ const createLanguageToolAdapter: IValidationAPIAdapter = (
   }
   const validationData: ILTResponse = await response.json();
   return validationData.matches.map(match => ({
-    id: input.id,
+    id: v4(),
     str: match.sentence,
     from: input.from + match.offset,
     to: input.from + match.offset + match.length,

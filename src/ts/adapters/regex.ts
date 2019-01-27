@@ -1,3 +1,4 @@
+import v4 from "uuid/v4";
 import { IValidationInput, IValidationOutput } from "../interfaces/IValidation";
 
 /**
@@ -17,7 +18,7 @@ const regexAdapter = async (input: IValidationInput) => {
       annotation:
         "This word has three letters. Consider a larger, grander word.",
       type: "3 letter word",
-      id: input.id,
+      id: v4(),
       suggestions: ["replace", "with", "grand", "word"]
     });
   }
