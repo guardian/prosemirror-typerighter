@@ -15,9 +15,9 @@ import "../src/css/validationControls.scss";
 import "../src/css/validationSidebarOutput.scss";
 import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
-import regexAdapter from "../src/ts/adapters/regex";
 import { createBoundCommands } from "../src/ts/commands";
 import ValidationService from "../src/ts/services/ValidationAPIService";
+import createTyperighterAdapter from "../src/ts/services/adapters/typerighter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -57,7 +57,7 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new ValidationService(
     store,
     commands,
-    regexAdapter
+    createTyperighterAdapter("http://localhost:9000/check")
   );
   (window as any).editor = view;
   const debugButton = document.getElementById("debug-button");
