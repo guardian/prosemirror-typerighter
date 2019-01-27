@@ -324,9 +324,7 @@ describe("State management", () => {
               to: 25
             }
           ],
-          decorations: new DecorationSet().add(initialDocToValidate, [
-            createDebugDecorationFromRange({ from: 1, to: 25 })
-          ]),
+          decorations: new DecorationSet(),
           error: "Too many requests",
           validationInFlight: undefined
         });
