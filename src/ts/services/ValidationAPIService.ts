@@ -5,7 +5,7 @@ import {
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import Store, {
   STORE_EVENT_NEW_VALIDATION,
-  STORE_EVENT_DOCUMENT_DIRTIED
+  STORE_EVENT_NEW_DIRTIED_RANGES
 } from "../store";
 import { Commands } from "../commands";
 import { selectValidationsInFlight } from "../state";
@@ -18,6 +18,7 @@ import { selectValidationsInFlight } from "../state";
 class ValidationService<TValidationOutput extends IBaseValidationOutput> {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
+  private validationPending = false;
 
   constructor(
     private store: Store<TValidationOutput>,
@@ -33,7 +34,9 @@ class ValidationService<TValidationOutput extends IBaseValidationOutput> {
       // If we have a new validation, send it to the validation service.
       this.validate(validationInFlight.validationInput);
     });
-    this.store.on(STORE_EVENT_DOCUMENT_DIRTIED, () => this.requestValidation());
+    this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
+      this.scheduleValidation();
+    });
   }
 
   /**
@@ -43,8 +46,9 @@ class ValidationService<TValidationOutput extends IBaseValidationOutput> {
   public requestValidation() {
     const pluginState = this.store.getState();
     if (!pluginState || selectValidationsInFlight(pluginState).length) {
-      this.scheduleValidation();
+      return this.scheduleValidation();
     }
+    this.validationPending = false;
     this.commands.validateDirtyRangesCommand();
   }
 
@@ -73,8 +77,13 @@ class ValidationService<TValidationOutput extends IBaseValidationOutput> {
   /**
    * Schedule a validation for the next throttle tick.
    */
-  private scheduleValidation = () =>
-    setTimeout(this.requestValidation, this.currentThrottle);
+  private scheduleValidation = (): unknown => {
+    if (this.validationPending) {
+      return;
+    }
+    this.validationPending = true;
+    setTimeout(() => this.requestValidation(), this.currentThrottle);
+  };
 }
 
 export default ValidationService;
