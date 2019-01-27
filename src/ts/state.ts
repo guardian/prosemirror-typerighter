@@ -605,7 +605,7 @@ const handleValidationRequestError = <
   // validated on the next pass.
   let decorations = state.decorations.remove(decsToRemove);
 
-  if (dirtiedRanges.length) {
+  if (dirtiedRanges.length && state.debug) {
     decorations = decorations.add(
       tr.doc,
       dirtiedRanges.map(range => createDebugDecorationFromRange(range))
