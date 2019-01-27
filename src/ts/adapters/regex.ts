@@ -17,7 +17,7 @@ const regexAdapter = async (input: IValidationInput) => {
       annotation:
         "This word has three letters. Consider a larger, grander word.",
       type: "3 letter word",
-      id: v4(),
+      id: input.id,
       suggestions: ["replace", "with", "grand", "word"]
     });
   }
