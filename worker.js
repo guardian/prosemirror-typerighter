@@ -15484,7 +15484,7 @@ function* applyLibraryToValidationMap(validationLibrary) {
                 type: rule.type,
                 from: match.index,
                 to: match.index + match.item.length,
-                str: match.item
+                inputString: match.item
             }))
                 .filter(match => match));
         }
