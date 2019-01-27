@@ -28,9 +28,9 @@ export const validationLibrary: IValidationLibrary = [
 export const createValidationInput = (
   from: number,
   to: number,
-  str = "str"
+  inputString = "str"
 ) => ({
-  str,
+  inputString,
   from,
   to,
   id: `0-from:${from}-to:${to}`
@@ -39,14 +39,14 @@ export const createValidationInput = (
 export const createValidationOutput = (
   from: number,
   to: number,
-  str = "str",
+  inputString = "str",
   suggestions = [] as string[]
 ) => ({
   from,
   to,
   type: "type",
   annotation: "annotation",
-  str,
+  inputString,
   id: `0-from:${from}-to:${to}`,
   suggestions
 });

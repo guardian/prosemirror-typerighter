@@ -5,24 +5,30 @@ export interface IRange {
 
 export interface IValidationInput {
   id: string;
-  str: string;
+  inputString: string;
   from: number;
   to: number;
 }
 
-export type IValidationOutput = IValidationInput & {
+export interface IBaseValidationOutput {
   annotation: string;
-  suggestions?: string[];
   type: string;
-};
+}
+
+export type IValidationOutput<
+  IValidationMeta = IBaseValidationOutput
+> = IValidationInput & {
+  suggestions?: string[];
+  id: string;
+} & IValidationMeta;
 
 export interface IValidationError {
   validationInput: IValidationInput;
   message: string;
 }
 
-export interface IValidationResponse {
-  validationOutputs: IValidationOutput[];
+export interface IValidationResponse<IValidationMeta = IBaseValidationOutput> {
+  validationOutputs: Array<IValidationOutput<IValidationMeta>>;
   validationInput: IValidationInput;
 }
 

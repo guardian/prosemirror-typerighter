@@ -21,18 +21,18 @@ describe("Prosemirror utils", () => {
       tr.doc = node;
       tr.time = 0;
       expect(createValidationInputsForDocument(tr)).toEqual([
-        { from: 1, to: 13, str: "Paragraph 1", id: "0-from:1-to:13" },
-        { from: 14, to: 26, str: "Paragraph 2", id: "0-from:14-to:26" },
+        { from: 1, to: 13, inputString: "Paragraph 1", id: "0-from:1-to:13" },
+        { from: 14, to: 26, inputString: "Paragraph 2", id: "0-from:14-to:26" },
         {
           from: 29,
           to: 41,
-          str: "List item 1",
+          inputString: "List item 1",
           id: "0-from:29-to:41"
         },
         {
           from: 42,
           to: 54,
-          str: "List item 2",
+          inputString: "List item 2",
           id: "0-from:42-to:54"
         }
       ]);

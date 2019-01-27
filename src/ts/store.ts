@@ -1,15 +1,22 @@
 import { IPluginState, IValidationInFlight } from "./state";
 import { ArgumentTypes } from "./utils/types";
+import { IBaseValidationOutput } from "./interfaces/IValidation";
+import { Plugin } from "prosemirror-state";
 
 export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
+export const STORE_EVENT_DOCUMENT_DIRTIED = "STORE_EVENT_DOCUMENT_DIRTIED";
 
 type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
+type STORE_EVENT_DOCUMENT_DIRTIED = typeof STORE_EVENT_DOCUMENT_DIRTIED;
 
 interface IStoreEvents {
   [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
-  [STORE_EVENT_NEW_STATE]: (state: IPluginState) => void;
+  [STORE_EVENT_NEW_STATE]: <TValidationMeta extends IBaseValidationOutput>(
+    state: IPluginState<TValidationMeta>
+  ) => void;
+  [STORE_EVENT_DOCUMENT_DIRTIED]: () => void;
 }
 
 type EventNames = keyof IStoreEvents;
@@ -17,13 +24,21 @@ type EventNames = keyof IStoreEvents;
 /**
  * A store to allow consumers to subscribe to validator state updates.
  */
-class Store {
+class Store<TValidationOutput extends IBaseValidationOutput> {
+  private state: IPluginState<TValidationOutput> | undefined;
   private subscribers: {
     [EventName in EventNames]: Array<IStoreEvents[EventName]>
   } = {
     [STORE_EVENT_NEW_STATE]: [],
-    [STORE_EVENT_NEW_VALIDATION]: []
+    [STORE_EVENT_NEW_VALIDATION]: [],
+    [STORE_EVENT_DOCUMENT_DIRTIED]: []
   };
+
+  constructor() {
+    this.on("STORE_EVENT_NEW_STATE", (_: IPluginState<TValidationOutput>) =>
+      this.updateState(_)
+    );
+  }
 
   /**
    * Notify our subscribers of a state change.
@@ -65,6 +80,20 @@ class Store {
     (this.subscribers[eventName] as Array<IStoreEvents[EventName]>).push(
       listener as IStoreEvents[EventName]
     );
+  }
+
+  /**
+   * Get the current plugin state.
+   */
+  public getState() {
+    return this.state;
+  }
+
+  /**
+   * Update the store's reference to the plugin state.
+   */
+  private updateState(state: IPluginState<TValidationOutput>) {
+    this.state = state;
   }
 }
 

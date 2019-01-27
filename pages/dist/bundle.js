@@ -15641,7 +15641,9 @@ const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_
     if (!decorations.length) {
         return acc;
     }
-    const decorationsToRemove = flatten_1(decorations.map(decoration => decorationSet.find(decoration.from, decoration.to, predicate)).filter(_ => !!_));
+    const decorationsToRemove = flatten_1(decorations
+        .map(decoration => decorationSet.find(decoration.from, decoration.to, predicate))
+        .filter(_ => !!_));
     return acc.remove(decorationsToRemove);
 }, decorationSet);
 const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
@@ -19565,6 +19567,12 @@ const getRangesOfParentBlockNodes = (ranges, doc) => {
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
 //# sourceMappingURL=range.js.map
 
+const createValidationInput = (tr, range) => {
+    const inputString = tr.doc.textBetween(range.from, range.to);
+    return Object.assign({ inputString }, range, { id: `${tr.time}-from:${range.from}-to:${range.to}` });
+};
+//# sourceMappingURL=validation.js.map
+
 const flatten$2 = (node, descend = true) => {
     const result = [];
     node.descendants((child, pos, parent) => {
@@ -19578,15 +19586,14 @@ const flatten$2 = (node, descend = true) => {
 const findChildren = (node, predicate, descend) => {
     return flatten$2(node, descend).filter(child => predicate(child.node));
 };
-const createValidationInputsForDocument = (node) => {
+const createValidationInputsForDocument = (tr) => {
     const ranges = [];
-    node.descendants((descNode, pos) => {
+    tr.doc.descendants((descNode, pos) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
-            ranges.push({
-                str: descNode.textContent,
+            ranges.push(createValidationInput(tr, {
                 from: pos + 1,
                 to: pos + descNode.nodeSize
-            });
+            }));
             return false;
         }
     });
@@ -20583,14 +20590,6 @@ function isArrayLikeObject(value) {
 
 var isArrayLikeObject_1 = isArrayLikeObject;
 
-var difference = _baseRest(function(array, values) {
-  return isArrayLikeObject_1(array)
-    ? _baseDifference(array, _baseFlatten(values, 1, isArrayLikeObject_1, true))
-    : [];
-});
-
-var difference_1 = difference;
-
 var without = _baseRest(function(array, values) {
   return isArrayLikeObject_1(array)
     ? _baseDifference(array, values)
@@ -20608,9 +20607,8 @@ const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
 const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const SET_DEBUG_STATE = "SET_DEBUG_STATE";
-const validationRequestForDirtyRanges = (expandRanges) => ({
-    type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
-    payload: { expandRanges }
+const validationRequestForDirtyRanges = () => ({
+    type: VALIDATION_REQUEST_FOR_DIRTY_RANGES
 });
 const validationRequestForDocument = () => ({
     type: VALIDATION_REQUEST_FOR_DOCUMENT
@@ -20639,11 +20637,8 @@ const setDebugState = (debug) => ({
     type: SET_DEBUG_STATE,
     payload: { debug }
 });
-const createInitialState = (doc, throttleInMs, maxThrottle) => ({
+const createInitialState = (doc) => ({
     debug: false,
-    currentThrottle: throttleInMs,
-    initialThrottle: throttleInMs,
-    maxThrottle,
     decorations: dist_3$3.create(doc, []),
     dirtiedRanges: [],
     currentValidations: [],
@@ -20655,9 +20650,14 @@ const createInitialState = (doc, throttleInMs, maxThrottle) => ({
     validationPending: false,
     error: undefined
 });
+const selectValidationsInFlight = (state) => {
+    return state.validationsInFlight;
+};
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
-const selectValidationInFlightById = (state, id) => state.validationsInFlight.find(_ => _.id === id);
-const selectNewValidationInFlight = (state, oldState) => difference_1(state.validationsInFlight, oldState.validationsInFlight);
+const selectValidationInFlightById = (state, id) => state.validationsInFlight.find(_ => _.validationInput.id === id);
+const selectNewValidationInFlight = (oldState, newState) => newState.validationsInFlight.reduce((acc, validationInFlight) => !oldState.validationsInFlight.find(_ => _.validationInput.id === validationInFlight.validationInput.id)
+    ? acc.concat(validationInFlight)
+    : acc, []);
 const selectSuggestionAndRange = (state, validationId, suggestionIndex) => {
     const output = selectValidationById(state, validationId);
     if (!output) {
@@ -20673,36 +20673,39 @@ const selectSuggestionAndRange = (state, validationId, suggestionIndex) => {
         suggestion
     };
 };
-const validationPluginReducer = (tr, incomingState, action) => {
-    const state = Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentValidations: mapRanges(incomingState.currentValidations, tr.mapping), validationsInFlight: incomingState.validationsInFlight.map(_ => {
-            const mapping = new dist_14();
-            mapping.appendMapping(_.mapping);
-            mapping.appendMapping(tr.mapping);
-            return Object.assign({}, _, { mapping });
-        }) });
-    if (!action) {
-        return state;
-    }
-    switch (action.type) {
-        case NEW_HOVER_ID:
-            return handleNewHoverId(tr, state, action);
-        case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
-            return handleValidationRequestForDirtyRanges(tr, state, action);
-        case VALIDATION_REQUEST_FOR_DOCUMENT:
-            return handleValidationRequestForDocument(tr, state, action);
-        case VALIDATION_REQUEST_SUCCESS:
-            return handleValidationRequestSuccess(tr, state, action);
-        case VALIDATION_REQUEST_ERROR:
-            return handleValidationRequestError(tr, state, action);
-        case SELECT_VALIDATION:
-            return handleSelectValidation(tr, state, action);
-        case APPLY_NEW_DIRTY_RANGES:
-            return handleNewDirtyRanges(tr, state, action);
-        case SET_DEBUG_STATE:
-            return handleSetDebugState(tr, state, action);
-        default:
+const createValidationPluginReducer = (expandRanges) => {
+    const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(expandRanges);
+    return (tr, incomingState, action) => {
+        const state = Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentValidations: mapRanges(incomingState.currentValidations, tr.mapping), validationsInFlight: incomingState.validationsInFlight.map(_ => {
+                const mapping = new dist_14();
+                mapping.appendMapping(_.mapping);
+                mapping.appendMapping(tr.mapping);
+                return Object.assign({}, _, { mapping });
+            }) });
+        if (!action) {
             return state;
-    }
+        }
+        switch (action.type) {
+            case NEW_HOVER_ID:
+                return handleNewHoverId(tr, state, action);
+            case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
+                return handleValidationRequestForDirtyRanges(tr, state);
+            case VALIDATION_REQUEST_FOR_DOCUMENT:
+                return handleValidationRequestForDocument(tr, state);
+            case VALIDATION_REQUEST_SUCCESS:
+                return handleValidationRequestSuccess(tr, state, action);
+            case VALIDATION_REQUEST_ERROR:
+                return handleValidationRequestError(tr, state, action);
+            case SELECT_VALIDATION:
+                return handleSelectValidation(tr, state, action);
+            case APPLY_NEW_DIRTY_RANGES:
+                return handleNewDirtyRanges(tr, state, action);
+            case SET_DEBUG_STATE:
+                return handleSetDebugState(tr, state, action);
+            default:
+                return state;
+        }
+    };
 };
 const handleSelectValidation = (_, state, action) => {
     return Object.assign({}, state, { selectedValidation: action.payload.validationId });
@@ -20734,13 +20737,13 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
     const currentValidations = state.currentValidations.filter(output => findOverlappingRangeIndex(output, dirtiedRanges) === -1);
     return Object.assign({}, state, { validationPending: true, currentValidations, decorations: newDecorations, dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges) });
 };
-const handleValidationRequestForDirtyRanges = (tr, state, { payload: { expandRanges } }) => {
+const createHandleValidationRequestForDirtyRanges = (expandRanges) => (tr, state) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-    const validationInputs = ranges.map(range => (Object.assign({ str: tr.doc.textBetween(range.from, range.to) }, range)));
+    const validationInputs = ranges.map(range => createValidationInput(tr, range));
     return handleValidationRequestStart(validationInputs)(tr, state);
 };
 const handleValidationRequestForDocument = (tr, state) => {
-    return handleValidationRequestStart(createValidationInputsForDocument(tr.doc))(tr, state);
+    return handleValidationRequestStart(createValidationInputsForDocument(tr))(tr, state);
 };
 const handleValidationRequestStart = (validationInputs) => (tr, state) => {
     const decorations = state.debug
@@ -20749,7 +20752,6 @@ const handleValidationRequestStart = (validationInputs) => (tr, state) => {
         ]).add(tr.doc, validationInputs.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
     return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationsInFlight: state.validationsInFlight.concat(validationInputs.map(validationInput => ({
-            id: tr.time.toString(),
             mapping: new dist_14(),
             validationInput
         }))) });
@@ -20759,7 +20761,7 @@ const handleValidationRequestSuccess = (tr, state, action) => {
     if (!response) {
         return state;
     }
-    const validationInFlight = selectValidationInFlightById(state, response.id);
+    const validationInFlight = selectValidationInFlightById(state, response.validationInput.id);
     if (!validationInFlight) {
         return state;
     }
@@ -20772,7 +20774,7 @@ const handleValidationRequestSuccess = (tr, state, action) => {
     return Object.assign({}, state, { validationsInFlight: without_1(state.validationsInFlight, validationInFlight), currentValidations, decorations: decorations.remove(decsToRemove) });
 };
 const handleValidationRequestError = (tr, state, action) => {
-    const validationInFlight = selectValidationInFlightById(state, action.payload.validationError.id);
+    const validationInFlight = selectValidationInFlightById(state, action.payload.validationError.validationInput.id);
     const dirtiedRanges = validationInFlight
         ? mapRanges([
             validationInputToRange(action.payload.validationError.validationInput)
@@ -20824,12 +20826,15 @@ function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement
 
 const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
+const STORE_EVENT_DOCUMENT_DIRTIED = "STORE_EVENT_DOCUMENT_DIRTIED";
 class Store {
     constructor() {
         this.subscribers = {
             [STORE_EVENT_NEW_STATE]: [],
-            [STORE_EVENT_NEW_VALIDATION]: []
+            [STORE_EVENT_NEW_VALIDATION]: [],
+            [STORE_EVENT_DOCUMENT_DIRTIED]: []
         };
+        this.on("STORE_EVENT_NEW_STATE", (_) => this.updateState(_));
     }
     emit(eventName, ...args) {
         this.subscribers[eventName].forEach((_) => _(...args));
@@ -20844,6 +20849,12 @@ class Store {
     on(eventName, listener) {
         this.subscribers[eventName].push(listener);
     }
+    getState() {
+        return this.state;
+    }
+    updateState(state) {
+        this.state = state;
+    }
 }
 
 //# sourceMappingURL=store.js.map
@@ -20853,6 +20864,10 @@ const compact = (value) => !!value;
 
 const validateDocumentCommand = (state, dispatch) => {
     dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument()));
+    return true;
+};
+const validateDirtyRangesCommand = (state, dispatch) => {
+    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges()));
     return true;
 };
 const indicateHoverCommand = (id, hoverInfo) => (state, dispatch) => {
@@ -20909,32 +20924,26 @@ const createBoundCommands = (view, getState) => {
     const bindCommand = (action) => (...args) => action(...args)(view.state, view.dispatch);
     return {
         validateDocument: () => validateDocumentCommand(view.state, view.dispatch),
-        applyValidationResult: bindCommand(applyValidationResponseCommand),
-        applyValidationError: bindCommand(applyValidationErrorCommand),
+        validateDirtyRangesCommand: () => validateDirtyRangesCommand(view.state, view.dispatch),
         applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(view.state, view.dispatch),
         selectValidation: (validationId) => selectValidationCommand(validationId, getState)(view.state, view.dispatch),
         indicateHover: bindCommand(indicateHoverCommand),
-        setDebugState: bindCommand(setDebugStateCommand)
+        setDebugState: bindCommand(setDebugStateCommand),
+        applyValidationResult: bindCommand(applyValidationResponseCommand),
+        applyValidationError: bindCommand(applyValidationErrorCommand)
     };
 };
+//# sourceMappingURL=commands.js.map
 
 const createValidatorPlugin = (options = {}) => {
-    const { expandRanges = expandRangesToParentBlockNode, throttleInMs = 2000, maxThrottle = 8000 } = options;
-    let localView;
+    const { expandRanges = expandRangesToParentBlockNode } = options;
     const store = new Store();
-    const requestValidation = () => {
-        const pluginState = plugin.getState(localView.state);
-        if (pluginState.validationsInFlight.length) {
-            return scheduleValidation();
-        }
-        localView.dispatch(localView.state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges(expandRanges)));
-    };
-    const scheduleValidation = () => setTimeout(requestValidation, plugin.getState(localView.state).currentThrottle);
+    const reducer = createValidationPluginReducer(expandRanges);
     const plugin = new dist_8({
         state: {
-            init: (_, { doc }) => createInitialState(doc, throttleInMs, maxThrottle),
+            init: (_, { doc }) => createInitialState(doc),
             apply(tr, state) {
-                return validationPluginReducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
+                return reducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
             }
         },
         appendTransaction(trs, oldState, newState) {
@@ -20943,12 +20952,9 @@ const createValidatorPlugin = (options = {}) => {
             const tr = newState.tr;
             const newDirtiedRanges = trs.reduce((acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)), []);
             if (newDirtiedRanges.length) {
-                if (!newPluginState.validationPending) {
-                    scheduleValidation();
-                }
                 return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
             }
-            const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
+            const newValidationsInFlight = selectNewValidationInFlight(oldPluginState, newPluginState);
             newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _));
         },
         props: {
@@ -20972,15 +20978,14 @@ const createValidatorPlugin = (options = {}) => {
                         console.warn(`No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
                         return false;
                     }
-                    indicateHoverCommand(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(localView.state, localView.dispatch);
+                    indicateHoverCommand(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(view.state, view.dispatch);
                     return false;
                 }
             }
         },
         view(view) {
-            localView = view;
             return {
-                update: (_) => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
+                update: _ => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
             };
         }
     });
@@ -22532,25 +22537,25 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
     const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
     const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
     let result;
-    while ((result = threeLetterExpr.exec(input.str))) {
+    while ((result = threeLetterExpr.exec(input.inputString))) {
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
-            str: result[0],
+            inputString: result[0],
             annotation: "This word has three letters. Consider a larger, grander word.",
             type: "3 letter word",
             id: v4_1(),
             suggestions: ["replace", "with", "grand", "word"]
         });
     }
-    while ((result = sixLetterExpr.exec(input.str))) {
+    while ((result = sixLetterExpr.exec(input.inputString))) {
         outputs.push({
             from: input.from + result.index,
             to: input.from + result.index + result[0].length,
-            str: result[0],
+            inputString: result[0],
             annotation: "This word has six letters. Consider a smaller, less fancy word.",
             type: "6 letter word",
-            id: v4_1(),
+            id: input.id,
             suggestions: ["replace", "with", "bijou", "word"]
         });
     }
@@ -22561,34 +22566,43 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
 //# sourceMappingURL=regex.js.map
 
 class ValidationService {
-    constructor(store, commands, adapter) {
+    constructor(store, commands, adapter, initialThrottle = 2000, maxThrottle = 16000) {
         this.store = store;
         this.commands = commands;
         this.adapter = adapter;
+        this.initialThrottle = initialThrottle;
+        this.maxThrottle = maxThrottle;
+        this.scheduleValidation = () => setTimeout(this.requestValidation, this.currentThrottle);
+        this.currentThrottle = initialThrottle;
         this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
-            this.validate(validationInFlight.validationInput, validationInFlight.id);
+            this.validate(validationInFlight.validationInput);
         });
+        this.store.on(STORE_EVENT_DOCUMENT_DIRTIED, () => this.requestValidation());
     }
-    validate(validationInput, id) {
+    requestValidation() {
+        const pluginState = this.store.getState();
+        if (!pluginState || selectValidationsInFlight(pluginState).length) {
+            this.scheduleValidation();
+        }
+        this.commands.validateDirtyRangesCommand();
+    }
+    validate(validationInput) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const validationOutputs = yield this.adapter(validationInput);
                 this.commands.applyValidationResult({
-                    id,
-                    validationOutputs
+                    validationOutputs,
+                    validationInput
                 });
-                return validationOutputs;
             }
             catch (e) {
                 this.commands.applyValidationError({
                     validationInput,
-                    id,
                     message: e.message
                 });
                 return {
                     validationInput,
-                    message: e.message,
-                    id
+                    message: e.message
                 };
             }
         });

@@ -9,13 +9,14 @@
     "email": "richard.beddington@guardian.co.uk"
   },
   "scripts": {
-    "test": "NODE_ENV=test jest --env=jsdom",
-    "coverage": "NODE_ENV=test jest --env=json --coverage",
+    "test": "jest --env=jsdom",
+    "coverage": "jest --env=jsdom --coverage",
+    "report-coverage": "jest --env=jsdom --coverage --coverageReporters=text-lcov | coveralls",
     "pages": "npm run build && http-server ./pages/dist",
     "prepublishOnly": "yarn build",
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "format": "prettier --write './src/**/*.js'",
+    "format": "prettier --write './src/**/*.ts'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/createValidationPlugin.ts"
   },
@@ -26,6 +27,7 @@
     "@types/jest": "^23.3.2",
     "babel-core": "^7.0.0-0",
     "babel-jest": "^23.6.0",
+    "coveralls": "^3.0.2",
     "eslint": "^4.13.1",
     "fetch-mock": "^7.2.5",
     "http-server": "^0.10.0",

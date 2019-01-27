@@ -2,7 +2,7 @@ import clamp from 'lodash/clamp';
 import ValidationOutput from './ValidationOutputContainer';
 import { Component, h } from 'preact';
 import { IStateHoverInfo, selectValidationById, IPluginState } from '../state';
-import { IValidationOutput } from '../interfaces/IValidation';
+import { IValidationOutput, IBaseValidationOutput } from '../interfaces/IValidation';
 import Store, { STORE_EVENT_NEW_STATE } from '../store';
 import { ApplySuggestionOptions } from '../commands';
 
@@ -14,7 +14,7 @@ interface IState {
   isVisible: boolean;
 }
 interface IProps {
-  store: Store;
+  store: Store<IBaseValidationOutput>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
 }
 
@@ -70,7 +70,7 @@ class ValidationOverlay extends Component<IProps, IState> {
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleNotify = (state: IPluginState) => {
+  private handleNotify = (state: IPluginState<IBaseValidationOutput>) => {
     const newState = {
       isVisible: false,
       left: 0,

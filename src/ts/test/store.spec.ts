@@ -31,6 +31,8 @@ describe("store", () => {
   });
   it("should throw if a sub doesn't exist on removal", () => {
     const store = new Store();
-    expect(store.removeEventListener.bind(store, "STORE_EVENT_NEW_STATE", () => ({}))).toThrowError();
+    expect(
+      store.removeEventListener.bind(store, "STORE_EVENT_NEW_STATE", () => ({}))
+    ).toThrowError();
   });
 });

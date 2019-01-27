@@ -55,9 +55,11 @@ export const removeDecorationsFromRanges = (
     }
     // Expand the range out to the range of the found decorations.
     const decorationsToRemove = flatten(
-      decorations.map(decoration =>
-        decorationSet.find(decoration.from, decoration.to, predicate)
-      ).filter(_ => !!_)
+      decorations
+        .map(decoration =>
+          decorationSet.find(decoration.from, decoration.to, predicate)
+        )
+        .filter(_ => !!_)
     );
     return acc.remove(decorationsToRemove);
   }, decorationSet);
