@@ -8,7 +8,7 @@ import {
 import { createDoc, p } from "./helpers/prosemirror";
 
 describe("Range utils", () => {
-  describe("expandRange", () => {
+  describe("expandRangeToParentBlockNode", () => {
     const doc = createDoc(
       p("Paragraph 1 - 1 - 21"),
       p("Paragraph 2 - 23 - 44"),
@@ -16,6 +16,14 @@ describe("Range utils", () => {
     );
     it("should get the range of the nearest ancestor block node", () => {
       expect(getRangesOfParentBlockNodes([{ from: 1, to: 2 }], doc)).toEqual([
+        {
+          from: 1,
+          to: 21
+        }
+      ]);
+    });
+    it("should handle ranges of length 0", () => {
+      expect(getRangesOfParentBlockNodes([{ from: 1, to: 1 }], doc)).toEqual([
         {
           from: 1,
           to: 21

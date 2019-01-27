@@ -57,10 +57,12 @@ export const createValidationInputsForDocument = (
  * Get all of the ranges of any replace steps in the given transaction.
  */
 export const getReplaceStepRangesFromTransaction = (tr: Transaction) =>
-  getReplaceTransactions(tr).map((step: ReplaceStep | ReplaceAroundStep) => ({
-    from: (step as any).from,
-    to: (step as any).to
-  }));
+  getReplaceTransactions(tr).map((step: ReplaceStep | ReplaceAroundStep) => {
+    return {
+      from: (step as any).from,
+      to: (step as any).to
+    };
+  });
 
 /**
  * Get all of the ranges of any replace steps in the given transaction.

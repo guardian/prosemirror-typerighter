@@ -19,7 +19,8 @@ import { IRange, IBaseValidationOutput } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
-  STORE_EVENT_NEW_VALIDATION
+  STORE_EVENT_NEW_VALIDATION,
+  STORE_EVENT_NEW_DIRTIED_RANGES as STORE_EVENT_NEW_DIRTY_RANGES
 } from "./store";
 import { indicateHoverCommand } from "./commands";
 
@@ -82,6 +83,11 @@ const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
         [] as IRange[]
       );
       if (newDirtiedRanges.length) {
+        // We wait a tick here, as applyNewDirtiedRanges must run
+        // before the newly dirtied range is available in the state.
+        // @todo -- this is a bit of a hack, it can be done better.
+        setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTY_RANGES));
+
         return tr.setMeta(
           VALIDATION_PLUGIN_ACTION,
           applyNewDirtiedRanges(newDirtiedRanges)

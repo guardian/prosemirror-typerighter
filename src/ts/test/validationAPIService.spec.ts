@@ -1,11 +1,9 @@
 import fetchMock from "fetch-mock";
-import { ILTReplacement } from "../adapters/interfaces/ILanguageTool";
-import createLanguageToolAdapter from "../adapters/languageTool";
+import { ILTReplacement } from "../services/adapters/interfaces/ILanguageTool";
+import createLanguageToolAdapter from "../services/adapters/languageTool";
 import { IValidationOutput } from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
-import { createInitialState } from "../state";
-import { Node } from "prosemirror-model";
 import { Mapping } from "prosemirror-transform";
 
 const createResponse = (strs: string[]) => ({

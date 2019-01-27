@@ -1,22 +1,21 @@
 import { IPluginState, IValidationInFlight } from "./state";
 import { ArgumentTypes } from "./utils/types";
 import { IBaseValidationOutput } from "./interfaces/IValidation";
-import { Plugin } from "prosemirror-state";
 
 export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
-export const STORE_EVENT_DOCUMENT_DIRTIED = "STORE_EVENT_DOCUMENT_DIRTIED";
+export const STORE_EVENT_NEW_DIRTIED_RANGES = "STORE_EVENT_DOCUMENT_DIRTIED";
 
 type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
-type STORE_EVENT_DOCUMENT_DIRTIED = typeof STORE_EVENT_DOCUMENT_DIRTIED;
+type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
 interface IStoreEvents {
   [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
   [STORE_EVENT_NEW_STATE]: <TValidationMeta extends IBaseValidationOutput>(
     state: IPluginState<TValidationMeta>
   ) => void;
-  [STORE_EVENT_DOCUMENT_DIRTIED]: () => void;
+  [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
 type EventNames = keyof IStoreEvents;
@@ -31,7 +30,7 @@ class Store<TValidationOutput extends IBaseValidationOutput> {
   } = {
     [STORE_EVENT_NEW_STATE]: [],
     [STORE_EVENT_NEW_VALIDATION]: [],
-    [STORE_EVENT_DOCUMENT_DIRTIED]: []
+    [STORE_EVENT_NEW_DIRTIED_RANGES]: []
   };
 
   constructor() {
