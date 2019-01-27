@@ -1,4 +1,3 @@
-import v4 from "uuid/v4";
 import { IValidationInput } from "../interfaces/IValidation";
 import IValidationAPIAdapter from "../interfaces/IValidationAPIAdapter";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
@@ -27,7 +26,7 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
   }
   const validationData: ITypeRighterResponse = await response.json();
   return validationData.results.map(match => ({
-    id: v4(),
+    id: input.id,
     str: input.str,
     from: input.from + match.fromPos,
     to: input.from + match.toPos,

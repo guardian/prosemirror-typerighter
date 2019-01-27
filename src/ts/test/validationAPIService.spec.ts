@@ -4,6 +4,7 @@ import createLanguageToolAdapter from "../adapters/languageTool";
 import { IValidationOutput } from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
+import { createValidationInput } from "./helpers/fixtures";
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -36,21 +37,25 @@ const createResponse = (strs: string[]) => ({
   }))
 });
 
-const createOutput = (str: string, offset: number = 0) =>
-  ({
-    id: "id",
-    from: offset,
-    to: offset + str.length,
+const createOutput = (str: string, offset: number = 0) => {
+  const from = offset;
+  const to = offset + str.length;
+  return {
+    id: `0-from:${from}-to:${to}`,
+    from,
+    to,
     str,
     type: "issueType",
     suggestions: [],
     annotation: "It's just a bunch of numbers, mate"
-  } as IValidationOutput);
+  } as IValidationOutput;
+};
 
 const validationInput = {
   from: 0,
   to: 10,
-  str: "1234567890"
+  str: "1234567890",
+  id: "0-from:0-to:10"
 };
 
 const commands = {
@@ -59,8 +64,6 @@ const commands = {
 };
 
 const store = new Store();
-
-jest.mock("uuid/v4", () => () => "id");
 
 describe("ValidationAPIService", () => {
   afterEach(() => {
@@ -77,12 +80,12 @@ describe("ValidationAPIService", () => {
 
     expect.assertions(2);
 
-    const output = await service.validate(validationInput, "id");
+    const output = await service.validate(validationInput);
 
     expect(commands.applyValidationResult.mock.calls[0]).toEqual([
       {
         validationOutputs: [createOutput("1234567890")],
-        id: "id"
+        validationInput
       }
     ]);
     expect(output).toEqual([createOutput("1234567890")]);
@@ -95,14 +98,7 @@ describe("ValidationAPIService", () => {
     );
     fetchMock.once("endpoint/check", 400);
 
-    const output = await service.validate(
-      {
-        from: 0,
-        to: 10,
-        str: "1234567890"
-      },
-      "id"
-    );
+    const output = await service.validate(createValidationInput(0, 10));
     expect(output).toMatchSnapshot();
   });
 });

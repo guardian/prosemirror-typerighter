@@ -16,34 +16,29 @@ class ValidationService {
   ) {
     this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
       // If we have a new validation, send it to the validation service.
-      this.validate(validationInFlight.validationInput, validationInFlight.id);
+      this.validate(validationInFlight.validationInput);
     });
   }
 
   /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
-  public async validate(
-    validationInput: IValidationInput,
-    id: string
-  ) {
+  public async validate(validationInput: IValidationInput) {
     try {
       const validationOutputs = await this.adapter(validationInput);
       this.commands.applyValidationResult({
-        id,
-        validationOutputs
+        validationOutputs,
+        validationInput
       });
       return validationOutputs;
     } catch (e) {
       this.commands.applyValidationError({
         validationInput,
-        id,
         message: e.message
       });
       return {
         validationInput,
-        message: e.message,
-        id
+        message: e.message
       };
     }
   }

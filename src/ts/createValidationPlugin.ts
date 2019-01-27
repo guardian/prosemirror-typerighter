@@ -18,7 +18,10 @@ import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
 import { IRange } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
-import Store, { STORE_EVENT_NEW_STATE, STORE_EVENT_NEW_VALIDATION } from "./store";
+import Store, {
+  STORE_EVENT_NEW_STATE,
+  STORE_EVENT_NEW_VALIDATION
+} from "./store";
 import { indicateHoverCommand } from "./commands";
 
 /**
@@ -128,8 +131,13 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
-      const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
-      newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _))
+      const newValidationsInFlight = selectNewValidationInFlight(
+        oldPluginState,
+        newPluginState
+      );
+      newValidationsInFlight.forEach(_ =>
+        store.emit(STORE_EVENT_NEW_VALIDATION, _)
+      );
     },
     props: {
       decorations: state => {
@@ -176,7 +184,7 @@ const createValidatorPlugin = (options: IPluginOptions = {}) => {
       localView = view;
       return {
         // Update our store with the new state.
-        update: (_) =>
+        update: _ =>
           store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
       };
     }
