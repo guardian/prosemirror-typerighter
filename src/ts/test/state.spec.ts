@@ -184,7 +184,7 @@ describe("State management", () => {
           )
         ).toEqual(state);
       });
-      it.only("should add incoming validations to the state", () => {
+      it("should add incoming validations to the state", () => {
         const { state, tr } = createInitialData();
         let localState = validationPluginReducer(
           tr,
