@@ -1,5 +1,5 @@
-import { IValidationInput, IValidationOutput } from "../interfaces/IValidation";
 import v4 from "uuid/v4";
+import { IValidationInput, IValidationOutput } from "../interfaces/IValidation";
 
 /**
  * An example adapter that applies a regex to find three letter words in the document.
@@ -31,7 +31,7 @@ const regexAdapter = async (input: IValidationInput) => {
       annotation:
         "This word has six letters. Consider a smaller, less fancy word.",
       type: "6 letter word",
-      id: v4(),
+      id: input.id,
       suggestions: ["replace", "with", "bijou", "word"]
     });
   }

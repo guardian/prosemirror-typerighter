@@ -88,8 +88,8 @@ const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
         );
       }
       const newValidationsInFlight = selectNewValidationInFlight(
-        newPluginState,
-        oldPluginState
+        oldPluginState,
+        newPluginState
       );
       newValidationsInFlight.forEach(_ =>
         store.emit(STORE_EVENT_NEW_VALIDATION, _)

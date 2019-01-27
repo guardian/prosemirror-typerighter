@@ -26,8 +26,10 @@ import { expandRangesToParentBlockNode } from "../utils/range";
 import { createDoc, p } from "./helpers/prosemirror";
 import { Mapping } from "prosemirror-transform";
 import { IValidationOutput } from "../interfaces/IValidation";
-
-jest.mock("uuid/v4", () => () => "uuid");
+import {
+  createValidationOutput,
+  createValidationInput
+} from "./helpers/fixtures";
 
 const reducer = createValidationPluginReducer(expandRangesToParentBlockNode);
 const initialDocToValidate = createDoc(p("Example text to validate"));
@@ -83,17 +85,12 @@ describe("State management", () => {
           ...state,
           validationsInFlight: [
             {
-              id: "0",
-              mapping: {
-                from: 0,
-                maps: [],
-                mirror: undefined,
-                to: 0
-              },
+              mapping: new Mapping(),
               validationInput: {
                 from: 1,
                 inputString: "Example text to validate",
-                to: 26
+                to: 26,
+                id: "0-from:1-to:26"
               }
             }
           ]
@@ -127,9 +124,9 @@ describe("State management", () => {
               validationInput: {
                 inputString: "Example text to validate",
                 from: 1,
-                to: 25
+                to: 25,
+                id: "0-from:1-to:25"
               },
-              id: "0",
               mapping: new Mapping()
             }
           ]
@@ -161,12 +158,11 @@ describe("State management", () => {
           validationPending: false,
           validationsInFlight: [
             {
-              validationInput: {
-                inputString: "Example text to validate",
-                from: 1,
-                to: 25
-              },
-              id: "0",
+              validationInput: createValidationInput(
+                1,
+                25,
+                "Example text to validate"
+              ),
               mapping: new Mapping()
             }
           ]
@@ -182,7 +178,7 @@ describe("State management", () => {
             state,
             validationRequestSuccess({
               validationOutputs: [],
-              id: "0"
+              validationInput: createValidationInput(0, 25)
             })
           )
         ).toEqual(state);
@@ -200,29 +196,11 @@ describe("State management", () => {
             tr,
             localState,
             validationRequestSuccess({
-              validationOutputs: [
-                {
-                  from: 1,
-                  to: 3,
-                  type: "type",
-                  annotation: "annotation",
-                  inputString: "str",
-                  id: "0"
-                }
-              ],
-              id: "0"
+              validationOutputs: [createValidationOutput(1, 25)],
+              validationInput: createValidationInput(1, 25)
             })
           ).currentValidations
-        ).toMatchObject([
-          {
-            annotation: "annotation",
-            from: 1,
-            id: "0",
-            inputString: "str",
-            to: 3,
-            type: "type"
-          }
-        ]);
+        ).toMatchObject([createValidationOutput(1, 25)]);
       });
       it("should create decorations for the incoming validations", () => {
         const { state, tr } = createInitialData();
@@ -231,20 +209,54 @@ describe("State management", () => {
             tr,
             state,
             validationRequestSuccess({
-              validationOutputs: [
-                {
-                  id: "id",
-                  inputString: "Example text to validate",
-                  from: 5,
-                  to: 10,
-                  annotation: "Summat ain't right",
-                  type: "EXAMPLE_TYPE"
-                }
-              ],
-              id: "0"
+              validationOutputs: [createValidationOutput(5, 10)],
+              validationInput: createValidationInput(5, 10)
             })
           )
         ).toMatchSnapshot();
+      });
+      it("should remove decorations that no longer apply to the validated range", () => {
+        const { state, tr } = createInitialData();
+        const validationInput = createValidationInput(
+          0,
+          26,
+          "Example text to validate"
+        );
+        const validationOutput = createValidationOutput(1, 7, "Example");
+        const incomingValidationOutput = createValidationOutput(
+          5,
+          10,
+          "Example text to validate"
+        );
+        expect(
+          reducer(
+            tr,
+            {
+              ...state,
+              validationsInFlight: [
+                {
+                  mapping: new Mapping(),
+                  validationInput
+                }
+              ],
+              currentValidations: [validationOutput],
+              decorations: new DecorationSet().add(
+                initialDocToValidate,
+                createDecorationForValidationRange(validationOutput)
+              )
+            },
+            validationRequestSuccess({
+              validationOutputs: [incomingValidationOutput],
+              validationInput
+            })
+          )
+        ).toMatchObject({
+          currentValidations: [incomingValidationOutput],
+          decorations: new DecorationSet().add(
+            initialDocToValidate,
+            createDecorationForValidationRange(incomingValidationOutput)
+          )
+        });
       });
       it("should not apply validations if the ranges they apply to have since been dirtied", () => {
         const { state, tr } = createInitialData(initialDocToValidate, 1337);
@@ -264,17 +276,8 @@ describe("State management", () => {
             tr,
             localState,
             validationRequestSuccess({
-              validationOutputs: [
-                {
-                  from: 1,
-                  to: 3,
-                  type: "type",
-                  annotation: "annotation",
-                  inputString: "str",
-                  id: "0"
-                }
-              ],
-              id: "0"
+              validationOutputs: [createValidationOutput(1, 3)],
+              validationInput: createValidationInput(1, 3)
             })
           )
         ).toEqual({
@@ -295,23 +298,21 @@ describe("State management", () => {
               ...state,
               validationsInFlight: [
                 {
-                  validationInput: {
-                    inputString: "Example text to validate",
-                    from: 1,
-                    to: 25
-                  },
-                  id: "0",
+                  validationInput: createValidationInput(
+                    1,
+                    25,
+                    "Example text to validate"
+                  ),
                   mapping: new Mapping()
                 }
               ]
             },
             validationRequestError({
-              validationInput: {
-                inputString: "Example text to validate",
-                from: 1,
-                to: 25
-              },
-              id: "0",
+              validationInput: createValidationInput(
+                1,
+                25,
+                "Example text to validate"
+              ),
               message: "Too many requests"
             })
           )
@@ -520,16 +521,16 @@ describe("State management", () => {
             {
               validationsInFlight: [
                 {
-                  id: "1"
+                  validationInput: { id: "1" }
                 },
                 {
-                  id: "2"
+                  validationInput: { id: "2" }
                 }
               ]
             } as any,
             "1"
           )
-        ).toEqual({ id: "1" });
+        ).toEqual({ validationInput: { id: "1" } });
       });
     });
     describe("selectNewValidationInFlight", () => {
@@ -539,38 +540,68 @@ describe("State management", () => {
             {
               validationsInFlight: [
                 {
-                  id: "1"
+                  validationInput: { id: "1" }
                 },
                 {
-                  id: "2"
+                  validationInput: { id: "2" }
                 }
               ]
             } as any,
             {
               validationsInFlight: [
                 {
-                  id: "1"
+                  validationInput: { id: "1" }
                 },
                 {
-                  id: "2"
+                  validationInput: { id: "2" }
+                },
+
+                {
+                  validationInput: { id: "3" }
                 },
                 {
-                  id: "3"
-                },
-                {
-                  id: "4"
+                  validationInput: { id: "4" }
                 }
               ]
             } as any
           )
         ).toEqual([
           {
-            id: "1"
+            validationInput: { id: "3" }
           },
           {
-            id: "2"
+            validationInput: { id: "4" }
           }
         ]);
+      });
+      it("shouldn't include validations missing in the new state but present in the old state", () => {
+        expect(
+          selectNewValidationInFlight(
+            {
+              validationsInFlight: [
+                {
+                  validationInput: { id: "1" }
+                },
+                {
+                  validationInput: { id: "2" }
+                },
+                {
+                  validationInput: { id: "3" }
+                }
+              ]
+            } as any,
+            {
+              validationsInFlight: [
+                {
+                  validationInput: { id: "1" }
+                },
+                {
+                  validationInput: { id: "2" }
+                }
+              ]
+            } as any
+          )
+        ).toEqual([]);
       });
     });
     describe("selectSuggestionAndRange", () => {

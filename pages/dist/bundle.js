@@ -19567,6 +19567,12 @@ const getRangesOfParentBlockNodes = (ranges, doc) => {
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
 //# sourceMappingURL=range.js.map
 
+const createValidationInput = (tr, range) => {
+    const inputString = tr.doc.textBetween(range.from, range.to);
+    return Object.assign({ inputString }, range, { id: `${tr.time}-from:${range.from}-to:${range.to}` });
+};
+//# sourceMappingURL=validation.js.map
+
 const flatten$2 = (node, descend = true) => {
     const result = [];
     node.descendants((child, pos, parent) => {
@@ -19580,15 +19586,14 @@ const flatten$2 = (node, descend = true) => {
 const findChildren = (node, predicate, descend) => {
     return flatten$2(node, descend).filter(child => predicate(child.node));
 };
-const createValidationInputsForDocument = (node) => {
+const createValidationInputsForDocument = (tr) => {
     const ranges = [];
-    node.descendants((descNode, pos) => {
+    tr.doc.descendants((descNode, pos) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
-            ranges.push({
-                inputString: descNode.textContent,
+            ranges.push(createValidationInput(tr, {
                 from: pos + 1,
                 to: pos + descNode.nodeSize
-            });
+            }));
             return false;
         }
     });
@@ -20585,14 +20590,6 @@ function isArrayLikeObject(value) {
 
 var isArrayLikeObject_1 = isArrayLikeObject;
 
-var difference = _baseRest(function(array, values) {
-  return isArrayLikeObject_1(array)
-    ? _baseDifference(array, _baseFlatten(values, 1, isArrayLikeObject_1, true))
-    : [];
-});
-
-var difference_1 = difference;
-
 var without = _baseRest(function(array, values) {
   return isArrayLikeObject_1(array)
     ? _baseDifference(array, values)
@@ -20657,8 +20654,10 @@ const selectValidationsInFlight = (state) => {
     return state.validationsInFlight;
 };
 const selectValidationById = (state, id) => state.currentValidations.find(validation => validation.id === id);
-const selectValidationInFlightById = (state, id) => state.validationsInFlight.find(_ => _.id === id);
-const selectNewValidationInFlight = (state, oldState) => difference_1(state.validationsInFlight, oldState.validationsInFlight);
+const selectValidationInFlightById = (state, id) => state.validationsInFlight.find(_ => _.validationInput.id === id);
+const selectNewValidationInFlight = (oldState, newState) => newState.validationsInFlight.reduce((acc, validationInFlight) => !oldState.validationsInFlight.find(_ => _.validationInput.id === validationInFlight.validationInput.id)
+    ? acc.concat(validationInFlight)
+    : acc, []);
 const selectSuggestionAndRange = (state, validationId, suggestionIndex) => {
     const output = selectValidationById(state, validationId);
     if (!output) {
@@ -20740,11 +20739,11 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
 };
 const createHandleValidationRequestForDirtyRanges = (expandRanges) => (tr, state) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-    const validationInputs = ranges.map(range => (Object.assign({ inputString: tr.doc.textBetween(range.from, range.to) }, range)));
+    const validationInputs = ranges.map(range => createValidationInput(tr, range));
     return handleValidationRequestStart(validationInputs)(tr, state);
 };
 const handleValidationRequestForDocument = (tr, state) => {
-    return handleValidationRequestStart(createValidationInputsForDocument(tr.doc))(tr, state);
+    return handleValidationRequestStart(createValidationInputsForDocument(tr))(tr, state);
 };
 const handleValidationRequestStart = (validationInputs) => (tr, state) => {
     const decorations = state.debug
@@ -20753,7 +20752,6 @@ const handleValidationRequestStart = (validationInputs) => (tr, state) => {
         ]).add(tr.doc, validationInputs.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
     return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationsInFlight: state.validationsInFlight.concat(validationInputs.map(validationInput => ({
-            id: tr.time.toString(),
             mapping: new dist_14(),
             validationInput
         }))) });
@@ -20763,7 +20761,7 @@ const handleValidationRequestSuccess = (tr, state, action) => {
     if (!response) {
         return state;
     }
-    const validationInFlight = selectValidationInFlightById(state, response.id);
+    const validationInFlight = selectValidationInFlightById(state, response.validationInput.id);
     if (!validationInFlight) {
         return state;
     }
@@ -20776,7 +20774,7 @@ const handleValidationRequestSuccess = (tr, state, action) => {
     return Object.assign({}, state, { validationsInFlight: without_1(state.validationsInFlight, validationInFlight), currentValidations, decorations: decorations.remove(decsToRemove) });
 };
 const handleValidationRequestError = (tr, state, action) => {
-    const validationInFlight = selectValidationInFlightById(state, action.payload.validationError.id);
+    const validationInFlight = selectValidationInFlightById(state, action.payload.validationError.validationInput.id);
     const dirtiedRanges = validationInFlight
         ? mapRanges([
             validationInputToRange(action.payload.validationError.validationInput)
@@ -20956,7 +20954,7 @@ const createValidatorPlugin = (options = {}) => {
             if (newDirtiedRanges.length) {
                 return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
             }
-            const newValidationsInFlight = selectNewValidationInFlight(newPluginState, oldPluginState);
+            const newValidationsInFlight = selectNewValidationInFlight(oldPluginState, newPluginState);
             newValidationsInFlight.forEach(_ => store.emit(STORE_EVENT_NEW_VALIDATION, _));
         },
         props: {
@@ -22557,7 +22555,7 @@ const regexAdapter = (input) => __awaiter(undefined, void 0, void 0, function* (
             inputString: result[0],
             annotation: "This word has six letters. Consider a smaller, less fancy word.",
             type: "6 letter word",
-            id: v4_1(),
+            id: input.id,
             suggestions: ["replace", "with", "bijou", "word"]
         });
     }
@@ -22577,7 +22575,7 @@ class ValidationService {
         this.scheduleValidation = () => setTimeout(this.requestValidation, this.currentThrottle);
         this.currentThrottle = initialThrottle;
         this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
-            this.validate(validationInFlight.validationInput, validationInFlight.id);
+            this.validate(validationInFlight.validationInput);
         });
         this.store.on(STORE_EVENT_DOCUMENT_DIRTIED, () => this.requestValidation());
     }
@@ -22588,25 +22586,30 @@ class ValidationService {
         }
         this.commands.validateDirtyRangesCommand();
     }
-    validate(validationInput, id) {
+    validate(validationInput) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const validationOutputs = yield this.adapter(validationInput);
                 this.commands.applyValidationResult({
-                    id,
-                    validationOutputs
+                    validationOutputs,
+                    validationInput
                 });
             }
             catch (e) {
                 this.commands.applyValidationError({
                     validationInput,
-                    id,
                     message: e.message
                 });
+                return {
+                    validationInput,
+                    message: e.message
+                };
             }
         });
     }
 }
+
+//# sourceMappingURL=ValidationAPIService.js.map
 
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),

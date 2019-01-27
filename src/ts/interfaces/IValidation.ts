@@ -4,6 +4,7 @@ export interface IRange {
 }
 
 export interface IValidationInput {
+  id: string;
   inputString: string;
   from: number;
   to: number;
@@ -23,15 +24,12 @@ export type IValidationOutput<
 
 export interface IValidationError {
   validationInput: IValidationInput;
-  id: string;
   message: string;
 }
 
 export interface IValidationResponse<IValidationMeta = IBaseValidationOutput> {
-  // The validation outputs.
   validationOutputs: Array<IValidationOutput<IValidationMeta>>;
-  // The ID of the validation request.
-  id: string;
+  validationInput: IValidationInput;
 }
 
 export type IValidationLibrary = Array<

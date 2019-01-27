@@ -4,11 +4,9 @@ import createLanguageToolAdapter from "../adapters/languageTool";
 import { IValidationOutput } from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
-import { validateDirtyRangesCommand } from "../commands";
 import { createInitialState } from "../state";
 import { Node } from "prosemirror-model";
 import { Mapping } from "prosemirror-transform";
-import { doesNotReject } from "assert";
 
 const createResponse = (strs: string[]) => ({
   language: "",
@@ -41,21 +39,25 @@ const createResponse = (strs: string[]) => ({
   }))
 });
 
-const createOutput = (inputString: string, offset: number = 0) =>
-  ({
+const createOutput = (inputString: string, offset: number = 0) => {
+  const from = offset;
+  const to = offset + inputString.length;
+  return {
     id: "id",
-    from: offset,
-    to: offset + inputString.length,
+    from,
+    to,
     inputString,
     type: "issueType",
     suggestions: [],
     annotation: "It's just a bunch of numbers, mate"
-  } as IValidationOutput);
+  } as IValidationOutput;
+};
 
 const validationInput = {
   from: 0,
   to: 10,
-  inputString: "1234567890"
+  inputString: "1234567890",
+  id: "0-from:0-to:10"
 };
 
 const commands = {
@@ -65,7 +67,6 @@ const commands = {
 };
 
 const store = new Store();
-const state = createInitialState(new Node());
 
 jest.mock("uuid/v4", () => () => "id");
 
@@ -87,15 +88,14 @@ describe("ValidationAPIService", () => {
     service.requestValidation();
     store.emit("STORE_EVENT_NEW_VALIDATION", {
       mapping: new Mapping(),
-      validationInput,
-      id: "id"
+      validationInput
     });
 
     setTimeout(() => {
       expect(commands.applyValidationResult.mock.calls[0]).toEqual([
         {
           validationOutputs: [createOutput("1234567890")],
-          id: "id"
+          validationInput
         }
       ]);
       done();
@@ -112,8 +112,7 @@ describe("ValidationAPIService", () => {
     service.requestValidation();
     store.emit("STORE_EVENT_NEW_VALIDATION", {
       mapping: new Mapping(),
-      validationInput,
-      id: "id"
+      validationInput
     });
     setTimeout(() => {
       expect(commands.applyValidationError.mock.calls[0][0]).toMatchSnapshot();

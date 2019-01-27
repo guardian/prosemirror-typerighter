@@ -31,6 +31,7 @@ import { Node } from "prosemirror-model";
 import { Mapping } from "prosemirror-transform";
 import difference from "lodash/difference";
 import without from "lodash/without";
+import { createValidationInput } from "./utils/validation";
 
 /**
  * Information about the span element the user is hovering over.
@@ -62,7 +63,6 @@ export interface IStateHoverInfo {
 export interface IValidationInFlight {
   mapping: Mapping;
   validationInput: IValidationInput;
-  id: string;
 }
 
 export interface IPluginState<TValidationMeta extends IBaseValidationOutput> {
@@ -237,14 +237,23 @@ export const selectValidationInFlightById = <
   state: IPluginState<TValidationMeta>,
   id: string
 ): IValidationInFlight | undefined =>
-  state.validationsInFlight.find(_ => _.id === id);
+  state.validationsInFlight.find(_ => _.validationInput.id === id);
 
 export const selectNewValidationInFlight = <
   TValidationMeta extends IBaseValidationOutput
 >(
-  state: IPluginState<TValidationMeta>,
-  oldState: IPluginState<TValidationMeta>
-) => difference(state.validationsInFlight, oldState.validationsInFlight);
+  oldState: IPluginState<TValidationMeta>,
+  newState: IPluginState<TValidationMeta>
+) =>
+  newState.validationsInFlight.reduce(
+    (acc, validationInFlight) =>
+      !oldState.validationsInFlight.find(
+        _ => _.validationInput.id === validationInFlight.validationInput.id
+      )
+        ? acc.concat(validationInFlight)
+        : acc,
+    [] as IValidationInFlight[]
+  );
 
 export const selectSuggestionAndRange = <
   TValidationMeta extends IBaseValidationOutput
@@ -436,10 +445,9 @@ const createHandleValidationRequestForDirtyRanges = (
   state: IPluginState<TValidationMeta>
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const validationInputs: IValidationInput[] = ranges.map(range => ({
-    inputString: tr.doc.textBetween(range.from, range.to),
-    ...range
-  }));
+  const validationInputs: IValidationInput[] = ranges.map(range =>
+    createValidationInput(tr, range)
+  );
   return handleValidationRequestStart(validationInputs)(tr, state);
 };
 
@@ -452,9 +460,10 @@ const handleValidationRequestForDocument = <
   tr: Transaction,
   state: IPluginState<TValidationMeta>
 ) => {
-  return handleValidationRequestStart(
-    createValidationInputsForDocument(tr.doc)
-  )(tr, state);
+  return handleValidationRequestStart(createValidationInputsForDocument(tr))(
+    tr,
+    state
+  );
 };
 
 /**
@@ -486,7 +495,6 @@ const handleValidationRequestStart = (validationInputs: IValidationInput[]) => <
     validationPending: false,
     validationsInFlight: state.validationsInFlight.concat(
       validationInputs.map(validationInput => ({
-        id: tr.time.toString(),
         mapping: new Mapping(),
         validationInput
       }))
@@ -510,7 +518,11 @@ const handleValidationRequestSuccess = <
     return state;
   }
 
-  const validationInFlight = selectValidationInFlightById(state, response.id);
+  const validationInFlight = selectValidationInFlightById(
+    state,
+    response.validationInput.id
+  );
+
   if (!validationInFlight) {
     return state;
   }
@@ -566,7 +578,7 @@ const handleValidationRequestError = <
 ) => {
   const validationInFlight = selectValidationInFlightById(
     state,
-    action.payload.validationError.id
+    action.payload.validationError.validationInput.id
   );
   const dirtiedRanges = validationInFlight
     ? mapRanges(
@@ -600,7 +612,6 @@ const handleValidationRequestError = <
     );
   }
 
-  // @todo - add backoff if appropriate (429)
   return {
     ...state,
     dirtiedRanges: dirtiedRanges.length

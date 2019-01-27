@@ -31,7 +31,7 @@ class ValidationService<TValidationOutput extends IBaseValidationOutput> {
     this.currentThrottle = initialThrottle;
     this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
       // If we have a new validation, send it to the validation service.
-      this.validate(validationInFlight.validationInput, validationInFlight.id);
+      this.validate(validationInFlight.validationInput);
     });
     this.store.on(STORE_EVENT_DOCUMENT_DIRTIED, () => this.requestValidation());
   }
@@ -49,29 +49,32 @@ class ValidationService<TValidationOutput extends IBaseValidationOutput> {
   }
 
   /**
-   * Schedule a validation for the next throttle tick.
-   */
-  private scheduleValidation = () =>
-    setTimeout(this.requestValidation, this.currentThrottle);
-
-  /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
-  private async validate(validationInput: IValidationInput, id: string) {
+  public async validate(validationInput: IValidationInput) {
     try {
       const validationOutputs = await this.adapter(validationInput);
       this.commands.applyValidationResult({
-        id,
-        validationOutputs
+        validationOutputs,
+        validationInput
       });
     } catch (e) {
       this.commands.applyValidationError({
         validationInput,
-        id,
         message: e.message
       });
+      return {
+        validationInput,
+        message: e.message
+      };
     }
   }
+
+  /**
+   * Schedule a validation for the next throttle tick.
+   */
+  private scheduleValidation = () =>
+    setTimeout(this.requestValidation, this.currentThrottle);
 }
 
 export default ValidationService;
