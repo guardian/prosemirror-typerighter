@@ -10,23 +10,24 @@ type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-interface IStoreEvents {
+interface IStoreEvents<TValidationMeta extends IBaseValidationOutput> {
   [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
-  [STORE_EVENT_NEW_STATE]: <TValidationMeta extends IBaseValidationOutput>(
-    state: IPluginState<TValidationMeta>
-  ) => void;
+  [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
-type EventNames = keyof IStoreEvents;
+type EventNames = keyof IStoreEvents<IBaseValidationOutput>;
 
 /**
  * A store to allow consumers to subscribe to validator state updates.
  */
-class Store<TValidationOutput extends IBaseValidationOutput> {
+class Store<
+  TValidationOutput extends IBaseValidationOutput,
+  TStoreEvents extends IStoreEvents<TValidationOutput>
+> {
   private state: IPluginState<TValidationOutput> | undefined;
   private subscribers: {
-    [EventName in EventNames]: Array<IStoreEvents[EventName]>
+    [EventName in EventNames]: Array<TStoreEvents[EventName]>
   } = {
     [STORE_EVENT_NEW_STATE]: [],
     [STORE_EVENT_NEW_VALIDATION]: [],
@@ -34,9 +35,7 @@ class Store<TValidationOutput extends IBaseValidationOutput> {
   };
 
   constructor() {
-    this.on("STORE_EVENT_NEW_STATE", (_: IPluginState<TValidationOutput>) =>
-      this.updateState(_)
-    );
+    this.on("STORE_EVENT_NEW_STATE", _ => this.updateState(_));
   }
 
   /**
@@ -44,9 +43,9 @@ class Store<TValidationOutput extends IBaseValidationOutput> {
    */
   public emit<EventName extends EventNames>(
     eventName: EventName,
-    ...args: ArgumentTypes<IStoreEvents[EventName]>
+    ...args: ArgumentTypes<TStoreEvents[EventName]>
   ) {
-    (this.subscribers[eventName] as Array<IStoreEvents[EventName]>).forEach(
+    (this.subscribers[eventName] as Array<TStoreEvents[EventName]>).forEach(
       (_: any) => _(...args)
     );
   }
@@ -56,10 +55,10 @@ class Store<TValidationOutput extends IBaseValidationOutput> {
    */
   public removeEventListener<EventName extends EventNames>(
     eventName: EventName,
-    listener: IStoreEvents[EventName]
+    listener: TStoreEvents[EventName]
   ): void {
     const index = (this.subscribers[eventName] as Array<
-      IStoreEvents[EventName]
+      TStoreEvents[EventName]
     >).indexOf(listener);
     if (index === -1) {
       throw new Error(
@@ -74,10 +73,10 @@ class Store<TValidationOutput extends IBaseValidationOutput> {
    */
   public on<EventName extends EventNames>(
     eventName: EventName,
-    listener: (...args: ArgumentTypes<IStoreEvents[EventName]>) => void
+    listener: (...args: ArgumentTypes<TStoreEvents[EventName]>) => void
   ): void {
-    (this.subscribers[eventName] as Array<IStoreEvents[EventName]>).push(
-      listener as IStoreEvents[EventName]
+    (this.subscribers[eventName] as Array<TStoreEvents[EventName]>).push(
+      listener as TStoreEvents[EventName]
     );
   }
 
