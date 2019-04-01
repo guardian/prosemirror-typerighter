@@ -6,10 +6,10 @@ import typescript from "rollup-plugin-typescript";
 
 export default [
   {
-    input: "src/ts/createValidationPlugin.ts",
+    input: "src/ts/index.ts",
     output: {
       file: "dist/validation.js",
-      format: "cjs"
+      format: "es"
     },
     plugins: [
       typescript(),
