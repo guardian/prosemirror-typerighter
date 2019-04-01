@@ -19,10 +19,28 @@
   cursor: pointer;
 }
 
-.ValidationSidebarOutput__header-range {
-  margin-left: calc(var(--gutter-width) / 2);
+.ValidationSidebarOutput__header-label {
+  display: flex;
+  width: 100%;
+}
+
+.ValidationSidebarOutput__header-meta {
+  margin-left: auto;
+}
+
+.ValidationSidebarOutput__header-range,
+.ValidationSidebarOutput__header-category {
+  text-align: right;
   font-size: 12px;
+}
+
+.ValidationSidebarOutput__header-category {
+  margin-top: 2px;
+}
+
+.ValidationSidebarOutput__header-range {
   color: grey;
+  white-space: nowrap;
 }
 
 .ValidationSidebarOutput__header-toggle-status {

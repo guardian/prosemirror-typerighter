@@ -12,7 +12,11 @@ export interface IValidationInput {
 
 export interface IBaseValidationOutput {
   annotation: string;
-  type: string;
+  category: {
+    id: string;
+    name: string;
+    colour: string
+  };
 }
 
 export type IValidationOutput<

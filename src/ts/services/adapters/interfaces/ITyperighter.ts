@@ -30,4 +30,5 @@ export interface ITypeRighterRule {
 export interface ITypeRighterCategory {
   id: string;
   name: string;
+  colour: string;
 }

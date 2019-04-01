@@ -26,6 +26,8 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
 
   public render() {
     const { output, applySuggestions, selectedValidation } = this.props;
+    const color = `#${output.category.colour}`;
+    const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
     return (
       <div
         className={`ValidationSidebarOutput__container ${
@@ -33,28 +35,39 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
             ? "ValidationSidebarOutput__container--is-selected"
             : ""
         }`}
+        style={{ borderLeft: `2px solid ${color}` }}
         onMouseOver={this.handleMouseOver}
         onMouseLeave={this.handleMouseLeave}
       >
         <div
           className={"ValidationSidebarOutput__header"}
-          onClick={this.toggleOpen}
+          onClick={hasSuggestions ? this.toggleOpen : undefined}
         >
           <div className="ValidationSidebarOutput__header-label">
-            {titleCase(output.type)}
-            <span className="Button ValidationSidebarOutput__header-range" onClick={this.scrollToRange}>
-              {output.from}-{output.to}
-            </span>
+            <div className="ValidationSidebarOutput__header-description">{output.annotation}</div>
+            <div className="ValidationSidebarOutput__header-meta">
+              <div
+                className="Button ValidationSidebarOutput__header-range"
+                onClick={this.scrollToRange}
+              >
+                {output.from}-{output.to}
+              </div>
+              <div
+                className="ValidationSidebarOutput__header-category"
+                style={{ color }}
+              >
+                {titleCase(output.category.name)}
+              </div>
+            </div>
           </div>
-          <div className="ValidationSidebarOutput__header-toggle-status">
-            {this.state.isOpen ? "-" : "+"}
-          </div>
+          {hasSuggestions && (
+            <div className="ValidationSidebarOutput__header-toggle-status">
+              {this.state.isOpen ? "-" : "+"}
+            </div>
+          )}
         </div>
         {this.state.isOpen && (
           <div className="ValidationSidebarOutput__content">
-            <div className="ValidationSidebarOutput__annotation">
-              {output.annotation}
-            </div>
             {output.suggestions && (
               <div className="ValidationSidebarOutput__suggestion-list">
                 {output.suggestions.map((suggestion, suggestionIndex) => (
@@ -95,7 +108,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
         behavior: "smooth"
       });
     }
-  }
+  };
 
   private handleMouseOver = () => {
     this.props.indicateHover(this.props.output.id);

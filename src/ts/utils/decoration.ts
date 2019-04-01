@@ -108,12 +108,14 @@ export const createDecorationForValidationRange = (
         DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
+  const style = `background-color: #${output.category.colour}07; border-bottom: 2px solid #${output.category.colour}`;
   const decorationArray = [
     Decoration.inline(
       output.from,
       output.to,
       {
         class: className,
+        style,
         [DECORATION_ATTRIBUTE_ID]: output.id
       } as any,
       {
