@@ -18,7 +18,7 @@ class ValidationOutput extends Component<IDecorationComponentProps> {
     return (
       <div className="ValidationWidget__container">
         <div className="ValidationWidget" ref={_ => (this.ref = _)}>
-          <div className="ValidationWidget__type">{category.name}</div>
+          <div className="ValidationWidget__type" style={{ color: `#${category.colour}` }}>{category.name}</div>
           <div className="ValidationWidget__annotation">{annotation}</div>
           {suggestions && !!suggestions.length && applySuggestions && (
             <div className="ValidationWidget__suggestion-list">
