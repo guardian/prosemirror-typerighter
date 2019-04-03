@@ -105,12 +105,12 @@ class ValidationOverlay extends Component<IProps, IState> {
     const left = clamp(
       tooltipLeft || 0,
       0,
-      window.innerWidth - this.decorationRef.ref.offsetTop
+      document.body.clientWidth - this.decorationRef.ref.offsetTop
     );
     const top = clamp(
       tooltipTop || 0,
       0,
-      window.innerWidth - this.decorationRef.ref.offsetHeight
+      document.body.clientHeight - this.decorationRef.ref.offsetHeight
     );
     return { left, top };
   };

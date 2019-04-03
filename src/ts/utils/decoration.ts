@@ -17,6 +17,7 @@ export const DecorationClassMap = {
   [DECORATION_DIRTY]: "ValidationDebugDirty",
   [DECORATION_INFLIGHT]: "ValidationDebugInflight",
   [DECORATION_VALIDATION]: "ValidationDecoration",
+  [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
   [DECORATION_VALIDATION_IS_HOVERING]: "ValidationDecoration--is-hovering"
 };
 
@@ -84,15 +85,16 @@ export const getNewDecorationsForCurrentValidations = (
 };
 
 /**
- * Create a height marker DOM node. Used to determine the height
+ * Create a height marker element. Used to determine the height
  * of a single line of inline content, which is useful when we're
  * calculating where to place tooltips as the user hovers over multi-
  * line spans.
  */
-const createHeightMarkerNode = (id: string) => {
-  const node = document.createElement("span");
-  node.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
-  return node;
+const createHeightMarkerElement = (id: string) => {
+  const element = document.createElement("span");
+  element.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
+  element.className = DecorationClassMap[DECORATION_VALIDATION_HEIGHT_MARKER];
+  return element;
 };
 
 /**
@@ -128,7 +130,7 @@ export const createDecorationForValidationRange = (
   return addHeightMarker
     ? [
         ...decorationArray,
-        Decoration.widget(output.from, createHeightMarkerNode(output.id), {
+        Decoration.widget(output.from, createHeightMarkerElement(output.id), {
           type: DECORATION_VALIDATION_HEIGHT_MARKER,
           id: output.id
         } as any)

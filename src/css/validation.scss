@@ -99,7 +99,8 @@
   margin-top: 3px;
 }
 
-.ValidationDecoration {
+.ValidationDecoration,
+.ValidationDecoration__height-marker {
   border-bottom: 2px solid var(--validation-color);
 }
 
