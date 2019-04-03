@@ -1,12 +1,13 @@
 {
-  "name": "@guardian/prosemirror-noting",
-  "version": "3.1.0",
-  "description": "A plugin to allow noting in prosemirror",
-  "main": "dist/noting.js",
+  "name": "@guardian/prosemirror-typerighter",
+  "version": "0.1.0",
+  "description": "A plugin to represent validation ranges in Prosemirror",
+  "main": "dist/index.js",
+  "module": "dist/index.m.js",
   "license": "MIT",
   "author": {
-    "name": "Richard Beddington",
-    "email": "richard.beddington@guardian.co.uk"
+    "name": "Jonathon Herbert",
+    "email": "jonathon.herbert@guardian.co.uk"
   },
   "scripts": {
     "test": "jest --env=jsdom",
