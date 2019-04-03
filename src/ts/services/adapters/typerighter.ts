@@ -31,8 +31,8 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
     inputString: input.inputString,
     from: input.from + match.fromPos,
     to: input.from + match.toPos,
-    annotation: match.message,
-    type: match.rule.description,
+    annotation: match.shortMessage,
+    category: match.rule.category,
     suggestions: match.suggestedReplacements
   }));
 };

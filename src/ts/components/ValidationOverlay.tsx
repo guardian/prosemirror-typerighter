@@ -56,7 +56,13 @@ class ValidationOverlay extends Component<IProps, IState> {
       <div class="ValidationPlugin__overlay" onMouseOver={this.handleMouseOver}>
         <div
           class="ValidationPlugin__decoration-container"
-          style={{ top: top - 1, left }}
+          style={{
+            // We hoist top slightly to ensure that the rendered element overlaps the
+            // span that triggered the overlay -- if the mouse falls through a gap it
+            // will trigger a mouseleave event that will close the overlay.
+            top: top - 1,
+            left
+          }}
         >
           <ValidationOutput
             ref={_ => (this.decorationRef = _)}
@@ -105,12 +111,12 @@ class ValidationOverlay extends Component<IProps, IState> {
     const left = clamp(
       tooltipLeft || 0,
       0,
-      window.innerWidth - this.decorationRef.ref.offsetTop
+      document.body.clientWidth - this.decorationRef.ref.offsetTop
     );
     const top = clamp(
       tooltipTop || 0,
       0,
-      window.innerWidth - this.decorationRef.ref.offsetHeight
+      document.body.clientHeight - this.decorationRef.ref.offsetHeight
     );
     return { left, top };
   };

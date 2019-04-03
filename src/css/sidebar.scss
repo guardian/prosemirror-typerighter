@@ -44,8 +44,8 @@
   list-style: none;
 }
 
-.Sidebar__list-item {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+.Sidebar__list-item + .Sidebar__list-item {
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .Sidebar__loading-spinner {

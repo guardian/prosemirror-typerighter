@@ -42,7 +42,7 @@ const createLanguageToolAdapter: IValidationAPIAdapterCreator = (
     from: input.from + match.offset,
     to: input.from + match.offset + match.length,
     annotation: match.message,
-    type: match.rule.issueType,
+    category: match.rule.category,
     suggestions: match.replacements.map(_ => _.value)
   }));
 };

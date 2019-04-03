@@ -4,7 +4,8 @@
   --validation-gray: #a0a0a0;
   --validation-debug-color-dirty: #f7a85e66;
   --validation-debug-color-inflight: #f7a85ea1;
-}
+  --validation-suggestion-color: #999;
+  --validation-suggestion-color-hover: #f1f1f1; }
 
 .Button {
   padding: 1px 4px;
@@ -27,10 +28,10 @@
 }
 
 .ValidationWidget {
-  display: inline-block;
+  display: block;
+  position: relative;
   font-family: sans-serif;
   font-size: 14px;
-  position: absolute;
   font-style: normal;
   font-weight: normal;
   background-color: white;
@@ -45,6 +46,7 @@
 }
 
 .ValidationWidget__container {
+  margin-top: 8px;
   position: relative;
 }
 
@@ -88,17 +90,18 @@
   color: var(--validation-color);
   font-weight: 700;
   font-size: 16px;
+  color: var(--validation-suggestion-color);
 }
 
 .ValidationWidget__suggestion:hover {
-  background-color: var(--validation-color);
-  color: white;
+  background-color: var(--validation-suggestion-color-hover);
 }
 .ValidationWidget__suggestion + .ValidationWidget__suggestion {
   margin-top: 3px;
 }
 
-.ValidationDecoration {
+.ValidationDecoration,
+.ValidationDecoration__height-marker {
   border-bottom: 2px solid var(--validation-color);
 }
 
