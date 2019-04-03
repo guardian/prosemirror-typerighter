@@ -352,7 +352,11 @@ describe("State management", () => {
           to: 5,
           inputString: "Example",
           annotation: "Annotation",
-          type: "Type",
+          category: {
+            id: '1',
+            name: 'cat',
+            colour: 'eeeeee'
+          },
           id: "exampleHoverId"
         };
         const localState = { ...state, currentValidations: [output] };
@@ -379,9 +383,12 @@ describe("State management", () => {
           to: 5,
           inputString: "Example",
           annotation: "Annotation",
-          type: "Type",
-
-          id: "exampleHoverId"
+          id: "exampleHoverId",
+          category: {
+            id: '1',
+            name: 'cat',
+            colour: 'eeeeee'
+          }
         };
         const localState = {
           ...state,
@@ -412,7 +419,11 @@ describe("State management", () => {
             to: 7,
             inputString: "Example",
             annotation: "Annotation",
-            type: "Type"
+            category: {
+              id: '1',
+              name: 'cat',
+              colour: 'eeeeee'
+            },
           }
         ];
         const stateWithCurrentValidationsAndDecorations = {
@@ -449,7 +460,11 @@ describe("State management", () => {
               to: 1,
               annotation: "example",
               suggestions: [],
-              type: "example",
+              category: {
+                id: '1',
+                name: 'cat',
+                colour: 'eeeeee'
+              },
               id: "exampleId"
             }
           ]
@@ -616,7 +631,11 @@ describe("State management", () => {
             to: 5,
             suggestions: ["example", "suggestion"],
             annotation: "Annotation",
-            type: "Type",
+            category: {
+              id: '1',
+              name: 'cat',
+              colour: 'eeeeee'
+            },
             inputString: "hai"
           }
         ];
@@ -640,7 +659,11 @@ describe("State management", () => {
             to: 5,
             suggestions: ["example", "suggestion"],
             annotation: "Annotation",
-            type: "Type",
+            category: {
+              id: '1',
+              name: 'cat',
+              colour: 'eeeeee'
+            },
             inputString: "hai"
           }
         ];

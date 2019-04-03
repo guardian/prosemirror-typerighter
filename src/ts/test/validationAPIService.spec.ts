@@ -23,7 +23,8 @@ const createResponse = (strs: string[]) => ({
     rule: {
       category: {
         id: "numberCat",
-        name: "The number category"
+        name: "The number category",
+        colour: 'eee'
       },
       description: "Some type - use constants, jeez",
       id: "numbersID",
@@ -45,9 +46,13 @@ const createOutput = (inputString: string, offset: number = 0) => {
     from,
     to,
     inputString,
-    type: "issueType",
     suggestions: [],
-    annotation: "It's just a bunch of numbers, mate"
+    annotation: "It's just a bunch of numbers, mate",
+    category: {
+      id: "numberCat",
+      name: "The number category",
+      colour: 'eee'
+    }
   } as IValidationOutput;
 };
 
