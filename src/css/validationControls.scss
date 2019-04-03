@@ -1,6 +1,6 @@
 .ValidationControls__row {
 	display: flex;
-	padding: calc(var(--gutter-width) / 2);
+	padding: $gutter-width / 2;
 }
 
 .ValidationControls__input {

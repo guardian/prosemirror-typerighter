@@ -1,13 +1,10 @@
-
 .ValidationSidebarOutput__container {
-  padding: calc(var(--gutter-width) / 2);
+  padding: ($gutter-width / 2) ;
 }
 
 .ValidationSidebarOutput__container--is-selected {
-  border-left: 2px solid var(--validation-color);
+  border-left: 2px solid $validation-color;
 }
-
-
 
 .ValidationSidebarOutput__list-item:last-child {
   border-bottom: none;
@@ -53,15 +50,15 @@
 }
 
 .ValidationSidebarOutput__content {
-  margin-top: calc(var(--gutter-width) / 2);
+  margin-top: ($gutter-width / 2) ;
   font-size: 14px;
 }
 
 .ValidationSidebarOutput__suggestion-list {
-  margin-top: calc(var(--gutter-width) / 2);
+  margin-top: ($gutter-width / 2) ;
 }
 
-.ValidationSidebarOutput__suggestion-list-title {
+.ValidationSidebarOutput__list-title {
   font-style: italic;
-  margin-bottom: calc(var(--gutter-width) / 2);
+  margin-bottom: ($gutter-width / 2) ;
 }

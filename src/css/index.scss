@@ -1,11 +1,17 @@
-:root {
-  --validation-color: #3dcde6;
-  --validation-color-hover: #3dcde624;
-  --validation-gray: #a0a0a0;
-  --validation-debug-color-dirty: #f7a85e66;
-  --validation-debug-color-inflight: #f7a85ea1;
-  --validation-suggestion-color: #999;
-  --validation-suggestion-color-hover: #f1f1f1; }
+// Variables
+$gutter-width: 10px;
+$validation-color: #3dcde6;
+$validation-color-hover: #3dcde624;
+$validation-gray: #a0a0a0;
+$validation-debug-color-dirty: #f7a85e66;
+$validation-debug-color-inflight: #f7a85ea1;
+$validation-suggestion-color: #999;
+$validation-suggestion-color-hover: #f1f1f1;
+
+// Imports
+@import './ValidationControls.scss';
+@import './ValidationSidebar.scss';
+@import './ValidationSidebarOutput.scss';
 
 .Button {
   padding: 1px 4px;
@@ -20,7 +26,7 @@
 }
 
 .Input[type=checkbox] {
-  margin-left: calc(var(--gutter-width));
+  margin-left: $gutter-width;
 }
 
 .Button:active, .Button:focus {
@@ -56,7 +62,7 @@
 }
 
 .ValidationWidget__type {
-  color: var(--validation-gray);
+  color: $validation-gray;
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.3px;
@@ -65,7 +71,7 @@
 .ValidationWidget__annotation,
 .ValidationWidget__suggestion,
 .ValidationWidget__type {
-  padding: var(--gutter-width);
+  padding: $gutter-width;
 }
 
 .ValidationWidget__annotation {
@@ -85,16 +91,16 @@
 
 .ValidationWidget__suggestion {
   display: block;
-  padding: var(--gutter-width);
+  padding: $gutter-width;
   cursor: pointer;
-  color: var(--validation-color);
+  color: $validation-color;
   font-weight: 700;
   font-size: 16px;
-  color: var(--validation-suggestion-color);
+  color: $validation-suggestion-color;
 }
 
 .ValidationWidget__suggestion:hover {
-  background-color: var(--validation-suggestion-color-hover);
+  background-color: $validation-suggestion-color-hover;
 }
 .ValidationWidget__suggestion + .ValidationWidget__suggestion {
   margin-top: 3px;
@@ -102,19 +108,19 @@
 
 .ValidationDecoration,
 .ValidationDecoration__height-marker {
-  border-bottom: 2px solid var(--validation-color);
+  border-bottom: 2px solid $validation-color;
 }
 
 .ValidationDecoration--is-hovering {
-  background-color: var(--validation-color-hover);
+  background-color: $validation-color-hover;
 }
 
 .ValidationDebugDirty {
-  background-color: var(--validation-debug-color-dirty);
+  background-color: $validation-debug-color-dirty;
 }
 
 .ValidationDebugInflight {
-  background-color: var(--validation-debug-color-inflight);
+  background-color: $validation-debug-color-inflight;
 }
 
 .ValidationPlugin__overlay {
