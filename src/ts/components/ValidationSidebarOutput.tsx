@@ -44,7 +44,9 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
           onClick={hasSuggestions ? this.toggleOpen : undefined}
         >
           <div className="ValidationSidebarOutput__header-label">
-            <div className="ValidationSidebarOutput__header-description">{output.annotation}</div>
+            <div className="ValidationSidebarOutput__header-description">
+              {output.annotation}
+            </div>
             <div className="ValidationSidebarOutput__header-meta">
               <div
                 className="Button ValidationSidebarOutput__header-range"
@@ -58,13 +60,13 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
               >
                 {titleCase(output.category.name)}
               </div>
+              {hasSuggestions && (
+                <div className="ValidationSidebarOutput__header-toggle-status">
+                  {this.state.isOpen ? "-" : "+"}
+                </div>
+              )}
             </div>
           </div>
-          {hasSuggestions && (
-            <div className="ValidationSidebarOutput__header-toggle-status">
-              {this.state.isOpen ? "-" : "+"}
-            </div>
-          )}
         </div>
         {this.state.isOpen && (
           <div className="ValidationSidebarOutput__content">

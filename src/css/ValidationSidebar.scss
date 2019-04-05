@@ -2,16 +2,16 @@
   background-color: white;
   border-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  margin: 0 calc(var(--gutter-width) / 2);
+  margin: 0 $gutter-width / 2;
 }
 
 .Sidebar__container + .Sidebar__container {
-  margin-top: var(--gutter-width);
+  margin-top: $gutter-width;
 }
 
 .Sidebar__header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  padding: calc(var(--gutter-width)) calc(var(--gutter-width) / 2);
+  padding: $gutter-width  $gutter-width/2;
   font-weight: 500;
   display: flex;
   justify-content: space-between;
@@ -23,7 +23,7 @@
 }
 
 .Sidebar__awaiting-validation {
-  padding: calc(var(--gutter-width) / 2);
+  padding: $gutter-width/2;
   color: gray;
 }
 
@@ -34,7 +34,7 @@
 }
 
 .Sidebar__awaiting-validation {
-  padding: calc(var(--gutter-width) / 2);
+  padding: $gutter-width/2;
   color: gray;
 }
 
@@ -51,7 +51,7 @@
 .Sidebar__loading-spinner {
   display: inline-block;
   margin-top: 1px;
-  margin-left: calc(var(--gutter-width) / 2);
+  margin-left: $gutter-width/2;
   line-height: 1;
   animation-duration: 0.5s;
   animation-name: spin;
