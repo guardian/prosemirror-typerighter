@@ -10,7 +10,7 @@ type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-interface IStoreEvents<TValidationMeta extends IBaseValidationOutput> {
+export interface IStoreEvents<TValidationMeta extends IBaseValidationOutput> {
   [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
   [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;

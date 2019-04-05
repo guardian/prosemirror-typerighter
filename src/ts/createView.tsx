@@ -23,10 +23,10 @@ const createView = (
 
   // We wrap this in a container to allow the overlay to be positioned
   // relative to the editable document.
-  const wrapperNode = document.createElement("div");
-  wrapperNode.classList.add("ValidationPlugin__container");
-  view.dom.parentNode!.replaceChild(wrapperNode, view.dom);
-  wrapperNode.appendChild(view.dom);
+  const wrapperElement = document.createElement("div");
+  wrapperElement.classList.add("ValidationPlugin__container");
+  view.dom.parentNode!.replaceChild(wrapperElement, view.dom);
+  wrapperElement.appendChild(view.dom);
   view.dom.insertAdjacentElement("afterend", overlayNode);
 
   // Finally, render our components.
@@ -34,6 +34,7 @@ const createView = (
     <ValidationOverlay
       store={store}
       applySuggestions={commands.applySuggestions}
+      containerElement={wrapperElement}
     />,
     overlayNode
   );

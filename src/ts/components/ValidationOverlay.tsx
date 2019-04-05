@@ -1,10 +1,12 @@
-import clamp from 'lodash/clamp';
-import ValidationOutput from './ValidationOutputContainer';
-import { Component, h } from 'preact';
-import { IStateHoverInfo, selectValidationById, IPluginState } from '../state';
-import { IValidationOutput, IBaseValidationOutput } from '../interfaces/IValidation';
-import Store, { STORE_EVENT_NEW_STATE } from '../store';
-import { ApplySuggestionOptions } from '../commands';
+import ValidationOutput from "./ValidationOutputContainer";
+import { Component, h } from "preact";
+import { IStateHoverInfo, selectValidationById, IPluginState } from "../state";
+import {
+  IValidationOutput,
+  IBaseValidationOutput
+} from "../interfaces/IValidation";
+import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
+import { ApplySuggestionOptions } from "../commands";
 
 interface IState {
   left: number | undefined;
@@ -14,8 +16,11 @@ interface IState {
   isVisible: boolean;
 }
 interface IProps {
-  store: Store<IBaseValidationOutput>;
+  store: Store<IBaseValidationOutput, IStoreEvents<IBaseValidationOutput>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
+  // The element that contains the tooltips. Tooltips will be positioned
+  // within this element.
+  containerElement?: HTMLElement;
 }
 
 /**
@@ -29,7 +34,7 @@ class ValidationOverlay extends Component<IProps, IState> {
     hoverInfo: undefined,
     validationOutput: undefined
   };
-  private decorationRef: ValidationOutput;
+  private decorationRef: ValidationOutput | undefined = undefined;
 
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -81,7 +86,7 @@ class ValidationOverlay extends Component<IProps, IState> {
       isVisible: false,
       left: 0,
       top: 0
-    }
+    };
     if (state.hoverId && state.hoverInfo) {
       const validationOutput = selectValidationById(state, state.hoverId);
       return this.setState({
@@ -93,7 +98,7 @@ class ValidationOverlay extends Component<IProps, IState> {
     this.setState({
       hoverInfo: undefined,
       validationOutput: undefined,
-      ...newState,
+      ...newState
     });
   };
 
@@ -107,18 +112,23 @@ class ValidationOverlay extends Component<IProps, IState> {
       this.state.hoverInfo
     );
 
-    // Fit the ideal position to the viewport.
-    const left = clamp(
-      tooltipLeft || 0,
-      0,
-      document.body.clientWidth - this.decorationRef.ref.offsetTop
-    );
-    const top = clamp(
-      tooltipTop || 0,
-      0,
-      document.body.clientHeight - this.decorationRef.ref.offsetHeight
-    );
-    return { left, top };
+    const maxLeft = this.props.containerElement
+      ? this.props.containerElement.clientWidth -
+        this.decorationRef.ref.offsetWidth
+      : Infinity;
+
+    const maxTop = this.props.containerElement
+      ? this.props.containerElement.clientHeight -
+        this.decorationRef.ref.offsetHeight
+      : Infinity;
+
+    return {
+      left: tooltipLeft < maxLeft ? tooltipLeft : maxLeft,
+      top:
+        tooltipTop < maxTop
+          ? tooltipTop
+          : maxTop - this.state.hoverInfo.height * 2
+    };
   };
 
   private getTooltipCoords = (hoverInfo: IStateHoverInfo) => {
