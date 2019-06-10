@@ -1,3 +1,7 @@
+.Sidebar__container {
+  font-size: 16px;
+}
+
 .Sidebar__section {
   background-color: white;
   border-radius: 4px;
@@ -21,10 +25,16 @@
   font-weight: 400;
   font-size: 14px;
 }
-
+ 
 .Sidebar__awaiting-validation {
   padding: $gutter-width/2;
-  color: gray;
+  color: #aaa;
+}
+
+.Sidebar__toggle {
+  transition: transform 0.15s;
+  cursor: pointer;
+  color: #aaa;
 }
 
 .Sidebar__list {

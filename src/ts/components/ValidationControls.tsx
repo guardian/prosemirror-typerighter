@@ -6,46 +6,87 @@ import { IBaseValidationOutput } from "../interfaces/IValidation";
 interface IProps {
   store: Store<IBaseValidationOutput>;
   setDebugState: (debug: boolean) => void;
+  setValidateOnModifyState: (validate: boolean) => void;
   validateDocument: () => void;
+}
+
+interface IState {
+  pluginState?: IPluginState<IBaseValidationOutput>;
+  isOpen: boolean;
 }
 
 /**
  * A sidebar to display current validations and allow users to apply suggestions.
  */
-class ValidationControls extends Component<IProps, IPluginState<IBaseValidationOutput>> {
+class ValidationControls extends Component<IProps, IState> {
+  public state = {
+    isOpen: false
+  } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
   }
 
   public render() {
-    const { setDebugState } = this.props;
+    const { setDebugState, setValidateOnModifyState } = this.props;
+    const { debug = false, validateOnModify = false } = this.state.pluginState || {};
+    const { isOpen } = this.state;
     return (
       <div className="Sidebar__section">
-        <div className="Sidebar__header">Controls</div>
-        <div className="Sidebar__content">
-          <div className="ValidationControls__row">
-            <label className="ValidationControls__label">
-              Debug mode <small>(makes dirty and pending ranges visible)</small>
-            </label>
-            <div class="ValidationControls__input">
-              <input
-                type="checkbox"
-                checked={this.state.debug}
-                className="Input"
-                onClick={() => setDebugState(!this.state.debug)}
-              />
-            </div>
-          </div>
-          <div className="ValidationControls__row">
-            <button className="Button" onClick={this.props.validateDocument}>Validate whole document</button>
+        <div
+          className="Sidebar__header"
+          style={{ borderBottom: isOpen ? "" : "none" }}
+          onClick={this.toggleOpenState}
+        >
+          Controls
+          <div
+            className="Sidebar__toggle"
+            style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+          >
+            ▼
           </div>
         </div>
+        {isOpen && (
+          <div className="Sidebar__content">
+            <div className="ValidationControls__row">
+              <label className="ValidationControls__label">
+                Validate when the document is modified
+              </label>
+              <div class="ValidationControls__input">
+                <input
+                  type="checkbox"
+                  checked={validateOnModify}
+                  className="Input"
+                  onClick={() => setValidateOnModifyState(!validateOnModify)}
+                />
+              </div>
+            </div>
+            <div className="ValidationControls__row">
+              <label className="ValidationControls__label">
+                Show dirty and pending ranges
+              </label>
+              <div class="ValidationControls__input">
+                <input
+                  type="checkbox"
+                  checked={debug}
+                  className="Input"
+                  onClick={() => setDebugState(!debug)}
+                />
+              </div>
+            </div>
+            <div className="ValidationControls__row">
+              <button className="Button" onClick={this.props.validateDocument}>
+                Validate whole document
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
   private handleNotify = (state: IPluginState<IBaseValidationOutput>) => {
-    this.setState(state);
+    this.setState({ pluginState: state });
   };
+  private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
 }
 
 export default ValidationControls;

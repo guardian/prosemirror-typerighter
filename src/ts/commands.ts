@@ -7,6 +7,7 @@ import {
   validationRequestForDocument,
   selectValidation,
   setDebugState,
+  setValidateOnModifyState,
   IStateHoverInfo,
   validationRequestSuccess,
   validationRequestError,
@@ -116,6 +117,24 @@ export const setDebugStateCommand = (debug: boolean): Command => (
 };
 
 /**
+ * Set the validate on modify state. When enabled, the plugin will queue
+ * validation requests as soon as the document is modified.
+ */
+export const setValidateOnModifyStateCommand = (
+  validateOnModify: boolean
+): Command => (state, dispatch) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        VALIDATION_PLUGIN_ACTION,
+        setValidateOnModifyState(validateOnModify)
+      )
+    );
+  }
+  return true;
+};
+
+/**
  * Apply a successful validation response to the document.
  */
 export const applyValidationResponseCommand = (
@@ -216,6 +235,7 @@ export const createBoundCommands = <
       ),
     indicateHover: bindCommand(indicateHoverCommand),
     setDebugState: bindCommand(setDebugStateCommand),
+    setValidateOnModifyState: bindCommand(setValidateOnModifyStateCommand),
     applyValidationResult: bindCommand(applyValidationResponseCommand),
     applyValidationError: bindCommand(applyValidationErrorCommand)
   };

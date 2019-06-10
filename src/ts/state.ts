@@ -29,7 +29,6 @@ import { ExpandRanges } from "./createValidationPlugin";
 import { createValidationInputsForDocument } from "./utils/prosemirror";
 import { Node } from "prosemirror-model";
 import { Mapping } from "prosemirror-transform";
-import difference from "lodash/difference";
 import without from "lodash/without";
 import { createValidationInput } from "./utils/validation";
 
@@ -69,6 +68,8 @@ export interface IPluginState<TValidationMeta extends IBaseValidationOutput> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
+  // Should we trigger validations when the document is modified?
+  validateOnModify: boolean;
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current validation outputs for the document.
@@ -112,6 +113,7 @@ const NEW_HOVER_ID = "NEW_HOVER_ID";
 const SELECT_VALIDATION = "SELECT_VALIDATION";
 const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const SET_DEBUG_STATE = "SET_DEBUG_STATE";
+const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
 
 /**
  * Action creators.
@@ -180,6 +182,12 @@ export const setDebugState = (debug: boolean) => ({
 });
 type ActionSetDebugState = ReturnType<typeof setDebugState>;
 
+export const setValidateOnModifyState = (validateOnModify: boolean) => ({
+  type: SET_VALIDATE_ON_MODIFY_STATE as typeof SET_VALIDATE_ON_MODIFY_STATE,
+  payload: { validateOnModify }
+});
+type ActionSetValidateOnModifyState = ReturnType<typeof setValidateOnModifyState>;
+
 type Action<TValidationMeta extends IBaseValidationOutput> =
   | ActionNewHoverIdReceived
   | ActionValidationResponseReceived<TValidationMeta>
@@ -188,7 +196,8 @@ type Action<TValidationMeta extends IBaseValidationOutput> =
   | ActionValidationRequestError
   | ActionSelectValidation
   | ActionHandleNewDirtyRanges
-  | ActionSetDebugState;
+  | ActionSetDebugState
+  | ActionSetValidateOnModifyState;
 
 /**
  * Initial state.
@@ -199,6 +208,7 @@ export const createInitialState = <
   doc: Node
 ): IPluginState<TValidationMeta> => ({
   debug: false,
+  validateOnModify: false,
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
   currentValidations: [],
@@ -334,6 +344,8 @@ const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
         return handleNewDirtyRanges(tr, state, action);
       case SET_DEBUG_STATE:
         return handleSetDebugState(tr, state, action);
+      case SET_VALIDATE_ON_MODIFY_STATE:
+        return handleSetValidateOnModifyState(tr, state, action);
       default:
         return state;
     }
@@ -633,6 +645,17 @@ const handleSetDebugState = <TValidationMeta extends IBaseValidationOutput>(
   return {
     ...state,
     debug
+  };
+};
+
+const handleSetValidateOnModifyState = <TValidationMeta extends IBaseValidationOutput>(
+  _: Transaction,
+  state: IPluginState<TValidationMeta>,
+  { payload: { validateOnModify } }: ActionSetValidateOnModifyState
+) => {
+  return {
+    ...state,
+    validateOnModify
   };
 };
 

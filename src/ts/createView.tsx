@@ -53,6 +53,7 @@ const createView = (
     <ValidationControls
       store={store}
       setDebugState={commands.setDebugState}
+      setValidateOnModifyState={commands.setValidateOnModifyState}
       validateDocument={commands.validateDocument}
     />,
     controlsNode

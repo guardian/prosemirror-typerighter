@@ -9,7 +9,7 @@ interface IProps {
   store: Store<IBaseValidationOutput>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   selectValidation: (validationId: string) => void;
-  indicateHover: (validationId: string, _: any) => void;
+  indicateHover: (validationId: string | undefined, _: any) => void;
 }
 
 /**
@@ -17,7 +17,10 @@ interface IProps {
  */
 class ValidationSidebar extends Component<
   IProps,
-  { pluginState: IPluginState<IBaseValidationOutput> | undefined; groupResults: boolean }
+  {
+    pluginState: IPluginState<IBaseValidationOutput> | undefined;
+    groupResults: boolean;
+  }
 > {
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
@@ -68,7 +71,9 @@ class ValidationSidebar extends Component<
       </div>
     );
   }
-  private handleNewState = (pluginState: IPluginState<IBaseValidationOutput>) => {
+  private handleNewState = (
+    pluginState: IPluginState<IBaseValidationOutput>
+  ) => {
     this.setState({
       pluginState: {
         ...pluginState,
