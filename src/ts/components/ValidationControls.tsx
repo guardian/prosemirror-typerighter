@@ -50,12 +50,13 @@ class ValidationControls extends Component<IProps, IState> {
           {isOpen && (
             <div>
               <div className="ValidationControls__row">
-                <label className="ValidationControls__label">
+                <label className="ValidationControls__label" for="ValidationControls__validate-on-modify">
                   Validate when the document is modified
                 </label>
                 <div class="ValidationControls__input">
                   <input
                     type="checkbox"
+                    id="ValidationControls__validate-on-modify"
                     checked={validateOnModify}
                     className="Input"
                     onClick={() => setValidateOnModifyState(!validateOnModify)}
@@ -63,11 +64,12 @@ class ValidationControls extends Component<IProps, IState> {
                 </div>
               </div>
               <div className="ValidationControls__row">
-                <label className="ValidationControls__label">
+                <label className="ValidationControls__label" for="ValidationControls__show-dirty-ranges">
                   Show dirty and pending ranges
                 </label>
                 <div class="ValidationControls__input">
                   <input
+                    id="ValidationControls__show-dirty-ranges"
                     type="checkbox"
                     checked={debug}
                     className="Input"
