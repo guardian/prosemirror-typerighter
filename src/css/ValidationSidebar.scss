@@ -15,26 +15,40 @@
 
 .Sidebar__header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  padding: $gutter-width  $gutter-width/2;
+  padding: $gutter-width $gutter-width/2;
   font-weight: 500;
   display: flex;
   justify-content: space-between;
+}
+
+.Sidebar__header-toggle {
+  cursor: pointer;
 }
 
 .Sidebar__header-option {
   font-weight: 400;
   font-size: 14px;
 }
- 
+
 .Sidebar__awaiting-validation {
   padding: $gutter-width/2;
   color: #aaa;
 }
 
+.Sidebar__toggle, .Sidebar__toggle-label {
+  align-self: baseline;
+  font-size: 0.8em;
+}
+
 .Sidebar__toggle {
   transition: transform 0.15s;
-  cursor: pointer;
   color: #aaa;
+}
+
+.Sidebar__toggle-label {
+  color: #888;
+  margin-left: auto;
+  padding-right: 5px;
 }
 
 .Sidebar__list {
