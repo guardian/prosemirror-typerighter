@@ -2,6 +2,10 @@
   font-size: 16px;
 }
 
+.Sidebar__content {
+  overflow-y: scroll;
+}
+
 .Sidebar__section {
   display: flex;
   flex-direction: column;
@@ -17,10 +21,11 @@
 }
 
 .Sidebar__header {
+  display: flex;
+  flex-shrink: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   padding: $gutter-width $gutter-width/2;
   font-weight: 500;
-  display: flex;
   justify-content: space-between;
 }
 
