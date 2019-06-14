@@ -9,7 +9,7 @@ cache:
 notifications:
   email: false
 node_js:
-  - node
+  - "10"
 script:
   - yarn test && yarn build
 after_success:
