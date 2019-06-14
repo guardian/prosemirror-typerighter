@@ -44,11 +44,11 @@ class ValidationService<TValidationOutput extends IBaseValidationOutput> {
    * defer it until the next throttle window.
    */
   public requestValidation() {
+    this.validationPending = false;
     const pluginState = this.store.getState();
     if (!pluginState || selectValidationsInFlight(pluginState).length) {
       return this.scheduleValidation();
     }
-    this.validationPending = false;
     this.commands.validateDirtyRangesCommand();
   }
 
