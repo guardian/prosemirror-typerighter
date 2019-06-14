@@ -35,7 +35,8 @@ export default [
     output: {
       file: "pages/dist/bundle.js",
       format: "iife",
-      name: "Pages"
+      name: "Pages",
+      sourcemap: true
     },
     plugins: [
       resolve({ browser: true }),
