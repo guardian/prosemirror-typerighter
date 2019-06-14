@@ -23,7 +23,7 @@ type EventNames = keyof IStoreEvents<IBaseValidationOutput>;
  */
 class Store<
   TValidationOutput extends IBaseValidationOutput,
-  TStoreEvents extends IStoreEvents<TValidationOutput>
+  TStoreEvents extends IStoreEvents<TValidationOutput> = IStoreEvents<TValidationOutput>
 > {
   private state: IPluginState<TValidationOutput> | undefined;
   private subscribers: {

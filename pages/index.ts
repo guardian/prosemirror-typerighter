@@ -58,10 +58,5 @@ if (editorElement && sidebarElement && controlsElement) {
     createTyperighterAdapter("http://localhost:9000/check")
   );
   (window as any).editor = view;
-  const debugButton = document.getElementById("debug-button");
-  if (debugButton) {
-    debugButton.onclick = () =>
-      commands.setDebugState(!!validatorPlugin.getState(view.state).debug);
-  }
   createView(view, store, commands, sidebarElement, controlsElement);
 }

@@ -26,8 +26,11 @@
       }
 
       .Sidebar {
+        display: flex;
+        flex-direction: column;
         flex: 1;
         min-width: 400px;
+        max-height: 400px;
         margin-left: 5px;
       }
 
@@ -56,6 +59,14 @@
       .ProseMirror-menubar {
         padding: 10px 5px;
         border-radius: 4px 4px 0 0;
+      }
+
+      #controls {
+        flex-shrink: 0;
+      }
+
+      #sidebar {
+        min-height: 0;
       }
     </style>
   </head>

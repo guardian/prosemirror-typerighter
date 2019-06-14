@@ -1,8 +1,19 @@
+.Sidebar__container {
+  font-size: 16px;
+}
+
+.Sidebar__content {
+  overflow-y: scroll;
+}
+
 .Sidebar__section {
+  display: flex;
+  flex-direction: column;
   background-color: white;
   border-radius: 4px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   margin: 0 $gutter-width / 2;
+  max-height: 100%;
 }
 
 .Sidebar__container + .Sidebar__container {
@@ -10,11 +21,16 @@
 }
 
 .Sidebar__header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  padding: $gutter-width  $gutter-width/2;
-  font-weight: 500;
   display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: $gutter-width $gutter-width/2;
+  font-weight: 500;
   justify-content: space-between;
+}
+
+.Sidebar__header-toggle {
+  cursor: pointer;
 }
 
 .Sidebar__header-option {
@@ -24,7 +40,23 @@
 
 .Sidebar__awaiting-validation {
   padding: $gutter-width/2;
-  color: gray;
+  color: #aaa;
+}
+
+.Sidebar__toggle, .Sidebar__toggle-label {
+  align-self: baseline;
+  font-size: 0.8em;
+}
+
+.Sidebar__toggle {
+  transition: transform 0.15s;
+  color: #aaa;
+}
+
+.Sidebar__toggle-label {
+  color: #888;
+  margin-left: auto;
+  padding-right: 5px;
 }
 
 .Sidebar__list {
