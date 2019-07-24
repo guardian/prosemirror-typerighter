@@ -17,7 +17,7 @@ import {
 import {
   IValidationResponse,
   IValidationError,
-  IBaseValidationOutput
+  IValidationOutput
 } from "./interfaces/IValidation";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
@@ -27,7 +27,7 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TValidationOutput extends IBaseValidationOutput> = (
+type GetState<TValidationOutput extends IValidationOutput> = (
   state: EditorState
 ) => IPluginState<TValidationOutput>;
 
@@ -84,7 +84,7 @@ export const indicateHoverCommand = (
  * Mark a given validation as active.
  */
 export const selectValidationCommand = <
-  TValidationOutput extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   validationId: string,
   getState: GetState<TValidationOutput>
@@ -179,7 +179,7 @@ export type ApplySuggestionOptions = Array<{
  * Applies a suggestion from a validation to the document.
  */
 export const applySuggestionsCommand = <
-  TValidationOutput extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   suggestionOptions: ApplySuggestionOptions,
   getState: GetState<TValidationOutput>
@@ -211,7 +211,7 @@ export const applySuggestionsCommand = <
 };
 
 export const createBoundCommands = <
-  TValidationOutput extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   view: EditorView,
   getState: GetState<TValidationOutput>

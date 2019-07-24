@@ -1,7 +1,4 @@
-import {
-  IValidationInput,
-  IBaseValidationOutput
-} from "../interfaces/IValidation";
+import { IValidationInput, IValidationOutput } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import Store, {
   STORE_EVENT_NEW_VALIDATION,
@@ -15,7 +12,7 @@ import { selectValidationsInFlight } from "../state";
  * for ranges, configured via the supplied adapter. Validation results and
  * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService<TValidationOutput extends IBaseValidationOutput> {
+class ValidationService<TValidationOutput extends IValidationOutput> {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
   private validationPending = false;

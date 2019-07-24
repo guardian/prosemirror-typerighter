@@ -1,10 +1,7 @@
-import ValidationOutput from "./ValidationOutputContainer";
+import ValidationOutput from "./ValidationOutput";
 import { Component, h } from "preact";
 import { IStateHoverInfo, selectValidationById, IPluginState } from "../state";
-import {
-  IValidationOutput,
-  IBaseValidationOutput
-} from "../interfaces/IValidation";
+import { IValidationOutput } from "../interfaces/IValidation";
 import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 
@@ -15,8 +12,8 @@ interface IState {
   validationOutput: IValidationOutput | undefined;
   isVisible: boolean;
 }
-interface IProps {
-  store: Store<IBaseValidationOutput, IStoreEvents<IBaseValidationOutput>>;
+interface IProps<TValidationOutput extends IValidationOutput> {
+  store: Store<TValidationOutput, IStoreEvents<TValidationOutput>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   // The element that contains the tooltips. Tooltips will be positioned
   // within this element.
@@ -26,7 +23,9 @@ interface IProps {
 /**
  * An overlay to display validation tooltips. Subscribes to hover events.
  */
-class ValidationOverlay extends Component<IProps, IState> {
+class ValidationOverlay<
+  TValidationOutput extends IValidationOutput = IValidationOutput
+> extends Component<IProps<TValidationOutput>, IState> {
   public state: IState = {
     isVisible: false,
     left: undefined,
@@ -34,7 +33,9 @@ class ValidationOverlay extends Component<IProps, IState> {
     hoverInfo: undefined,
     validationOutput: undefined
   };
-  private decorationRef: ValidationOutput | undefined = undefined;
+  private decorationRef:
+    | ValidationOutput<TValidationOutput>
+    | undefined = undefined;
 
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -81,7 +82,7 @@ class ValidationOverlay extends Component<IProps, IState> {
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleNotify = (state: IPluginState<IBaseValidationOutput>) => {
+  private handleNotify = (state: IPluginState<IValidationOutput>) => {
     const newState = {
       isVisible: false,
       left: 0,

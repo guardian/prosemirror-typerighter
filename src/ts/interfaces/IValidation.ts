@@ -10,29 +10,44 @@ export interface IValidationInput {
   to: number;
 }
 
-export interface IBaseValidationOutput {
+export interface IValidationOutput<TSuggestion = ISuggestion>
+  extends IValidationInput {
+  id: string;
   annotation: string;
   category: {
     id: string;
     name: string;
-    colour: string
+    colour: string;
   };
+  suggestions?: TSuggestion;
 }
 
-export type IValidationOutput<
-  IValidationMeta = IBaseValidationOutput
-> = IValidationInput & {
-  suggestions?: string[];
-  id: string;
-} & IValidationMeta;
+export type ISuggestion = IBaseSuggestion | IWikiSuggestion;
+
+export interface IBaseSuggestion {
+  type: "BASE_SUGGESTION";
+  replacements: string[];
+}
+
+export interface IWikiSuggestion {
+  type: "WIKI_SUGGESTION";
+  replacements: Array<{
+    title: string;
+    description: string;
+    thumbnail: string;
+    relevance: number;
+  }>;
+}
 
 export interface IValidationError {
   validationInput: IValidationInput;
   message: string;
 }
 
-export interface IValidationResponse<IValidationMeta = IBaseValidationOutput> {
-  validationOutputs: Array<IValidationOutput<IValidationMeta>>;
+export interface IValidationResponse<
+  TValidationOutput extends IValidationOutput = IValidationOutput
+> {
+  validationOutputs: TValidationOutput[];
   validationInput: IValidationInput;
 }
 

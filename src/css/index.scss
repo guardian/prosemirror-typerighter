@@ -5,13 +5,14 @@ $validation-color-hover: #3dcde624;
 $validation-gray: #a0a0a0;
 $validation-debug-color-dirty: #f7a85e66;
 $validation-debug-color-inflight: #31a72085;
+$validation-suggestion-background-color: #fff;
 $validation-suggestion-color: #999;
 $validation-suggestion-color-hover: #f1f1f1;
 
 // Imports
-@import './ValidationControls.scss';
-@import './ValidationSidebar.scss';
-@import './ValidationSidebarOutput.scss';
+@import "./ValidationControls.scss";
+@import "./ValidationSidebar.scss";
+@import "./ValidationSidebarOutput.scss";
 
 .Button {
   padding: 1px 4px;
@@ -25,11 +26,12 @@ $validation-suggestion-color-hover: #f1f1f1;
   background-color: #eee;
 }
 
-.Input[type=checkbox] {
+.Input[type="checkbox"] {
   margin-left: $gutter-width;
 }
 
-.Button:active, .Button:focus {
+.Button:active,
+.Button:focus {
   outline: none;
 }
 
@@ -41,8 +43,7 @@ $validation-suggestion-color-hover: #f1f1f1;
   font-style: normal;
   font-weight: normal;
   background-color: white;
-  box-shadow: #4e56643b 0px 0px 1px 0px,
-    #3f48573a 0px 2px 7px 0px;
+  box-shadow: #4e56643b 0px 0px 1px 0px, #3f48573a 0px 2px 7px 0px;
   border-radius: 3px;
   width: 200px;
   transition: opacity 0.1s, transform 0.1s;
@@ -97,6 +98,10 @@ $validation-suggestion-color-hover: #f1f1f1;
   font-weight: 700;
   font-size: 16px;
   color: $validation-suggestion-color;
+}
+
+.ValidationWidget__suggestion:nth-child(even) {
+  background-color: darken($validation-suggestion-background-color, 2%);
 }
 
 .ValidationWidget__suggestion:hover {

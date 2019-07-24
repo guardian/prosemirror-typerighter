@@ -27,7 +27,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   public render() {
     const { output, applySuggestions, selectedValidation } = this.props;
     const color = `#${output.category.colour}`;
-    const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
+    const hasSuggestions = !!output.suggestions;
     return (
       <div
         className={`ValidationSidebarOutput__container ${
@@ -72,7 +72,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
           <div className="ValidationSidebarOutput__content">
             {output.suggestions && (
               <div className="ValidationSidebarOutput__suggestion-list">
-                {output.suggestions.map((suggestion, suggestionIndex) => (
+                {/* {output.suggestions && output.suggestions.replacements.map((suggestion, suggestionIndex) => (
                   <div
                     class="ValidationWidget__suggestion"
                     onClick={() =>
@@ -86,7 +86,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
                   >
                     {suggestion}
                   </div>
-                ))}
+                ))} */}
               </div>
             )}
           </div>
