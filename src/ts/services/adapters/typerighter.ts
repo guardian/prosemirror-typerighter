@@ -33,7 +33,7 @@ const createTyperighterAdapter: IValidationAPIAdapter = (
     to: input.from + match.toPos,
     annotation: match.shortMessage,
     category: match.rule.category,
-    suggestions: match.suggestedReplacements
+    suggestions: match.suggestions
   }));
 };
 

@@ -19,24 +19,21 @@ export interface IValidationOutput<TSuggestion = ISuggestion>
     name: string;
     colour: string;
   };
-  suggestions?: TSuggestion;
+  suggestions?: TSuggestion[];
 }
 
-export type ISuggestion = IBaseSuggestion | IWikiSuggestion;
+export type ISuggestion = ITextSuggestion | IWikiSuggestion;
 
-export interface IBaseSuggestion {
-  type: "BASE_SUGGESTION";
-  replacements: string[];
+export interface ITextSuggestion {
+  type: "TEXT_SUGGESTION";
+  text: string;
 }
 
 export interface IWikiSuggestion {
   type: "WIKI_SUGGESTION";
-  replacements: Array<{
-    title: string;
-    description: string;
-    thumbnail: string;
-    relevance: number;
-  }>;
+  title: string;
+  text: string;
+  score: number;
 }
 
 export interface IValidationError {

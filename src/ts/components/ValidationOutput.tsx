@@ -1,20 +1,19 @@
 import { Component, h } from "preact";
-import { IValidationOutput, ISuggestion } from "../interfaces/IValidation";
+import { IValidationOutput } from "../interfaces/IValidation";
 import { ApplySuggestionOptions } from "../commands";
-import WikiSuggestion from "./WikiSuggestion";
+import Suggestion from "./Suggestion";
 
-type IValidationOutputProps<TValidationOutput extends IValidationOutput> = {
+interface IValidationOutputProps<TValidationOutput extends IValidationOutput> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
-} & TValidationOutput;
+  validationOutput: TValidationOutput;
+}
 
 class ValidationOutput<
   TValidationOutput extends IValidationOutput
 > extends Component<IValidationOutputProps<TValidationOutput>> {
-  public ref: HTMLDivElement;
+  public ref: HTMLDivElement | undefined;
   public render({
-    category,
-    annotation,
-    suggestions,
+    validationOutput: { id, category, annotation, suggestions },
     applySuggestions
   }: IValidationOutputProps<TValidationOutput>) {
     return (
@@ -29,43 +28,18 @@ class ValidationOutput<
           <div className="ValidationWidget__annotation">{annotation}</div>
           {suggestions && applySuggestions && (
             <div className="ValidationWidget__suggestion-list">
-              {this.renderSuggestion(suggestions)}
+              {suggestions.map(suggestion => (
+                <Suggestion
+                  validationId={id}
+                  suggestion={suggestion}
+                  applySuggestions={applySuggestions}
+                />
+              ))}
             </div>
           )}
         </div>
       </div>
     );
-  }
-
-  private renderSuggestion(suggestion: ISuggestion) {
-    switch (suggestion.type) {
-      case "BASE_SUGGESTION": {
-        return suggestion.replacements.map((replacement, index) => (
-          <div
-            class="ValidationWidget__suggestion"
-            onClick={() =>
-              this.props.applySuggestions &&
-              this.props.applySuggestions([
-                {
-                  validationId: this.props.id,
-                  suggestionIndex: index
-                }
-              ])
-            }
-          >
-            {replacement}
-          </div>
-        ));
-      }
-      case "WIKI_SUGGESTION": {
-        return (
-          <WikiSuggestion
-            {...suggestion}
-            applySuggestions={this.props.applySuggestions}
-          />
-        );
-      }
-    }
   }
 }
 

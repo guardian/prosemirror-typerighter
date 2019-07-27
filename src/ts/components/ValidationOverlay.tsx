@@ -72,7 +72,7 @@ class ValidationOverlay<
         >
           <ValidationOutput
             ref={_ => (this.decorationRef = _)}
-            {...validationOutput}
+            validationOutput={validationOutput}
             applySuggestions={this.props.applySuggestions}
           />
         </div>
@@ -115,12 +115,12 @@ class ValidationOverlay<
 
     const maxLeft = this.props.containerElement
       ? this.props.containerElement.clientWidth -
-        this.decorationRef.ref.offsetWidth
+        this.decorationRef.ref!.offsetWidth
       : Infinity;
 
     const maxTop = this.props.containerElement
       ? this.props.containerElement.clientHeight -
-        this.decorationRef.ref.offsetHeight
+        this.decorationRef.ref!.offsetHeight
       : Infinity;
 
     return {

@@ -8,11 +8,37 @@ $validation-debug-color-inflight: #31a72085;
 $validation-suggestion-background-color: #fff;
 $validation-suggestion-color: #999;
 $validation-suggestion-color-hover: #f1f1f1;
+$validation-suggestion-wiki-extract-height: 86px;
+
+// Mixins
+@mixin placeholderAnimation {
+  overflow: hidden;
+  &::before {
+    content: " ";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 1;
+    width: 500%;
+    margin-left: -250%;
+    animation: placeholderAnimation 0.8s linear infinite;
+    background: linear-gradient(
+        to right,
+        rgba(#fff, 0) 46%,
+        rgba(#fff, 0.35) 50%,
+        rgba(#fff, 0) 54%
+      )
+      50% 50%;
+  }
+}
 
 // Imports
 @import "./ValidationControls.scss";
 @import "./ValidationSidebar.scss";
 @import "./ValidationSidebarOutput.scss";
+@import "./Suggestion.scss";
 
 .Button {
   padding: 1px 4px;
@@ -48,7 +74,7 @@ $validation-suggestion-color-hover: #f1f1f1;
   width: 200px;
   transition: opacity 0.1s, transform 0.1s;
   transform: translate3d(0, -3px, 0);
-  z-index: 1;
+  z-index: 100;
   overflow: hidden;
 }
 
@@ -94,7 +120,6 @@ $validation-suggestion-color-hover: #f1f1f1;
   display: block;
   padding: $gutter-width;
   cursor: pointer;
-  color: $validation-color;
   font-weight: 700;
   font-size: 16px;
   color: $validation-suggestion-color;

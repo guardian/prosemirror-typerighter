@@ -172,7 +172,7 @@ export const applyValidationErrorCommand = (
 
 export type ApplySuggestionOptions = Array<{
   validationId: string;
-  suggestionIndex: number;
+  text: string;
 }>;
 
 /**
@@ -186,13 +186,16 @@ export const applySuggestionsCommand = <
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const outputsAndSuggestions = suggestionOptions
-    .map(opt =>
-      selectSuggestionAndRange(
-        pluginState,
-        opt.validationId,
-        opt.suggestionIndex
-      )
-    )
+    .map(opt => {
+      const validation = selectValidationById(pluginState, opt.validationId);
+      return validation
+        ? {
+            from: validation.from,
+            to: validation.to,
+            text: opt.text
+          }
+        : undefined;
+    })
     .filter(compact);
 
   if (!outputsAndSuggestions.length) {
@@ -201,8 +204,8 @@ export const applySuggestionsCommand = <
 
   if (dispatch) {
     const tr = state.tr;
-    outputsAndSuggestions.forEach(({ from, to, suggestion }) =>
-      tr.replaceWith(from, to, state.schema.text(suggestion))
+    outputsAndSuggestions.forEach(({ from, to, text }) =>
+      tr.replaceWith(from, to, state.schema.text(text))
     );
     dispatch(tr);
   }

@@ -3,6 +3,7 @@ import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
+import Suggestion from "./Suggestion";
 
 interface IProps {
   output: IValidationOutput;
@@ -72,21 +73,13 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
           <div className="ValidationSidebarOutput__content">
             {output.suggestions && (
               <div className="ValidationSidebarOutput__suggestion-list">
-                {/* {output.suggestions && output.suggestions.replacements.map((suggestion, suggestionIndex) => (
-                  <div
-                    class="ValidationWidget__suggestion"
-                    onClick={() =>
-                      applySuggestions([
-                        {
-                          validationId: output.id,
-                          suggestionIndex
-                        }
-                      ])
-                    }
-                  >
-                    {suggestion}
-                  </div>
-                ))} */}
+                {output.suggestions.map(suggestion => (
+                  <Suggestion
+                    validationId={output.id}
+                    suggestion={suggestion}
+                    applySuggestions={applySuggestions}
+                  />
+                ))}
               </div>
             )}
           </div>
