@@ -1,7 +1,7 @@
 import { Component, h } from "preact";
 import { IValidationOutput } from "../interfaces/IValidation";
 import { ApplySuggestionOptions } from "../commands";
-import Suggestion from "./Suggestion";
+import SuggestionList from "./SuggestionList";
 
 interface IValidationOutputProps<TValidationOutput extends IValidationOutput> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
@@ -28,13 +28,11 @@ class ValidationOutput<
           <div className="ValidationWidget__annotation">{annotation}</div>
           {suggestions && applySuggestions && (
             <div className="ValidationWidget__suggestion-list">
-              {suggestions.map(suggestion => (
-                <Suggestion
-                  validationId={id}
-                  suggestion={suggestion}
-                  applySuggestions={applySuggestions}
-                />
-              ))}
+              <SuggestionList
+                applySuggestions={applySuggestions}
+                validationId={id}
+                suggestions={suggestions}
+              />
             </div>
           )}
         </div>

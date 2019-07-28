@@ -4,6 +4,7 @@ import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
 import Suggestion from "./Suggestion";
+import SuggestionList from "./SuggestionList";
 
 interface IProps {
   output: IValidationOutput;
@@ -73,13 +74,11 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
           <div className="ValidationSidebarOutput__content">
             {output.suggestions && (
               <div className="ValidationSidebarOutput__suggestion-list">
-                {output.suggestions.map(suggestion => (
-                  <Suggestion
-                    validationId={output.id}
-                    suggestion={suggestion}
-                    applySuggestions={applySuggestions}
-                  />
-                ))}
+                <SuggestionList
+                  applySuggestions={applySuggestions}
+                  validationId={output.id}
+                  suggestions={output.suggestions}
+                />
               </div>
             )}
           </div>
