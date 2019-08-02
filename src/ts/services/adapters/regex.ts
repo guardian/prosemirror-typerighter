@@ -1,5 +1,8 @@
 import v4 from "uuid/v4";
-import { IValidationInput, IValidationOutput } from "../interfaces/IValidation";
+import {
+  IValidationInput,
+  IValidationOutput
+} from "../../interfaces/IValidation";
 
 /**
  * An example adapter that applies a regex to find three letter words in the document.
@@ -17,9 +20,18 @@ const regexAdapter = async (input: IValidationInput) => {
       inputString: result[0],
       annotation:
         "This word has three letters. Consider a larger, grander word.",
-      type: "3 letter word",
       id: v4(),
-      suggestions: ["replace", "with", "grand", "word"]
+      category: {
+        id: "word-length",
+        name: "Word length",
+        colour: "teal"
+      },
+      suggestions: [
+        { text: "replace", type: "TEXT_SUGGESTION" },
+        { text: "with", type: "TEXT_SUGGESTION" },
+        { text: "grand", type: "TEXT_SUGGESTION" },
+        { text: "word", type: "TEXT_SUGGESTION" }
+      ]
     });
   }
   // tslint:disable-next-line no-conditional-assignment
@@ -30,9 +42,18 @@ const regexAdapter = async (input: IValidationInput) => {
       inputString: result[0],
       annotation:
         "This word has six letters. Consider a smaller, less fancy word.",
-      type: "6 letter word",
       id: input.id,
-      suggestions: ["replace", "with", "bijou", "word"]
+      category: {
+        id: "word-length",
+        name: "Word length",
+        colour: "teal"
+      },
+      suggestions: [
+        { text: "replace", type: "TEXT_SUGGESTION" },
+        { text: "with", type: "TEXT_SUGGESTION" },
+        { text: "bijou", type: "TEXT_SUGGESTION" },
+        { text: "word", type: "TEXT_SUGGESTION" }
+      ]
     });
   }
 

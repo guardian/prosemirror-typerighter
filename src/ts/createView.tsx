@@ -6,6 +6,7 @@ import ValidationSidebar from "./components/ValidationSidebar";
 import ValidationControls from "./components/ValidationControls";
 import { Commands } from "./commands";
 import { IValidationOutput } from "./interfaces/IValidation";
+import { ValidationService } from ".";
 
 /**
  * Scaffolding for an example view.
@@ -13,6 +14,7 @@ import { IValidationOutput } from "./interfaces/IValidation";
 const createView = (
   view: EditorView,
   store: Store<IValidationOutput>,
+  validationService: ValidationService<IValidationOutput>,
   commands: Commands,
   sidebarNode: Element,
   controlsNode: Element
@@ -55,6 +57,10 @@ const createView = (
       setDebugState={commands.setDebugState}
       setValidateOnModifyState={commands.setValidateOnModifyState}
       validateDocument={commands.validateDocument}
+      fetchCategories={validationService.fetchCategories}
+      getCurrentCategories={validationService.getCurrentCategories}
+      addCategory={validationService.addCategory}
+      removeCategory={validationService.removeCategory}
     />,
     controlsNode
   );

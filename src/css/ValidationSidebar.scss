@@ -11,7 +11,7 @@
   flex-direction: column;
   background-color: white;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid $sidebar-border-color;
   margin: 0 $gutter-width / 2;
   max-height: 100%;
 }
@@ -23,7 +23,7 @@
 .Sidebar__header {
   display: flex;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid $sidebar-border-color;
   padding: $gutter-width $gutter-width/2;
   font-weight: 500;
   justify-content: space-between;
@@ -77,7 +77,7 @@
 }
 
 .Sidebar__list-item + .Sidebar__list-item {
-  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid $sidebar-border-color;
 }
 
 .Sidebar__loading-spinner {

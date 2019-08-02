@@ -2,17 +2,15 @@
  * @module createValidationPlugin
  */
 
-import { IValidationInput, IValidationOutput } from "./IValidation";
+import { IValidationInput, IValidationOutput, ICategory } from "./IValidation";
 
 /**
  * @internal
  */
-export type IValidationAPIAdapter<TValidationOutput = IValidationOutput> = (
-  input: IValidationInput
-) => Promise<TValidationOutput[]>;
-
-type IValidationAPIAdapterCreator<TValidationMeta = IValidationOutput> = (
-  apiUrl: string
-) => IValidationAPIAdapter<TValidationMeta>;
-
-export default IValidationAPIAdapterCreator;
+export interface IValidationAPIAdapter<TValidationOutput = IValidationOutput> {
+  fetchValidationOutputs: (
+    input: IValidationInput,
+    categoryIds?: string[]
+  ) => Promise<TValidationOutput[]>;
+  fetchCategories: () => Promise<ICategory[]>;
+}

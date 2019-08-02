@@ -55,8 +55,15 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new ValidationService(
     store,
     commands,
-    createTyperighterAdapter("http://localhost:9000/check")
+    createTyperighterAdapter("http://localhost:9000")
   );
   (window as any).editor = view;
-  createView(view, store, commands, sidebarElement, controlsElement);
+  createView(
+    view,
+    store,
+    validationService,
+    commands,
+    sidebarElement,
+    controlsElement
+  );
 }

@@ -1,42 +1,64 @@
 import v4 from "uuid/v4";
-import { IValidationInput } from "../interfaces/IValidation";
-import IValidationAPIAdapter from "../interfaces/IValidationAPIAdapter";
+import { IValidationInput, ICategory } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
+
+const checkPath = "check";
+const categoriesPath = "categories";
 
 /**
  * An adapter for the Typerighter service.
  */
-const createTyperighterAdapter: IValidationAPIAdapter = (
-  apiUrl: string
-) => async (input: IValidationInput) => {
-  const id = v4()
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: new Headers({
-      "Content-Type": "application/json"
-    }),
-    body: JSON.stringify({
-      id,
+const createTyperighterAdapter = (apiUrl: string) => ({
+  fetchValidationOutputs: async (
+    input: IValidationInput,
+    categoryIds?: string[]
+  ) => {
+    const body: { text: string; categoryIds?: string[] } = {
       text: input.inputString
-    })
-  });
-  if (response.status !== 200) {
-    throw new Error(
-      `Error fetching validations. The server responded with status code ${
-        response.status
-      }: ${response.statusText}`
-    );
+    };
+    if (categoryIds && categoryIds.length) {
+      body.categoryIds = categoryIds;
+    }
+    const response = await fetch(`${apiUrl}/${checkPath}`, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json"
+      }),
+      body: JSON.stringify(body)
+    });
+    if (response.status !== 200) {
+      throw new Error(
+        `Error fetching validations. The server responded with status code ${
+          response.status
+        }: ${response.statusText}`
+      );
+    }
+    const validationData: ITypeRighterResponse = await response.json();
+    return validationData.results.map(match => ({
+      id: v4(),
+      inputString: input.inputString,
+      from: input.from + match.fromPos,
+      to: input.from + match.toPos,
+      annotation: match.shortMessage,
+      category: match.rule.category,
+      suggestions: match.suggestions
+    }));
+  },
+  fetchCategories: async () => {
+    const response = await fetch(`${apiUrl}/${categoriesPath}`, {
+      headers: new Headers({
+        "Content-Type": "application/json"
+      })
+    });
+    if (response.status !== 200) {
+      throw new Error(
+        `Error fetching categories. The server responded with status code ${
+          response.status
+        }: ${response.statusText}`
+      );
+    }
+    return await response.json();
   }
-  const validationData: ITypeRighterResponse = await response.json();
-  return validationData.results.map(match => ({
-    id,
-    inputString: input.inputString,
-    from: input.from + match.fromPos,
-    to: input.from + match.toPos,
-    annotation: match.shortMessage,
-    category: match.rule.category,
-    suggestions: match.suggestions
-  }));
-};
+});
 
 export default createTyperighterAdapter;

@@ -1,4 +1,8 @@
-import { IValidationInput, IValidationOutput } from "../interfaces/IValidation";
+import {
+  IValidationInput,
+  IValidationOutput,
+  ICategory
+} from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
 import Store, {
   STORE_EVENT_NEW_VALIDATION,
@@ -15,8 +19,9 @@ import { selectValidationsInFlight } from "../state";
 class ValidationService<TValidationOutput extends IValidationOutput> {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
+  private currentCategories = [] as ICategory[];
+  private allCategories = [] as ICategory[];
   private validationPending = false;
-
   constructor(
     private store: Store<TValidationOutput>,
     private commands: Commands,
@@ -37,24 +42,39 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
   }
 
   /**
-   * Request a validation. If we already have validations in flight,
-   * defer it until the next throttle window.
+   * Get all of the available categories from the validation service.
+   * @param validationInput
    */
-  public requestValidation() {
-    this.validationPending = false;
-    const pluginState = this.store.getState();
-    if (!pluginState || selectValidationsInFlight(pluginState).length) {
-      return this.scheduleValidation();
+  public fetchCategories = async () => {
+    this.allCategories = await this.adapter.fetchCategories();
+    return this.allCategories;
+  };
+
+  public getCurrentCategories = () => this.currentCategories;
+
+  public addCategory = (categoryId: string) => {
+    const category = this.allCategories.find(_ => _.id === categoryId);
+    if (!category) {
+      return;
     }
-    this.commands.validateDirtyRangesCommand();
-  }
+    this.currentCategories.push(category);
+  };
+
+  public removeCategory = (categoryId: string) => {
+    this.currentCategories = this.currentCategories.filter(
+      _ => _.id !== categoryId
+    );
+  };
 
   /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
   public async validate(validationInput: IValidationInput) {
     try {
-      const validationOutputs = await this.adapter(validationInput);
+      const validationOutputs = await this.adapter.fetchValidationOutputs(
+        validationInput,
+        this.currentCategories.map(_ => _.id)
+      );
       this.commands.applyValidationResult({
         validationOutputs,
         validationInput
@@ -69,6 +89,19 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
         message: e.message
       };
     }
+  }
+
+  /**
+   * Request a validation. If we already have validations in flight,
+   * defer it until the next throttle window.
+   */
+  private requestValidation() {
+    this.validationPending = false;
+    const pluginState = this.store.getState();
+    if (!pluginState || selectValidationsInFlight(pluginState).length) {
+      return this.scheduleValidation();
+    }
+    this.commands.validateDirtyRangesCommand();
   }
 
   /**

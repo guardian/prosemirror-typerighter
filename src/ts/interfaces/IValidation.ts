@@ -10,15 +10,17 @@ export interface IValidationInput {
   to: number;
 }
 
+export interface ICategory {
+  id: string;
+  name: string;
+  colour: string;
+}
+
 export interface IValidationOutput<TSuggestion = ISuggestion>
   extends IValidationInput {
   id: string;
   annotation: string;
-  category: {
-    id: string;
-    name: string;
-    colour: string;
-  };
+  category: ICategory;
   suggestions?: TSuggestion[];
 }
 
