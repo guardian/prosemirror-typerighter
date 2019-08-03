@@ -77,15 +77,10 @@ const createValidatorPlugin = <TValidationMeta extends IValidationOutput>(
       const newPluginState: TPluginState = plugin.getState(newState);
       const tr = newState.tr;
 
-      // If we're validating when the document is modified, check for dirted
-      // ranges and update the state accordingly.
-      const newDirtiedRanges = newPluginState.validateOnModify
-        ? trs.reduce(
-            (acc, range) =>
-              acc.concat(getReplaceStepRangesFromTransaction(range)),
-            [] as IRange[]
-          )
-        : [];
+      const newDirtiedRanges = trs.reduce(
+        (acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)),
+        [] as IRange[]
+      );
       if (newDirtiedRanges.length) {
         // We wait a tick here, as applyNewDirtiedRanges must run
         // before the newly dirtied range is available in the state.
