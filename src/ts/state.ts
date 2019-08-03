@@ -537,14 +537,28 @@ const handleValidationRequestSuccess = <
     return state;
   }
 
-  let currentValidations: TValidationOutput[] = getCurrentValidationsFromValidationResponse<
+  // Remove any validations and decorations that are touching the
+  // validated range -- they've been superseded.
+  let currentValidations: TValidationOutput[] = removeOverlappingRanges(
+    state.currentValidations,
+    state.validationsInFlight.map(_ => _.validationInput)
+  );
+  const decsToRemove = state.validationsInFlight.reduce(
+    (decs, { validationInput: { from, to } }) =>
+      decs.concat(state.decorations.find(from, to)),
+    [] as Decoration[]
+  );
+
+  // Add the response to the current validations
+  currentValidations = getCurrentValidationsFromValidationResponse<
     TValidationOutput
   >(
     validationInFlight.validationInput,
     response.validationOutputs,
-    state.currentValidations,
+    currentValidations,
     validationInFlight.mapping
   );
+
   // We don't apply incoming validations to ranges that have
   // been dirtied since they were requested.
   currentValidations = removeOverlappingRanges(
@@ -560,7 +574,7 @@ const handleValidationRequestSuccess = <
   );
 
   // Ditch any decorations marking inflight validations
-  const decsToRemove = state.debug
+  const debugDecsToRemove = state.debug
     ? state.decorations.find(
         undefined,
         undefined,
@@ -572,7 +586,7 @@ const handleValidationRequestSuccess = <
     ...state,
     validationsInFlight: without(state.validationsInFlight, validationInFlight),
     currentValidations,
-    decorations: decorations.remove(decsToRemove)
+    decorations: decorations.remove(debugDecsToRemove).remove(decsToRemove)
   };
 };
 

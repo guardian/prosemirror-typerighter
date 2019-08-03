@@ -7,7 +7,8 @@ import {
   selectNewValidationInFlight,
   applyNewDirtiedRanges,
   selectSuggestionAndRange,
-  validationRequestForDocument
+  validationRequestForDocument,
+  IPluginState
 } from "../state";
 import {
   newHoverIdReceived,
@@ -62,6 +63,22 @@ const createInitialData = (initialDoc = initialDocToValidate, time = 0) => {
       validationPending: false,
       error: undefined
     }
+  };
+};
+
+const addOutputsToState = (
+  state: IPluginState<IValidationOutput>,
+  doc: any,
+  outputs: IValidationOutput[]
+) => {
+  const decorations = outputs.reduce(
+    (set, output) => set.add(doc, createDecorationForValidationRange(output)),
+    new DecorationSet()
+  );
+  return {
+    ...state,
+    currentValidations: outputs,
+    decorations
   };
 };
 
@@ -171,7 +188,7 @@ describe("State management", () => {
       });
     });
     describe("validationRequestSuccess", () => {
-      it("shouldn't do anything if there's nothing in the response", () => {
+      it("shouldn't do anything if there's nothing in the response and nothing to clean up", () => {
         const { state, tr } = createInitialData();
         expect(
           reducer(
@@ -216,48 +233,43 @@ describe("State management", () => {
           )
         ).toMatchSnapshot();
       });
-      it("should remove decorations that no longer apply to the validated range", () => {
-        const { state, tr } = createInitialData();
+      it("should remove previous validations & decorations that no longer apply to the validated range", () => {
+        const { state: initialState, tr } = createInitialData();
         const validationInput = createValidationInput(
           0,
-          26,
+          15,
           "Example text to validate"
         );
-        const validationOutput = createValidationOutput(1, 7, "Example");
-        const incomingValidationOutput = createValidationOutput(
-          5,
-          10,
-          "Example text to validate"
-        );
-        expect(
-          reducer(
-            tr,
+        const state = {
+          ...initialState,
+          validationsInFlight: [
             {
-              ...state,
-              validationsInFlight: [
-                {
-                  mapping: new Mapping(),
-                  validationInput
-                }
-              ],
-              currentValidations: [validationOutput],
-              decorations: new DecorationSet().add(
-                initialDocToValidate,
-                createDecorationForValidationRange(validationOutput)
-              )
-            },
-            validationRequestSuccess({
-              validationOutputs: [incomingValidationOutput],
+              mapping: new Mapping(),
               validationInput
-            })
+            }
+          ]
+        };
+        const validationOutput1 = createValidationOutput(1, 7, "Example");
+        const validationOutput2 = createValidationOutput(17, 25, "validate");
+        const newState = reducer(
+          tr,
+          addOutputsToState(state, tr.doc, [
+            validationOutput1,
+            validationOutput2
+          ]),
+          validationRequestSuccess({
+            validationOutputs: [],
+            validationInput
+          })
+        );
+
+        expect(newState.currentValidations).toEqual([validationOutput2]);
+        expect(newState.decorations).toEqual(
+          new DecorationSet().add(
+            tr.doc,
+            createDecorationForValidationRange(validationOutput2)
           )
-        ).toMatchObject({
-          currentValidations: [incomingValidationOutput],
-          decorations: new DecorationSet().add(
-            initialDocToValidate,
-            createDecorationForValidationRange(incomingValidationOutput)
-          )
-        });
+        );
       });
       it("should not apply validations if the ranges they apply to have since been dirtied", () => {
         const { state, tr } = createInitialData(initialDocToValidate, 1337);
@@ -354,9 +366,9 @@ describe("State management", () => {
           inputString: "Example",
           annotation: "Annotation",
           category: {
-            id: '1',
-            name: 'cat',
-            colour: 'eeeeee'
+            id: "1",
+            name: "cat",
+            colour: "eeeeee"
           },
           id: "exampleHoverId"
         };
@@ -386,9 +398,9 @@ describe("State management", () => {
           annotation: "Annotation",
           id: "exampleHoverId",
           category: {
-            id: '1',
-            name: 'cat',
-            colour: 'eeeeee'
+            id: "1",
+            name: "cat",
+            colour: "eeeeee"
           }
         };
         const localState = {
@@ -421,10 +433,10 @@ describe("State management", () => {
             inputString: "Example",
             annotation: "Annotation",
             category: {
-              id: '1',
-              name: 'cat',
-              colour: 'eeeeee'
-            },
+              id: "1",
+              name: "cat",
+              colour: "eeeeee"
+            }
           }
         ];
         const stateWithCurrentValidationsAndDecorations = {
@@ -462,9 +474,9 @@ describe("State management", () => {
               annotation: "example",
               suggestions: [],
               category: {
-                id: '1',
-                name: 'cat',
-                colour: 'eeeeee'
+                id: "1",
+                name: "cat",
+                colour: "eeeeee"
               },
               id: "exampleId"
             }
@@ -630,12 +642,18 @@ describe("State management", () => {
             id: "id",
             from: 0,
             to: 5,
-            suggestions: ["example", "suggestion"],
+            suggestions: [
+              { type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION", text: "example" },
+              {
+                type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION",
+                text: "suggestion"
+              }
+            ],
             annotation: "Annotation",
             category: {
-              id: '1',
-              name: 'cat',
-              colour: 'eeeeee'
+              id: "1",
+              name: "cat",
+              colour: "eeeeee"
             },
             inputString: "hai"
           }
@@ -658,12 +676,18 @@ describe("State management", () => {
             id: "id",
             from: 0,
             to: 5,
-            suggestions: ["example", "suggestion"],
+            suggestions: [
+              { type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION", text: "example" },
+              {
+                type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION",
+                text: "suggestion"
+              }
+            ],
             annotation: "Annotation",
             category: {
-              id: '1',
-              name: 'cat',
-              colour: 'eeeeee'
+              id: "1",
+              name: "cat",
+              colour: "eeeeee"
             },
             inputString: "hai"
           }
@@ -677,7 +701,14 @@ describe("State management", () => {
             "id",
             0
           )
-        ).toEqual({ from: 0, to: 5, suggestion: "example" });
+        ).toEqual({
+          from: 0,
+          to: 5,
+          suggestion: {
+            type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION",
+            text: "example"
+          }
+        });
         expect(
           selectSuggestionAndRange(
             {
@@ -687,7 +718,14 @@ describe("State management", () => {
             "id",
             1
           )
-        ).toEqual({ from: 0, to: 5, suggestion: "suggestion" });
+        ).toEqual({
+          from: 0,
+          to: 5,
+          suggestion: {
+            type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION",
+            text: "suggestion"
+          }
+        });
       });
     });
   });
