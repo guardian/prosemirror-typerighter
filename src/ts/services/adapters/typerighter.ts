@@ -13,7 +13,9 @@ const createTyperighterAdapter = (apiUrl: string) => ({
     input: IValidationInput,
     categoryIds?: string[]
   ) => {
-    const body: { text: string; categoryIds?: string[] } = {
+    const id = v4()
+    const body: { text: string; id: string, categoryIds?: string[] } = {
+      id,
       text: input.inputString
     };
     if (categoryIds && categoryIds.length) {
@@ -35,7 +37,7 @@ const createTyperighterAdapter = (apiUrl: string) => ({
     }
     const validationData: ITypeRighterResponse = await response.json();
     return validationData.results.map(match => ({
-      id: v4(),
+      id,
       inputString: input.inputString,
       from: input.from + match.fromPos,
       to: input.from + match.toPos,
