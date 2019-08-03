@@ -26,7 +26,7 @@ const Suggestion = ({
     case "TEXT_SUGGESTION": {
       return (
         <div class="ValidationWidget__suggestion" onClick={boundApplySuggestions}>
-          {suggestion}
+          {suggestion.text}
         </div>
       );
     }

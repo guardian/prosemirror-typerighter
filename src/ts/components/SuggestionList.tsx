@@ -20,18 +20,22 @@ const SuggestionList = ({
   const otherSuggestions = suggestions.slice(1);
   return (
     <div className="ValidationSidebarOutput__suggestion-list">
-      {!suggestions.length && <p>No suggestions found.</p>}
-      <Suggestion
-        validationId={validationId}
-        suggestion={firstSuggestion}
-        applySuggestions={applySuggestions}
-      />
-	  {!!otherSuggestions.length && (
+      {!suggestions.length ? (
+        <p>No suggestions found.</p>
+      ) : (
+        <Suggestion
+          validationId={validationId}
+          suggestion={firstSuggestion}
+          applySuggestions={applySuggestions}
+        />
+      )}
+      {!!otherSuggestions.length && (
         <div
           className="Button SuggestionList__see-more"
           onClick={() => setIsOpen(!isOpen)}
         >
-          See {!isOpen ? 'more' : 'fewer'} suggestions ({otherSuggestions.length})
+          See {!isOpen ? "more" : "fewer"} suggestions (
+          {otherSuggestions.length})
         </div>
       )}
       {isOpen && (
