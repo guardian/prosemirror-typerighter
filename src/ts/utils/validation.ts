@@ -6,6 +6,9 @@ export const createValidationInput = (tr: Transaction, range: IRange) => {
   return {
     inputString,
     ...range,
-    id: `${tr.time}-from:${range.from}-to:${range.to}`
+    validationId: createValidationId(tr.time, range.from, range.to)
   };
 };
+
+export const createValidationId = (time: number, from: number, to: number) =>
+  `${time}-from:${from}-to:${to}`;

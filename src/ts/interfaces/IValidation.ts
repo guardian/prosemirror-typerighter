@@ -4,7 +4,7 @@ export interface IRange {
 }
 
 export interface IValidationInput {
-  id: string;
+  validationId: string;
   inputString: string;
   from: number;
   to: number;
@@ -18,7 +18,7 @@ export interface ICategory {
 
 export interface IValidationOutput<TSuggestion = ISuggestion>
   extends IValidationInput {
-  id: string;
+  validationId: string;
   annotation: string;
   category: ICategory;
   suggestions?: TSuggestion[];
@@ -39,7 +39,10 @@ export interface IWikiSuggestion {
 }
 
 export interface IValidationError {
-  validationInput: IValidationInput;
+  validationSetId: string;
+  // If we have an id, we can link the error to a specific validation.
+  // If not, we treat the error as nonspecific.
+  validationId?: string;
   message: string;
 }
 
@@ -47,7 +50,8 @@ export interface IValidationResponse<
   TValidationOutput extends IValidationOutput = IValidationOutput
 > {
   validationOutputs: TValidationOutput[];
-  validationInput: IValidationInput;
+  validationId: string;
+  validationSetId: string;
 }
 
 export type IValidationLibrary = Array<

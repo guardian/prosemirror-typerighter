@@ -28,30 +28,39 @@ interface IWikiArticleSummary {
   thumbnail?: IWikiThumbnail;
 }
 
-const WikiSuggestion: FunctionalComponent<IProps> = ({ text, title, applySuggestion }) => {
+const WikiSuggestion: FunctionalComponent<IProps> = ({
+  text,
+  title,
+  applySuggestion
+}) => {
   const [article, setArticle] = useState(undefined as
     | IWikiArticleSummary
     | undefined);
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState(undefined as undefined | string);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        setArticle(await fetchWikiData(title));
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [text]);
+  useEffect(
+    () => {
+      (async () => {
+        setLoading(true);
+        try {
+          setArticle(await fetchWikiData(title));
+        } catch (e) {
+          setError(e.message);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    },
+    [text]
+  );
 
   return (
     <div class="WikiSuggestion__container">
       <div class="WikiSuggestion__text">
-        <div class="WikiSuggestion__suggestion" onClick={applySuggestion}>{text}</div>
+        <div class="WikiSuggestion__suggestion" onClick={applySuggestion}>
+          {text}
+        </div>
         {article && (
           <Fragment>
             <div class="WikiSuggestion__extract">
@@ -73,7 +82,9 @@ const WikiSuggestion: FunctionalComponent<IProps> = ({ text, title, applySuggest
           "WikiSuggestion__thumbnail--placeholder"}`}
         style={{
           backgroundImage:
-            article && article.thumbnail && `url(${article.thumbnail.source})`
+            article && article.thumbnail
+              ? `url(${article.thumbnail.source})`
+              : ""
         }}
       />
       {error ? <p>Error: {error}</p> : null}

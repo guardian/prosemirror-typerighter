@@ -15,7 +15,7 @@ import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import ValidationService from "../src/ts/services/ValidationAPIService";
-import createTyperighterAdapter from "../src/ts/services/adapters/typerighter";
+import TyperighterWSAdapter from "../src/ts/services/adapters/typerighterWs";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -55,7 +55,7 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new ValidationService(
     store,
     commands,
-    createTyperighterAdapter("http://localhost:9000")
+    new TyperighterWSAdapter("localhost:9000")
   );
   (window as any).editor = view;
   createView(

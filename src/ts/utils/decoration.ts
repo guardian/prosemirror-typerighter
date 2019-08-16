@@ -2,7 +2,6 @@ import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { IRange, IValidationOutput } from "../interfaces/IValidation";
-import { IPluginState } from "../state";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
@@ -48,7 +47,7 @@ export const removeDecorationsFromRanges = (
   types = [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]
 ) =>
   ranges.reduce((acc, range) => {
-    const predicate = (spec: { type: string; [key: string]: any }) =>
+    const predicate = (spec: { [key: string]: any }) =>
       types.indexOf(spec.type) !== -1;
     const decorations = decorationSet.find(range.from, range.to, predicate);
     if (!decorations.length) {
@@ -110,7 +109,9 @@ export const createDecorationForValidationRange = (
         DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
-  const style = `background-color: #${output.category.colour}07; border-bottom: 2px solid #${output.category.colour}`;
+  const style = `background-color: #${
+    output.category.colour
+  }07; border-bottom: 2px solid #${output.category.colour}`;
   const decorationArray = [
     Decoration.inline(
       output.from,
@@ -118,11 +119,11 @@ export const createDecorationForValidationRange = (
       {
         class: className,
         style,
-        [DECORATION_ATTRIBUTE_ID]: output.id
+        [DECORATION_ATTRIBUTE_ID]: output.validationId
       } as any,
       {
         type: DECORATION_VALIDATION,
-        id: output.id,
+        id: output.validationId,
         inclusiveStart: true
       } as any
     )
@@ -130,9 +131,9 @@ export const createDecorationForValidationRange = (
   return addHeightMarker
     ? [
         ...decorationArray,
-        Decoration.widget(output.from, createHeightMarkerElement(output.id), {
+        Decoration.widget(output.from, createHeightMarkerElement(output.validationId), {
           type: DECORATION_VALIDATION_HEIGHT_MARKER,
-          id: output.id
+          id: output.validationId
         } as any)
       ]
     : decorationArray;
@@ -143,10 +144,10 @@ export const createDecorationsForValidationRanges = (
 ) => flatten(ranges.map(_ => createDecorationForValidationRange(_)));
 
 export const findSingleDecoration = (
-  state: IPluginState,
+  decorationSet: DecorationSet,
   predicate: (spec: any) => boolean
 ): Decoration | undefined => {
-  const decorations = state.decorations.find(undefined, undefined, predicate);
+  const decorations = decorationSet.find(undefined, undefined, predicate);
   if (!decorations[0]) {
     return undefined;
   }

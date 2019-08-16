@@ -8,7 +8,9 @@ import {
   applyNewDirtiedRanges,
   selectSuggestionAndRange,
   validationRequestForDocument,
-  IPluginState
+  IPluginState,
+  selectValidationsInFlightForSet,
+  selectPercentRemaining
 } from "../state";
 import {
   newHoverIdReceived,
@@ -22,15 +24,19 @@ import {
   createDebugDecorationFromRange,
   getNewDecorationsForCurrentValidations,
   createDecorationForValidationRange
-} from "../utils/decoration";
-import { expandRangesToParentBlockNode } from "../utils/range";
-import { createDoc, p } from "./helpers/prosemirror";
+} from "../../utils/decoration";
+import { expandRangesToParentBlockNode } from "../../utils/range";
+import { createDoc, p } from "../../test/helpers/prosemirror";
 import { Mapping } from "prosemirror-transform";
-import { IValidationOutput } from "../interfaces/IValidation";
+import {
+  IValidationOutput,
+  IValidationInput
+} from "../../interfaces/IValidation";
 import {
   createValidationOutput,
   createValidationInput
-} from "./helpers/fixtures";
+} from "../../test/helpers/fixtures";
+import { createValidationId } from "../../utils/validation";
 
 const reducer = createValidationPluginReducer(expandRangesToParentBlockNode);
 const initialDocToValidate = createDoc(p("Example text to validate"));
@@ -48,7 +54,7 @@ const createInitialData = (initialDoc = initialDocToValidate, time = 0) => {
     tr,
     state: {
       debug: false,
-      validateOnModify: false,
+      validateOnModify: true,
       currentThrottle: 100,
       initialThrottle: 100,
       maxThrottle: 1000,
@@ -59,12 +65,13 @@ const createInitialData = (initialDoc = initialDocToValidate, time = 0) => {
       hoverId: undefined,
       hoverInfo: undefined,
       trHistory: [tr],
-      validationsInFlight: [],
+      validationsInFlight: {},
       validationPending: false,
       error: undefined
     }
   };
 };
+const validationSetId = "set-id";
 
 const addOutputsToState = (
   state: IPluginState<IValidationOutput>,
@@ -81,6 +88,20 @@ const addOutputsToState = (
     decorations
   };
 };
+
+const getValidationsInFlight = (
+  setId: string,
+  inputs: IValidationInput[],
+  total?: number
+) => ({
+  [setId]: {
+    total: total || inputs.length,
+    current: inputs.map(input => ({
+      validationInput: input,
+      mapping: new Mapping()
+    }))
+  }
+});
 
 describe("State management", () => {
   describe("Action handlers", () => {
@@ -99,19 +120,17 @@ describe("State management", () => {
     describe("validationRequestForDocument", () => {
       it("should apply dirty ranges for the entire doc", () => {
         const { state, tr } = createInitialData();
-        expect(reducer(tr, state, validationRequestForDocument())).toEqual({
-          ...state,
-          validationsInFlight: [
+        expect(
+          reducer(tr, state, validationRequestForDocument(validationSetId))
+        ).toMatchObject({
+          validationsInFlight: getValidationsInFlight(validationSetId, [
             {
-              mapping: new Mapping(),
-              validationInput: {
-                from: 1,
-                inputString: "Example text to validate",
-                to: 26,
-                id: "0-from:1-to:26"
-              }
+              from: 1,
+              inputString: "Example text to validate",
+              to: 26,
+              validationId: "0-from:1-to:26"
             }
-          ]
+          ])
         });
       });
     });
@@ -127,7 +146,7 @@ describe("State management", () => {
               dirtiedRanges: [{ from: 5, to: 10 }],
               validationPending: true
             },
-            validationRequestForDirtyRanges()
+            validationRequestForDirtyRanges(validationSetId)
           )
         ).toEqual({
           ...state,
@@ -137,54 +156,57 @@ describe("State management", () => {
             createDebugDecorationFromRange({ from: 1, to: 25 }, false)
           ]),
           validationPending: false,
-          validationsInFlight: [
+          validationsInFlight: getValidationsInFlight(validationSetId, [
             {
-              validationInput: {
-                inputString: "Example text to validate",
-                from: 1,
-                to: 25,
-                id: "0-from:1-to:25"
-              },
-              mapping: new Mapping()
+              inputString: "Example text to validate",
+              from: 1,
+              to: 25,
+              validationId: "0-from:1-to:25"
             }
-          ]
+          ])
         });
       });
       it("should remove debug decorations, if any", () => {
         const { state, tr } = createInitialData();
-        expect(
-          reducer(
-            tr,
-            {
-              ...state,
-              debug: true,
-              dirtiedRanges: [{ from: 5, to: 10 }],
-              decorations: new DecorationSet().add(tr.doc, [
-                createDebugDecorationFromRange({ from: 1, to: 3 })
-              ]),
-              validationPending: true
-            },
-            validationRequestForDirtyRanges()
-          )
-        ).toEqual({
-          ...state,
-          debug: true,
-          dirtiedRanges: [],
-          decorations: new DecorationSet().add(tr.doc, [
+        const newState = reducer(
+          tr,
+          {
+            ...state,
+            debug: true,
+            dirtiedRanges: [{ from: 5, to: 10 }],
+            decorations: new DecorationSet().add(tr.doc, [
+              createDebugDecorationFromRange({ from: 1, to: 3 })
+            ]),
+            validationPending: true
+          },
+          validationRequestForDirtyRanges("id")
+        );
+        expect(newState.decorations).toEqual(
+          new DecorationSet().add(tr.doc, [
             createDebugDecorationFromRange({ from: 1, to: 25 }, false)
-          ]),
-          validationPending: false,
-          validationsInFlight: [
-            {
-              validationInput: createValidationInput(
-                1,
-                25,
-                "Example text to validate"
-              ),
-              mapping: new Mapping()
-            }
-          ]
-        });
+          ])
+        );
+      });
+      it("should add a total to the validations in flight", () => {
+        const doc = createDoc(
+          p("Example text to validate"),
+          p("More text to validate")
+        );
+        const { state, tr } = createInitialData(doc);
+        const newState = reducer(
+          tr,
+          {
+            ...state,
+            debug: true,
+            dirtiedRanges: [{ from: 5, to: 10 }, { from: 28, to: 35 }],
+            decorations: new DecorationSet(),
+            validationPending: true
+          },
+          validationRequestForDirtyRanges("id")
+        );
+        expect(selectValidationsInFlightForSet(newState, "id")!.total).toEqual(
+          2
+        );
       });
     });
     describe("validationRequestSuccess", () => {
@@ -196,7 +218,8 @@ describe("State management", () => {
             state,
             validationRequestSuccess({
               validationOutputs: [],
-              validationInput: createValidationInput(0, 25)
+              validationId: "id-that-does-not-exist-in-state",
+              validationSetId
             })
           )
         ).toEqual(state);
@@ -208,14 +231,19 @@ describe("State management", () => {
           state,
           applyNewDirtiedRanges([{ from: 1, to: 3 }])
         );
-        localState = reducer(tr, localState, validationRequestForDirtyRanges());
+        localState = reducer(
+          tr,
+          localState,
+          validationRequestForDirtyRanges(validationSetId)
+        );
         expect(
           reducer(
             tr,
             localState,
             validationRequestSuccess({
               validationOutputs: [createValidationOutput(1, 25)],
-              validationInput: createValidationInput(1, 25)
+              validationId: createValidationId(0, 1, 25),
+              validationSetId
             })
           ).currentValidations
         ).toMatchObject([createValidationOutput(1, 25)]);
@@ -228,7 +256,8 @@ describe("State management", () => {
             state,
             validationRequestSuccess({
               validationOutputs: [createValidationOutput(5, 10)],
-              validationInput: createValidationInput(5, 10)
+              validationId: createValidationId(0, 5, 10),
+              validationSetId
             })
           )
         ).toMatchSnapshot();
@@ -242,12 +271,9 @@ describe("State management", () => {
         );
         const state = {
           ...initialState,
-          validationsInFlight: [
-            {
-              mapping: new Mapping(),
-              validationInput
-            }
-          ]
+          validationsInFlight: getValidationsInFlight(validationSetId, [
+            validationInput
+          ])
         };
         const validationOutput1 = createValidationOutput(1, 7, "Example");
         const validationOutput2 = createValidationOutput(17, 25, "validate");
@@ -259,10 +285,10 @@ describe("State management", () => {
           ]),
           validationRequestSuccess({
             validationOutputs: [],
-            validationInput
+            validationId: validationInput.validationId,
+            validationSetId
           })
         );
-
         expect(newState.currentValidations).toEqual([validationOutput2]);
         expect(newState.decorations).toEqual(
           new DecorationSet().add(
@@ -278,7 +304,11 @@ describe("State management", () => {
           state,
           applyNewDirtiedRanges([{ from: 1, to: 3 }])
         );
-        localState = reducer(tr, localState, validationRequestForDirtyRanges());
+        localState = reducer(
+          tr,
+          localState,
+          validationRequestForDirtyRanges("id")
+        );
         localState = reducer(
           tr,
           localState,
@@ -290,7 +320,8 @@ describe("State management", () => {
             localState,
             validationRequestSuccess({
               validationOutputs: [createValidationOutput(1, 3)],
-              validationInput: createValidationInput(1, 3)
+              validationId: createValidationId(0, 1, 3),
+              validationSetId
             })
           )
         ).toEqual({
@@ -303,34 +334,24 @@ describe("State management", () => {
     });
     describe("validationRequestError", () => {
       it("Should re-add the in-flight validation ranges as dirty ranges, and remove the inflight validation", () => {
-        const { state, tr } = createInitialData();
-        expect(
-          reducer(
-            tr,
-            {
-              ...state,
-              validationsInFlight: [
-                {
-                  validationInput: createValidationInput(
-                    1,
-                    25,
-                    "Example text to validate"
-                  ),
-                  mapping: new Mapping()
-                }
-              ]
-            },
-            validationRequestError({
-              validationInput: createValidationInput(
-                1,
-                25,
-                "Example text to validate"
-              ),
-              message: "Too many requests"
-            })
-          )
-        ).toEqual({
-          ...state,
+        const { state: initialState, tr } = createInitialData();
+        const state = {
+          ...initialState,
+          validationsInFlight: getValidationsInFlight(validationSetId, [
+            createValidationInput(1, 25, "Example text to validate")
+          ])
+        };
+        const newState = reducer(
+          tr,
+          state,
+          validationRequestError({
+            validationSetId,
+            validationId: createValidationId(0, 1, 25),
+            message: "Too many requests"
+          })
+        );
+        expect(newState).toMatchObject({
+          validationsInFlight: {},
           dirtiedRanges: [
             {
               from: 1,
@@ -338,8 +359,7 @@ describe("State management", () => {
             }
           ],
           decorations: new DecorationSet(),
-          error: "Too many requests",
-          validationInFlight: undefined
+          error: "Too many requests"
         });
       });
     });
@@ -370,7 +390,7 @@ describe("State management", () => {
             name: "cat",
             colour: "eeeeee"
           },
-          id: "exampleHoverId"
+          validationId: "exampleHoverId"
         };
         const localState = { ...state, currentValidations: [output] };
         expect(
@@ -396,7 +416,7 @@ describe("State management", () => {
           to: 5,
           inputString: "Example",
           annotation: "Annotation",
-          id: "exampleHoverId",
+          validationId: "exampleHoverId",
           category: {
             id: "1",
             name: "cat",
@@ -427,7 +447,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         const currentValidations: IValidationOutput[] = [
           {
-            id: "1",
+            validationId: "1",
             from: 1,
             to: 7,
             inputString: "Example",
@@ -478,7 +498,7 @@ describe("State management", () => {
                 name: "cat",
                 colour: "eeeeee"
               },
-              id: "exampleId"
+              validationId: "exampleId"
             }
           ]
         };
@@ -511,16 +531,16 @@ describe("State management", () => {
             {
               currentValidations: [
                 {
-                  id: "1"
+                  validationId: "1"
                 },
                 {
-                  id: "2"
+                  validationId: "2"
                 }
               ]
             } as any,
             "1"
           )
-        ).toEqual({ id: "1" });
+        ).toEqual({ validationId: "1" });
       });
       it("should return undefined if there is no validation", () => {
         expect(
@@ -528,10 +548,10 @@ describe("State management", () => {
             {
               currentValidations: [
                 {
-                  id: "1"
+                  validationId: "1"
                 },
                 {
-                  id: "2"
+                  validationId: "2"
                 }
               ]
             } as any,
@@ -542,90 +562,69 @@ describe("State management", () => {
     });
     describe("selectValidationInFlightById", () => {
       it("should find a single validation in flight by its id", () => {
+        const input1 = createValidationInput(0, 5);
+        const input2 = createValidationInput(10, 15);
         expect(
           selectValidationInFlightById(
             {
-              validationsInFlight: [
-                {
-                  validationInput: { id: "1" }
-                },
-                {
-                  validationInput: { id: "2" }
-                }
-              ]
+              validationsInFlight: getValidationsInFlight(validationSetId, [
+                input1,
+                input2
+              ])
             } as any,
-            "1"
-          )
-        ).toEqual({ validationInput: { id: "1" } });
+            validationSetId,
+            input1.validationId
+          )!.validationInput
+        ).toEqual(input1);
       });
     });
     describe("selectNewValidationInFlight", () => {
       it("should find the new inflight validations given an old and a new state", () => {
+        const { state } = createInitialData();
+        const input1 = createValidationInput(0, 5);
+        const input2 = createValidationInput(10, 15);
         expect(
           selectNewValidationInFlight(
             {
-              validationsInFlight: [
-                {
-                  validationInput: { id: "1" }
-                },
-                {
-                  validationInput: { id: "2" }
-                }
-              ]
-            } as any,
+              ...state,
+              validationsInFlight: getValidationsInFlight(validationSetId, [
+                input1
+              ])
+            },
             {
-              validationsInFlight: [
-                {
-                  validationInput: { id: "1" }
-                },
-                {
-                  validationInput: { id: "2" }
-                },
-
-                {
-                  validationInput: { id: "3" }
-                },
-                {
-                  validationInput: { id: "4" }
-                }
-              ]
-            } as any
+              ...state,
+              validationsInFlight: {
+                ...getValidationsInFlight(validationSetId, [input1]),
+                ...getValidationsInFlight("set-id-2", [input2])
+              }
+            }
           )
         ).toEqual([
           {
-            validationInput: { id: "3" }
-          },
-          {
-            validationInput: { id: "4" }
+            validationSetId: "set-id-2",
+            ...getValidationsInFlight("set-id-2", [input2])["set-id-2"]
           }
         ]);
       });
       it("shouldn't include validations missing in the new state but present in the old state", () => {
+        const { state } = createInitialData();
+        const input1 = createValidationInput(0, 5);
+        const input2 = createValidationInput(10, 15);
         expect(
           selectNewValidationInFlight(
             {
-              validationsInFlight: [
-                {
-                  validationInput: { id: "1" }
-                },
-                {
-                  validationInput: { id: "2" }
-                },
-                {
-                  validationInput: { id: "3" }
-                }
-              ]
-            } as any,
+              ...state,
+              validationsInFlight: {
+                ...getValidationsInFlight(validationSetId, [input1]),
+                ...getValidationsInFlight("set-id-2", [input2])
+              }
+            },
             {
-              validationsInFlight: [
-                {
-                  validationInput: { id: "1" }
-                },
-                {
-                  validationInput: { id: "2" }
-                }
-              ]
-            } as any
+              ...state,
+              validationsInFlight: getValidationsInFlight(validationSetId, [
+                input1
+              ])
+            }
           )
         ).toEqual([]);
       });
@@ -639,7 +638,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         const currentValidations = [
           {
-            id: "id",
+            validationId: "id",
             from: 0,
             to: 5,
             suggestions: [
@@ -673,7 +672,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         const currentValidations = [
           {
-            id: "id",
+            validationId: "id",
             from: 0,
             to: 5,
             suggestions: [
@@ -726,6 +725,56 @@ describe("State management", () => {
             text: "suggestion"
           }
         });
+      });
+    });
+    describe("selectPercentRemaining", () => {
+      it("should report nothing when there are no validations in flight", () => {
+        const { state } = createInitialData();
+        expect(selectPercentRemaining(state)).toEqual(0);
+      });
+      it("should select the percentage remaining for a single validation set", () => {
+        const { state: initialState } = createInitialData();
+        const input1 = createValidationInput(0, 5);
+        const input2 = createValidationInput(10, 15);
+        let state = {
+          ...initialState,
+          validationsInFlight: getValidationsInFlight(validationSetId, [
+            input1,
+            input2
+          ])
+        };
+        expect(selectPercentRemaining(state)).toEqual(100);
+        state = {
+          ...initialState,
+          validationsInFlight: getValidationsInFlight(
+            validationSetId,
+            [input1, input2],
+            4
+          )
+        };
+        expect(selectPercentRemaining(state)).toEqual(50);
+      });
+      it("should select the percentage remaining for multiple validation sets", () => {
+        const { state: initialState } = createInitialData();
+        const input1 = createValidationInput(0, 5);
+        const input2 = createValidationInput(10, 15);
+        const input3 = createValidationInput(10, 15);
+        let state = {
+          ...initialState,
+          validationsInFlight: {
+            ...getValidationsInFlight(validationSetId, [input1, input2]),
+            ...getValidationsInFlight("set-id-2", [input3])
+          }
+        };
+        expect(selectPercentRemaining(state)).toEqual(100);
+        state = {
+          ...initialState,
+          validationsInFlight: {
+            ...getValidationsInFlight(validationSetId, [input1, input2], 3),
+            ...getValidationsInFlight("set-id-2", [input3], 3)
+          }
+        };
+        expect(selectPercentRemaining(state)).toEqual(50);
       });
     });
   });

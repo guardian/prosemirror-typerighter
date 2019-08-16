@@ -2,6 +2,7 @@ import { ISuggestion } from "../../../interfaces/IValidation";
 
 export interface ITypeRighterResponse {
   input: string;
+  id: string;
   results: ITypeRighterMatch[];
 }
 

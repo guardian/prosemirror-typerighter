@@ -4,8 +4,8 @@ import {
   createValidationPluginReducer,
   applyNewDirtiedRanges,
   createInitialState,
-  selectNewValidationInFlight
-} from "./state";
+  selectNewValidationInFlight as selectNewValidationsInFlight
+} from "./state/state";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
   DECORATION_ATTRIBUTE_ID
@@ -92,12 +92,16 @@ const createValidatorPlugin = <TValidationMeta extends IValidationOutput>(
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
-      const newValidationsInFlight = selectNewValidationInFlight(
+      const newValidationInputs = selectNewValidationsInFlight(
         oldPluginState,
         newPluginState
       );
-      newValidationsInFlight.forEach(_ =>
-        store.emit(STORE_EVENT_NEW_VALIDATION, _)
+      newValidationInputs.forEach(({ validationSetId, current }) =>
+        store.emit(
+          STORE_EVENT_NEW_VALIDATION,
+          validationSetId,
+          current.map(_ => _.validationInput)
+        )
       );
     },
     props: {

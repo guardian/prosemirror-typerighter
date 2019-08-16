@@ -1,4 +1,4 @@
-import { IStateHoverInfo } from "../state";
+import { IStateHoverInfo } from "../state/state";
 
 /**
  * Find the first ancestor node of the given node that matches the selector.

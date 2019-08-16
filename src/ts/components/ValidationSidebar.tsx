@@ -1,7 +1,7 @@
 import { Component, h } from "preact";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { ApplySuggestionOptions } from "../commands";
-import { IPluginState } from "../state";
+import { IPluginState, selectPercentRemaining } from "../state/state";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
 import { IValidationOutput } from "../interfaces/IValidation";
 
@@ -35,6 +35,7 @@ class ValidationSidebar extends Component<
       selectedValidation
     } = this.state.pluginState || { selectedValidation: undefined };
     const hasValidations = !!(currentValidations && currentValidations.length);
+    const percentRemaining = this.getPercentRemaining();
     return (
       <div className="Sidebar__section">
         <div className="Sidebar__header">
@@ -44,6 +45,13 @@ class ValidationSidebar extends Component<
             {(validationsInFlight.length || validationPending) && (
               <span className="Sidebar__loading-spinner">|</span>
             )}
+            <div
+              class="LoadingBar"
+              style={{
+                opacity: percentRemaining === 0 ? 0 : 1,
+                width: `${100 - percentRemaining}%`
+              }}
+            />
           </span>
         </div>
         <div className="Sidebar__content">
@@ -71,6 +79,7 @@ class ValidationSidebar extends Component<
       </div>
     );
   }
+
   private handleNewState = (
     pluginState: IPluginState<IValidationOutput>
   ) => {
@@ -82,6 +91,14 @@ class ValidationSidebar extends Component<
         )
       }
     });
+  };
+
+  private getPercentRemaining = () => {
+    const state = this.state.pluginState;
+    if (!state) {
+      return 0;
+    }
+    return selectPercentRemaining(state);
   };
 }
 

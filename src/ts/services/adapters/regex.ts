@@ -3,11 +3,15 @@ import {
   IValidationInput,
   IValidationOutput
 } from "../../interfaces/IValidation";
+import { TValidationReceivedCallback } from "../../interfaces/IValidationAPIAdapter";
 
 /**
  * An example adapter that applies a regex to find three letter words in the document.
  */
-const regexAdapter = async (input: IValidationInput) => {
+const regexAdapter = async (
+  input: IValidationInput,
+  onValidationReceived: TValidationReceivedCallback
+) => {
   const outputs = [] as IValidationOutput[];
   const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
   const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
@@ -20,7 +24,7 @@ const regexAdapter = async (input: IValidationInput) => {
       inputString: result[0],
       annotation:
         "This word has three letters. Consider a larger, grander word.",
-      id: v4(),
+      validationId: v4(),
       category: {
         id: "word-length",
         name: "Word length",
@@ -42,7 +46,7 @@ const regexAdapter = async (input: IValidationInput) => {
       inputString: result[0],
       annotation:
         "This word has six letters. Consider a smaller, less fancy word.",
-      id: input.id,
+      validationId: input.validationId,
       category: {
         id: "word-length",
         name: "Word length",
@@ -60,7 +64,10 @@ const regexAdapter = async (input: IValidationInput) => {
   // Add some latency.
   await new Promise(_ => setTimeout(_, 1000));
 
-  return outputs;
+  onValidationReceived({
+    id: input.validationId,
+    validationOutputs: outputs
+  });
 };
 
 export default regexAdapter;

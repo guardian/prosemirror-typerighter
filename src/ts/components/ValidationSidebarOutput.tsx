@@ -3,7 +3,6 @@ import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
-import Suggestion from "./Suggestion";
 import SuggestionList from "./SuggestionList";
 
 interface IProps {
@@ -33,7 +32,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
     return (
       <div
         className={`ValidationSidebarOutput__container ${
-          selectedValidation === output.id
+          selectedValidation === output.validationId
             ? "ValidationSidebarOutput__container--is-selected"
             : ""
         }`}
@@ -76,7 +75,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
               <div className="ValidationSidebarOutput__suggestion-list">
                 <SuggestionList
                   applySuggestions={applySuggestions}
-                  validationId={output.id}
+                  validationId={output.validationId}
                   suggestions={output.suggestions}
                 />
               </div>
@@ -93,9 +92,9 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   private scrollToRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    this.props.selectValidation(this.props.output.id);
+    this.props.selectValidation(this.props.output.validationId);
     const decorationElement = document.querySelector(
-      `[${DECORATION_ATTRIBUTE_ID}="${this.props.output.id}"]`
+      `[${DECORATION_ATTRIBUTE_ID}="${this.props.output.validationId}"]`
     );
     if (decorationElement) {
       decorationElement.scrollIntoView({
@@ -105,7 +104,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   };
 
   private handleMouseOver = () => {
-    this.props.indicateHover(this.props.output.id);
+    this.props.indicateHover(this.props.output.validationId);
   };
 
   private handleMouseLeave = () => {

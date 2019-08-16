@@ -1,4 +1,3 @@
-import "../css/index.scss";
 import createValidationPlugin from "./createValidationPlugin";
 import ValidationService from "./services/ValidationAPIService";
 import createTyperighterAdapter from "./services/adapters/typerighter";

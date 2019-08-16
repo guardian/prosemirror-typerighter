@@ -1,13 +1,14 @@
 import { Component, h } from "preact";
+import v4 from 'uuid/v4';
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
-import { IPluginState } from "../state";
+import { IPluginState } from "../state/state";
 import { IValidationOutput, ICategory } from "../interfaces/IValidation";
 
 interface IProps {
   store: Store<IValidationOutput>;
   setDebugState: (debug: boolean) => void;
   setValidateOnModifyState: (validate: boolean) => void;
-  validateDocument: () => void;
+  validateDocument: (validationSetId: string) => void;
   fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
@@ -143,7 +144,7 @@ class ValidationControls extends Component<IProps, IState> {
             </div>
           )}
           <div className="ValidationControls__row">
-            <button className="Button" onClick={this.props.validateDocument}>
+            <button className="Button" onClick={this.validateDocument}>
               Validate whole document
             </button>
           </div>
@@ -190,6 +191,10 @@ class ValidationControls extends Component<IProps, IState> {
       });
     }
   };
+
+  private validateDocument = () => {
+    this.props.validateDocument(v4())
+  }
 }
 
 export default ValidationControls;

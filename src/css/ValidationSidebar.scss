@@ -14,6 +14,7 @@
   border: 1px solid $sidebar-border-color;
   margin: 0 $gutter-width / 2;
   max-height: 100%;
+  overflow: hidden;
 }
 
 .Sidebar__container + .Sidebar__container {
@@ -22,6 +23,7 @@
 
 .Sidebar__header {
   display: flex;
+  position: relative;
   flex-shrink: 0;
   border-bottom: 1px solid $sidebar-border-color;
   padding: $gutter-width $gutter-width/2;

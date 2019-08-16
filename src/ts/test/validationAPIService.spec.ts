@@ -1,48 +1,39 @@
 import fetchMock from "fetch-mock";
-import { ILTReplacement } from "../services/adapters/interfaces/ILanguageTool";
-import createLanguageToolAdapter from "../services/adapters/languageTool";
 import { IValidationOutput } from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
-import { Mapping } from "prosemirror-transform";
+import { createTyperighterAdapter as TyperighterAdapter } from "..";
+import { ITypeRighterResponse } from "../services/adapters/interfaces/ITyperighter";
+import { createValidationId } from "../utils/validation";
 
-const createResponse = (strs: string[]) => ({
-  language: "",
-  software: "",
-  warnings: "",
-  matches: strs.map(str => ({
-    context: {
-      text: str,
-      offset: 0,
-      length: str.length
-    },
-    length: str.length,
+const createResponse = (strs: string[]): ITypeRighterResponse => ({
+  input: "input",
+  id: createValidationId(0, 0, 5),
+  results: strs.map(str => ({
+    fromPos: 0,
+    toPos: str.length,
+    id: createValidationId(0, 0, 5),
     message: "It's just a bunch of numbers, mate",
-    offset: 0,
-    replacements: [] as ILTReplacement[],
+    shortMessage: "It's just a bunch of numbers, mate",
     rule: {
       category: {
         id: "numberCat",
         name: "The number category",
-        colour: 'eee'
+        colour: "eee"
       },
-      description: "Some type - use constants, jeez",
-      id: "numbersID",
-      issueType: "issueType"
+      description: "Number things",
+      id: "number-rule",
+      issueType: "issue-type"
     },
-    sentence: str,
-    shortMessage: "Bunch o' numbers",
-    type: {
-      typeName: "Some type - use constants, jeez"
-    }
+    suggestions: []
   }))
 });
 
-const createOutput = (inputString: string, offset: number = 0) => {
+const createOutput = (id: string, inputString: string, offset: number = 0) => {
   const from = offset;
   const to = offset + inputString.length;
   return {
-    id: "id",
+    validationId: id,
     from,
     to,
     inputString,
@@ -51,7 +42,7 @@ const createOutput = (inputString: string, offset: number = 0) => {
     category: {
       id: "numberCat",
       name: "The number category",
-      colour: 'eee'
+      colour: "eee"
     }
   } as IValidationOutput;
 };
@@ -60,7 +51,7 @@ const validationInput = {
   from: 0,
   to: 10,
   inputString: "1234567890",
-  id: "0-from:0-to:10"
+  validationId: "0-from:0-to:10"
 };
 
 const commands = {
@@ -68,6 +59,8 @@ const commands = {
   applyValidationError: jest.fn(),
   validateDirtyRangesCommand: jest.fn()
 };
+
+const validationSetId = "set-id";
 
 const store = new Store();
 
@@ -82,41 +75,42 @@ describe("ValidationAPIService", () => {
     const service = new ValidationAPIService(
       store,
       commands as any,
-      createLanguageToolAdapter("endpoint/check")
+      new TyperighterAdapter("endpoint")
     );
-    fetchMock.post("endpoint/check", createResponse(["1234567890"]));
+    fetchMock.post("http://endpoint/check", createResponse(["1234567890"]));
 
     expect.assertions(1);
 
     service.requestValidation();
-    store.emit("STORE_EVENT_NEW_VALIDATION", {
-      mapping: new Mapping(),
+    store.emit("STORE_EVENT_NEW_VALIDATION", validationSetId, [
       validationInput
-    });
+    ]);
 
     setTimeout(() => {
       expect(commands.applyValidationResult.mock.calls[0]).toEqual([
         {
-          validationOutputs: [createOutput("1234567890")],
-          validationInput
+          validationOutputs: [
+            createOutput(validationInput.validationId, "1234567890")
+          ],
+          validationId: validationInput.validationId,
+          validationSetId
         }
       ]);
       done();
-    });
+    }, 100);
   });
   it("should handle validation errors", done => {
     const service = new ValidationAPIService(
       store,
       commands as any,
-      createLanguageToolAdapter("endpoint/check")
+      new TyperighterAdapter("endpoint")
     );
-    fetchMock.post("endpoint/check", 400);
+    fetchMock.post("http://endpoint/check", 400);
 
     service.requestValidation();
-    store.emit("STORE_EVENT_NEW_VALIDATION", {
-      mapping: new Mapping(),
+    store.emit("STORE_EVENT_NEW_VALIDATION", validationSetId, [
       validationInput
-    });
+    ]);
     setTimeout(() => {
       expect(commands.applyValidationError.mock.calls[0][0]).toMatchSnapshot();
       done();

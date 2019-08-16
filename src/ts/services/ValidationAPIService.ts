@@ -9,7 +9,8 @@ import Store, {
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "../store";
 import { Commands } from "../commands";
-import { selectValidationsInFlight } from "../state";
+import { selectAllValidationsInFlight } from "../state/state";
+import v4 from "uuid/v4";
 
 /**
  * An example validation service. Calls to validate() begin validations
@@ -32,10 +33,13 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
     private maxThrottle = 16000
   ) {
     this.currentThrottle = initialThrottle;
-    this.store.on(STORE_EVENT_NEW_VALIDATION, validationInFlight => {
-      // If we have a new validation, send it to the validation service.
-      this.validate(validationInFlight.validationInput);
-    });
+    this.store.on(
+      STORE_EVENT_NEW_VALIDATION,
+      (validationSetId, validationsInFlight) => {
+        // If we have a new validation, send it to the validation service.
+        this.validate(validationSetId, validationsInFlight);
+      }
+    );
     this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
       this.scheduleValidation();
     });
@@ -69,39 +73,31 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
   /**
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
-  public async validate(validationInput: IValidationInput) {
-    try {
-      const validationOutputs = await this.adapter.fetchValidationOutputs(
-        validationInput,
-        this.currentCategories.map(_ => _.id)
-      );
-      this.commands.applyValidationResult({
-        validationOutputs,
-        validationInput
-      });
-    } catch (e) {
-      this.commands.applyValidationError({
-        validationInput,
-        message: e.message
-      });
-      return {
-        validationInput,
-        message: e.message
-      };
-    }
+  public async validate(
+    validationSetId: string,
+    validationInputs: IValidationInput[]
+  ) {
+    this.adapter.fetchValidationOutputs(
+      validationSetId,
+      validationInputs,
+      this.currentCategories.map(_ => _.id),
+      this.commands.applyValidationResult,
+      this.commands.applyValidationError
+    );
   }
 
   /**
    * Request a validation. If we already have validations in flight,
    * defer it until the next throttle window.
    */
-  private requestValidation() {
+  public requestValidation() {
     this.validationPending = false;
     const pluginState = this.store.getState();
-    if (!pluginState || selectValidationsInFlight(pluginState).length) {
+    if (!pluginState || selectAllValidationsInFlight(pluginState).length) {
       return this.scheduleValidation();
     }
-    this.commands.validateDirtyRangesCommand();
+    const validationSetId = v4();
+    this.commands.validateDirtyRanges(validationSetId);
   }
 
   /**
