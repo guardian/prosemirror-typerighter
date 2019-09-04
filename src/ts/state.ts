@@ -299,27 +299,7 @@ const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
     action?: Action<TValidationMeta>
   ): IPluginState<TValidationMeta> => {
     // There are certain things we need to do every time a transaction is dispatched.
-    const state = {
-      ...incomingState,
-      // Map our decorations, dirtied ranges and validations through the new transaction.
-      decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-      dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-      currentValidations: mapRanges(
-        incomingState.currentValidations,
-        tr.mapping
-      ),
-      validationsInFlight: incomingState.validationsInFlight.map(_ => {
-        // We create a new mapping here to preserve state immutability, as
-        // appendMapping mutates an existing mapping.
-        const mapping = new Mapping();
-        mapping.appendMapping(_.mapping);
-        mapping.appendMapping(tr.mapping);
-        return {
-          ..._,
-          mapping
-        };
-      })
-    };
+    const state = getNewStateFromTransaction(tr, incomingState);
 
     if (!action) {
       return state;
@@ -349,6 +329,33 @@ const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
     }
   };
 };
+
+/**
+ * Get a new plugin state from the incoming transaction.
+ *
+ * We need to respond to each transaction in our reducer, whether or not there's
+ * an action present, in order to maintain mappings and respond to user input.
+ */
+const getNewStateFromTransaction = <TValidationMeta extends IValidationOutput>(
+  tr: Transaction,
+  incomingState: IPluginState<TValidationMeta>
+): IPluginState<TValidationMeta> => ({
+  ...incomingState,
+  decorations: incomingState.decorations.map(tr.mapping, tr.doc),
+  dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
+  currentValidations: mapRanges(incomingState.currentValidations, tr.mapping),
+  validationsInFlight: incomingState.validationsInFlight.map(_ => {
+    // We create a new mapping here to preserve state immutability, as
+    // appendMapping mutates an existing mapping.
+    const mapping = new Mapping();
+    mapping.appendMapping(_.mapping);
+    mapping.appendMapping(tr.mapping);
+    return {
+      ..._,
+      mapping
+    };
+  })
+});
 
 /**
  * Action handlers.
@@ -438,10 +445,14 @@ const handleNewDirtyRanges = <TValidationMeta extends IValidationOutput>(
 
   return {
     ...state,
-    validationPending: true,
     currentValidations,
     decorations: newDecorations,
-    dirtiedRanges: state.dirtiedRanges.concat(dirtiedRanges)
+    // We only care about storing dirtied ranges if we're validating
+    // in response to user edits.
+    validationPending: state.validateOnModify ? true : false,
+    dirtiedRanges: state.validateOnModify
+      ? state.dirtiedRanges.concat(dirtiedRanges)
+      : []
   };
 };
 
@@ -537,14 +548,28 @@ const handleValidationRequestSuccess = <
     return state;
   }
 
-  let currentValidations: TValidationOutput[] = getCurrentValidationsFromValidationResponse<
+  // Remove any validations and decorations that are touching the
+  // validated range -- they've been superseded.
+  let currentValidations: TValidationOutput[] = removeOverlappingRanges(
+    state.currentValidations,
+    state.validationsInFlight.map(_ => _.validationInput)
+  );
+  const decsToRemove = state.validationsInFlight.reduce(
+    (decs, { validationInput: { from, to } }) =>
+      decs.concat(state.decorations.find(from, to)),
+    [] as Decoration[]
+  );
+
+  // Add the response to the current validations
+  currentValidations = getCurrentValidationsFromValidationResponse<
     TValidationOutput
   >(
     validationInFlight.validationInput,
     response.validationOutputs,
-    state.currentValidations,
+    currentValidations,
     validationInFlight.mapping
   );
+
   // We don't apply incoming validations to ranges that have
   // been dirtied since they were requested.
   currentValidations = removeOverlappingRanges(
@@ -560,7 +585,7 @@ const handleValidationRequestSuccess = <
   );
 
   // Ditch any decorations marking inflight validations
-  const decsToRemove = state.debug
+  const debugDecsToRemove = state.debug
     ? state.decorations.find(
         undefined,
         undefined,
@@ -572,7 +597,7 @@ const handleValidationRequestSuccess = <
     ...state,
     validationsInFlight: without(state.validationsInFlight, validationInFlight),
     currentValidations,
-    decorations: decorations.remove(decsToRemove)
+    decorations: decorations.remove(debugDecsToRemove).remove(decsToRemove)
   };
 };
 

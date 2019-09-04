@@ -48,6 +48,7 @@ Object {
       "updated": 0,
     },
   ],
+  "validateOnModify": false,
   "validationPending": false,
   "validationsInFlight": Array [],
 }
