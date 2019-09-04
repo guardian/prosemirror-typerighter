@@ -1,17 +1,17 @@
 import { Component, h } from "preact";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { IPluginState } from "../state";
-import { IBaseValidationOutput } from "../interfaces/IValidation";
+import { IValidationOutput } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IBaseValidationOutput>;
+  store: Store<IValidationOutput>;
   setDebugState: (debug: boolean) => void;
   setValidateOnModifyState: (validate: boolean) => void;
   validateDocument: () => void;
 }
 
 interface IState {
-  pluginState?: IPluginState<IBaseValidationOutput>;
+  pluginState?: IPluginState<IValidationOutput>;
   isOpen: boolean;
 }
 
@@ -50,7 +50,10 @@ class ValidationControls extends Component<IProps, IState> {
           {isOpen && (
             <div>
               <div className="ValidationControls__row">
-                <label className="ValidationControls__label" for="ValidationControls__validate-on-modify">
+                <label
+                  className="ValidationControls__label"
+                  for="ValidationControls__validate-on-modify"
+                >
                   Validate when the document is modified
                 </label>
                 <div class="ValidationControls__input">
@@ -64,7 +67,10 @@ class ValidationControls extends Component<IProps, IState> {
                 </div>
               </div>
               <div className="ValidationControls__row">
-                <label className="ValidationControls__label" for="ValidationControls__show-dirty-ranges">
+                <label
+                  className="ValidationControls__label"
+                  for="ValidationControls__show-dirty-ranges"
+                >
                   Show dirty and pending ranges
                 </label>
                 <div class="ValidationControls__input">
@@ -88,7 +94,7 @@ class ValidationControls extends Component<IProps, IState> {
       </div>
     );
   }
-  private handleNotify = (state: IPluginState<IBaseValidationOutput>) => {
+  private handleNotify = (state: IPluginState<IValidationOutput>) => {
     this.setState({ pluginState: state });
   };
   private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });

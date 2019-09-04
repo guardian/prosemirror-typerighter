@@ -9,7 +9,7 @@ export interface ITypeRighterMatch {
   message: string;
   shortMessage: string;
   rule: ITypeRighterRule;
-  suggestedReplacements: string[];
+  suggestions: string[];
 }
 
 export interface ITypeRighterReplacement {

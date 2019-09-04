@@ -15,7 +15,7 @@ import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
-import { IRange, IBaseValidationOutput } from "./interfaces/IValidation";
+import { IRange, IValidationOutput } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
@@ -48,7 +48,7 @@ interface IPluginOptions {
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
+const createValidatorPlugin = <TValidationMeta extends IValidationOutput>(
   options: IPluginOptions = {}
 ) => {
   const { expandRanges = expandRangesToParentBlockNode } = options;
@@ -110,7 +110,7 @@ const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
         return plugin.getState(state).decorations;
       },
       handleDOMEvents: {
-        mouseover: (view: EditorView, event: MouseEvent) => {
+        mouseover: (view: EditorView, event: Event) => {
           if (!event.target || !(event.target instanceof HTMLElement)) {
             return false;
           }
@@ -139,7 +139,12 @@ const createValidatorPlugin = <TValidationMeta extends IBaseValidationOutput>(
 
           indicateHoverCommand(
             newValidationId,
-            getStateHoverInfoFromEvent(event, view.dom, heightMarker)
+            getStateHoverInfoFromEvent(
+              // We're very sure that this is a mouseevent, but Typescript isn't.
+              event as MouseEvent,
+              view.dom,
+              heightMarker
+            )
           )(view.state, view.dispatch);
 
           return false;

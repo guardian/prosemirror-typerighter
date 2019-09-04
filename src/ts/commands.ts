@@ -17,7 +17,7 @@ import {
 import {
   IValidationResponse,
   IValidationError,
-  IBaseValidationOutput
+  IValidationOutput
 } from "./interfaces/IValidation";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
@@ -27,7 +27,7 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TValidationOutput extends IBaseValidationOutput> = (
+type GetState<TValidationOutput extends IValidationOutput> = (
   state: EditorState
 ) => IPluginState<TValidationOutput>;
 
@@ -84,7 +84,7 @@ export const indicateHoverCommand = (
  * Mark a given validation as active.
  */
 export const selectValidationCommand = <
-  TValidationOutput extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   validationId: string,
   getState: GetState<TValidationOutput>
@@ -172,27 +172,30 @@ export const applyValidationErrorCommand = (
 
 export type ApplySuggestionOptions = Array<{
   validationId: string;
-  suggestionIndex: number;
+  text: string;
 }>;
 
 /**
  * Applies a suggestion from a validation to the document.
  */
 export const applySuggestionsCommand = <
-  TValidationOutput extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   suggestionOptions: ApplySuggestionOptions,
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const outputsAndSuggestions = suggestionOptions
-    .map(opt =>
-      selectSuggestionAndRange(
-        pluginState,
-        opt.validationId,
-        opt.suggestionIndex
-      )
-    )
+    .map(opt => {
+      const validation = selectValidationById(pluginState, opt.validationId);
+      return validation
+        ? {
+            from: validation.from,
+            to: validation.to,
+            text: opt.text
+          }
+        : undefined;
+    })
     .filter(compact);
 
   if (!outputsAndSuggestions.length) {
@@ -201,8 +204,8 @@ export const applySuggestionsCommand = <
 
   if (dispatch) {
     const tr = state.tr;
-    outputsAndSuggestions.forEach(({ from, to, suggestion }) =>
-      tr.replaceWith(from, to, state.schema.text(suggestion))
+    outputsAndSuggestions.forEach(({ from, to, text }) =>
+      tr.replaceWith(from, to, state.schema.text(text))
     );
     dispatch(tr);
   }
@@ -211,7 +214,7 @@ export const applySuggestionsCommand = <
 };
 
 export const createBoundCommands = <
-  TValidationOutput extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   view: EditorView,
   getState: GetState<TValidationOutput>

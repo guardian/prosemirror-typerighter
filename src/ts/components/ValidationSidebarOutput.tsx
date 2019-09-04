@@ -3,6 +3,8 @@ import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
+import Suggestion from "./Suggestion";
+import SuggestionList from "./SuggestionList";
 
 interface IProps {
   output: IValidationOutput;
@@ -27,7 +29,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   public render() {
     const { output, applySuggestions, selectedValidation } = this.props;
     const color = `#${output.category.colour}`;
-    const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
+    const hasSuggestions = !!output.suggestions;
     return (
       <div
         className={`ValidationSidebarOutput__container ${
@@ -72,21 +74,11 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
           <div className="ValidationSidebarOutput__content">
             {output.suggestions && (
               <div className="ValidationSidebarOutput__suggestion-list">
-                {output.suggestions.map((suggestion, suggestionIndex) => (
-                  <div
-                    class="ValidationWidget__suggestion"
-                    onClick={() =>
-                      applySuggestions([
-                        {
-                          validationId: output.id,
-                          suggestionIndex
-                        }
-                      ])
-                    }
-                  >
-                    {suggestion}
-                  </div>
-                ))}
+                <SuggestionList
+                  applySuggestions={applySuggestions}
+                  validationId={output.id}
+                  suggestions={output.suggestions}
+                />
               </div>
             )}
           </div>

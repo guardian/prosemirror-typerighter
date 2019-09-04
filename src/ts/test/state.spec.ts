@@ -47,6 +47,7 @@ const createInitialData = (initialDoc = initialDocToValidate, time = 0) => {
     tr,
     state: {
       debug: false,
+      validateOnModify: false,
       currentThrottle: 100,
       initialThrottle: 100,
       maxThrottle: 1000,

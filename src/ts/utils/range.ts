@@ -2,11 +2,7 @@ import clamp from "lodash/clamp";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
-import {
-  IRange,
-  IValidationOutput,
-  IBaseValidationOutput
-} from "../interfaces/IValidation";
+import { IRange, IValidationOutput } from "../interfaces/IValidation";
 import { IValidationInput } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
 
@@ -137,13 +133,13 @@ export const validationInputToRange = (input: IValidationInput): IRange => ({
  * Get the current set of validations for the given response.
  */
 export const getCurrentValidationsFromValidationResponse = <
-  TValidationMeta extends IBaseValidationOutput
+  TValidationOutput extends IValidationOutput
 >(
   input: IValidationInput,
-  incomingOutputs: Array<IValidationOutput<TValidationMeta>>,
-  currentOutputs: Array<IValidationOutput<TValidationMeta>>,
+  incomingOutputs: TValidationOutput[],
+  currentOutputs: TValidationOutput[],
   mapping: Mapping
-): Array<IValidationOutput<TValidationMeta>> => {
+): TValidationOutput[] => {
   if (!incomingOutputs.length) {
     return currentOutputs;
   }

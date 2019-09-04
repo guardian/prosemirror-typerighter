@@ -1,6 +1,6 @@
 import { IPluginState, IValidationInFlight } from "./state";
 import { ArgumentTypes } from "./utils/types";
-import { IBaseValidationOutput } from "./interfaces/IValidation";
+import { IValidationOutput } from "./interfaces/IValidation";
 
 export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
@@ -10,20 +10,22 @@ type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-export interface IStoreEvents<TValidationMeta extends IBaseValidationOutput> {
+export interface IStoreEvents<TValidationMeta extends IValidationOutput> {
   [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
   [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
-type EventNames = keyof IStoreEvents<IBaseValidationOutput>;
+type EventNames = keyof IStoreEvents<IValidationOutput>;
 
 /**
  * A store to allow consumers to subscribe to validator state updates.
  */
 class Store<
-  TValidationOutput extends IBaseValidationOutput,
-  TStoreEvents extends IStoreEvents<TValidationOutput> = IStoreEvents<TValidationOutput>
+  TValidationOutput extends IValidationOutput,
+  TStoreEvents extends IStoreEvents<TValidationOutput> = IStoreEvents<
+    TValidationOutput
+  >
 > {
   private state: IPluginState<TValidationOutput> | undefined;
   private subscribers: {
