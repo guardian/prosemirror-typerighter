@@ -1,5 +1,5 @@
 import Store from "../store";
-import { createInitialState } from "../state";
+import { createInitialState } from "../state/state";
 import { createDoc, p } from "./helpers/prosemirror";
 
 describe("store", () => {

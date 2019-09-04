@@ -13,7 +13,7 @@ class ValidationOutput<
 > extends Component<IValidationOutputProps<TValidationOutput>> {
   public ref: HTMLDivElement | undefined;
   public render({
-    validationOutput: { id, category, annotation, suggestions },
+    validationOutput: { validationId: id, category, annotation, suggestions },
     applySuggestions
   }: IValidationOutputProps<TValidationOutput>) {
     return (

@@ -1,4 +1,4 @@
-import { IStateHoverInfo } from "../state";
+import { IStateHoverInfo } from "../state/state";
 import { IValidationOutput } from "./IValidation";
 
 interface IHoverEvent {

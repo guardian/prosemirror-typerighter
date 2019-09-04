@@ -1,5 +1,6 @@
 // Variables
 $gutter-width: 10px;
+$sidebar-border-color: #ccc;
 $validation-color: #3dcde6;
 $validation-color-hover: #3dcde624;
 $validation-gray: #a0a0a0;
@@ -40,6 +41,22 @@ $validation-suggestion-wiki-extract-height: 85px;
 @import "./ValidationSidebarOutput.scss";
 @import "./Suggestion.scss";
 @import "./SuggestionList.scss";
+
+// Elements
+
+hr {
+  height: 1px;
+  border: initial;
+  border-bottom: 1px solid $sidebar-border-color;
+  width: 100%;
+  margin: 5px 0; 
+}
+
+// Helpers
+
+.flex-align-right {
+  margin-left: auto;
+}
 
 .Button {
   padding: 1px 4px;

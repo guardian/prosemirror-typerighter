@@ -1,4 +1,9 @@
-import { IValidationLibrary, IValidationOutput } from "../../interfaces/IValidation";
+import {
+  IValidationLibrary,
+  IValidationOutput,
+  ISuggestion
+} from "../../interfaces/IValidation";
+import { createValidationId } from "../../utils/validation";
 
 export const validationLibrary: IValidationLibrary = [
   [
@@ -33,24 +38,24 @@ export const createValidationInput = (
   inputString,
   from,
   to,
-  id: `0-from:${from}-to:${to}`
+  validationId: `0-from:${from}-to:${to}`
 });
 
 export const createValidationOutput = (
   from: number,
   to: number,
   inputString = "str",
-  suggestions = [] as string[]
+  suggestions = [] as ISuggestion[]
 ): IValidationOutput => ({
   from,
   to,
   category: {
-    id: '1',
-    name: 'Cat',
-    colour: 'eeeee'
+    id: "1",
+    name: "Cat",
+    colour: "eeeee"
   },
   annotation: "annotation",
   inputString,
-  id: `0-from:${from}-to:${to}`,
+  validationId: createValidationId(0, from, to),
   suggestions
 });

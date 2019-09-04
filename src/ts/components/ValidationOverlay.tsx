@@ -1,6 +1,6 @@
 import ValidationOutput from "./ValidationOutput";
 import { Component, h } from "preact";
-import { IStateHoverInfo, selectValidationById, IPluginState } from "../state";
+import { IStateHoverInfo, selectValidationById, IPluginState } from "../state/state";
 import { IValidationOutput } from "../interfaces/IValidation";
 import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
 import { ApplySuggestionOptions } from "../commands";

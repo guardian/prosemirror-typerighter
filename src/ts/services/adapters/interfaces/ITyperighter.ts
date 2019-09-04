@@ -1,5 +1,8 @@
+import { ISuggestion } from "../../../interfaces/IValidation";
+
 export interface ITypeRighterResponse {
   input: string;
+  id: string;
   results: ITypeRighterMatch[];
 }
 
@@ -9,7 +12,7 @@ export interface ITypeRighterMatch {
   message: string;
   shortMessage: string;
   rule: ITypeRighterRule;
-  suggestions: string[];
+  suggestions: ISuggestion[];
 }
 
 export interface ITypeRighterReplacement {

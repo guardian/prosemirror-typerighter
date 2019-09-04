@@ -1,15 +1,25 @@
 .ValidationControls__row {
-	display: flex;
-	padding: $gutter-width / 2;
+  position: relative;
+  display: flex;
+  padding: $gutter-width / 2;
 }
 
 .ValidationControls__input {
-	min-width: 30px;
-	margin-left: auto;
+  min-width: 30px;
+  margin-left: auto;
 }
 
 .ValidationControls__label {
-	font-weight: normal;
-	cursor: pointer;
-	width: 100%;
+  font-weight: normal;
+  cursor: pointer;
+  width: 100%;
+}
+
+.LoadingBar {
+  position: absolute;
+  height: 3px;
+  left: 0;
+  bottom: 0;
+  background-color: #01adee;
+  width: 100%;
 }

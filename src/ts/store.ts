@@ -1,6 +1,6 @@
-import { IPluginState, IValidationInFlight } from "./state";
+import { IPluginState } from "./state/state";
 import { ArgumentTypes } from "./utils/types";
-import { IValidationOutput } from "./interfaces/IValidation";
+import { IValidationOutput, IValidationInput } from "./interfaces/IValidation";
 
 export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
@@ -11,7 +11,10 @@ type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
 export interface IStoreEvents<TValidationMeta extends IValidationOutput> {
-  [STORE_EVENT_NEW_VALIDATION]: (v: IValidationInFlight) => void;
+  [STORE_EVENT_NEW_VALIDATION]: (
+    validationSetId: string,
+    v: IValidationInput[]
+  ) => void;
   [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }

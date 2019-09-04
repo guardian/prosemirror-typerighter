@@ -2,17 +2,47 @@
  * @module createValidationPlugin
  */
 
-import { IValidationInput, IValidationOutput } from "./IValidation";
+import {
+  IValidationInput,
+  IValidationOutput,
+  ICategory,
+  IValidationResponse,
+  IValidationError
+} from "./IValidation";
 
 /**
  * @internal
  */
-export type IValidationAPIAdapter<TValidationOutput = IValidationOutput> = (
-  input: IValidationInput
-) => Promise<TValidationOutput[]>;
+export declare class IValidationAPIAdapter<
+  TValidationOutput extends IValidationOutput = IValidationOutput
+> {
+  /**
+   * Fetch the validation outputs for the given inputs.
+   */
+  public fetchValidationOutputs: (
+    validationSetId: string,
+    input: IValidationInput[],
+    categoryIds: string[],
+    onValidationReceived: TValidationReceivedCallback<TValidationOutput>,
+    onValidationError: TValidationErrorCallback
+  ) => void;
 
-type IValidationAPIAdapterCreator<TValidationMeta = IValidationOutput> = (
-  apiUrl: string
-) => IValidationAPIAdapter<TValidationMeta>;
+  /**
+   * Fetch the currently available validation categories.
+   */
+  public fetchCategories: () => Promise<ICategory[]>;
 
-export default IValidationAPIAdapterCreator;
+  constructor(
+    apiUrl: string,
+    onValidationReceived: TValidationReceivedCallback,
+    onValidationError: TValidationErrorCallback
+  );
+}
+
+export type TValidationReceivedCallback<
+  TValidationOutput extends IValidationOutput = IValidationOutput
+> = (response: IValidationResponse<TValidationOutput>) => void;
+
+export type TValidationErrorCallback = (
+  validationError: IValidationError
+) => void;

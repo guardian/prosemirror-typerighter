@@ -11,9 +11,8 @@ import {
   IStateHoverInfo,
   validationRequestSuccess,
   validationRequestError,
-  selectSuggestionAndRange,
   validationRequestForDirtyRanges
-} from "./state";
+} from "./state/state";
 import {
   IValidationResponse,
   IValidationError,
@@ -34,13 +33,18 @@ type GetState<TValidationOutput extends IValidationOutput> = (
 /**
  * Validates an entire document.
  */
-export const validateDocumentCommand = (
-  state: EditorState,
-  dispatch: (tr: Transaction) => void
+export const validateDocumentCommand = (validationSetId: string): Command => (
+  state,
+  dispatch
 ) => {
-  dispatch(
-    state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument())
-  );
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        VALIDATION_PLUGIN_ACTION,
+        validationRequestForDocument(validationSetId)
+      )
+    );
+  }
   return true;
 };
 
@@ -48,15 +52,17 @@ export const validateDocumentCommand = (
  * Validates the current set of dirty ranges.
  */
 export const validateDirtyRangesCommand = (
-  state: EditorState,
-  dispatch: (tr: Transaction) => void
-) => {
-  dispatch(
-    state.tr.setMeta(
-      VALIDATION_PLUGIN_ACTION,
-      validationRequestForDirtyRanges()
-    )
-  );
+  validationSetId: string
+): Command => (state, dispatch) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        VALIDATION_PLUGIN_ACTION,
+        validationRequestForDirtyRanges(validationSetId)
+      )
+    );
+  }
+
   return true;
 };
 
@@ -223,9 +229,6 @@ export const createBoundCommands = <
     action: (...args: CommandArgs) => Command
   ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
   return {
-    validateDocument: () => validateDocumentCommand(view.state, view.dispatch),
-    validateDirtyRangesCommand: () =>
-      validateDirtyRangesCommand(view.state, view.dispatch),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
       applySuggestionsCommand(suggestionOpts, getState)(
         view.state,
@@ -236,6 +239,8 @@ export const createBoundCommands = <
         view.state,
         view.dispatch
       ),
+    validateDocument: bindCommand(validateDocumentCommand),
+    validateDirtyRanges: bindCommand(validateDirtyRangesCommand),
     indicateHover: bindCommand(indicateHoverCommand),
     setDebugState: bindCommand(setDebugStateCommand),
     setValidateOnModifyState: bindCommand(setValidateOnModifyStateCommand),

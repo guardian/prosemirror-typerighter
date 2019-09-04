@@ -1,12 +1,13 @@
 import { Transaction } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
+import omit from "lodash/omit";
 import {
   IValidationError,
   IValidationInput,
   IValidationResponse,
   IRange,
   IValidationOutput
-} from "./interfaces/IValidation";
+} from "../interfaces/IValidation";
 import {
   createDebugDecorationFromRange,
   DECORATION_DIRTY,
@@ -15,7 +16,7 @@ import {
   removeDecorationsFromRanges,
   createDecorationForValidationRange,
   DECORATION_VALIDATION
-} from "./utils/decoration";
+} from "../utils/decoration";
 import {
   mergeRanges,
   validationInputToRange,
@@ -24,13 +25,14 @@ import {
   getCurrentValidationsFromValidationResponse,
   findOverlappingRangeIndex,
   removeOverlappingRanges
-} from "./utils/range";
-import { ExpandRanges } from "./createValidationPlugin";
-import { createValidationInputsForDocument } from "./utils/prosemirror";
+} from "../utils/range";
+import { ExpandRanges } from "../createValidationPlugin";
+import { createValidationInputsForDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import { Mapping } from "prosemirror-transform";
 import without from "lodash/without";
-import { createValidationInput } from "./utils/validation";
+import map from "lodash/map";
+import { createValidationInput } from "../utils/validation";
 
 /**
  * Information about the span element the user is hovering over.
@@ -64,6 +66,11 @@ export interface IValidationInFlight {
   validationInput: IValidationInput;
 }
 
+export interface IValidationInFlightState {
+  total: number;
+  current: IValidationInFlight[];
+}
+
 export interface IPluginState<TValidationOutput extends IValidationOutput> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
@@ -87,13 +94,14 @@ export interface IPluginState<TValidationOutput extends IValidationOutput> {
   // These are mapped through to apply validations applied against
   // a preview document state to the current document state.
   trHistory: Transaction[];
-  // Is a validation pending - that is, have ranges been dirtied but
+  // Are there validations pending: have ranges been dirtied but
   // not yet been expanded and sent for validation?
   validationPending: boolean;
-  // Is a validation currently in flight - that is, has a validation
-  // been sent to the validation service and we're awaiting its
-  // return?
-  validationsInFlight: IValidationInFlight[];
+  // The current validations in flight: validations that have
+  // been sent to the validation service and we're awaiting their return.
+  validationsInFlight: {
+    [validationSetId: string]: IValidationInFlightState;
+  };
   // The current error status.
   error: string | undefined;
 }
@@ -119,15 +127,17 @@ const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
  * Action creators.
  */
 
-export const validationRequestForDirtyRanges = () => ({
-  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES
+export const validationRequestForDirtyRanges = (validationSetId: string) => ({
+  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES,
+  payload: { validationSetId }
 });
 type ActionValidationRequestForDirtyRanges = ReturnType<
   typeof validationRequestForDirtyRanges
 >;
 
-export const validationRequestForDocument = () => ({
-  type: VALIDATION_REQUEST_FOR_DOCUMENT as typeof VALIDATION_REQUEST_FOR_DOCUMENT
+export const validationRequestForDocument = (validationSetId: string) => ({
+  type: VALIDATION_REQUEST_FOR_DOCUMENT as typeof VALIDATION_REQUEST_FOR_DOCUMENT,
+  payload: { validationSetId }
 });
 type ActionValidationRequestForDocument = ReturnType<
   typeof validationRequestForDocument
@@ -216,7 +226,7 @@ export const createInitialState = <TValidationMeta extends IValidationOutput>(
   hoverId: undefined,
   hoverInfo: undefined,
   trHistory: [],
-  validationsInFlight: [],
+  validationsInFlight: {},
   validationPending: false,
   error: undefined
 });
@@ -230,38 +240,94 @@ export const selectValidationsInFlight = <
 >(
   state: IPluginState<TValidationMeta>
 ) => {
-  return state.validationsInFlight;
+  return state.validationsInFlight.validations;
 };
 
 export const selectValidationById = <TValidationMeta extends IValidationOutput>(
   state: IPluginState<TValidationMeta>,
-  id: string
+  validationId: string
 ): IValidationOutput | undefined =>
-  state.currentValidations.find(validation => validation.id === id);
+  state.currentValidations.find(
+    validation => validation.validationId === validationId
+  );
+
+export const selectValidationsInFlightForSet = <
+  TValidationMeta extends IValidationOutput
+>(
+  state: IPluginState<TValidationMeta>,
+  validationSetId: string
+): IValidationInFlightState | undefined => {
+  return state.validationsInFlight[validationSetId];
+};
 
 export const selectValidationInFlightById = <
   TValidationMeta extends IValidationOutput
 >(
   state: IPluginState<TValidationMeta>,
-  id: string
-): IValidationInFlight | undefined =>
-  state.validationsInFlight.find(_ => _.validationInput.id === id);
+  validationSetId: string,
+  validationId: string
+): IValidationInFlight | undefined => {
+  const validationInFlightState = selectValidationsInFlightForSet(
+    state,
+    validationSetId
+  );
+  if (!validationInFlightState) {
+    return;
+  }
+  return validationInFlightState.current.find(
+    _ => _.validationInput.validationId === validationId
+  );
+};
+
+export const selectAllValidationsInFlight = <
+  TValidationMeta extends IValidationOutput
+>(
+  state: IPluginState<TValidationMeta>
+): IValidationInFlight[] =>
+  Object.values(state.validationsInFlight).reduce(
+    (acc, value) => acc.concat(value.current),
+    [] as IValidationInFlight[]
+  );
+
+type TSelectValidationInFlight = Array<{
+  validationSetId: string;
+  total: number;
+  current: IValidationInFlight[];
+}>;
 
 export const selectNewValidationInFlight = <
   TValidationMeta extends IValidationOutput
 >(
   oldState: IPluginState<TValidationMeta>,
   newState: IPluginState<TValidationMeta>
-) =>
-  newState.validationsInFlight.reduce(
-    (acc, validationInFlight) =>
-      !oldState.validationsInFlight.find(
-        _ => _.validationInput.id === validationInFlight.validationInput.id
-      )
-        ? acc.concat(validationInFlight)
+): TSelectValidationInFlight =>
+  Object.keys(newState.validationsInFlight).reduce(
+    (acc, validationSetId) =>
+      !oldState.validationsInFlight[validationSetId]
+        ? acc.concat({
+            validationSetId,
+            ...selectValidationsInFlightForSet(newState, validationSetId)!
+          })
         : acc,
-    [] as IValidationInFlight[]
+    [] as TSelectValidationInFlight
   );
+
+export const selectPercentRemaining = <
+  TValidationMeta extends IValidationOutput
+>(
+  state: IPluginState<TValidationMeta>
+) => {
+  const [sumOfTotals, sumOfValidations] = Object.values(
+    state.validationsInFlight
+  ).reduce(
+    ([totalsSum, currentSum], _) => [
+      totalsSum + _.total,
+      currentSum + _.current.length
+    ],
+    [0, 0]
+  );
+  return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
+};
 
 export const selectSuggestionAndRange = <
   TValidationMeta extends IValidationOutput
@@ -309,9 +375,9 @@ const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
       case NEW_HOVER_ID:
         return handleNewHoverId(tr, state, action);
       case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
-        return handleValidationRequestForDirtyRanges(tr, state);
+        return handleValidationRequestForDirtyRanges(tr, state, action);
       case VALIDATION_REQUEST_FOR_DOCUMENT:
-        return handleValidationRequestForDocument(tr, state);
+        return handleValidationRequestForDocument(tr, state, action);
       case VALIDATION_REQUEST_SUCCESS:
         return handleValidationRequestSuccess(tr, state, action);
       case VALIDATION_REQUEST_ERROR:
@@ -339,23 +405,37 @@ const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
 const getNewStateFromTransaction = <TValidationMeta extends IValidationOutput>(
   tr: Transaction,
   incomingState: IPluginState<TValidationMeta>
-): IPluginState<TValidationMeta> => ({
-  ...incomingState,
-  decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-  dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-  currentValidations: mapRanges(incomingState.currentValidations, tr.mapping),
-  validationsInFlight: incomingState.validationsInFlight.map(_ => {
-    // We create a new mapping here to preserve state immutability, as
-    // appendMapping mutates an existing mapping.
-    const mapping = new Mapping();
-    mapping.appendMapping(_.mapping);
-    mapping.appendMapping(tr.mapping);
-    return {
-      ..._,
-      mapping
-    };
-  })
-});
+): IPluginState<TValidationMeta> => {
+  const mappedValidationsInFlight = Object.entries(
+    incomingState.validationsInFlight
+  ).reduce(
+    (acc, [validationSetId, validationsInFlight]) => ({
+      ...acc,
+      [validationSetId]: {
+        total: validationsInFlight.total,
+        current: validationsInFlight.current.map(_ => {
+          // We create a new mapping here to preserve state immutability, as
+          // appendMapping mutates an existing mapping.
+          const mapping = new Mapping();
+          mapping.appendMapping(_.mapping);
+          mapping.appendMapping(tr.mapping);
+          return {
+            ..._,
+            mapping
+          };
+        })
+      }
+    }),
+    {}
+  );
+  return {
+    ...incomingState,
+    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
+    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
+    currentValidations: mapRanges(incomingState.currentValidations, tr.mapping),
+    validationsInFlight: mappedValidationsInFlight
+  };
+};
 
 /**
  * Action handlers.
@@ -463,13 +543,17 @@ const createHandleValidationRequestForDirtyRanges = (
   expandRanges: ExpandRanges
 ) => <TValidationMeta extends IValidationOutput>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>
+  state: IPluginState<TValidationMeta>,
+  { payload: { validationSetId } }: ActionValidationRequestForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const validationInputs: IValidationInput[] = ranges.map(range =>
     createValidationInput(tr, range)
   );
-  return handleValidationRequestStart(validationInputs)(tr, state);
+  return handleValidationRequestStart(validationSetId, validationInputs)(
+    tr,
+    state
+  );
 };
 
 /**
@@ -479,23 +563,25 @@ const handleValidationRequestForDocument = <
   TValidationMeta extends IValidationOutput
 >(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>
+  state: IPluginState<TValidationMeta>,
+  { payload: { validationSetId } }: ActionValidationRequestForDocument
 ) => {
-  return handleValidationRequestStart(createValidationInputsForDocument(tr))(
-    tr,
-    state
-  );
+  return handleValidationRequestStart(
+    validationSetId,
+    createValidationInputsForDocument(tr)
+  )(tr, state);
 };
 
 /**
  * Handle a validation request for a given set of validation inputs.
  */
-const handleValidationRequestStart = (validationInputs: IValidationInput[]) => <
-  TValidationMeta extends IValidationOutput
->(
+const handleValidationRequestStart = (
+  validationSetId: string,
+  validationInputs: IValidationInput[]
+) => <TValidationMeta extends IValidationOutput>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>
-) => {
+): IPluginState<TValidationMeta> => {
   // Replace any debug decorations, if they exist.
   const decorations = state.debug
     ? removeDecorationsFromRanges(state.decorations, validationInputs, [
@@ -508,18 +594,51 @@ const handleValidationRequestStart = (validationInputs: IValidationInput[]) => <
       )
     : state.decorations;
 
+  const newValidationsInFlight = validationInputs.map(validationInput => ({
+    mapping: new Mapping(),
+    validationInput
+  }));
+
   return {
     ...state,
     decorations,
     // We reset the dirty ranges, as they've been expanded and sent for validation.
     dirtiedRanges: [],
     validationPending: false,
-    validationsInFlight: state.validationsInFlight.concat(
-      validationInputs.map(validationInput => ({
-        mapping: new Mapping(),
-        validationInput
-      }))
+    validationsInFlight: {
+      ...state.validationsInFlight,
+      [validationSetId]: {
+        total: newValidationsInFlight.length,
+        current: newValidationsInFlight
+      }
+    }
+  };
+};
+
+const removeValidationInFlight = <TValidationOutput extends IValidationOutput>(
+  state: IPluginState<TValidationOutput>,
+  validationSetId: string,
+  validationId: string
+) => {
+  const currentValidationsInFlight = selectValidationsInFlightForSet(
+    state,
+    validationSetId
+  );
+  if (!currentValidationsInFlight) {
+    return state.validationsInFlight;
+  }
+  const newValidationsInFlight = {
+    total: currentValidationsInFlight.total,
+    current: currentValidationsInFlight.current.filter(
+      _ => _.validationInput.validationId !== validationId
     )
+  };
+  if (!newValidationsInFlight.current.length) {
+    return omit(state.validationsInFlight, validationSetId);
+  }
+  return {
+    ...state.validationsInFlight,
+    [validationSetId]: newValidationsInFlight
   };
 };
 
@@ -532,16 +651,16 @@ const handleValidationRequestSuccess = <
 >(
   tr: Transaction,
   state: IPluginState<TValidationOutput>,
-  action: ActionValidationResponseReceived<TValidationOutput>
+  { payload: { response } }: ActionValidationResponseReceived<TValidationOutput>
 ): IPluginState<TValidationOutput> => {
-  const response = action.payload.response;
   if (!response) {
     return state;
   }
 
   const validationInFlight = selectValidationInFlightById(
     state,
-    response.validationInput.id
+    response.validationSetId,
+    response.validationId
   );
 
   if (!validationInFlight) {
@@ -552,12 +671,11 @@ const handleValidationRequestSuccess = <
   // validated range -- they've been superseded.
   let currentValidations: TValidationOutput[] = removeOverlappingRanges(
     state.currentValidations,
-    state.validationsInFlight.map(_ => _.validationInput)
+    [validationInFlight.validationInput]
   );
-  const decsToRemove = state.validationsInFlight.reduce(
-    (decs, { validationInput: { from, to } }) =>
-      decs.concat(state.decorations.find(from, to)),
-    [] as Decoration[]
+  const decsToRemove = state.decorations.find(
+    validationInFlight.validationInput.from,
+    validationInFlight.validationInput.to
   );
 
   // Add the response to the current validations
@@ -595,7 +713,11 @@ const handleValidationRequestSuccess = <
 
   return {
     ...state,
-    validationsInFlight: without(state.validationsInFlight, validationInFlight),
+    validationsInFlight: removeValidationInFlight(
+      state,
+      response.validationSetId,
+      response.validationId
+    ),
     currentValidations,
     decorations: decorations.remove(debugDecsToRemove).remove(decsToRemove)
   };
@@ -609,17 +731,28 @@ const handleValidationRequestError = <
 >(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
-  action: ActionValidationRequestError
+  {
+    payload: {
+      validationError: { validationSetId, validationId, message }
+    }
+  }: ActionValidationRequestError
 ) => {
+  if (!validationId) {
+    return { ...state, message };
+  }
+
   const validationInFlight = selectValidationInFlightById(
     state,
-    action.payload.validationError.validationInput.id
+    validationSetId,
+    validationId
   );
+  if (!validationInFlight) {
+    return { ...state, message };
+  }
+
   const dirtiedRanges = validationInFlight
     ? mapRanges(
-        [
-          validationInputToRange(action.payload.validationError.validationInput)
-        ],
+        [validationInputToRange(validationInFlight.validationInput)],
         validationInFlight.mapping
       )
     : [];
@@ -653,10 +786,12 @@ const handleValidationRequestError = <
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    validationsInFlight: validationInFlight
-      ? without(state.validationsInFlight, validationInFlight)
-      : state.validationsInFlight,
-    error: action.payload.validationError.message
+    validationsInFlight: removeValidationInFlight(
+      state,
+      validationSetId,
+      validationId
+    ),
+    error: message
   };
 };
 
