@@ -17418,16 +17418,10 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
     value.forEach(function(subValue) {
       result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
     });
-
-    return result;
-  }
-
-  if (isMap_1(value)) {
+  } else if (isMap_1(value)) {
     value.forEach(function(subValue, key) {
       result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
     });
-
-    return result;
   }
 
   var keysFunc = isFull
@@ -23439,6 +23433,8 @@ class ValidationControls extends p {
     }
 }
 
+//# sourceMappingURL=ValidationControls.js.map
+
 const createView = (view, store, validationService, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
     const wrapperElement = document.createElement("div");
@@ -23512,10 +23508,9 @@ class ValidationService {
 //# sourceMappingURL=ValidationAPIService.js.map
 
 class TyperighterAdapter {
-    constructor(apiUrl) {
-        this.apiUrl = apiUrl;
-        this.checkPath = "check";
-        this.categoriesPath = "categories";
+    constructor(checkUrl, categoriesUrl) {
+        this.checkUrl = checkUrl;
+        this.categoriesUrl = categoriesUrl;
         this.fetchValidationOutputs = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
             inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 const body = {
@@ -23524,7 +23519,7 @@ class TyperighterAdapter {
                     categoryIds
                 };
                 try {
-                    const response = yield fetch(`http://${this.apiUrl}/${this.checkPath}`, {
+                    const response = yield fetch(this.checkUrl, {
                         method: "POST",
                         headers: new Headers({
                             "Content-Type": "application/json"
@@ -23559,7 +23554,7 @@ class TyperighterAdapter {
             }));
         });
         this.fetchCategories = () => __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`http://${this.apiUrl}/${this.categoriesPath}`, {
+            const response = yield fetch(this.categoriesUrl, {
                 headers: new Headers({
                     "Content-Type": "application/json"
                 })
@@ -23572,72 +23567,7 @@ class TyperighterAdapter {
     }
 }
 
-//# sourceMappingURL=typerighter.js.map
-
-const VALIDATOR_RESPONSE = "VALIDATOR_RESPONSE";
-const VALIDATOR_ERROR = "VALIDATOR_ERROR";
-class TyperighterWSAdapter extends TyperighterAdapter {
-    constructor() {
-        super(...arguments);
-        this.checkPath = "check-ws";
-        this.fetchValidationOutputs = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
-            const socket = new WebSocket(`ws://${this.apiUrl}/${this.checkPath}`);
-            const requests = inputs.map(input => ({
-                validationId: input.validationId,
-                text: input.inputString,
-                from: input.from,
-                to: input.to,
-                categoryIds
-            }));
-            socket.addEventListener("open", () => {
-                socket.addEventListener("message", event => this.handleMessage(event, validationSetId, onValidationReceived, onValidationError));
-                socket.send(JSON.stringify({
-                    validationSetId,
-                    inputs: requests
-                }));
-            });
-            socket.addEventListener("close", closeEvent => {
-                if (closeEvent.code !== 1000) {
-                    onValidationError({ validationSetId, message: closeEvent.reason });
-                }
-            });
-        });
-        this.handleMessage = (message, validationSetId, onValidationReceived, onValidationError) => {
-            try {
-                const socketMessage = JSON.parse(message.data);
-                switch (socketMessage.type) {
-                    case VALIDATOR_ERROR: {
-                        return onValidationError({
-                            validationSetId,
-                            validationId: socketMessage.id,
-                            message: socketMessage.message
-                        });
-                    }
-                    case VALIDATOR_RESPONSE: {
-                        return onValidationReceived({
-                            validationSetId,
-                            validationId: socketMessage.id,
-                            validationOutputs: socketMessage.results.map(match => ({
-                                validationId: socketMessage.id,
-                                inputString: socketMessage.input,
-                                from: match.fromPos,
-                                to: match.toPos,
-                                annotation: match.shortMessage,
-                                category: match.rule.category,
-                                suggestions: match.suggestions
-                            }))
-                        });
-                    }
-                }
-            }
-            catch (e) {
-                onValidationError({ validationSetId, message: e.message });
-            }
-        };
-    }
-}
-
-//# sourceMappingURL=typerighterWs.js.map
+//# sourceMappingURL=TyperighterAdapter.js.map
 
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
@@ -23669,7 +23599,7 @@ if (editorElement && sidebarElement && controlsElement) {
         })
     });
     const commands = createBoundCommands(view, getState);
-    const validationService = new ValidationService(store, commands, new TyperighterWSAdapter("localhost:9000"));
+    const validationService = new ValidationService(store, commands, new TyperighterAdapter("http://localhost:9000"));
     window.editor = view;
     createView(view, store, validationService, commands, sidebarElement, controlsElement);
 }
