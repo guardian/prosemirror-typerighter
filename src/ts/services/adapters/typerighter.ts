@@ -30,7 +30,7 @@ class TyperighterAdapter implements IValidationAPIAdapter {
       };
       try {
         const response = await fetch(
-          `http://${this.apiUrl}/${this.checkPath}`,
+          `${this.apiUrl}/${this.checkPath}`,
           {
             method: "POST",
             headers: new Headers({

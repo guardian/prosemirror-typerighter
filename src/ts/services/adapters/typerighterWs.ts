@@ -36,7 +36,7 @@ class TyperighterWSAdapter extends TyperighterAdapter
     onValidationReceived: TValidationReceivedCallback,
     onValidationError: TValidationErrorCallback
   ) => {
-    const socket = new WebSocket(`ws://${this.apiUrl}/${this.checkPath}`);
+    const socket = new WebSocket(`${this.apiUrl}/${this.checkPath}`);
     const requests = inputs.map(input => ({
       validationId: input.validationId,
       text: input.inputString,
