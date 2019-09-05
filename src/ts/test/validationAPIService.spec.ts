@@ -2,7 +2,7 @@ import fetchMock from "fetch-mock";
 import { IValidationOutput } from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
-import { createTyperighterAdapter as TyperighterAdapter } from "..";
+import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
 import { ITypeRighterResponse } from "../services/adapters/interfaces/ITyperighter";
 import { createValidationId } from "../utils/validation";
 
@@ -75,7 +75,7 @@ describe("ValidationAPIService", () => {
     const service = new ValidationAPIService(
       store,
       commands as any,
-      new TyperighterAdapter("endpoint")
+      new TyperighterAdapter("http://endpoint/check", "http://endpoint/categories")
     );
     fetchMock.post("http://endpoint/check", createResponse(["1234567890"]));
 
@@ -103,7 +103,7 @@ describe("ValidationAPIService", () => {
     const service = new ValidationAPIService(
       store,
       commands as any,
-      new TyperighterAdapter("endpoint")
+      new TyperighterAdapter("http://endpoint/check", "http://endpoint/categories")
     );
     fetchMock.post("http://endpoint/check", 400);
 

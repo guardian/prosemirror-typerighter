@@ -1,8 +1,14 @@
 import createValidationPlugin from "./createValidationPlugin";
 import ValidationService from "./services/ValidationAPIService";
-import createTyperighterAdapter from "./services/adapters/typerighter";
+import TyperighterAdapter from "./services/adapters/TyperighterAdapter";
 import { createBoundCommands } from "./commands";
-import createView from './createView';
+import createView from "./createView";
+import '../css/index.scss';
 
-export { ValidationService, createTyperighterAdapter, createBoundCommands, createView };
-export default createValidationPlugin;
+export {
+  ValidationService,
+  TyperighterAdapter,
+  createBoundCommands,
+  createView,
+  createValidationPlugin
+};

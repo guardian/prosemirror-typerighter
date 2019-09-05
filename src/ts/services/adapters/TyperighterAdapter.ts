@@ -10,10 +10,7 @@ import {
  * An adapter for the Typerighter service.
  */
 class TyperighterAdapter implements IValidationAPIAdapter {
-  protected checkPath = "check";
-  protected categoriesPath = "categories";
-
-  constructor(protected apiUrl: string) {}
+  constructor(protected checkUrl: string, protected categoriesUrl: string) {}
 
   public fetchValidationOutputs = async (
     validationSetId: string,
@@ -30,7 +27,7 @@ class TyperighterAdapter implements IValidationAPIAdapter {
       };
       try {
         const response = await fetch(
-          `http://${this.apiUrl}/${this.checkPath}`,
+          this.checkUrl,
           {
             method: "POST",
             headers: new Headers({
@@ -71,7 +68,7 @@ class TyperighterAdapter implements IValidationAPIAdapter {
   };
   public fetchCategories = async () => {
     const response = await fetch(
-      `http://${this.apiUrl}/${this.categoriesPath}`,
+      this.categoriesUrl,
       {
         headers: new Headers({
           "Content-Type": "application/json"

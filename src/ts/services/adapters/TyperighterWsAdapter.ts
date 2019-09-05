@@ -1,6 +1,6 @@
 import { IValidationInput } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
-import TyperighterAdapter from "./typerighter";
+import TyperighterAdapter from "./TyperighterAdapter";
 import {
   TValidationReceivedCallback,
   TValidationErrorCallback,
@@ -25,9 +25,8 @@ type TSocketMessage = ISocketValidatorResponse | ISocketValidatorError;
 /**
  * An adapter for the Typerighter service that uses WebSockets.
  */
-class TyperighterWSAdapter extends TyperighterAdapter
+class TyperighterWsAdapter extends TyperighterAdapter
   implements IValidationAPIAdapter {
-  protected checkPath = "check-ws";
 
   public fetchValidationOutputs = async (
     validationSetId: string,
@@ -36,7 +35,7 @@ class TyperighterWSAdapter extends TyperighterAdapter
     onValidationReceived: TValidationReceivedCallback,
     onValidationError: TValidationErrorCallback
   ) => {
-    const socket = new WebSocket(`ws://${this.apiUrl}/${this.checkPath}`);
+    const socket = new WebSocket(this.checkUrl);
     const requests = inputs.map(input => ({
       validationId: input.validationId,
       text: input.inputString,
@@ -107,4 +106,4 @@ class TyperighterWSAdapter extends TyperighterAdapter
   };
 }
 
-export default TyperighterWSAdapter;
+export default TyperighterWsAdapter;
