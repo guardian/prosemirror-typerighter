@@ -109,9 +109,10 @@ export const createDecorationForValidationRange = (
         DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
+  const opacity = isSelected ? "30" : "07";
   const style = `background-color: #${
     output.category.colour
-  }07; border-bottom: 2px solid #${output.category.colour}`;
+  }${opacity}; border-bottom: 2px solid #${output.category.colour}`;
 
   const decorationArray = [
     Decoration.inline(

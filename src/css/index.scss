@@ -159,10 +159,6 @@ hr {
   border-bottom: 2px solid $validation-color;
 }
 
-.ValidationDecoration--is-hovering {
-  background-color: $validation-color-hover;
-}
-
 .ValidationDebugDirty {
   background-color: $validation-debug-color-dirty;
 }
