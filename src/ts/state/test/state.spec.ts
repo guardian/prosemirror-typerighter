@@ -1,7 +1,7 @@
 import { Transaction } from "prosemirror-state";
 import { DecorationSet } from "prosemirror-view";
 import {
-  selectValidation,
+  selectMatch,
   setDebugState,
   selectValidationInFlightById,
   selectNewValidationInFlight,
@@ -10,15 +10,13 @@ import {
   validationRequestForDocument,
   IPluginState,
   selectValidationsInFlightForSet,
-  selectPercentRemaining
-} from "../state";
-import {
-  newHoverIdReceived,
-  selectValidationById,
+  selectPercentRemaining,
+  selectValidationByMatchId,
   createValidationPluginReducer,
   validationRequestError,
   validationRequestForDirtyRanges,
-  validationRequestSuccess
+  validationRequestSuccess,
+  newHoverIdReceived
 } from "../state";
 import {
   createDebugDecorationFromRange,
@@ -61,7 +59,7 @@ const createInitialData = (initialDoc = initialDocToValidate, time = 0) => {
       decorations: DecorationSet.create(tr.doc, []),
       dirtiedRanges: [],
       currentValidations: [],
-      selectedValidation: undefined,
+      selectedMatch: undefined,
       hoverId: undefined,
       hoverInfo: undefined,
       trHistory: [tr],
@@ -381,6 +379,7 @@ describe("State management", () => {
       it("should add hover decorations", () => {
         const { state, tr } = createInitialData();
         const output: IValidationOutput = {
+          matchId: "match-id",
           from: 0,
           to: 5,
           inputString: "Example",
@@ -390,28 +389,32 @@ describe("State management", () => {
             name: "cat",
             colour: "eeeeee"
           },
-          validationId: "exampleHoverId"
+          validationId: "validation-id"
         };
-        const localState = { ...state, currentValidations: [output] };
-        expect(
-          reducer(
-            tr,
-            localState,
-            newHoverIdReceived("exampleHoverId", undefined)
+        const localState = {
+          ...state,
+          currentValidations: [output],
+          decorations: new DecorationSet().add(
+            tr.doc,
+            createDecorationForValidationRange(output, false, true)
           )
+        };
+        expect(
+          reducer(tr, localState, newHoverIdReceived("match-id"))
         ).toEqual({
           ...localState,
           decorations: new DecorationSet().add(
             tr.doc,
-            createDecorationForValidationRange(output, true, false)
+            createDecorationForValidationRange(output, true, true)
           ),
-          hoverId: "exampleHoverId",
+          hoverId: "match-id",
           hoverInfo: undefined
         });
       });
       it("should remove hover decorations", () => {
         const { state, tr } = createInitialData();
         const output: IValidationOutput = {
+          matchId: "match-id",
           from: 0,
           to: 5,
           inputString: "Example",
@@ -425,18 +428,20 @@ describe("State management", () => {
         };
         const localState = {
           ...state,
-          decorations: new DecorationSet().add(
-            tr.doc,
-            createDecorationForValidationRange(output, true, false)
-          ),
-          hoverId: "exampleHoverId",
+          decorations: new DecorationSet().add(tr.doc, [
+            ...createDecorationForValidationRange(output, true, true)
+          ]),
+          currentValidations: [output],
+          hoverId: "match-id",
           hoverInfo: undefined
         };
         expect(
           reducer(tr, localState, newHoverIdReceived(undefined, undefined))
         ).toEqual({
           ...localState,
-          decorations: new DecorationSet(),
+          decorations: new DecorationSet().add(tr.doc, [
+            ...createDecorationForValidationRange(output, false, true)
+          ]),
           hoverId: undefined,
           hoverInfo: undefined
         });
@@ -447,6 +452,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         const currentValidations: IValidationOutput[] = [
           {
+            matchId: "match-id",
             validationId: "1",
             from: 1,
             to: 7,
@@ -488,6 +494,7 @@ describe("State management", () => {
           ...state,
           currentValidations: [
             {
+              matchId: "match-id",
               inputString: "example",
               from: 1,
               to: 1,
@@ -506,11 +513,11 @@ describe("State management", () => {
           reducer(
             new Transaction(createDoc),
             otherState,
-            selectValidation("exampleId")
+            selectMatch("exampleId")
           )
         ).toEqual({
           ...otherState,
-          selectedValidation: "exampleId"
+          selectedMatch: "exampleId"
         });
       });
     });
@@ -527,24 +534,24 @@ describe("State management", () => {
     describe("selectValidationById", () => {
       it("should find the given validation by id", () => {
         expect(
-          selectValidationById(
+          selectValidationByMatchId(
             {
               currentValidations: [
                 {
-                  validationId: "1"
+                  matchId: "1"
                 },
                 {
-                  validationId: "2"
+                  matchId: "2"
                 }
               ]
             } as any,
             "1"
           )
-        ).toEqual({ validationId: "1" });
+        ).toEqual({ matchId: "1" });
       });
       it("should return undefined if there is no validation", () => {
         expect(
-          selectValidationById(
+          selectValidationByMatchId(
             {
               currentValidations: [
                 {
@@ -638,6 +645,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         const currentValidations = [
           {
+            matchId: "match-id",
             validationId: "id",
             from: 0,
             to: 5,
@@ -672,6 +680,7 @@ describe("State management", () => {
         const { state } = createInitialData();
         const currentValidations = [
           {
+            matchId: "match-id",
             validationId: "id",
             from: 0,
             to: 5,
@@ -697,7 +706,7 @@ describe("State management", () => {
               ...state,
               currentValidations
             },
-            "id",
+            "match-id",
             0
           )
         ).toEqual({
@@ -714,7 +723,7 @@ describe("State management", () => {
               ...state,
               currentValidations
             },
-            "id",
+            "match-id",
             1
           )
         ).toEqual({

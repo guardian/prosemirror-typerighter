@@ -47,7 +47,8 @@ class TyperighterAdapter implements IValidationAPIAdapter {
         onValidationReceived({
           validationSetId,
           validationId: input.validationId,
-          validationOutputs: validationData.results.map(match => ({
+          validationOutputs: validationData.results.map((match, index) => ({
+            matchId: `${input.validationId}--match-${index}`,
             validationId: input.validationId,
             inputString: input.inputString,
             from: input.from + match.fromPos,

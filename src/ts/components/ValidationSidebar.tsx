@@ -8,8 +8,8 @@ import { IValidationOutput } from "../interfaces/IValidation";
 interface IProps {
   store: Store<IValidationOutput>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
-  selectValidation: (validationId: string) => void;
-  indicateHover: (validationId: string | undefined, _: any) => void;
+  selectValidation: (matchId: string) => void;
+  indicateHover: (matchId: string | undefined, _: any) => void;
 }
 
 /**
@@ -32,8 +32,8 @@ class ValidationSidebar extends Component<
       currentValidations = [],
       validationsInFlight = [],
       validationPending = false,
-      selectedValidation
-    } = this.state.pluginState || { selectedValidation: undefined };
+      selectedMatch
+    } = this.state.pluginState || { selectedMatch: undefined };
     const hasValidations = !!(currentValidations && currentValidations.length);
     const percentRemaining = this.getPercentRemaining();
     return (
@@ -61,7 +61,7 @@ class ValidationSidebar extends Component<
                 <li className="Sidebar__list-item">
                   <ValidationSidebarOutput
                     output={output}
-                    selectedValidation={selectedValidation}
+                    selectedMatch={selectedMatch}
                     applySuggestions={applySuggestions}
                     selectValidation={selectValidation}
                     indicateHover={indicateHover}
@@ -80,9 +80,7 @@ class ValidationSidebar extends Component<
     );
   }
 
-  private handleNewState = (
-    pluginState: IPluginState<IValidationOutput>
-  ) => {
+  private handleNewState = (pluginState: IPluginState<IValidationOutput>) => {
     this.setState({
       pluginState: {
         ...pluginState,

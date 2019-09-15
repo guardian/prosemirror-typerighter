@@ -2,10 +2,10 @@ import { Transaction, EditorState } from "prosemirror-state";
 import {
   VALIDATION_PLUGIN_ACTION,
   newHoverIdReceived,
-  selectValidationById,
+  selectValidationByMatchId,
   IPluginState,
   validationRequestForDocument,
-  selectValidation,
+  selectMatch,
   setDebugState,
   setValidateOnModifyState,
   IStateHoverInfo,
@@ -96,13 +96,13 @@ export const selectValidationCommand = <
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
-  const output = selectValidationById(pluginState, validationId);
+  const output = selectValidationByMatchId(pluginState, validationId);
   if (!output) {
     return false;
   }
   if (dispatch) {
     dispatch(
-      state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectValidation(validationId))
+      state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(validationId))
     );
   }
   return true;
@@ -177,7 +177,7 @@ export const applyValidationErrorCommand = (
 };
 
 export type ApplySuggestionOptions = Array<{
-  validationId: string;
+  matchId: string;
   text: string;
 }>;
 
@@ -193,7 +193,7 @@ export const applySuggestionsCommand = <
   const pluginState = getState(state);
   const outputsAndSuggestions = suggestionOptions
     .map(opt => {
-      const validation = selectValidationById(pluginState, opt.validationId);
+      const validation = selectValidationByMatchId(pluginState, opt.matchId);
       return validation
         ? {
             from: validation.from,

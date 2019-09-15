@@ -88,7 +88,8 @@ class TyperighterWsAdapter extends TyperighterAdapter
           return onValidationReceived({
             validationSetId,
             validationId: socketMessage.id,
-            validationOutputs: socketMessage.results.map(match => ({
+            validationOutputs: socketMessage.results.map((match, index) => ({
+              matchId: `${socketMessage.id}--match-${index}`,
               validationId: socketMessage.id,
               inputString: socketMessage.input,
               from: match.fromPos,

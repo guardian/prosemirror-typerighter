@@ -6,13 +6,13 @@ import { ApplySuggestionOptions } from "../commands";
 
 interface IProps {
   suggestions: ISuggestion[];
-  validationId: string;
+  matchId: string;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
 }
 
 const SuggestionList = ({
   suggestions,
-  validationId,
+  matchId,
   applySuggestions
 }: IProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,7 @@ const SuggestionList = ({
         <p>No suggestions found.</p>
       ) : (
         <Suggestion
-          validationId={validationId}
+          matchId={matchId}
           suggestion={firstSuggestion}
           applySuggestions={applySuggestions}
         />
@@ -42,7 +42,7 @@ const SuggestionList = ({
         <Fragment>
           {otherSuggestions.map(suggestion => (
             <Suggestion
-              validationId={validationId}
+              matchId={matchId}
               suggestion={suggestion}
               applySuggestions={applySuggestions}
             />

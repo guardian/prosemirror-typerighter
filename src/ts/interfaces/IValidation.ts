@@ -18,6 +18,7 @@ export interface ICategory {
 
 export interface IValidationOutput<TSuggestion = ISuggestion>
   extends IValidationInput {
+  matchId: string;
   validationId: string;
   annotation: string;
   category: ICategory;

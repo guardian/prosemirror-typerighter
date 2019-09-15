@@ -34,6 +34,7 @@ const createOutput = (id: string, inputString: string, offset: number = 0) => {
   const to = offset + inputString.length;
   return {
     validationId: id,
+    matchId: "0-from:0-to:10--match-0",
     from,
     to,
     inputString,
@@ -75,7 +76,10 @@ describe("ValidationAPIService", () => {
     const service = new ValidationAPIService(
       store,
       commands as any,
-      new TyperighterAdapter("http://endpoint/check", "http://endpoint/categories")
+      new TyperighterAdapter(
+        "http://endpoint/check",
+        "http://endpoint/categories"
+      )
     );
     fetchMock.post("http://endpoint/check", createResponse(["1234567890"]));
 
@@ -103,7 +107,10 @@ describe("ValidationAPIService", () => {
     const service = new ValidationAPIService(
       store,
       commands as any,
-      new TyperighterAdapter("http://endpoint/check", "http://endpoint/categories")
+      new TyperighterAdapter(
+        "http://endpoint/check",
+        "http://endpoint/categories"
+      )
     );
     fetchMock.post("http://endpoint/check", 400);
 

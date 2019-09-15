@@ -30,7 +30,7 @@ class ValidationOutput<
             <div className="ValidationWidget__suggestion-list">
               <SuggestionList
                 applySuggestions={applySuggestions}
-                validationId={id}
+                matchId={id}
                 suggestions={suggestions}
               />
             </div>

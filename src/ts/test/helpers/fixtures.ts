@@ -3,7 +3,7 @@ import {
   IValidationOutput,
   ISuggestion
 } from "../../interfaces/IValidation";
-import { createValidationId } from "../../utils/validation";
+import { createValidationId, createMatchId } from "../../utils/validation";
 
 export const validationLibrary: IValidationLibrary = [
   [
@@ -57,5 +57,6 @@ export const createValidationOutput = (
   annotation: "annotation",
   inputString,
   validationId: createValidationId(0, from, to),
+  matchId: createMatchId(0, from, to, 0),
   suggestions
 });
