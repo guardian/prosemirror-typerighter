@@ -1,7 +1,7 @@
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, IValidationOutput } from "../interfaces/IValidation";
+import { IRange, IBlockMatches } from "../interfaces/IValidation";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
@@ -69,7 +69,7 @@ export const removeDecorationsFromRanges = (
  * returns a new decoration set containing the new validations.
  */
 export const getNewDecorationsForCurrentValidations = (
-  outputs: IValidationOutput[],
+  outputs: IBlockMatches[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
@@ -100,7 +100,7 @@ const createHeightMarkerElement = (id: string) => {
  * Create a validation decoration for the given range.
  */
 export const createDecorationForValidationRange = (
-  output: IValidationOutput,
+  output: IBlockMatches,
   isSelected = false,
   addHeightMarker = true
 ) => {
@@ -126,6 +126,7 @@ export const createDecorationForValidationRange = (
       {
         type: DECORATION_VALIDATION,
         id: output.matchId,
+        categoryId: output.category.id,
         inclusiveStart: true
       } as any
     )
@@ -139,16 +140,16 @@ export const createDecorationForValidationRange = (
           createHeightMarkerElement(output.matchId),
           {
             type: DECORATION_VALIDATION_HEIGHT_MARKER,
-            id: output.matchId
+            id: output.matchId,
+            categoryId: output.category.id
           } as any
         )
       ]
     : decorationArray;
 };
 
-export const createDecorationsForValidationRanges = (
-  ranges: IValidationOutput[]
-) => flatten(ranges.map(_ => createDecorationForValidationRange(_)));
+export const createDecorationsForValidationRanges = (ranges: IBlockMatches[]) =>
+  flatten(ranges.map(_ => createDecorationForValidationRange(_)));
 
 export const findSingleDecoration = (
   decorationSet: DecorationSet,

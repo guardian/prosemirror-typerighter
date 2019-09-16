@@ -1,6 +1,6 @@
-import { IValidationInput } from "../../interfaces/IValidation";
+import { IBlockQuery } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
-import TyperighterAdapter from "./TyperighterAdapter";
+import TyperighterAdapter, { convertTyperighterResponse } from "./TyperighterAdapter";
 import {
   TValidationReceivedCallback,
   TValidationErrorCallback,
@@ -27,17 +27,16 @@ type TSocketMessage = ISocketValidatorResponse | ISocketValidatorError;
  */
 class TyperighterWsAdapter extends TyperighterAdapter
   implements IValidationAPIAdapter {
-
-  public fetchValidationOutputs = async (
+  public fetchMatches = async (
     validationSetId: string,
-    inputs: IValidationInput[],
+    inputs: IBlockQuery[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback,
     onValidationError: TValidationErrorCallback
   ) => {
     const socket = new WebSocket(this.checkUrl);
-    const requests = inputs.map(input => ({
-      validationId: input.validationId,
+    const blocks = inputs.map(input => ({
+      id: input.id,
       text: input.inputString,
       from: input.from,
       to: input.to,
@@ -56,7 +55,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
       socket.send(
         JSON.stringify({
           validationSetId,
-          inputs: requests
+          blocks
         })
       );
     });
@@ -85,20 +84,9 @@ class TyperighterWsAdapter extends TyperighterAdapter
           });
         }
         case VALIDATOR_RESPONSE: {
-          return onValidationReceived({
-            validationSetId,
-            validationId: socketMessage.id,
-            validationOutputs: socketMessage.results.map((match, index) => ({
-              matchId: `${socketMessage.id}--match-${index}`,
-              validationId: socketMessage.id,
-              inputString: socketMessage.input,
-              from: match.fromPos,
-              to: match.toPos,
-              annotation: match.shortMessage,
-              category: match.rule.category,
-              suggestions: match.suggestions
-            }))
-          });
+          return onValidationReceived(
+            convertTyperighterResponse(validationSetId, socketMessage)
+          );
         }
       }
     } catch (e) {

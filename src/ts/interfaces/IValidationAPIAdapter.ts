@@ -3,8 +3,8 @@
  */
 
 import {
-  IValidationInput,
-  IValidationOutput,
+  IBlockQuery,
+  IBlockMatches,
   ICategory,
   IValidationResponse,
   IValidationError
@@ -14,14 +14,14 @@ import {
  * @internal
  */
 export declare class IValidationAPIAdapter<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+  TValidationOutput extends IBlockMatches = IBlockMatches
 > {
   /**
    * Fetch the validation outputs for the given inputs.
    */
-  public fetchValidationOutputs: (
+  public fetchMatches: (
     validationSetId: string,
-    input: IValidationInput[],
+    input: IBlockQuery[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback<TValidationOutput>,
     onValidationError: TValidationErrorCallback
@@ -40,7 +40,7 @@ export declare class IValidationAPIAdapter<
 }
 
 export type TValidationReceivedCallback<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+  TValidationOutput extends IBlockMatches = IBlockMatches
 > = (response: IValidationResponse<TValidationOutput>) => void;
 
 export type TValidationErrorCallback = (

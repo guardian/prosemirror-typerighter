@@ -1,13 +1,14 @@
 import { Component, h } from "preact";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { ApplySuggestionOptions } from "../commands";
-import { IPluginState, selectPercentRemaining } from "../state/state";
+import { IPluginState } from "../state/reducer";
+import { selectPercentRemaining } from "../state/selectors";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
-import { IValidationOutput } from "../interfaces/IValidation";
 import { selectAllAutoFixableValidations } from "../state/state";
+import { IBlockMatches } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IValidationOutput>;
+  store: Store<IBlockMatches>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
   selectValidation: (matchId: string) => void;
@@ -20,7 +21,7 @@ interface IProps {
 class ValidationSidebar extends Component<
   IProps,
   {
-    pluginState: IPluginState<IValidationOutput> | undefined;
+    pluginState: IPluginState<IBlockMatches> | undefined;
     groupResults: boolean;
   }
 > {
@@ -37,7 +38,7 @@ class ValidationSidebar extends Component<
     } = this.props;
     const {
       currentValidations = [],
-      validationsInFlight = [],
+      blockQueriesInFlight = [],
       validationPending = false,
       selectedMatch
     } = this.state.pluginState || { selectedMatch: undefined };
@@ -50,7 +51,7 @@ class ValidationSidebar extends Component<
           <span>
             Validation results{" "}
             {hasValidations && <span>({currentValidations.length}) </span>}
-            {(validationsInFlight.length || validationPending) && (
+            {(blockQueriesInFlight.length || validationPending) && (
               <span className="Sidebar__loading-spinner">|</span>
             )}
             <div
@@ -96,7 +97,7 @@ class ValidationSidebar extends Component<
     );
   }
 
-  private handleNewState = (pluginState: IPluginState<IValidationOutput>) => {
+  private handleNewState = (pluginState: IPluginState<IBlockMatches>) => {
     this.setState({
       pluginState: {
         ...pluginState,

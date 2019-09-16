@@ -1,9 +1,17 @@
 import { ISuggestion } from "../../../interfaces/IValidation";
 
 export interface ITypeRighterResponse {
-  input: string;
-  id: string;
-  results: ITypeRighterMatch[];
+  blocks: ITypeRighterBlockResponse[];
+  validationSetId: string;
+}
+
+export interface ITypeRighterBlockResponse {
+  id: string,
+  categoryIds: string[],
+  matches: ITypeRighterMatch[],
+  from: number;
+  to: number;
+  text: string;
 }
 
 export interface ITypeRighterMatch {

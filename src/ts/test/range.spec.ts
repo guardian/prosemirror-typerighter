@@ -301,5 +301,41 @@ describe("Range utils", () => {
         }
       ]);
     });
+    it("should apply a predicate to exempt ranges from removal if given", () => {
+      const outputs = removeOverlappingRanges(
+        [
+          {
+            inputString: "one",
+            from: 0,
+            to: 2
+          },
+          {
+            inputString: "two",
+            from: 5,
+            to: 7
+          }
+        ],
+        [
+          {
+            inputString: "three",
+            from: 10,
+            to: 12
+          }
+        ],
+        (range: any) => range.inputString !== "one"
+      );
+      expect(outputs).toEqual([
+        {
+          inputString: "one",
+          from: 0,
+          to: 2
+        },
+        {
+          inputString: "two",
+          from: 5,
+          to: 7
+        }
+      ]);
+    });
   });
 });

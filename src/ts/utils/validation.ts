@@ -1,12 +1,12 @@
 import { Transaction } from "prosemirror-state";
-import { IRange } from "../interfaces/IValidation";
+import { IRange, IBlockQuery } from "../interfaces/IValidation";
 
-export const createValidationInput = (tr: Transaction, range: IRange) => {
+export const createValidationBlock = (tr: Transaction, range: IRange): IBlockQuery => {
   const inputString = tr.doc.textBetween(range.from, range.to);
   return {
     inputString,
     ...range,
-    validationId: createValidationId(tr.time, range.from, range.to)
+    id: createValidationId(tr.time, range.from, range.to)
   };
 };
 

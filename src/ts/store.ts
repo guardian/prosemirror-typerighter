@@ -1,6 +1,6 @@
-import { IPluginState } from "./state/state";
+import { IPluginState } from "./state/reducer";
 import { ArgumentTypes } from "./utils/types";
-import { IValidationOutput, IValidationInput } from "./interfaces/IValidation";
+import { IBlockMatches, IBlockQuery } from "./interfaces/IValidation";
 
 export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
@@ -10,22 +10,22 @@ type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-export interface IStoreEvents<TValidationMeta extends IValidationOutput> {
+export interface IStoreEvents<TValidationMeta extends IBlockMatches> {
   [STORE_EVENT_NEW_VALIDATION]: (
     validationSetId: string,
-    v: IValidationInput[]
+    v: IBlockQuery[]
   ) => void;
   [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
-type EventNames = keyof IStoreEvents<IValidationOutput>;
+type EventNames = keyof IStoreEvents<IBlockMatches>;
 
 /**
  * A store to allow consumers to subscribe to validator state updates.
  */
 class Store<
-  TValidationOutput extends IValidationOutput,
+  TValidationOutput extends IBlockMatches,
   TStoreEvents extends IStoreEvents<TValidationOutput> = IStoreEvents<
     TValidationOutput
   >

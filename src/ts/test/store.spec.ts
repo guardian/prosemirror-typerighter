@@ -1,5 +1,5 @@
 import Store from "../store";
-import { createInitialState } from "../state/state";
+import { createInitialState } from "../state/reducer";
 import { createDoc, p } from "./helpers/prosemirror";
 
 describe("store", () => {
@@ -7,7 +7,7 @@ describe("store", () => {
     const store = new Store();
     const newStateSub = jest.fn();
     const newValidationSub = jest.fn();
-    const state = createInitialState(createDoc(p("Example doc")), 1000, 2000);
+    const state = createInitialState(createDoc(p("Example doc")));
     store.on("STORE_EVENT_NEW_STATE", newStateSub);
     store.on("STORE_EVENT_NEW_VALIDATION", newValidationSub);
 
@@ -25,7 +25,7 @@ describe("store", () => {
     store.removeEventListener("STORE_EVENT_NEW_STATE", newStateSub);
     store.emit(
       "STORE_EVENT_NEW_STATE",
-      createInitialState(createDoc(p("Example doc")), 1000, 2000)
+      createInitialState(createDoc(p("Example doc")))
     );
     expect(newStateSub.mock.calls.length).toBe(0);
   });

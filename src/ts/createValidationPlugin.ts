@@ -1,11 +1,10 @@
+import { applyNewDirtiedRanges } from "./state/actions";
+import { IPluginState, VALIDATION_PLUGIN_ACTION } from "./state/reducer";
 import {
-  IPluginState,
-  VALIDATION_PLUGIN_ACTION,
-  createValidationPluginReducer,
-  applyNewDirtiedRanges,
   createInitialState,
-  selectNewValidationInFlight as selectNewValidationsInFlight
-} from "./state/state";
+  createValidationPluginReducer
+} from "./state/reducer";
+import { selectNewBlockQueryInFlight } from "./state/selectors";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
   DECORATION_ATTRIBUTE_ID
@@ -15,7 +14,7 @@ import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
-import { IRange, IValidationOutput } from "./interfaces/IValidation";
+import { IRange, IBlockMatches } from "./interfaces/IValidation";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
@@ -48,7 +47,7 @@ interface IPluginOptions {
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createValidatorPlugin = <TValidationMeta extends IValidationOutput>(
+const createValidatorPlugin = <TValidationMeta extends IBlockMatches>(
   options: IPluginOptions = {}
 ) => {
   const { expandRanges = expandRangesToParentBlockNode } = options;
@@ -92,7 +91,7 @@ const createValidatorPlugin = <TValidationMeta extends IValidationOutput>(
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
-      const newValidationInputs = selectNewValidationsInFlight(
+      const newValidationInputs = selectNewBlockQueryInFlight(
         oldPluginState,
         newPluginState
       );
@@ -100,7 +99,7 @@ const createValidatorPlugin = <TValidationMeta extends IValidationOutput>(
         store.emit(
           STORE_EVENT_NEW_VALIDATION,
           validationSetId,
-          current.map(_ => _.validationInput)
+          current.map(_ => _.blockQuery)
         )
       );
     },

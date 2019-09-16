@@ -355,9 +355,6 @@ li.ProseMirror-selectednode:after {
 .ValidationSidebarOutput__container {
   padding: 5px; }
 
-.ValidationSidebarOutput__container--is-selected {
-  border-left: 2px solid #3dcde6; }
-
 .ValidationSidebarOutput__list-item:last-child {
   border-bottom: none; }
 
@@ -583,9 +580,6 @@ hr {
 .ValidationDecoration,
 .ValidationDecoration__height-marker {
   border-bottom: 2px solid #3dcde6; }
-
-.ValidationDecoration--is-hovering {
-  background-color: #3dcde624; }
 
 .ValidationDebugDirty {
   background-color: #f7a85e66; }

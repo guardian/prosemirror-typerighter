@@ -1,14 +1,14 @@
 import { Component, h } from "preact";
-import v4 from 'uuid/v4';
+import v4 from "uuid/v4";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
-import { IPluginState } from "../state/state";
-import { IValidationOutput, ICategory } from "../interfaces/IValidation";
+import { IPluginState } from "../state/reducer";
+import { IBlockMatches, ICategory } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IValidationOutput>;
+  store: Store<IBlockMatches>;
   setDebugState: (debug: boolean) => void;
   setValidateOnModifyState: (validate: boolean) => void;
-  validateDocument: (validationSetId: string) => void;
+  validateDocument: (validationSetId: string, categoryIds: string[]) => void;
   fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
@@ -16,7 +16,7 @@ interface IProps {
 }
 
 interface IState {
-  pluginState?: IPluginState<IValidationOutput>;
+  pluginState?: IPluginState<IBlockMatches>;
   isOpen: boolean;
   allCategories: ICategory[];
   currentCategories: ICategory[];
@@ -152,7 +152,7 @@ class ValidationControls extends Component<IProps, IState> {
       </div>
     );
   }
-  private handleNotify = (state: IPluginState<IValidationOutput>) => {
+  private handleNotify = (state: IPluginState<IBlockMatches>) => {
     this.setState({ pluginState: state });
   };
   private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
@@ -193,8 +193,11 @@ class ValidationControls extends Component<IProps, IState> {
   };
 
   private validateDocument = () => {
-    this.props.validateDocument(v4())
-  }
+    this.props.validateDocument(
+      v4(),
+      this.props.getCurrentCategories().map(_ => _.id)
+    );
+  };
 }
 
 export default ValidationControls;

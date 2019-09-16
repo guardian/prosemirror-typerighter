@@ -1,4 +1,4 @@
-import { IValidationOutput } from "../interfaces/IValidation";
+import { IBlockMatches } from "../interfaces/IValidation";
 import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
@@ -6,7 +6,7 @@ import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 
 interface IProps {
-  output: IValidationOutput;
+  output: IBlockMatches;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectValidation: (matchId: string) => void;
   indicateHover: (validationId: string | undefined, _?: any) => void;

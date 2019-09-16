@@ -15334,6 +15334,53 @@ var dist_2$4 = dist$6.buildKeymap;
 var dist_3$4 = dist$6.buildInputRules;
 var dist_4$4 = dist$6.exampleSetup;
 
+const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
+const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
+const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
+const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
+const NEW_HOVER_ID = "NEW_HOVER_ID";
+const SELECT_VALIDATION = "SELECT_VALIDATION";
+const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
+const SET_DEBUG_STATE = "SET_DEBUG_STATE";
+const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
+const validationRequestForDirtyRanges = (validationSetId, categoryIds) => ({
+    type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
+    payload: { validationSetId, categoryIds }
+});
+const validationRequestForDocument = (validationSetId, categoryIds) => ({
+    type: VALIDATION_REQUEST_FOR_DOCUMENT,
+    payload: { validationSetId, categoryIds }
+});
+const validationRequestSuccess = (response) => ({
+    type: VALIDATION_REQUEST_SUCCESS,
+    payload: { response }
+});
+const validationRequestError = (validationError) => ({
+    type: VALIDATION_REQUEST_ERROR,
+    payload: { validationError }
+});
+const newHoverIdReceived = (hoverId, hoverInfo) => ({
+    type: NEW_HOVER_ID,
+    payload: { hoverId, hoverInfo }
+});
+const applyNewDirtiedRanges = (ranges) => ({
+    type: APPLY_NEW_DIRTY_RANGES,
+    payload: { ranges }
+});
+const selectMatch = (matchId) => ({
+    type: SELECT_VALIDATION,
+    payload: { matchId }
+});
+const setDebugState = (debug) => ({
+    type: SET_DEBUG_STATE,
+    payload: { debug }
+});
+const setValidateOnModifyState = (validateOnModify) => ({
+    type: SET_VALIDATE_ON_MODIFY_STATE,
+    payload: { validateOnModify }
+});
+//# sourceMappingURL=actions.js.map
+
 /**
  * A specialized version of `_.map` for arrays without support for iteratee
  * shorthands.
@@ -17418,10 +17465,16 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
     value.forEach(function(subValue) {
       result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
     });
-  } else if (isMap_1(value)) {
+
+    return result;
+  }
+
+  if (isMap_1(value)) {
     value.forEach(function(subValue, key) {
       result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
     });
+
+    return result;
   }
 
   var keysFunc = isFull
@@ -18086,7 +18139,7 @@ var omit = _flatRest(function(object, paths) {
 var omit_1 = omit;
 
 const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-const DECORATION_VALIDATION_IS_HOVERING = "DECORATION_VALIDATION_IS_HOVERING";
+const DECORATION_VALIDATION_IS_SELECTED = "DECORATION_VALIDATION_IS_HOVERING";
 const DECORATION_VALIDATION_HEIGHT_MARKER = "DECORATION_VALIDATION_HEIGHT_MARKER";
 const DECORATION_DIRTY = "DECORATION_DIRTY";
 const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
@@ -18095,7 +18148,7 @@ const DecorationClassMap = {
     [DECORATION_INFLIGHT]: "ValidationDebugInflight",
     [DECORATION_VALIDATION]: "ValidationDecoration",
     [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
-    [DECORATION_VALIDATION_IS_HOVERING]: "ValidationDecoration--is-hovering"
+    [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected"
 };
 const DECORATION_ATTRIBUTE_ID = "data-validation-id";
 const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
@@ -18129,28 +18182,31 @@ const createHeightMarkerElement = (id) => {
     element.className = DecorationClassMap[DECORATION_VALIDATION_HEIGHT_MARKER];
     return element;
 };
-const createDecorationForValidationRange = (output, isHovering = false, addHeightMarker = true) => {
-    const className = isHovering
-        ? `${DecorationClassMap[DECORATION_VALIDATION]} ${DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]}`
+const createDecorationForValidationRange = (output, isSelected = false, addHeightMarker = true) => {
+    const className = isSelected
+        ? `${DecorationClassMap[DECORATION_VALIDATION]} ${DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]}`
         : DecorationClassMap[DECORATION_VALIDATION];
-    const style = `background-color: #${output.category.colour}07; border-bottom: 2px solid #${output.category.colour}`;
+    const opacity = isSelected ? "30" : "07";
+    const style = `background-color: #${output.category.colour}${opacity}; border-bottom: 2px solid #${output.category.colour}`;
     const decorationArray = [
         dist_2$3.inline(output.from, output.to, {
             class: className,
             style,
-            [DECORATION_ATTRIBUTE_ID]: output.validationId
+            [DECORATION_ATTRIBUTE_ID]: output.matchId
         }, {
             type: DECORATION_VALIDATION,
-            id: output.validationId,
+            id: output.matchId,
+            categoryId: output.category.id,
             inclusiveStart: true
         })
     ];
     return addHeightMarker
         ? [
             ...decorationArray,
-            dist_2$3.widget(output.from, createHeightMarkerElement(output.validationId), {
+            dist_2$3.widget(output.from, createHeightMarkerElement(output.matchId), {
                 type: DECORATION_VALIDATION_HEIGHT_MARKER,
-                id: output.validationId
+                id: output.matchId,
+                categoryId: output.category.id
             })
         ]
         : decorationArray;
@@ -21920,12 +21976,11 @@ const findOverlappingRangeIndex = (range, ranges) => {
 };
 const mapAndMergeRanges = (ranges, mapping) => mergeRanges(mapRanges(ranges, mapping));
 const mapRanges = (ranges, mapping) => ranges.map(range => (Object.assign({}, range, { from: mapping.map(range.from), to: mapping.map(range.to) })));
-const removeOverlappingRanges = (firstRanges, secondRanges) => {
-    return firstRanges.reduce((acc, range) => {
-        return findOverlappingRangeIndex(range, secondRanges) === -1
-            ? acc.concat(range)
-            : acc;
-    }, []);
+const removeOverlappingRanges = (firstRanges, secondRanges, predicate) => {
+    return firstRanges.reduce((acc, range) => (predicate && predicate(range)) ||
+        findOverlappingRangeIndex(range, secondRanges) === -1
+        ? acc.concat(range)
+        : acc, []);
 };
 const mergeRange = (range1, range2) => (Object.assign({}, range1, { from: range1.from < range2.from ? range1.from : range2.from, to: range1.to > range2.to ? range1.to : range2.to }));
 const mergeRanges = (ranges) => ranges.reduce((acc, range) => {
@@ -21984,11 +22039,12 @@ const getRangesOfParentBlockNodes = (ranges, doc) => {
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
 //# sourceMappingURL=range.js.map
 
-const createValidationInput = (tr, range) => {
+const createValidationBlock = (tr, range) => {
     const inputString = tr.doc.textBetween(range.from, range.to);
-    return Object.assign({ inputString }, range, { validationId: createValidationId(tr.time, range.from, range.to) });
+    return Object.assign({ inputString }, range, { id: createValidationId(tr.time, range.from, range.to) });
 };
 const createValidationId = (time, from, to) => `${time}-from:${from}-to:${to}`;
+
 //# sourceMappingURL=validation.js.map
 
 const flatten$3 = (node, descend = true) => {
@@ -22004,11 +22060,11 @@ const flatten$3 = (node, descend = true) => {
 const findChildren = (node, predicate, descend) => {
     return flatten$3(node, descend).filter(child => predicate(child.node));
 };
-const createValidationInputsForDocument = (tr) => {
+const createValidationBlocksForDocument = (tr) => {
     const ranges = [];
     tr.doc.descendants((descNode, pos) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
-            ranges.push(createValidationInput(tr, {
+            ranges.push(createValidationBlock(tr, {
                 from: pos + 1,
                 to: pos + descNode.nodeSize
             }));
@@ -22026,90 +22082,45 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
 //# sourceMappingURL=prosemirror.js.map
 
-const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
-const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
-const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
-const NEW_HOVER_ID = "NEW_HOVER_ID";
-const SELECT_VALIDATION = "SELECT_VALIDATION";
-const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
-const SET_DEBUG_STATE = "SET_DEBUG_STATE";
-const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
-const validationRequestForDirtyRanges = (validationSetId) => ({
-    type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
-    payload: { validationSetId }
-});
-const validationRequestForDocument = (validationSetId) => ({
-    type: VALIDATION_REQUEST_FOR_DOCUMENT,
-    payload: { validationSetId }
-});
-const validationRequestSuccess = (response) => ({
-    type: VALIDATION_REQUEST_SUCCESS,
-    payload: { response }
-});
-const validationRequestError = (validationError) => ({
-    type: VALIDATION_REQUEST_ERROR,
-    payload: { validationError }
-});
-const newHoverIdReceived = (hoverId, hoverInfo) => ({
-    type: NEW_HOVER_ID,
-    payload: { hoverId, hoverInfo }
-});
-const applyNewDirtiedRanges = (ranges) => ({
-    type: APPLY_NEW_DIRTY_RANGES,
-    payload: { ranges }
-});
-const selectValidation = (validationId) => ({
-    type: SELECT_VALIDATION,
-    payload: { validationId }
-});
-const setDebugState = (debug) => ({
-    type: SET_DEBUG_STATE,
-    payload: { debug }
-});
-const setValidateOnModifyState = (validateOnModify) => ({
-    type: SET_VALIDATE_ON_MODIFY_STATE,
-    payload: { validateOnModify }
-});
-const createInitialState = (doc) => ({
-    debug: false,
-    validateOnModify: false,
-    decorations: dist_3$3.create(doc, []),
-    dirtiedRanges: [],
-    currentValidations: [],
-    selectedValidation: undefined,
-    hoverId: undefined,
-    hoverInfo: undefined,
-    trHistory: [],
-    validationsInFlight: {},
-    validationPending: false,
-    error: undefined
-});
-
-const selectValidationById = (state, validationId) => state.currentValidations.find(validation => validation.validationId === validationId);
-const selectValidationsInFlightForSet = (state, validationSetId) => {
-    return state.validationsInFlight[validationSetId];
+const selectBlockMatchesByMatchId = (state, matchId) => state.currentValidations.find(validation => validation.matchId === matchId);
+const selectBlockQueriesInFlightForSet = (state, validationSetId) => {
+    return state.blockQueriesInFlight[validationSetId];
 };
-const selectValidationInFlightById = (state, validationSetId, validationId) => {
-    const validationInFlightState = selectValidationsInFlightForSet(state, validationSetId);
+const selectBlockQueriesInFlightById = (state, validationSetId, validationId) => {
+    const validationInFlightState = selectBlockQueriesInFlightForSet(state, validationSetId);
     if (!validationInFlightState) {
         return;
     }
-    return validationInFlightState.current.find(_ => _.validationInput.validationId === validationId);
+    return validationInFlightState.current.find(_ => _.blockQuery.id === validationId);
 };
-const selectAllValidationsInFlight = (state) => Object.values(state.validationsInFlight).reduce((acc, value) => acc.concat(value.current), []);
-const selectNewValidationInFlight = (oldState, newState) => Object.keys(newState.validationsInFlight).reduce((acc, validationSetId) => !oldState.validationsInFlight[validationSetId]
-    ? acc.concat(Object.assign({ validationSetId }, selectValidationsInFlightForSet(newState, validationSetId)))
+const selectAllBlockQueriesInFlight = (state) => Object.values(state.blockQueriesInFlight).reduce((acc, value) => acc.concat(value.current), []);
+const selectNewBlockQueryInFlight = (oldState, newState) => Object.keys(newState.blockQueriesInFlight).reduce((acc, validationSetId) => !oldState.blockQueriesInFlight[validationSetId]
+    ? acc.concat(Object.assign({ validationSetId }, selectBlockQueriesInFlightForSet(newState, validationSetId)))
     : acc, []);
 const selectPercentRemaining = (state) => {
-    const [sumOfTotals, sumOfValidations] = Object.values(state.validationsInFlight).reduce(([totalsSum, currentSum], _) => [
+    const [sumOfTotals, sumOfValidations] = Object.values(state.blockQueriesInFlight).reduce(([totalsSum, currentSum], _) => [
         totalsSum + _.total,
         currentSum + _.current.length
     ], [0, 0]);
     return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
 };
 
+//# sourceMappingURL=selectors.js.map
+
+const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
+const createInitialState = (doc) => ({
+    debug: false,
+    validateOnModify: false,
+    decorations: dist_3$3.create(doc, []),
+    dirtiedRanges: [],
+    currentValidations: [],
+    selectedMatch: undefined,
+    hoverId: undefined,
+    hoverInfo: undefined,
+    blockQueriesInFlight: {},
+    validationPending: false,
+    error: undefined
+});
 const createValidationPluginReducer = (expandRanges) => {
     const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(expandRanges);
     return (tr, incomingState, action) => {
@@ -22142,36 +22153,37 @@ const createValidationPluginReducer = (expandRanges) => {
     };
 };
 const getNewStateFromTransaction = (tr, incomingState) => {
-    const mappedValidationsInFlight = Object.entries(incomingState.validationsInFlight).reduce((acc, [validationSetId, validationsInFlight]) => (Object.assign({}, acc, { [validationSetId]: {
-            total: validationsInFlight.total,
-            current: validationsInFlight.current.map(_ => {
+    const mappedblockQueriesInFlight = Object.entries(incomingState.blockQueriesInFlight).reduce((acc, [validationSetId, blockQueriesInFlight]) => (Object.assign({}, acc, { [validationSetId]: {
+            total: blockQueriesInFlight.total,
+            current: blockQueriesInFlight.current.map(_ => {
                 const mapping = new dist_14();
                 mapping.appendMapping(_.mapping);
                 mapping.appendMapping(tr.mapping);
                 return Object.assign({}, _, { mapping });
             })
         } })), {});
-    return Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentValidations: mapRanges(incomingState.currentValidations, tr.mapping), validationsInFlight: mappedValidationsInFlight });
+    return Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentValidations: mapRanges(incomingState.currentValidations, tr.mapping), blockQueriesInFlight: mappedblockQueriesInFlight });
 };
 const handleSelectValidation = (_, state, action) => {
-    return Object.assign({}, state, { selectedValidation: action.payload.validationId });
+    return Object.assign({}, state, { selectedMatch: action.payload.matchId });
 };
 const handleNewHoverId = (tr, state, action) => {
     let decorations = state.decorations;
     const incomingHoverId = action.payload.hoverId;
     const currentHoverId = state.hoverId;
-    if (currentHoverId) {
-        decorations = decorations.remove(state.decorations.find(undefined, undefined, spec => spec.id === currentHoverId && spec.type === DECORATION_VALIDATION));
+    const currentHoverDecorations = decorations.find(undefined, undefined, spec => (spec.id === currentHoverId || spec.id === incomingHoverId) &&
+        spec.type === DECORATION_VALIDATION);
+    decorations = decorations.remove(currentHoverDecorations);
+    const decorationData = [{ id: incomingHoverId, isSelected: true }];
+    if (incomingHoverId !== currentHoverId) {
+        decorationData.push({ id: currentHoverId, isSelected: false });
     }
-    decorations = [
-        { id: incomingHoverId, isHovering: true },
-        { id: currentHoverId, isHovering: false }
-    ].reduce((acc, hoverData) => {
-        const output = selectValidationById(state, hoverData.id || "");
+    decorations = decorationData.reduce((acc, hoverData) => {
+        const output = selectBlockMatchesByMatchId(state, hoverData.id || "");
         if (!output) {
             return acc;
         }
-        return decorations.add(tr.doc, createDecorationForValidationRange(output, hoverData.isHovering, false));
+        return decorations.add(tr.doc, createDecorationForValidationRange(output, hoverData.isSelected, false));
     }, decorations);
     return Object.assign({}, state, { decorations, hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
 };
@@ -22185,71 +22197,75 @@ const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } })
             ? state.dirtiedRanges.concat(dirtiedRanges)
             : [] });
 };
-const createHandleValidationRequestForDirtyRanges = (expandRanges) => (tr, state, { payload: { validationSetId } }) => {
+const createHandleValidationRequestForDirtyRanges = (expandRanges) => (tr, state, { payload: { validationSetId, categoryIds } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-    const validationInputs = ranges.map(range => createValidationInput(tr, range));
-    return handleValidationRequestStart(validationSetId, validationInputs)(tr, state);
+    const validationInputs = ranges.map(range => createValidationBlock(tr, range));
+    return handleValidationRequestStart(validationSetId, validationInputs, categoryIds)(tr, state);
 };
-const handleValidationRequestForDocument = (tr, state, { payload: { validationSetId } }) => {
-    return handleValidationRequestStart(validationSetId, createValidationInputsForDocument(tr))(tr, state);
+const handleValidationRequestForDocument = (tr, state, { payload: { validationSetId, categoryIds } }) => {
+    return handleValidationRequestStart(validationSetId, createValidationBlocksForDocument(tr), categoryIds)(tr, state);
 };
-const handleValidationRequestStart = (validationSetId, validationInputs) => (tr, state) => {
+const handleValidationRequestStart = (validationSetId, blockQueries, categoryIds) => (tr, state) => {
     const decorations = state.debug
-        ? removeDecorationsFromRanges(state.decorations, validationInputs, [
+        ? removeDecorationsFromRanges(state.decorations, blockQueries, [
             DECORATION_DIRTY
-        ]).add(tr.doc, validationInputs.map(range => createDebugDecorationFromRange(range, false)))
+        ]).add(tr.doc, blockQueries.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
-    const newValidationsInFlight = validationInputs.map(validationInput => ({
+    const newblockQueriesInFlight = blockQueries.map(blockQuery => ({
         mapping: new dist_14(),
-        validationInput
+        blockQuery,
+        allCategoryIds: categoryIds,
+        remainingCategoryIds: categoryIds
     }));
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, validationsInFlight: Object.assign({}, state.validationsInFlight, { [validationSetId]: {
-                total: newValidationsInFlight.length,
-                current: newValidationsInFlight
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, blockQueriesInFlight: Object.assign({}, state.blockQueriesInFlight, { [validationSetId]: {
+                total: newblockQueriesInFlight.length,
+                current: newblockQueriesInFlight
             } }) });
 };
 const removeValidationInFlight = (state, validationSetId, validationId) => {
-    const currentValidationsInFlight = selectValidationsInFlightForSet(state, validationSetId);
-    if (!currentValidationsInFlight) {
-        return state.validationsInFlight;
+    const currentblockQueriesInFlight = selectBlockQueriesInFlightForSet(state, validationSetId);
+    if (!currentblockQueriesInFlight) {
+        return state.blockQueriesInFlight;
     }
-    const newValidationsInFlight = {
-        total: currentValidationsInFlight.total,
-        current: currentValidationsInFlight.current.filter(_ => _.validationInput.validationId !== validationId)
+    const newblockQueriesInFlight = {
+        total: currentblockQueriesInFlight.total,
+        current: currentblockQueriesInFlight.current.filter(_ => _.blockQuery.id !== validationId)
     };
-    if (!newValidationsInFlight.current.length) {
-        return omit_1(state.validationsInFlight, validationSetId);
+    if (!newblockQueriesInFlight.current.length) {
+        return omit_1(state.blockQueriesInFlight, validationSetId);
     }
-    return Object.assign({}, state.validationsInFlight, { [validationSetId]: newValidationsInFlight });
+    return Object.assign({}, state.blockQueriesInFlight, { [validationSetId]: newblockQueriesInFlight });
 };
 const handleValidationRequestSuccess = (tr, state, { payload: { response } }) => {
-    if (!response) {
+    if (!response || !response.categoryIds.length) {
         return state;
     }
-    const validationInFlight = selectValidationInFlightById(state, response.validationSetId, response.validationId);
-    if (!validationInFlight) {
+    const blockQueriesInFlight = selectBlockQueriesInFlightById(state, response.validationSetId, response.validationId);
+    if (!blockQueriesInFlight) {
         return state;
     }
-    let currentValidations = removeOverlappingRanges(state.currentValidations, [validationInFlight.validationInput]);
-    const decsToRemove = state.decorations.find(validationInFlight.validationInput.from, validationInFlight.validationInput.to);
-    currentValidations = getCurrentValidationsFromValidationResponse(validationInFlight.validationInput, response.validationOutputs, currentValidations, validationInFlight.mapping);
+    let currentValidations = removeOverlappingRanges(state.currentValidations, [blockQueriesInFlight.blockQuery], validation => !response.categoryIds.includes(validation.category.id));
+    const decsToRemove = state.decorations
+        .find(blockQueriesInFlight.blockQuery.from, blockQueriesInFlight.blockQuery.to, spec => response.categoryIds.includes(spec.categoryId))
+        .concat(state.debug
+        ?
+            state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
+        : []);
+    currentValidations = getCurrentValidationsFromValidationResponse(blockQueriesInFlight.blockQuery, response.blockQueries, currentValidations, blockQueriesInFlight.mapping);
     currentValidations = removeOverlappingRanges(currentValidations, state.dirtiedRanges);
     const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
-    const debugDecsToRemove = state.debug
-        ? state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
-        : [];
-    return Object.assign({}, state, { validationsInFlight: removeValidationInFlight(state, response.validationSetId, response.validationId), currentValidations, decorations: decorations.remove(debugDecsToRemove).remove(decsToRemove) });
+    return Object.assign({}, state, { blockQueriesInFlight: removeValidationInFlight(state, response.validationSetId, response.validationId), currentValidations, decorations: decorations.remove(decsToRemove) });
 };
 const handleValidationRequestError = (tr, state, { payload: { validationError: { validationSetId, validationId, message } } }) => {
     if (!validationId) {
         return Object.assign({}, state, { message });
     }
-    const validationInFlight = selectValidationInFlightById(state, validationSetId, validationId);
+    const validationInFlight = selectBlockQueriesInFlightById(state, validationSetId, validationId);
     if (!validationInFlight) {
         return Object.assign({}, state, { message });
     }
     const dirtiedRanges = validationInFlight
-        ? mapRanges([validationInputToRange(validationInFlight.validationInput)], validationInFlight.mapping)
+        ? mapRanges([validationInputToRange(validationInFlight.blockQuery)], validationInFlight.mapping)
         : [];
     const decsToRemove = dirtiedRanges.reduce((acc, range) => acc.concat(state.decorations.find(range.from, range.to, _ => _.type === DECORATION_INFLIGHT)), []);
     let decorations = state.decorations.remove(decsToRemove);
@@ -22258,7 +22274,7 @@ const handleValidationRequestError = (tr, state, { payload: { validationError: {
     }
     return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
             ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-            : state.dirtiedRanges, decorations, validationsInFlight: removeValidationInFlight(state, validationSetId, validationId), error: message });
+            : state.dirtiedRanges, decorations, blockQueriesInFlight: removeValidationInFlight(state, validationSetId, validationId), error: message });
 };
 const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
@@ -22266,8 +22282,7 @@ const handleSetDebugState = (_, state, { payload: { debug } }) => {
 const handleSetValidateOnModifyState = (_, state, { payload: { validateOnModify } }) => {
     return Object.assign({}, state, { validateOnModify });
 };
-
-//# sourceMappingURL=state.js.map
+//# sourceMappingURL=reducer.js.map
 
 function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement) {
     if (!event.target ||
@@ -22334,15 +22349,15 @@ class Store {
 const compact = (value) => !!value;
 //# sourceMappingURL=array.js.map
 
-const validateDocumentCommand = (validationSetId) => (state, dispatch) => {
+const validateDocumentCommand = (validationSetId, categoryIds) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument(validationSetId)));
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument(validationSetId, categoryIds)));
     }
     return true;
 };
-const validateDirtyRangesCommand = (validationSetId) => (state, dispatch) => {
+const validateDirtyRangesCommand = (validationSetId, categoryIds) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges(validationSetId)));
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges(validationSetId, categoryIds)));
     }
     return true;
 };
@@ -22354,12 +22369,12 @@ const indicateHoverCommand = (id, hoverInfo) => (state, dispatch) => {
 };
 const selectValidationCommand = (validationId, getState) => (state, dispatch) => {
     const pluginState = getState(state);
-    const output = selectValidationById(pluginState, validationId);
+    const output = selectBlockMatchesByMatchId(pluginState, validationId);
     if (!output) {
         return false;
     }
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectValidation(validationId)));
+        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(validationId)));
     }
     return true;
 };
@@ -22391,7 +22406,7 @@ const applySuggestionsCommand = (suggestionOptions, getState) => (state, dispatc
     const pluginState = getState(state);
     const outputsAndSuggestions = suggestionOptions
         .map(opt => {
-        const validation = selectValidationById(pluginState, opt.validationId);
+        const validation = selectBlockMatchesByMatchId(pluginState, opt.matchId);
         return validation
             ? {
                 from: validation.from,
@@ -22447,8 +22462,8 @@ const createValidatorPlugin = (options = {}) => {
                 setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
                 return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
             }
-            const newValidationInputs = selectNewValidationInFlight(oldPluginState, newPluginState);
-            newValidationInputs.forEach(({ validationSetId, current }) => store.emit(STORE_EVENT_NEW_VALIDATION, validationSetId, current.map(_ => _.validationInput)));
+            const newValidationInputs = selectNewBlockQueryInFlight(oldPluginState, newPluginState);
+            newValidationInputs.forEach(({ validationSetId, current }) => store.emit(STORE_EVENT_NEW_VALIDATION, validationSetId, current.map(_ => _.blockQuery)));
         },
         props: {
             decorations: state => {
@@ -22604,11 +22619,11 @@ const getWikiApiUrl = (resourceName) => `https://en.wikipedia.org/w/api.php?form
 
 //# sourceMappingURL=WikiSuggestion.js.map
 
-const Suggestion = ({ validationId, suggestion, applySuggestions }) => {
+const Suggestion = ({ matchId, suggestion, applySuggestions }) => {
     const boundApplySuggestions = () => applySuggestions &&
         applySuggestions([
             {
-                validationId,
+                matchId,
                 text: suggestion.text
             }
         ]);
@@ -22624,31 +22639,31 @@ const Suggestion = ({ validationId, suggestion, applySuggestions }) => {
 
 //# sourceMappingURL=Suggestion.js.map
 
-const SuggestionList = ({ suggestions, validationId, applySuggestions }) => {
+const SuggestionList = ({ suggestions, matchId, applySuggestions }) => {
     const [isOpen, setIsOpen] = e$1(false);
     const firstSuggestion = suggestions[0];
     const otherSuggestions = suggestions.slice(1);
     return (c("div", { className: "ValidationSidebarOutput__suggestion-list" },
-        !suggestions.length ? (c("p", null, "No suggestions found.")) : (c(Suggestion, { validationId: validationId, suggestion: firstSuggestion, applySuggestions: applySuggestions })),
+        !suggestions.length ? (c("p", null, "No suggestions found.")) : (c(Suggestion, { matchId: matchId, suggestion: firstSuggestion, applySuggestions: applySuggestions })),
         !!otherSuggestions.length && (c("div", { className: "Button SuggestionList__see-more", onClick: () => setIsOpen(!isOpen) },
             "See ",
             !isOpen ? "more" : "fewer",
             " suggestions (",
             otherSuggestions.length,
             ")")),
-        isOpen && (c(h, null, otherSuggestions.map(suggestion => (c(Suggestion, { validationId: validationId, suggestion: suggestion, applySuggestions: applySuggestions })))))));
+        isOpen && (c(h, null, otherSuggestions.map(suggestion => (c(Suggestion, { matchId: matchId, suggestion: suggestion, applySuggestions: applySuggestions })))))));
 };
 
 //# sourceMappingURL=SuggestionList.js.map
 
 class ValidationOutput extends p {
-    render({ validationOutput: { validationId: id, category, annotation, suggestions }, applySuggestions }) {
+    render({ validationOutput: { id: id, category, annotation, suggestions }, applySuggestions }) {
         return (c("div", { className: "ValidationWidget__container" },
             c("div", { className: "ValidationWidget", ref: _ => (this.ref = _) },
                 c("div", { className: "ValidationWidget__type", style: { color: `#${category.colour}` } }, category.name),
                 c("div", { className: "ValidationWidget__annotation" }, annotation),
                 suggestions && applySuggestions && (c("div", { className: "ValidationWidget__suggestion-list" },
-                    c(SuggestionList, { applySuggestions: applySuggestions, validationId: id, suggestions: suggestions }))))));
+                    c(SuggestionList, { applySuggestions: applySuggestions, matchId: id, suggestions: suggestions }))))));
     }
 }
 
@@ -22673,7 +22688,7 @@ class ValidationOverlay extends p {
                 top: 0
             };
             if (state.hoverId && state.hoverInfo) {
-                const validationOutput = selectValidationById(state, state.hoverId);
+                const validationOutput = selectBlockMatchesByMatchId(state, state.hoverId);
                 return this.setState(Object.assign({ hoverInfo: state.hoverInfo, validationOutput }, newState));
             }
             this.setState(Object.assign({ hoverInfo: undefined, validationOutput: undefined }, newState));
@@ -23167,8 +23182,8 @@ class ValidationSidebarOutput extends p {
         this.scrollToRange = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.props.selectValidation(this.props.output.validationId);
-            const decorationElement = document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${this.props.output.validationId}"]`);
+            this.props.selectValidation(this.props.output.matchId);
+            const decorationElement = document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${this.props.output.matchId}"]`);
             if (decorationElement) {
                 decorationElement.scrollIntoView({
                     behavior: "smooth"
@@ -23176,17 +23191,17 @@ class ValidationSidebarOutput extends p {
             }
         };
         this.handleMouseOver = () => {
-            this.props.indicateHover(this.props.output.validationId);
+            this.props.indicateHover(this.props.output.matchId);
         };
         this.handleMouseLeave = () => {
             this.props.indicateHover(undefined);
         };
     }
     render() {
-        const { output, applySuggestions, selectedValidation } = this.props;
+        const { output, applySuggestions, selectedMatch } = this.props;
         const color = `#${output.category.colour}`;
         const hasSuggestions = !!output.suggestions;
-        return (c("div", { className: `ValidationSidebarOutput__container ${selectedValidation === output.validationId
+        return (c("div", { className: `ValidationSidebarOutput__container ${selectedMatch === output.matchId
                 ? "ValidationSidebarOutput__container--is-selected"
                 : ""}`, style: { borderLeft: `2px solid ${color}` }, onMouseOver: this.handleMouseOver, onMouseLeave: this.handleMouseLeave },
             c("div", { className: "ValidationSidebarOutput__header", onClick: hasSuggestions ? this.toggleOpen : undefined },
@@ -23200,7 +23215,7 @@ class ValidationSidebarOutput extends p {
                         c("div", { className: "ValidationSidebarOutput__header-category", style: { color } }, startCase_1(output.category.name)),
                         hasSuggestions && (c("div", { className: "ValidationSidebarOutput__header-toggle-status" }, this.state.isOpen ? "-" : "+"))))),
             this.state.isOpen && (c("div", { className: "ValidationSidebarOutput__content" }, output.suggestions && (c("div", { className: "ValidationSidebarOutput__suggestion-list" },
-                c(SuggestionList, { applySuggestions: applySuggestions, validationId: output.validationId, suggestions: output.suggestions })))))));
+                c(SuggestionList, { applySuggestions: applySuggestions, matchId: output.matchId, suggestions: output.suggestions })))))));
     }
 }
 
@@ -23226,8 +23241,8 @@ class ValidationSidebar extends p {
         this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
     }
     render() {
-        const { applySuggestions, selectValidation: selectValidation$$1, indicateHover } = this.props;
-        const { currentValidations = [], validationsInFlight = [], validationPending = false, selectedValidation } = this.state.pluginState || { selectedValidation: undefined };
+        const { applySuggestions, selectValidation, indicateHover } = this.props;
+        const { currentValidations = [], blockQueriesInFlight = [], validationPending = false, selectedMatch } = this.state.pluginState || { selectedMatch: undefined };
         const hasValidations = !!(currentValidations && currentValidations.length);
         const percentRemaining = this.getPercentRemaining();
         return (c("div", { className: "Sidebar__section" },
@@ -23239,14 +23254,14 @@ class ValidationSidebar extends p {
                         "(",
                         currentValidations.length,
                         ") "),
-                    (validationsInFlight.length || validationPending) && (c("span", { className: "Sidebar__loading-spinner" }, "|")),
+                    (blockQueriesInFlight.length || validationPending) && (c("span", { className: "Sidebar__loading-spinner" }, "|")),
                     c("div", { class: "LoadingBar", style: {
                             opacity: percentRemaining === 0 ? 0 : 1,
                             width: `${100 - percentRemaining}%`
                         } }))),
             c("div", { className: "Sidebar__content" },
                 hasValidations && (c("ul", { className: "Sidebar__list" }, currentValidations.map(output => (c("li", { className: "Sidebar__list-item" },
-                    c(ValidationSidebarOutput, { output: output, selectedValidation: selectedValidation, applySuggestions: applySuggestions, selectValidation: selectValidation$$1, indicateHover: indicateHover })))))),
+                    c(ValidationSidebarOutput, { output: output, selectedMatch: selectedMatch, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover })))))),
                 !hasValidations && (c("div", { className: "Sidebar__awaiting-validation" }, "No validations to report.")))));
     }
 }
@@ -23390,7 +23405,7 @@ class ValidationControls extends p {
             }
         });
         this.validateDocument = () => {
-            this.props.validateDocument(v4_1());
+            this.props.validateDocument(v4_1(), this.props.getCurrentCategories().map(_ => _.id));
         };
     }
     componentWillMount() {
@@ -23482,8 +23497,8 @@ class ValidationService {
             setTimeout(() => this.requestValidation(), this.currentThrottle);
         };
         this.currentThrottle = initialThrottle;
-        this.store.on(STORE_EVENT_NEW_VALIDATION, (validationSetId, validationsInFlight) => {
-            this.validate(validationSetId, validationsInFlight);
+        this.store.on(STORE_EVENT_NEW_VALIDATION, (validationSetId, blockQueriesInFlight) => {
+            this.validate(validationSetId, blockQueriesInFlight);
         });
         this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
             this.scheduleValidation();
@@ -23491,17 +23506,17 @@ class ValidationService {
     }
     validate(validationSetId, validationInputs) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.adapter.fetchValidationOutputs(validationSetId, validationInputs, this.currentCategories.map(_ => _.id), this.commands.applyValidationResult, this.commands.applyValidationError);
+            this.adapter.fetchMatches(validationSetId, validationInputs, this.currentCategories.map(_ => _.id), this.commands.applyValidationResult, this.commands.applyValidationError);
         });
     }
     requestValidation() {
         this.validationPending = false;
         const pluginState = this.store.getState();
-        if (!pluginState || selectAllValidationsInFlight(pluginState).length) {
+        if (!pluginState || selectAllBlockQueriesInFlight(pluginState).length) {
             return this.scheduleValidation();
         }
         const validationSetId = v4_1();
-        this.commands.validateDirtyRanges(validationSetId);
+        this.commands.validateDirtyRanges(validationSetId, this.getCurrentCategories().map(_ => _.id));
     }
 }
 
@@ -23511,10 +23526,10 @@ class TyperighterAdapter {
     constructor(checkUrl, categoriesUrl) {
         this.checkUrl = checkUrl;
         this.categoriesUrl = categoriesUrl;
-        this.fetchValidationOutputs = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
+        this.fetchMatches = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
             inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 const body = {
-                    id: input.validationId,
+                    id: input.id,
                     text: input.inputString,
                     categoryIds
                 };
@@ -23529,25 +23544,15 @@ class TyperighterAdapter {
                     if (response.status !== 200) {
                         throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
                     }
-                    const validationData = yield response.json();
-                    onValidationReceived({
-                        validationSetId,
-                        validationId: input.validationId,
-                        validationOutputs: validationData.results.map(match => ({
-                            validationId: input.validationId,
-                            inputString: input.inputString,
-                            from: input.from + match.fromPos,
-                            to: input.from + match.toPos,
-                            annotation: match.shortMessage,
-                            category: match.rule.category,
-                            suggestions: match.suggestions
-                        }))
-                    });
+                    const responseData = yield response.json();
+                    const validationResponse = this.convertResponse(validationSetId, responseData);
+                    console.log(validationResponse);
+                    onValidationReceived(validationResponse);
                 }
                 catch (e) {
                     onValidationError({
                         validationSetId,
-                        validationId: input.validationId,
+                        validationId: input.id,
                         message: e.message
                     });
                 }
@@ -23564,10 +23569,77 @@ class TyperighterAdapter {
             }
             return yield response.json();
         });
+        this.convertResponse = (validationSetId, response) => ({
+            validationSetId,
+            blockResults: response.blocks.map((block, index) => ({
+                validationId: block.id,
+                categoryIds: block.categoryIds,
+                from: block.from,
+                to: block.to,
+                blockMatches: block.matches.map(match => ({
+                    matchId: `${block.id}--match-${index}`,
+                    from: match.fromPos,
+                    to: match.toPos,
+                    annotation: match.shortMessage,
+                    category: match.rule.category,
+                    suggestions: match.suggestions
+                }))
+            }))
+        });
     }
 }
 
-//# sourceMappingURL=TyperighterAdapter.js.map
+const VALIDATOR_RESPONSE = "VALIDATOR_RESPONSE";
+const VALIDATOR_ERROR = "VALIDATOR_ERROR";
+class TyperighterWsAdapter extends TyperighterAdapter {
+    constructor() {
+        super(...arguments);
+        this.fetchMatches = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
+            const socket = new WebSocket(this.checkUrl);
+            const blocks = inputs.map(input => ({
+                id: input.id,
+                text: input.inputString,
+                from: input.from,
+                to: input.to,
+                categoryIds
+            }));
+            socket.addEventListener("open", () => {
+                socket.addEventListener("message", event => this.handleMessage(event, validationSetId, onValidationReceived, onValidationError));
+                socket.send(JSON.stringify({
+                    validationSetId,
+                    blocks
+                }));
+            });
+            socket.addEventListener("close", closeEvent => {
+                if (closeEvent.code !== 1000) {
+                    onValidationError({ validationSetId, message: closeEvent.reason });
+                }
+            });
+        });
+        this.handleMessage = (message, validationSetId, onValidationReceived, onValidationError) => {
+            try {
+                const socketMessage = JSON.parse(message.data);
+                switch (socketMessage.type) {
+                    case VALIDATOR_ERROR: {
+                        return onValidationError({
+                            validationSetId,
+                            validationId: socketMessage.id,
+                            message: socketMessage.message
+                        });
+                    }
+                    case VALIDATOR_RESPONSE: {
+                        return onValidationReceived(this.convertResponse(validationSetId, socketMessage));
+                    }
+                }
+            }
+            catch (e) {
+                onValidationError({ validationSetId, message: e.message });
+            }
+        };
+    }
+}
+
+//# sourceMappingURL=TyperighterWsAdapter.js.map
 
 const mySchema = new dist_8$1({
     nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
@@ -23599,7 +23671,7 @@ if (editorElement && sidebarElement && controlsElement) {
         })
     });
     const commands = createBoundCommands(view, getState);
-    const validationService = new ValidationService(store, commands, new TyperighterAdapter("http://localhost:9000"));
+    const validationService = new ValidationService(store, commands, new TyperighterWsAdapter("ws://localhost:9000/check-ws", "http://localhost:9000/categories"));
     window.editor = view;
     createView(view, store, validationService, commands, sidebarElement, controlsElement);
 }

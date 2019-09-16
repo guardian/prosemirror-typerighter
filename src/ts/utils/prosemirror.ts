@@ -1,8 +1,8 @@
 import { Node } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
-import { IValidationInput } from "../interfaces/IValidation";
-import { createValidationInput } from "./validation";
+import { IBlockQuery } from "../interfaces/IValidation";
+import { createValidationBlock } from "./validation";
 
 export const MarkTypes = {
   legal: "legal",
@@ -35,14 +35,14 @@ export const findChildren = (
   return flatten(node, descend).filter(child => predicate(child.node));
 };
 
-export const createValidationInputsForDocument = (
+export const createValidationBlocksForDocument = (
   tr: Transaction
-): IValidationInput[] => {
-  const ranges = [] as IValidationInput[];
+): IBlockQuery[] => {
+  const ranges = [] as IBlockQuery[];
   tr.doc.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push(
-        createValidationInput(tr, {
+        createValidationBlock(tr, {
           from: pos + 1,
           to: pos + descNode.nodeSize
         })

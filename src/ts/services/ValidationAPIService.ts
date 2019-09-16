@@ -1,6 +1,6 @@
 import {
-  IValidationInput,
-  IValidationOutput,
+  IBlockQuery,
+  IBlockMatches,
   ICategory
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
@@ -9,7 +9,7 @@ import Store, {
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "../store";
 import { Commands } from "../commands";
-import { selectAllValidationsInFlight } from "../state/state";
+import { selectAllBlockQueriesInFlight } from "../state/selectors";
 import v4 from "uuid/v4";
 
 /**
@@ -17,7 +17,7 @@ import v4 from "uuid/v4";
  * for ranges, configured via the supplied adapter. Validation results and
  * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService<TValidationOutput extends IValidationOutput> {
+class ValidationService<TValidationOutput extends IBlockMatches> {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
   private currentCategories = [] as ICategory[];
@@ -35,9 +35,9 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
     this.currentThrottle = initialThrottle;
     this.store.on(
       STORE_EVENT_NEW_VALIDATION,
-      (validationSetId, validationsInFlight) => {
+      (validationSetId, blockQueriesInFlight) => {
         // If we have a new validation, send it to the validation service.
-        this.validate(validationSetId, validationsInFlight);
+        this.validate(validationSetId, blockQueriesInFlight);
       }
     );
     this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
@@ -75,9 +75,9 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
    */
   public async validate(
     validationSetId: string,
-    validationInputs: IValidationInput[]
+    validationInputs: IBlockQuery[]
   ) {
-    this.adapter.fetchValidationOutputs(
+    this.adapter.fetchMatches(
       validationSetId,
       validationInputs,
       this.currentCategories.map(_ => _.id),
@@ -93,11 +93,14 @@ class ValidationService<TValidationOutput extends IValidationOutput> {
   public requestValidation() {
     this.validationPending = false;
     const pluginState = this.store.getState();
-    if (!pluginState || selectAllValidationsInFlight(pluginState).length) {
+    if (!pluginState || selectAllBlockQueriesInFlight(pluginState).length) {
       return this.scheduleValidation();
     }
     const validationSetId = v4();
-    this.commands.validateDirtyRanges(validationSetId);
+    this.commands.validateDirtyRanges(
+      validationSetId,
+      this.getCurrentCategories().map(_ => _.id)
+    );
   }
 
   /**

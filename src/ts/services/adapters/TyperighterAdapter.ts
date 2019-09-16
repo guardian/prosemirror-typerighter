@@ -1,4 +1,4 @@
-import { IValidationInput } from "../../interfaces/IValidation";
+import { IBlockQuery, IValidationResponse } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
   IValidationAPIAdapter,
@@ -6,36 +6,54 @@ import {
   TValidationErrorCallback
 } from "../../interfaces/IValidationAPIAdapter";
 
+export const convertTyperighterResponse = (
+  validationSetId: string,
+  response: ITypeRighterResponse
+): IValidationResponse => ({
+  validationSetId,
+  blockResults: response.blocks.map((block, index) => ({
+    validationId: block.id,
+    categoryIds: block.categoryIds,
+    from: block.from,
+    to: block.to,
+    blockMatches: block.matches.map(match => ({
+      matchId: `${block.id}--match-${index}`,
+      from: match.fromPos,
+      to: match.toPos,
+      annotation: match.shortMessage,
+      category: match.rule.category,
+      suggestions: match.suggestions
+    }))
+  }))
+});
+
 /**
  * An adapter for the Typerighter service.
  */
 class TyperighterAdapter implements IValidationAPIAdapter {
   constructor(protected checkUrl: string, protected categoriesUrl: string) {}
 
-  public fetchValidationOutputs = async (
+  public fetchMatches = async (
     validationSetId: string,
-    inputs: IValidationInput[],
+    inputs: IBlockQuery[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback,
     onValidationError: TValidationErrorCallback
   ) => {
     inputs.map(async input => {
       const body: { text: string; id: string; categoryIds?: string[] } = {
-        id: input.validationId,
+        id: input.id,
         text: input.inputString,
         categoryIds
       };
       try {
-        const response = await fetch(
-          this.checkUrl,
-          {
-            method: "POST",
-            headers: new Headers({
-              "Content-Type": "application/json"
-            }),
-            body: JSON.stringify(body)
-          }
-        );
+        const response = await fetch(this.checkUrl, {
+          method: "POST",
+          headers: new Headers({
+            "Content-Type": "application/json"
+          }),
+          body: JSON.stringify(body)
+        });
         if (response.status !== 200) {
           throw new Error(
             `Error fetching validations. The server responded with status code ${
@@ -43,40 +61,27 @@ class TyperighterAdapter implements IValidationAPIAdapter {
             }: ${response.statusText}`
           );
         }
-        const validationData: ITypeRighterResponse = await response.json();
-        onValidationReceived({
+        const responseData: ITypeRighterResponse = await response.json();
+        const validationResponse = convertTyperighterResponse(
           validationSetId,
-          validationId: input.validationId,
-          validationOutputs: validationData.results.map((match, index) => ({
-            matchId: `${input.validationId}--match-${index}`,
-            validationId: input.validationId,
-            inputString: input.inputString,
-            from: input.from + match.fromPos,
-            to: input.from + match.toPos,
-            annotation: match.shortMessage,
-            category: match.rule.category,
-            suggestions: match.suggestions,
-            autoApplyFirstSuggestion: match.rule.autoApplyFirstSuggestion
-          }))
-        });
+          responseData
+        );
+        onValidationReceived(validationResponse);
       } catch (e) {
         onValidationError({
           validationSetId,
-          validationId: input.validationId,
+          validationId: input.id,
           message: e.message
         });
       }
     });
   };
   public fetchCategories = async () => {
-    const response = await fetch(
-      this.categoriesUrl,
-      {
-        headers: new Headers({
-          "Content-Type": "application/json"
-        })
-      }
-    );
+    const response = await fetch(this.categoriesUrl, {
+      headers: new Headers({
+        "Content-Type": "application/json"
+      })
+    });
     if (response.status !== 200) {
       throw new Error(
         `Error fetching categories. The server responded with status code ${

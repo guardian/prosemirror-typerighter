@@ -3,27 +3,17 @@ export interface IRange {
   to: number;
 }
 
-export interface IValidationInput {
-  validationId: string;
-  inputString: string;
-  from: number;
-  to: number;
-}
-
 export interface ICategory {
   id: string;
   name: string;
   colour: string;
 }
 
-export interface IValidationOutput<TSuggestion = ISuggestion>
-  extends IValidationInput {
-  matchId: string;
-  validationId: string;
-  annotation: string;
-  category: ICategory;
-  suggestions?: TSuggestion[];
-  autoApplyFirstSuggestion?: boolean;
+export interface IBlockQuery {
+  id: string;
+  inputString: string;
+  from: number;
+  to: number;
 }
 
 export type ISuggestion = ITextSuggestion | IWikiSuggestion;
@@ -48,11 +38,31 @@ export interface IValidationError {
   message: string;
 }
 
-export interface IValidationResponse<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+
+export interface IBlockMatches<TSuggestion = ISuggestion> {
+  matchId: string;
+  from: number;
+  to: number;
+  annotation: string;
+  category: ICategory;
+  suggestions?: TSuggestion[];
+  autoApplyFirstSuggestion?: boolean;
+}
+
+export interface IBlockResult<
+  TBlockMatches extends IBlockMatches = IBlockMatches
 > {
-  validationOutputs: TValidationOutput[];
+  blockMatches: TBlockMatches[];
+  categoryIds: string[];
   validationId: string;
+  from: number;
+  to: number;
+}
+
+export interface IValidationResponse<
+  TBlockMatches extends IBlockMatches = IBlockMatches
+> {
+  blockResults: Array<IBlockResult<TBlockMatches>>;
   validationSetId: string;
 }
 

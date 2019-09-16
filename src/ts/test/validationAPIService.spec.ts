@@ -1,58 +1,80 @@
 import fetchMock from "fetch-mock";
-import { IValidationOutput } from "../interfaces/IValidation";
+import {
+  IBlockMatches,
+  IValidationResponse,
+  IBlockResult
+} from "../interfaces/IValidation";
 import ValidationAPIService from "../services/ValidationAPIService";
 import Store from "../store";
-import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
+import TyperighterAdapter, {
+  convertTyperighterResponse
+} from "../services/adapters/TyperighterAdapter";
 import { ITypeRighterResponse } from "../services/adapters/interfaces/ITyperighter";
 import { createValidationId } from "../utils/validation";
 
 const createResponse = (strs: string[]): ITypeRighterResponse => ({
-  input: "input",
-  id: createValidationId(0, 0, 5),
-  results: strs.map(str => ({
-    fromPos: 0,
-    toPos: str.length,
-    id: createValidationId(0, 0, 5),
-    message: "It's just a bunch of numbers, mate",
-    shortMessage: "It's just a bunch of numbers, mate",
-    rule: {
-      category: {
-        id: "numberCat",
-        name: "The number category",
-        colour: "eee"
-      },
-      description: "Number things",
-      id: "number-rule",
-      issueType: "issue-type"
-    },
-    suggestions: []
-  }))
+  validationSetId: "set-id",
+  blocks: [
+    {
+      id: createValidationId(0, 0, 5),
+      categoryIds: ["numberCat"],
+      from: 0,
+      to: 5,
+      text: "Some text that has been validated",
+      matches: strs.map(str => ({
+        fromPos: 0,
+        toPos: str.length,
+        id: createValidationId(0, 0, 5),
+        message: "It's just a bunch of numbers, mate",
+        shortMessage: "It's just a bunch of numbers, mate",
+        rule: {
+          category: {
+            id: "numberCat",
+            name: "The number category",
+            colour: "eee"
+          },
+          description: "Number things",
+          id: "number-rule",
+          issueType: "issue-type"
+        },
+        suggestions: []
+      }))
+    }
+  ]
 });
 
 const createOutput = (id: string, inputString: string, offset: number = 0) => {
   const from = offset;
   const to = offset + inputString.length;
-  return {
-    validationId: id,
-    matchId: "0-from:0-to:10--match-0",
-    from,
-    to,
-    inputString,
-    suggestions: [],
-    annotation: "It's just a bunch of numbers, mate",
-    category: {
-      id: "numberCat",
-      name: "The number category",
-      colour: "eee"
+  return [
+    {
+      categoryIds: ["numberCat"],
+      from,
+      to,
+      validationId: id,
+      blockMatches: [
+        {
+          from,
+          to,
+          matchId: "0-from:0-to:10--match-0",
+          suggestions: [],
+          annotation: "It's just a bunch of numbers, mate",
+          category: {
+            id: "numberCat",
+            name: "The number category",
+            colour: "eee"
+          }
+        }
+      ]
     }
-  } as IValidationOutput;
+  ] as IBlockResult[];
 };
 
 const validationInput = {
   from: 0,
   to: 10,
   inputString: "1234567890",
-  validationId: "0-from:0-to:10"
+  id: "0-from:0-to:10"
 };
 
 const commands = {
@@ -81,7 +103,8 @@ describe("ValidationAPIService", () => {
         "http://endpoint/categories"
       )
     );
-    fetchMock.post("http://endpoint/check", createResponse(["1234567890"]));
+    const response = createResponse(["1234567890"]);
+    fetchMock.post("http://endpoint/check", response);
 
     expect.assertions(1);
 
@@ -92,16 +115,10 @@ describe("ValidationAPIService", () => {
 
     setTimeout(() => {
       expect(commands.applyValidationResult.mock.calls[0]).toEqual([
-        {
-          validationOutputs: [
-            createOutput(validationInput.validationId, "1234567890")
-          ],
-          validationId: validationInput.validationId,
-          validationSetId
-        }
+        convertTyperighterResponse("set-id", response)
       ]);
       done();
-    }, 100);
+    });
   });
   it("should handle validation errors", done => {
     const service = new ValidationAPIService(
@@ -119,7 +136,12 @@ describe("ValidationAPIService", () => {
       validationInput
     ]);
     setTimeout(() => {
-      expect(commands.applyValidationError.mock.calls[0][0]).toMatchSnapshot();
+      expect(commands.applyValidationError.mock.calls[0][0]).toEqual({
+        message:
+          "Error fetching validations. The server responded with status code 400: Bad Request",
+        validationId: "0-from:0-to:10",
+        validationSetId: "set-id"
+      });
       done();
     });
   });

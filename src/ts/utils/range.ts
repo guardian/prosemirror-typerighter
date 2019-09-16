@@ -2,8 +2,8 @@ import clamp from "lodash/clamp";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
-import { IRange, IValidationOutput } from "../interfaces/IValidation";
-import { IValidationInput } from "../interfaces/IValidation";
+import { IRange, IBlockMatches } from "../interfaces/IValidation";
+import { IBlockQuery } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
 
 /**
@@ -44,14 +44,15 @@ export const removeOverlappingRanges = <
   SecondRange extends IRange
 >(
   firstRanges: FirstRange[],
-  secondRanges: SecondRange[]
+  secondRanges: SecondRange[],
+  predicate?: (range: FirstRange) => boolean
 ) => {
   return firstRanges.reduce(
-    (acc, range) => {
-      return findOverlappingRangeIndex(range, secondRanges) === -1
+    (acc, range) =>
+      (predicate && predicate(range)) ||
+      findOverlappingRangeIndex(range, secondRanges) === -1
         ? acc.concat(range)
-        : acc;
-    },
+        : acc,
     [] as FirstRange[]
   );
 };
@@ -124,7 +125,7 @@ export const diffRanges = (
   );
 };
 
-export const validationInputToRange = (input: IValidationInput): IRange => ({
+export const validationInputToRange = (input: IBlockQuery): IRange => ({
   from: input.from,
   to: input.to
 });
@@ -133,9 +134,9 @@ export const validationInputToRange = (input: IValidationInput): IRange => ({
  * Get the current set of validations for the given response.
  */
 export const getCurrentValidationsFromValidationResponse = <
-  TValidationOutput extends IValidationOutput
+  TValidationOutput extends IBlockMatches
 >(
-  input: IValidationInput,
+  blockQueries: IBlockQuery,
   incomingOutputs: TValidationOutput[],
   currentOutputs: TValidationOutput[],
   mapping: Mapping
@@ -145,7 +146,7 @@ export const getCurrentValidationsFromValidationResponse = <
   }
 
   // Map _all_ the things.
-  const mappedInputs = mapRanges([input], mapping);
+  const mappedInputs = mapRanges([blockQueries], mapping);
 
   const newOutputs = mapAndMergeRanges(incomingOutputs, mapping);
 
