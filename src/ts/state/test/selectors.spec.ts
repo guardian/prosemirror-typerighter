@@ -254,7 +254,8 @@ describe("selectors", () => {
       const { state: initialState } = createInitialData();
       const input1 = createBlockQuery(0, 5);
       const input2 = createBlockQuery(10, 15);
-      const input3 = createBlockQuery(10, 15);
+      const input3 = createBlockQuery(15, 20);
+      const input4 = createBlockQuery(20, 25);
       let state = {
         ...initialState,
         blockQueriesInFlight: {
@@ -272,14 +273,13 @@ describe("selectors", () => {
           ...createBlockQueriesInFlight(
             exampleValidationSetId,
             [input1, input2],
-
             exampleCategoryIds,
-            exampleCategoryIds,
+            [],
             3
           ),
           ...createBlockQueriesInFlight(
             "set-id-2",
-            [input3],
+            [input3, input4],
             exampleCategoryIds,
             exampleCategoryIds,
             3

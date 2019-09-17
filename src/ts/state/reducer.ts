@@ -79,17 +79,17 @@ export interface IStateHoverInfo {
   heightOfSingleLine: number;
 }
 
-export interface IBlockQueryInFlight {
+export interface IInFlightBlockQuery {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
   blockQuery: IBlockQuery;
 }
 
-export interface IBlockQueriesInFlightState {
+export interface IInFlightValidationSetState {
   totalBlocks: number;
   // The category ids that were sent with the request.
   categoryIds: string[];
-  pendingBlocks: IBlockQueryInFlight[];
+  pendingBlocks: IInFlightBlockQuery[];
   mapping: Mapping;
 }
 
@@ -118,7 +118,7 @@ export interface IPluginState<TBlockMatches extends IMatches = IMatches> {
   // The sets of blocks that have been sent to the validation service
   // and have not yet completed processing.
   blockQueriesInFlight: {
-    [validationSetId: string]: IBlockQueriesInFlightState;
+    [validationSetId: string]: IInFlightValidationSetState;
   };
   // The current error status.
   error: string | undefined;
@@ -622,7 +622,7 @@ const handleValidationRequestStart = (
       )
     : state.decorations;
 
-  const newBlockQueriesInFlight: IBlockQueryInFlight[] = blockQueries.map(
+  const newBlockQueriesInFlight: IInFlightBlockQuery[] = blockQueries.map(
     blockQuery => ({
       blockQuery,
       pendingCategoryIds: categoryIds
@@ -660,7 +660,7 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
   if (!currentBlockQueriesInFlight) {
     return state.blockQueriesInFlight;
   }
-  const newBlockQueriesInFlight: IBlockQueriesInFlightState = {
+  const newBlockQueriesInFlight: IInFlightValidationSetState = {
     ...currentBlockQueriesInFlight,
     pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
       (acc, blockQueryInFlight) => {
@@ -678,7 +678,7 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
           ? acc.concat(newBlockQueryInFlight)
           : acc;
       },
-      [] as IBlockQueryInFlight[]
+      [] as IInFlightBlockQuery[]
     )
   };
   if (!newBlockQueriesInFlight.pendingBlocks.length) {

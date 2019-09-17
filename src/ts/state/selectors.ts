@@ -1,8 +1,8 @@
 import { IMatches } from "../interfaces/IValidation";
 import {
   IPluginState,
-  IBlockQueryInFlight,
-  IBlockQueriesInFlightState
+  IInFlightBlockQuery,
+  IInFlightValidationSetState
 } from "./reducer";
 
 export const selectBlockQueriesInFlight = <TValidationMeta extends IMatches>(
@@ -22,7 +22,7 @@ export const selectBlockQueriesInFlightForSet = <
 >(
   state: IPluginState<TValidationMeta>,
   validationSetId: string
-): IBlockQueriesInFlightState | undefined => {
+): IInFlightValidationSetState | undefined => {
   return state.blockQueriesInFlight[validationSetId];
 };
 
@@ -32,7 +32,7 @@ export const selectSingleBlockQueryInFlightById = <
   state: IPluginState<TValidationMeta>,
   validationSetId: string,
   blockQueryId: string
-): IBlockQueryInFlight | undefined => {
+): IInFlightBlockQuery | undefined => {
   const validationInFlightState = selectBlockQueriesInFlightForSet(
     state,
     validationSetId
@@ -51,23 +51,23 @@ export const selectBlockQueriesInFlightById = <
   state: IPluginState<TValidationMeta>,
   validationSetId: string,
   blockQueryIds: string[]
-): IBlockQueryInFlight[] =>
+): IInFlightBlockQuery[] =>
   blockQueryIds
     .map(blockQueryId =>
       selectSingleBlockQueryInFlightById(state, validationSetId, blockQueryId)
     )
-    .filter(_ => !!_) as IBlockQueryInFlight[];
+    .filter(_ => !!_) as IInFlightBlockQuery[];
 
 export const selectAllBlockQueriesInFlight = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>
-): IBlockQueryInFlight[] =>
+): IInFlightBlockQuery[] =>
   Object.values(state.blockQueriesInFlight).reduce(
     (acc, value) => acc.concat(value.pendingBlocks),
-    [] as IBlockQueryInFlight[]
+    [] as IInFlightBlockQuery[]
   );
 
 type TSelectValidationInFlight = Array<
-  IBlockQueriesInFlightState & {
+  IInFlightValidationSetState & {
     validationSetId: string;
   }
 >;
@@ -90,16 +90,21 @@ export const selectNewBlockQueryInFlight = <TValidationMeta extends IMatches>(
 export const selectPercentRemaining = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>
 ) => {
-  const [sumOfTotals, sumOfValidations] = Object.values(
+  const [totalWork, totalRemainingWork] = Object.values(
     state.blockQueriesInFlight
   ).reduce(
-    ([totalsSum, currentSum], _) => [
-      totalsSum + _.totalBlocks,
-      currentSum + _.pendingBlocks.length
-    ],
+    ([totalWorkAcc, remainingWorkAcc], queryState) => {
+      const allWork =
+        queryState.pendingBlocks.length * queryState.categoryIds.length;
+      const remainingWork = queryState.pendingBlocks.reduce(
+        (acc, block) => acc + block.pendingCategoryIds.length,
+        0
+      );
+      return [totalWorkAcc + allWork, remainingWorkAcc + remainingWork];
+    },
     [0, 0]
   );
-  return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
+  return totalRemainingWork ? (totalRemainingWork / totalWork) * 100 : 0;
 };
 
 export const selectSuggestionAndRange = <TValidationMeta extends IMatches>(

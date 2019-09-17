@@ -6,7 +6,7 @@ import {
   IValidationResponse
 } from "../../interfaces/IValidation";
 import { createValidationId, createMatchId } from "../../utils/validation";
-import { IBlockQueriesInFlightState, IPluginState } from "../../state/reducer";
+import { IInFlightValidationSetState, IPluginState } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
@@ -113,7 +113,7 @@ export const createBlockQueriesInFlight = (
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
   total?: number
-): { [setId: string]: IBlockQueriesInFlightState } => ({
+): { [setId: string]: IInFlightValidationSetState } => ({
   [setId]: {
     totalBlocks: total || blockQueries.length,
     mapping: new Mapping(),

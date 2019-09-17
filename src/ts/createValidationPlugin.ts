@@ -91,15 +91,15 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
-      const newValidationInputs = selectNewBlockQueryInFlight(
+      const blockQueryStates = selectNewBlockQueryInFlight(
         oldPluginState,
         newPluginState
       );
-      newValidationInputs.forEach(({ validationSetId, current }) =>
+      blockQueryStates.forEach(({ validationSetId, pendingBlocks }) =>
         store.emit(
           STORE_EVENT_NEW_VALIDATION,
           validationSetId,
-          current.map(_ => _.blockQuery)
+          pendingBlocks.map(_ => _.blockQuery)
         )
       );
     },
