@@ -37,7 +37,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
     const socket = new WebSocket(this.checkUrl);
     const blocks = inputs.map(input => ({
       id: input.id,
-      text: input.inputString,
+      text: input.text,
       from: input.from,
       to: input.to,
       categoryIds

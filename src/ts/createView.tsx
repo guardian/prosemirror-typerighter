@@ -5,7 +5,7 @@ import Store from "./store";
 import ValidationSidebar from "./components/ValidationSidebar";
 import ValidationControls from "./components/ValidationControls";
 import { Commands } from "./commands";
-import { IBlockMatches } from "./interfaces/IValidation";
+import { IMatches } from "./interfaces/IValidation";
 import { ValidationService } from ".";
 
 /**
@@ -13,8 +13,8 @@ import { ValidationService } from ".";
  */
 const createView = (
   view: EditorView,
-  store: Store<IBlockMatches>,
-  validationService: ValidationService<IBlockMatches>,
+  store: Store<IMatches>,
+  validationService: ValidationService<IMatches>,
   commands: Commands,
   sidebarNode: Element,
   controlsNode: Element

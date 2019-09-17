@@ -20,7 +20,7 @@ import {
   SET_VALIDATE_ON_MODIFY_STATE,
   Action
 } from "./actions";
-import { IBlockMatches, IBlockQuery, IRange } from "../interfaces/IValidation";
+import { IMatches, IBlockQuery, IRange } from "../interfaces/IValidation";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
 import {
@@ -37,7 +37,6 @@ import {
   validationInputToRange,
   mapAndMergeRanges,
   mapRanges,
-  getCurrentValidationsFromValidationResponse,
   findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
@@ -52,6 +51,7 @@ import {
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import { createValidationBlock } from "../utils/validation";
+import { cat } from "shelljs";
 
 /**
  * Information about the span element the user is hovering over.
@@ -95,9 +95,7 @@ export interface IBlockQueriesInFlightState {
   current: IBlockQueryInFlight[];
 }
 
-export interface IPluginState<
-  TBlockMatches extends IBlockMatches = IBlockMatches
-> {
+export interface IPluginState<TBlockMatches extends IMatches = IMatches> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
@@ -240,7 +238,7 @@ export const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 /**
  * Initial state.
  */
-export const createInitialState = <TValidationMeta extends IBlockMatches>(
+export const createInitialState = <TValidationMeta extends IMatches>(
   doc: Node
 ): IPluginState<TValidationMeta> => ({
   debug: false,
@@ -395,7 +393,7 @@ export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
   const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(
     expandRanges
   );
-  return <TValidationMeta extends IBlockMatches>(
+  return <TValidationMeta extends IMatches>(
     tr: Transaction,
     incomingState: IPluginState<TValidationMeta>,
     action?: Action<TValidationMeta>
@@ -438,7 +436,7 @@ export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
  */
-const getNewStateFromTransaction = <TValidationMeta extends IBlockMatches>(
+const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
   tr: Transaction,
   incomingState: IPluginState<TValidationMeta>
 ): IPluginState<TValidationMeta> => {
@@ -480,7 +478,7 @@ const getNewStateFromTransaction = <TValidationMeta extends IBlockMatches>(
 /**
  * Handle the selection of a hover id.
  */
-const handleSelectValidation = <TValidationMeta extends IBlockMatches>(
+const handleSelectValidation = <TValidationMeta extends IMatches>(
   _: unknown,
   state: IPluginState<TValidationMeta>,
   action: ActionSelectValidation
@@ -494,7 +492,7 @@ const handleSelectValidation = <TValidationMeta extends IBlockMatches>(
 /**
  * Handle the receipt of a new hover id.
  */
-const handleNewHoverId = <TValidationMeta extends IBlockMatches>(
+const handleNewHoverId = <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   action: ActionNewHoverIdReceived
@@ -538,7 +536,7 @@ const handleNewHoverId = <TValidationMeta extends IBlockMatches>(
   };
 };
 
-const handleNewDirtyRanges = <TValidationMeta extends IBlockMatches>(
+const handleNewDirtyRanges = <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
@@ -576,7 +574,7 @@ const handleNewDirtyRanges = <TValidationMeta extends IBlockMatches>(
  */
 const createHandleValidationRequestForDirtyRanges = (
   expandRanges: ExpandRanges
-) => <TValidationMeta extends IBlockMatches>(
+) => <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   {
@@ -597,9 +595,7 @@ const createHandleValidationRequestForDirtyRanges = (
 /**
  * Handle a validation request for the entire document.
  */
-const handleValidationRequestForDocument = <
-  TValidationMeta extends IBlockMatches
->(
+const handleValidationRequestForDocument = <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   {
@@ -620,7 +616,7 @@ const handleValidationRequestStart = (
   validationSetId: string,
   blockQueries: IBlockQuery[],
   categoryIds: string[]
-) => <TValidationMeta extends IBlockMatches>(
+) => <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>
 ): IPluginState<TValidationMeta> => {
@@ -659,10 +655,11 @@ const handleValidationRequestStart = (
   };
 };
 
-const removeValidationInFlight = <TValidationOutput extends IBlockMatches>(
+const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
   state: IPluginState<TValidationOutput>,
   validationSetId: string,
-  validationId: string
+  blockQueryId: string,
+  categoryIds: string[]
 ) => {
   const currentBlockQueriesInFlight = selectBlockQueriesInFlightForSet(
     state,
@@ -673,8 +670,23 @@ const removeValidationInFlight = <TValidationOutput extends IBlockMatches>(
   }
   const newBlockQueriesInFlight = {
     total: currentBlockQueriesInFlight.total,
-    current: currentBlockQueriesInFlight.current.filter(
-      _ => _.blockQuery.id !== validationId
+    current: currentBlockQueriesInFlight.current.reduce(
+      (acc, blockQueryInFlight) => {
+        // Don't modify blocks that don't match
+        if (blockQueryInFlight.blockQuery.id !== blockQueryId) {
+          return acc.concat(blockQueryInFlight);
+        }
+        const newBlockQueryInFlight = {
+          ...blockQueryInFlight,
+          remainingCategoryIds: blockQueryInFlight.remainingCategoryIds.filter(
+            id => !categoryIds.includes(id)
+          )
+        };
+        return newBlockQueryInFlight.remainingCategoryIds.length
+          ? acc.concat(newBlockQueryInFlight)
+          : acc;
+      },
+      [] as IBlockQueryInFlight[]
     )
   };
   if (!newBlockQueriesInFlight.current.length) {
@@ -690,7 +702,7 @@ const removeValidationInFlight = <TValidationOutput extends IBlockMatches>(
  * Handle a validation response, decorating the document with
  * any validations we've received.
  */
-const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
+const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
   tr: Transaction,
   state: IPluginState<TBlockMatches>,
   { payload: { response } }: ActionValidationResponseReceived<TBlockMatches>
@@ -699,15 +711,10 @@ const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
     return state;
   }
 
-  const categoryIds = response.blockResults.reduce(
-    (acc, blockResult) => acc.concat(blockResult.categoryIds),
-    [] as string[]
-  );
-
   const blockQueriesInFlight = selectBlockQueriesInFlightById(
     state,
     response.validationSetId,
-    response.blockResults.map(_ => _.validationId)
+    response.blocks.map(_ => _.id)
   );
 
   if (!blockQueriesInFlight.length) {
@@ -718,7 +725,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
   let currentValidations: TBlockMatches[] = removeOverlappingRanges(
     state.currentValidations,
     blockQueriesInFlight.map(_ => _.blockQuery),
-    validation => !categoryIds.includes(validation.category.id)
+    validation => !response.categoryIds.includes(validation.category.id)
   );
 
   // Remove decorations superceded by the incoming matches.
@@ -729,7 +736,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
           .find(
             blockQueryInFlight.blockQuery.from,
             blockQueryInFlight.blockQuery.to,
-            spec => categoryIds.includes(spec.categoryId)
+            spec => response.categoryIds.includes(spec.categoryId)
           )
           .concat(
             state.debug
@@ -744,23 +751,13 @@ const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
       ),
     [] as Decoration[]
   );
-
   // Add the response to the current validations
-  currentValidations = blockQueriesInFlight.reduce(
-    (acc, blockQueryInFlight) => {
-      const result = response.blockResults.find(
-        _ => _.validationId === blockQueryInFlight.blockQuery.id
-      )!;
-      return acc.concat(
-        getCurrentValidationsFromValidationResponse<TBlockMatches>(
-          blockQueryInFlight.blockQuery,
-          result.blockMatches,
-          currentValidations,
-          blockQueryInFlight.mapping
-        )
-      );
-    },
-    [] as any[]
+  const mapping = blockQueriesInFlight.reduce((acc, blockQuery) => {
+    acc.appendMapping(blockQuery.mapping);
+    return acc;
+  }, new Mapping());
+  currentValidations = currentValidations.concat(
+    mapRanges(response.matches, mapping)
   );
 
   // We don't apply incoming validations to ranges that have
@@ -780,10 +777,11 @@ const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
   // Remove block queries in flight (@todo)
   const newBlockQueriesInFlight = blockQueriesInFlight.reduce(
     (acc, blockQueryInFlight) =>
-      removeValidationInFlight(
+      amendBlockQueriesInFlight(
         { ...state, blockQueriesInFlight: acc },
         response.validationSetId,
-        blockQueryInFlight.blockQuery.id
+        blockQueryInFlight.blockQuery.id,
+        response.categoryIds
       ),
     state.blockQueriesInFlight
   );
@@ -799,7 +797,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IBlockMatches>(
 /**
  * Handle a validation request error.
  */
-const handleValidationRequestError = <TValidationMeta extends IBlockMatches>(
+const handleValidationRequestError = <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
   {
@@ -857,16 +855,17 @@ const handleValidationRequestError = <TValidationMeta extends IBlockMatches>(
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    blockQueriesInFlight: removeValidationInFlight(
+    blockQueriesInFlight: amendBlockQueriesInFlight(
       state,
       validationSetId,
-      validationId
+      validationId,
+      []
     ),
     error: message
   };
 };
 
-const handleSetDebugState = <TValidationMeta extends IBlockMatches>(
+const handleSetDebugState = <TValidationMeta extends IMatches>(
   _: Transaction,
   state: IPluginState<TValidationMeta>,
   { payload: { debug } }: ActionSetDebugState
@@ -877,7 +876,7 @@ const handleSetDebugState = <TValidationMeta extends IBlockMatches>(
   };
 };
 
-const handleSetValidateOnModifyState = <TValidationMeta extends IBlockMatches>(
+const handleSetValidateOnModifyState = <TValidationMeta extends IMatches>(
   _: Transaction,
   state: IPluginState<TValidationMeta>,
   { payload: { validateOnModify } }: ActionSetValidateOnModifyState

@@ -1,9 +1,9 @@
 import { IStateHoverInfo } from "../state/reducer";
-import { IBlockMatches } from "./IValidation";
+import { IMatches } from "./IValidation";
 
 interface IHoverEvent {
   hoverInfo: IStateHoverInfo | undefined;
-  validationOutput: IBlockMatches | undefined;
+  validationOutput: IMatches | undefined;
 }
 
 export default IHoverEvent;

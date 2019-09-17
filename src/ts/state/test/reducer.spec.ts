@@ -19,13 +19,13 @@ import {
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
-import { IBlockMatches } from "../../interfaces/IValidation";
+import { IMatches } from "../../interfaces/IValidation";
 import {
-  createBlockResults,
+  createValidationResponse,
   createBlockQuery,
   exampleCategoryIds,
   createBlockQueriesInFlight,
-  validationSetId,
+  exampleValidationSetId,
   createInitialData,
   defaultDoc,
   addOutputsToState,
@@ -55,17 +55,23 @@ describe("Action handlers", () => {
         reducer(
           tr,
           state,
-          validationRequestForDocument(validationSetId, exampleCategoryIds)
+          validationRequestForDocument(
+            exampleValidationSetId,
+            exampleCategoryIds
+          )
         )
       ).toMatchObject({
-        blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-          {
-            from: 1,
-            inputString: "Example text to validate",
-            to: 26,
-            id: "0-from:1-to:26"
-          }
-        ])
+        blockQueriesInFlight: createBlockQueriesInFlight(
+          exampleValidationSetId,
+          [
+            {
+              from: 1,
+              text: "Example text to validate",
+              to: 26,
+              id: "0-from:1-to:26"
+            }
+          ]
+        )
       });
     });
   });
@@ -81,7 +87,10 @@ describe("Action handlers", () => {
             dirtiedRanges: [{ from: 5, to: 10 }],
             validationPending: true
           },
-          validationRequestForDirtyRanges(validationSetId, exampleCategoryIds)
+          validationRequestForDirtyRanges(
+            exampleValidationSetId,
+            exampleCategoryIds
+          )
         )
       ).toEqual({
         ...state,
@@ -91,14 +100,17 @@ describe("Action handlers", () => {
           createDebugDecorationFromRange({ from: 1, to: 25 }, false)
         ]),
         validationPending: false,
-        blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-          {
-            inputString: "Example text to validate",
-            from: 1,
-            to: 25,
-            id: "0-from:1-to:25"
-          }
-        ])
+        blockQueriesInFlight: createBlockQueriesInFlight(
+          exampleValidationSetId,
+          [
+            {
+              text: "Example text to validate",
+              from: 1,
+              to: 25,
+              id: "0-from:1-to:25"
+            }
+          ]
+        )
       });
     });
     it("should remove debug decorations, if any", () => {
@@ -152,8 +164,10 @@ describe("Action handlers", () => {
           tr,
           state,
           validationRequestSuccess({
-            blockResults: [],
-            validationSetId
+            blocks: [{ from: 1, to: 1, text: "hai", id: "1" }],
+            matches: [],
+            categoryIds: ["some-cat"],
+            validationSetId: exampleValidationSetId
           })
         )
       ).toEqual(state);
@@ -165,8 +179,10 @@ describe("Action handlers", () => {
           tr,
           state,
           validationRequestSuccess({
-            blockResults: [],
-            validationSetId
+            blocks: [{ from: 1, to: 1, text: "hai", id: "1" }],
+            matches: [],
+            categoryIds: [],
+            validationSetId: exampleValidationSetId
           })
         )
       ).toEqual(state);
@@ -181,16 +197,16 @@ describe("Action handlers", () => {
       localState = reducer(
         tr,
         localState,
-        validationRequestForDirtyRanges(validationSetId, exampleCategoryIds)
+        validationRequestForDirtyRanges(
+          exampleValidationSetId,
+          exampleCategoryIds
+        )
       );
       expect(
         reducer(
           tr,
           localState,
-          validationRequestSuccess({
-            blockResults: [createBlockResults(1, 25)],
-            validationSetId
-          })
+          validationRequestSuccess(createValidationResponse(1, 25))
         ).currentValidations
       ).toMatchObject([createBlockMatches(1, 4)]);
     });
@@ -200,77 +216,127 @@ describe("Action handlers", () => {
         reducer(
           tr,
           state,
-          validationRequestSuccess({
-            blockResults: [createBlockResults(5, 10)],
-            validationSetId
-          })
+          validationRequestSuccess(createValidationResponse(5, 10))
         )
       ).toMatchSnapshot();
     });
     describe("superceded matches", () => {
-      it("should remove previous validations & decorations that match the category of the incoming match, leaving other validations alone", () => {
-        const { state: initialState, tr } = createInitialData();
-        const blockQuery = createBlockQuery(0, 15, "Example text to validate");
-        const category = {
-          id: "this-category-should-remain",
-          colour: "purple",
-          name:
-            "This category should remain untouched -- it's not included in the categories for the incoming matches"
-        };
-        const validationOutput1 = createBlockResults(0, 15, 1, 7);
-        const validationOutput2 = createBlockResults(
-          0,
-          15,
-          9,
-          13,
-          [],
-          category
-        );
-        const validationOutput3 = createBlockResults(0, 15, 17, 25);
-        const blockQueriesInFlight = createBlockQueriesInFlight(
-          validationSetId,
-          [blockQuery],
-          validationOutput1.categoryIds
-        );
+      const { state: initialState, tr } = createInitialData();
+      const firstBlock = createBlockQuery(0, 15, "Example text to validate");
+      const secondBlock = createBlockQuery(16, 37, "Another block of text");
+      const blocks = [firstBlock, secondBlock];
+      const category = {
+        id: "this-category-should-remain",
+        colour: "purple",
+        name:
+          "This category should remain untouched -- it's not included in the categories for the incoming matches"
+      };
+      const validationOutput1 = createValidationResponse(0, 15, 1, 7);
+      const validationOutput2 = createValidationResponse(
+        0,
+        15,
+        9,
+        13,
+        category
+      );
+      const validationOutput3 = createValidationResponse(16, 37, 17, 25); // Some other output for another block
+      const blockQueriesInFlight = createBlockQueriesInFlight(
+        exampleValidationSetId,
+        blocks,
+        [...validationOutput1.categoryIds, ...validationOutput2.categoryIds]
+      );
 
-        const state: IPluginState = {
+      const state: IPluginState = addOutputsToState(
+        {
           ...initialState,
           blockQueriesInFlight
-        };
+        },
+        tr.doc,
+        [
+          validationOutput1.matches[0],
+          validationOutput2.matches[0],
+          validationOutput3.matches[0]
+        ]
+      );
 
+      it("should remove previous validations that match the block and category of the incoming match", () => {
         const newState = reducer(
           tr,
-          addOutputsToState(state, tr.doc, [
-            validationOutput1.blockMatches[0],
-            validationOutput2.blockMatches[0],
-            validationOutput3.blockMatches[0]
-          ]),
+          state,
           validationRequestSuccess({
-            blockResults: [{
-              ...blockQuery,
-              blockMatches: [],
-              categoryIds: ['1'],
-              validationId: blockQuery.id
-            }],
-            validationSetId
+            blocks: [firstBlock],
+            categoryIds: ["1"],
+            matches: [],
+            validationSetId: exampleValidationSetId
           })
         );
 
         expect(newState.currentValidations).toEqual([
-          validationOutput2.blockMatches[0],
-          validationOutput3.blockMatches[0]
+          validationOutput2.matches[0],
+          validationOutput3.matches[0]
         ]);
+      });
+      it("should remove previous decorations that match block and category of the incoming match", () => {
+        const newState = reducer(
+          tr,
+          state,
+          validationRequestSuccess({
+            blocks: [firstBlock],
+            categoryIds: ["1"],
+            matches: [],
+            validationSetId: exampleValidationSetId
+          })
+        );
 
         expect(newState.decorations).toEqual(
           new DecorationSet().add(tr.doc, [
-            ...createDecorationForValidationRange(
-              validationOutput2.blockMatches[0]
-            ),
-            ...createDecorationForValidationRange(
-              validationOutput3.blockMatches[0]
-            )
+            ...createDecorationForValidationRange(validationOutput2.matches[0]),
+            ...createDecorationForValidationRange(validationOutput3.matches[0])
           ])
         );
+      });
+
+      it("should remove validated categories from the remaining categories list for in-flight blocks", () => {
+        const newState = reducer(
+          tr,
+          state,
+          validationRequestSuccess({
+            blocks: [firstBlock],
+            categoryIds: ["1"],
+            matches: [],
+            validationSetId: exampleValidationSetId
+          })
+        );
+
+        expect(newState.blockQueriesInFlight).toEqual({
+          "set-id": {
+            current: [
+              {
+                allCategoryIds: ["1", "this-category-should-remain"],
+                blockQuery: {
+                  from: 0,
+                  id: "0-from:0-to:15",
+                  text: "Example text to validate",
+                  to: 15
+                },
+                mapping: { from: 0, maps: [], mirror: undefined, to: 0 },
+                remainingCategoryIds: ["this-category-should-remain"]
+              },
+              {
+                allCategoryIds: ["1", "this-category-should-remain"],
+                blockQuery: {
+                  from: 16,
+                  id: "0-from:16-to:37",
+                  text: "Another block of text",
+                  to: 37
+                },
+                mapping: { from: 0, maps: [], mirror: undefined, to: 0 },
+                remainingCategoryIds: ["1", "this-category-should-remain"]
+              }
+            ],
+            total: 2
+          }
+        });
       });
     });
     it("should not apply validations if the ranges they apply to have since been dirtied", () => {
@@ -294,10 +360,7 @@ describe("Action handlers", () => {
         reducer(
           tr,
           localState,
-          validationRequestSuccess({
-            blockResults: [createBlockResults(1, 3)],
-            validationSetId
-          })
+          validationRequestSuccess(createValidationResponse(1, 3))
         )
       ).toEqual({
         ...localState,
@@ -312,15 +375,16 @@ describe("Action handlers", () => {
       const { state: initialState, tr } = createInitialData();
       const state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-          createBlockQuery(1, 25, "Example text to validate")
-        ])
+        blockQueriesInFlight: createBlockQueriesInFlight(
+          exampleValidationSetId,
+          [createBlockQuery(1, 25, "Example text to validate")]
+        )
       };
       const newState = reducer(
         tr,
         state,
         validationRequestError({
-          validationSetId,
+          validationSetId: exampleValidationSetId,
           validationId: createValidationId(0, 1, 25),
           message: "Too many requests"
         })
@@ -355,7 +419,7 @@ describe("Action handlers", () => {
     });
     it("should add hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IBlockMatches = {
+      const output: IMatches = {
         matchId: "match-id",
         from: 0,
         to: 5,
@@ -386,7 +450,7 @@ describe("Action handlers", () => {
     });
     it("should remove hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IBlockMatches = {
+      const output: IMatches = {
         matchId: "match-id",
         from: 0,
         to: 5,
@@ -421,7 +485,7 @@ describe("Action handlers", () => {
   describe("handleNewDirtyRanges", () => {
     it("should remove any decorations and validations that touch the passed ranges", () => {
       const { state } = createInitialData();
-      const currentValidations: IBlockMatches[] = [
+      const currentValidations: IMatches[] = [
         {
           matchId: "match-id",
           from: 1,
@@ -464,7 +528,7 @@ describe("Action handlers", () => {
         currentValidations: [
           {
             matchId: "match-id",
-            inputString: "example",
+            text: "example",
             from: 1,
             to: 1,
             annotation: "example",

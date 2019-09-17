@@ -11,7 +11,7 @@ export interface ICategory {
 
 export interface IBlockQuery {
   id: string;
-  inputString: string;
+  text: string;
   from: number;
   to: number;
 }
@@ -39,7 +39,7 @@ export interface IValidationError {
 }
 
 
-export interface IBlockMatches<TSuggestion = ISuggestion> {
+export interface IMatches<TSuggestion = ISuggestion> {
   matchId: string;
   from: number;
   to: number;
@@ -49,20 +49,17 @@ export interface IBlockMatches<TSuggestion = ISuggestion> {
   autoApplyFirstSuggestion?: boolean;
 }
 
-export interface IBlockResult<
-  TBlockMatches extends IBlockMatches = IBlockMatches
-> {
-  blockMatches: TBlockMatches[];
+export interface IBlockResult {
   categoryIds: string[];
-  validationId: string;
-  from: number;
-  to: number;
+  id: string;
 }
 
 export interface IValidationResponse<
-  TBlockMatches extends IBlockMatches = IBlockMatches
+  TBlockMatches extends IMatches = IMatches
 > {
-  blockResults: Array<IBlockResult<TBlockMatches>>;
+  blocks: IBlockQuery[];
+  categoryIds: string[];
+  matches: TBlockMatches[];
   validationSetId: string;
 }
 

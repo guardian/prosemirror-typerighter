@@ -2,16 +2,16 @@ import { ISuggestion } from "../../../interfaces/IValidation";
 
 export interface ITypeRighterResponse {
   blocks: ITypeRighterBlockResponse[];
+  categoryIds: string[];
+  matches: ITypeRighterMatch[],
   validationSetId: string;
 }
 
 export interface ITypeRighterBlockResponse {
   id: string,
-  categoryIds: string[],
-  matches: ITypeRighterMatch[],
+  text: string;
   from: number;
   to: number;
-  text: string;
 }
 
 export interface ITypeRighterMatch {

@@ -2,7 +2,7 @@ import clamp from "lodash/clamp";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
-import { IRange, IBlockMatches } from "../interfaces/IValidation";
+import { IRange } from "../interfaces/IValidation";
 import { IBlockQuery } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
 
@@ -129,31 +129,6 @@ export const validationInputToRange = (input: IBlockQuery): IRange => ({
   from: input.from,
   to: input.to
 });
-
-/**
- * Get the current set of validations for the given response.
- */
-export const getCurrentValidationsFromValidationResponse = <
-  TValidationOutput extends IBlockMatches
->(
-  blockQueries: IBlockQuery,
-  incomingOutputs: TValidationOutput[],
-  currentOutputs: TValidationOutput[],
-  mapping: Mapping
-): TValidationOutput[] => {
-  if (!incomingOutputs.length) {
-    return currentOutputs;
-  }
-
-  // Map _all_ the things.
-  const mappedInputs = mapRanges([blockQueries], mapping);
-
-  const newOutputs = mapAndMergeRanges(incomingOutputs, mapping);
-
-  return removeOverlappingRanges(currentOutputs, mappedInputs).concat(
-    newOutputs
-  );
-};
 
 /**
  * Expand a range in a document to encompass the nearest ancestor block node.

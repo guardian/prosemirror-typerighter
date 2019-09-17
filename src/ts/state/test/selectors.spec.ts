@@ -8,7 +8,7 @@ import {
 import {
   createBlockQuery,
   createBlockQueriesInFlight,
-  validationSetId,
+  exampleValidationSetId,
   createInitialData,
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
@@ -57,13 +57,13 @@ describe("selectors", () => {
       expect(
         selectSingleBlockQueryInFlightById(
           {
-            blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-              input1,
-              input2
-			])
+            blockQueriesInFlight: createBlockQueriesInFlight(
+              exampleValidationSetId,
+              [input1, input2]
+            )
           } as any,
-          validationSetId,
-		  input1.id
+          exampleValidationSetId,
+          input1.id
         )!.blockQuery
       ).toEqual(input1);
     });
@@ -77,14 +77,15 @@ describe("selectors", () => {
         selectNewBlockQueryInFlight(
           {
             ...state,
-            blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-              input1
-            ])
+            blockQueriesInFlight: createBlockQueriesInFlight(
+              exampleValidationSetId,
+              [input1]
+            )
           },
           {
             ...state,
             blockQueriesInFlight: {
-              ...createBlockQueriesInFlight(validationSetId, [input1]),
+              ...createBlockQueriesInFlight(exampleValidationSetId, [input1]),
               ...createBlockQueriesInFlight("set-id-2", [input2])
             }
           }
@@ -105,15 +106,16 @@ describe("selectors", () => {
           {
             ...state,
             blockQueriesInFlight: {
-              ...createBlockQueriesInFlight(validationSetId, [input1]),
+              ...createBlockQueriesInFlight(exampleValidationSetId, [input1]),
               ...createBlockQueriesInFlight("set-id-2", [input2])
             }
           },
           {
             ...state,
-            blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-              input1
-            ])
+            blockQueriesInFlight: createBlockQueriesInFlight(
+              exampleValidationSetId,
+              [input1]
+            )
           }
         )
       ).toEqual([]);
@@ -145,7 +147,7 @@ describe("selectors", () => {
             name: "cat",
             colour: "eeeeee"
           },
-          inputString: "hai"
+          text: "hai"
         }
       ];
       expect(
@@ -180,7 +182,7 @@ describe("selectors", () => {
             name: "cat",
             colour: "eeeeee"
           },
-          inputString: "hai"
+          text: "hai"
         }
       ];
       expect(
@@ -230,19 +232,20 @@ describe("selectors", () => {
       const input2 = createBlockQuery(10, 15);
       let state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(validationSetId, [
-          input1,
-          input2
-        ])
+        blockQueriesInFlight: createBlockQueriesInFlight(
+          exampleValidationSetId,
+          [input1, input2],
+          ["1", "2"]
+        )
       };
       expect(selectPercentRemaining(state)).toEqual(100);
       state = {
         ...initialState,
         blockQueriesInFlight: createBlockQueriesInFlight(
-          validationSetId,
+          exampleValidationSetId,
           [input1, input2],
-          exampleCategoryIds,
-          4
+          ["1", "2"],
+          ["1"]
         )
       };
       expect(selectPercentRemaining(state)).toEqual(50);
@@ -255,7 +258,10 @@ describe("selectors", () => {
       let state = {
         ...initialState,
         blockQueriesInFlight: {
-          ...createBlockQueriesInFlight(validationSetId, [input1, input2]),
+          ...createBlockQueriesInFlight(exampleValidationSetId, [
+            input1,
+            input2
+          ]),
           ...createBlockQueriesInFlight("set-id-2", [input3])
         }
       };
@@ -264,12 +270,20 @@ describe("selectors", () => {
         ...initialState,
         blockQueriesInFlight: {
           ...createBlockQueriesInFlight(
-            validationSetId,
+            exampleValidationSetId,
             [input1, input2],
+
+            exampleCategoryIds,
             exampleCategoryIds,
             3
           ),
-          ...createBlockQueriesInFlight("set-id-2", [input3], exampleCategoryIds, 3)
+          ...createBlockQueriesInFlight(
+            "set-id-2",
+            [input3],
+            exampleCategoryIds,
+            exampleCategoryIds,
+            3
+          )
         }
       };
       expect(selectPercentRemaining(state)).toEqual(50);

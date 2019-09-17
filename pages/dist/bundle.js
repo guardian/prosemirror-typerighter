@@ -21997,14 +21997,6 @@ const validationInputToRange = (input) => ({
     from: input.from,
     to: input.to
 });
-const getCurrentValidationsFromValidationResponse = (input, incomingOutputs, currentOutputs, mapping) => {
-    if (!incomingOutputs.length) {
-        return currentOutputs;
-    }
-    const mappedInputs = mapRanges([input], mapping);
-    const newOutputs = mapAndMergeRanges(incomingOutputs, mapping);
-    return removeOverlappingRanges(currentOutputs, mappedInputs).concat(newOutputs);
-};
 const expandRangeToParentBlockNode = (range, doc) => {
     try {
         const $fromPos = doc.resolve(range.from);
@@ -22040,8 +22032,8 @@ const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNod
 //# sourceMappingURL=range.js.map
 
 const createValidationBlock = (tr, range) => {
-    const inputString = tr.doc.textBetween(range.from, range.to);
-    return Object.assign({ inputString }, range, { id: createValidationId(tr.time, range.from, range.to) });
+    const text = tr.doc.textBetween(range.from, range.to);
+    return Object.assign({ text }, range, { id: createValidationId(tr.time, range.from, range.to) });
 };
 const createValidationId = (time, from, to) => `${time}-from:${from}-to:${to}`;
 
@@ -22086,13 +22078,16 @@ const selectBlockMatchesByMatchId = (state, matchId) => state.currentValidations
 const selectBlockQueriesInFlightForSet = (state, validationSetId) => {
     return state.blockQueriesInFlight[validationSetId];
 };
-const selectBlockQueriesInFlightById = (state, validationSetId, validationId) => {
+const selectSingleBlockQueryInFlightById = (state, validationSetId, blockQueryId) => {
     const validationInFlightState = selectBlockQueriesInFlightForSet(state, validationSetId);
     if (!validationInFlightState) {
         return;
     }
-    return validationInFlightState.current.find(_ => _.blockQuery.id === validationId);
+    return validationInFlightState.current.find(_ => _.blockQuery.id === blockQueryId);
 };
+const selectBlockQueriesInFlightById = (state, validationSetId, blockQueryIds) => blockQueryIds
+    .map(blockQueryId => selectSingleBlockQueryInFlightById(state, validationSetId, blockQueryId))
+    .filter(_ => !!_);
 const selectAllBlockQueriesInFlight = (state) => Object.values(state.blockQueriesInFlight).reduce((acc, value) => acc.concat(value.current), []);
 const selectNewBlockQueryInFlight = (oldState, newState) => Object.keys(newState.blockQueriesInFlight).reduce((acc, validationSetId) => !oldState.blockQueriesInFlight[validationSetId]
     ? acc.concat(Object.assign({ validationSetId }, selectBlockQueriesInFlightForSet(newState, validationSetId)))
@@ -22104,8 +22099,6 @@ const selectPercentRemaining = (state) => {
     ], [0, 0]);
     return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
 };
-
-//# sourceMappingURL=selectors.js.map
 
 const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
 const createInitialState = (doc) => ({
@@ -22222,45 +22215,58 @@ const handleValidationRequestStart = (validationSetId, blockQueries, categoryIds
                 current: newblockQueriesInFlight
             } }) });
 };
-const removeValidationInFlight = (state, validationSetId, validationId) => {
-    const currentblockQueriesInFlight = selectBlockQueriesInFlightForSet(state, validationSetId);
-    if (!currentblockQueriesInFlight) {
+const amendBlockQueriesInFlight = (state, validationSetId, blockQueryId, categoryIds) => {
+    const currentBlockQueriesInFlight = selectBlockQueriesInFlightForSet(state, validationSetId);
+    if (!currentBlockQueriesInFlight) {
         return state.blockQueriesInFlight;
     }
-    const newblockQueriesInFlight = {
-        total: currentblockQueriesInFlight.total,
-        current: currentblockQueriesInFlight.current.filter(_ => _.blockQuery.id !== validationId)
+    const newBlockQueriesInFlight = {
+        total: currentBlockQueriesInFlight.total,
+        current: currentBlockQueriesInFlight.current.reduce((acc, blockQueryInFlight) => {
+            if (blockQueryInFlight.blockQuery.id !== blockQueryId) {
+                return acc.concat(blockQueryInFlight);
+            }
+            const newBlockQueryInFlight = Object.assign({}, blockQueryInFlight, { remainingCategoryIds: blockQueryInFlight.remainingCategoryIds.filter(id => !categoryIds.includes(id)) });
+            return newBlockQueryInFlight.remainingCategoryIds.length
+                ? acc.concat(newBlockQueryInFlight)
+                : acc;
+        }, [])
     };
-    if (!newblockQueriesInFlight.current.length) {
+    if (!newBlockQueriesInFlight.current.length) {
         return omit_1(state.blockQueriesInFlight, validationSetId);
     }
-    return Object.assign({}, state.blockQueriesInFlight, { [validationSetId]: newblockQueriesInFlight });
+    return Object.assign({}, state.blockQueriesInFlight, { [validationSetId]: newBlockQueriesInFlight });
 };
 const handleValidationRequestSuccess = (tr, state, { payload: { response } }) => {
-    if (!response || !response.categoryIds.length) {
+    if (!response) {
         return state;
     }
-    const blockQueriesInFlight = selectBlockQueriesInFlightById(state, response.validationSetId, response.validationId);
-    if (!blockQueriesInFlight) {
+    const blockQueriesInFlight = selectBlockQueriesInFlightById(state, response.validationSetId, response.blocks.map(_ => _.id));
+    if (!blockQueriesInFlight.length) {
         return state;
     }
-    let currentValidations = removeOverlappingRanges(state.currentValidations, [blockQueriesInFlight.blockQuery], validation => !response.categoryIds.includes(validation.category.id));
-    const decsToRemove = state.decorations
-        .find(blockQueriesInFlight.blockQuery.from, blockQueriesInFlight.blockQuery.to, spec => response.categoryIds.includes(spec.categoryId))
+    let currentValidations = removeOverlappingRanges(state.currentValidations, blockQueriesInFlight.map(_ => _.blockQuery), validation => !response.categoryIds.includes(validation.category.id));
+    const decsToRemove = blockQueriesInFlight.reduce((acc, blockQueryInFlight) => acc.concat(state.decorations
+        .find(blockQueryInFlight.blockQuery.from, blockQueryInFlight.blockQuery.to, spec => response.categoryIds.includes(spec.categoryId))
         .concat(state.debug
         ?
             state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
-        : []);
-    currentValidations = getCurrentValidationsFromValidationResponse(blockQueriesInFlight.blockQuery, response.blockQueries, currentValidations, blockQueriesInFlight.mapping);
+        : [])), []);
+    const mapping = blockQueriesInFlight.reduce((acc, blockQuery) => {
+        acc.appendMapping(blockQuery.mapping);
+        return acc;
+    }, new dist_14());
+    currentValidations = currentValidations.concat(mapRanges(response.matches, mapping));
     currentValidations = removeOverlappingRanges(currentValidations, state.dirtiedRanges);
     const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
-    return Object.assign({}, state, { blockQueriesInFlight: removeValidationInFlight(state, response.validationSetId, response.validationId), currentValidations, decorations: decorations.remove(decsToRemove) });
+    const newBlockQueriesInFlight = blockQueriesInFlight.reduce((acc, blockQueryInFlight) => amendBlockQueriesInFlight(Object.assign({}, state, { blockQueriesInFlight: acc }), response.validationSetId, blockQueryInFlight.blockQuery.id, response.categoryIds), state.blockQueriesInFlight);
+    return Object.assign({}, state, { blockQueriesInFlight: newBlockQueriesInFlight, currentValidations, decorations: decorations.remove(decsToRemove) });
 };
 const handleValidationRequestError = (tr, state, { payload: { validationError: { validationSetId, validationId, message } } }) => {
     if (!validationId) {
         return Object.assign({}, state, { message });
     }
-    const validationInFlight = selectBlockQueriesInFlightById(state, validationSetId, validationId);
+    const validationInFlight = selectSingleBlockQueryInFlightById(state, validationSetId, validationId);
     if (!validationInFlight) {
         return Object.assign({}, state, { message });
     }
@@ -22274,7 +22280,7 @@ const handleValidationRequestError = (tr, state, { payload: { validationError: {
     }
     return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
             ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-            : state.dirtiedRanges, decorations, blockQueriesInFlight: removeValidationInFlight(state, validationSetId, validationId), error: message });
+            : state.dirtiedRanges, decorations, blockQueriesInFlight: amendBlockQueriesInFlight(state, validationSetId, validationId, []), error: message });
 };
 const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
@@ -22657,7 +22663,7 @@ const SuggestionList = ({ suggestions, matchId, applySuggestions }) => {
 //# sourceMappingURL=SuggestionList.js.map
 
 class ValidationOutput extends p {
-    render({ validationOutput: { id: id, category, annotation, suggestions }, applySuggestions }) {
+    render({ validationOutput: { matchId: id, category, annotation, suggestions }, applySuggestions }) {
         return (c("div", { className: "ValidationWidget__container" },
             c("div", { className: "ValidationWidget", ref: _ => (this.ref = _) },
                 c("div", { className: "ValidationWidget__type", style: { color: `#${category.colour}` } }, category.name),
@@ -23522,6 +23528,19 @@ class ValidationService {
 
 //# sourceMappingURL=ValidationAPIService.js.map
 
+const convertTyperighterResponse = (validationSetId, response) => ({
+    validationSetId,
+    categoryIds: response.categoryIds,
+    blocks: response.blocks,
+    matches: response.matches.map(match => ({
+        matchId: v4_1(),
+        from: match.fromPos,
+        to: match.toPos,
+        annotation: match.shortMessage,
+        category: match.rule.category,
+        suggestions: match.suggestions
+    }))
+});
 class TyperighterAdapter {
     constructor(checkUrl, categoriesUrl) {
         this.checkUrl = checkUrl;
@@ -23530,7 +23549,7 @@ class TyperighterAdapter {
             inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 const body = {
                     id: input.id,
-                    text: input.inputString,
+                    text: input.text,
                     categoryIds
                 };
                 try {
@@ -23545,8 +23564,7 @@ class TyperighterAdapter {
                         throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
                     }
                     const responseData = yield response.json();
-                    const validationResponse = this.convertResponse(validationSetId, responseData);
-                    console.log(validationResponse);
+                    const validationResponse = convertTyperighterResponse(validationSetId, responseData);
                     onValidationReceived(validationResponse);
                 }
                 catch (e) {
@@ -23569,25 +23587,10 @@ class TyperighterAdapter {
             }
             return yield response.json();
         });
-        this.convertResponse = (validationSetId, response) => ({
-            validationSetId,
-            blockResults: response.blocks.map((block, index) => ({
-                validationId: block.id,
-                categoryIds: block.categoryIds,
-                from: block.from,
-                to: block.to,
-                blockMatches: block.matches.map(match => ({
-                    matchId: `${block.id}--match-${index}`,
-                    from: match.fromPos,
-                    to: match.toPos,
-                    annotation: match.shortMessage,
-                    category: match.rule.category,
-                    suggestions: match.suggestions
-                }))
-            }))
-        });
     }
 }
+
+//# sourceMappingURL=TyperighterAdapter.js.map
 
 const VALIDATOR_RESPONSE = "VALIDATOR_RESPONSE";
 const VALIDATOR_ERROR = "VALIDATOR_ERROR";
@@ -23598,7 +23601,7 @@ class TyperighterWsAdapter extends TyperighterAdapter {
             const socket = new WebSocket(this.checkUrl);
             const blocks = inputs.map(input => ({
                 id: input.id,
-                text: input.inputString,
+                text: input.text,
                 from: input.from,
                 to: input.to,
                 categoryIds
@@ -23628,7 +23631,7 @@ class TyperighterWsAdapter extends TyperighterAdapter {
                         });
                     }
                     case VALIDATOR_RESPONSE: {
-                        return onValidationReceived(this.convertResponse(validationSetId, socketMessage));
+                        return onValidationReceived(convertTyperighterResponse(validationSetId, socketMessage));
                     }
                 }
             }

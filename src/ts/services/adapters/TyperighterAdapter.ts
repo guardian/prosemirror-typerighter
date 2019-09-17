@@ -1,3 +1,4 @@
+import v4 from 'uuid/v4';
 import { IBlockQuery, IValidationResponse } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
@@ -11,19 +12,15 @@ export const convertTyperighterResponse = (
   response: ITypeRighterResponse
 ): IValidationResponse => ({
   validationSetId,
-  blockResults: response.blocks.map((block, index) => ({
-    validationId: block.id,
-    categoryIds: block.categoryIds,
-    from: block.from,
-    to: block.to,
-    blockMatches: block.matches.map(match => ({
-      matchId: `${block.id}--match-${index}`,
-      from: match.fromPos,
-      to: match.toPos,
-      annotation: match.shortMessage,
-      category: match.rule.category,
-      suggestions: match.suggestions
-    }))
+  categoryIds: response.categoryIds,
+  blocks: response.blocks,
+  matches: response.matches.map(match => ({
+    matchId: v4(),
+    from: match.fromPos,
+    to: match.toPos,
+    annotation: match.shortMessage,
+    category: match.rule.category,
+    suggestions: match.suggestions
   }))
 });
 
@@ -43,7 +40,7 @@ class TyperighterAdapter implements IValidationAPIAdapter {
     inputs.map(async input => {
       const body: { text: string; id: string; categoryIds?: string[] } = {
         id: input.id,
-        text: input.inputString,
+        text: input.text,
         categoryIds
       };
       try {

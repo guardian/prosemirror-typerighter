@@ -1,4 +1,4 @@
-import { IBlockMatches } from "../interfaces/IValidation";
+import { IMatches } from "../interfaces/IValidation";
 import {
   IPluginState,
   IBlockQueryInFlight,
@@ -6,7 +6,7 @@ import {
 } from "./reducer";
 
 export const selectBlockQueriesInFlight = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>
 ) => {
@@ -14,15 +14,15 @@ export const selectBlockQueriesInFlight = <
 };
 
 export const selectBlockMatchesByMatchId = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
   matchId: string
-): IBlockMatches | undefined =>
+): IMatches | undefined =>
   state.currentValidations.find(validation => validation.matchId === matchId);
 
 export const selectBlockQueriesInFlightForSet = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
   validationSetId: string
@@ -31,7 +31,7 @@ export const selectBlockQueriesInFlightForSet = <
 };
 
 export const selectSingleBlockQueryInFlightById = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
   validationSetId: string,
@@ -50,7 +50,7 @@ export const selectSingleBlockQueryInFlightById = <
 };
 
 export const selectBlockQueriesInFlightById = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
   validationSetId: string,
@@ -63,7 +63,7 @@ export const selectBlockQueriesInFlightById = <
     .filter(_ => !!_) as IBlockQueryInFlight[];
 
 export const selectAllBlockQueriesInFlight = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>
 ): IBlockQueryInFlight[] =>
@@ -79,7 +79,7 @@ type TSelectValidationInFlight = Array<{
 }>;
 
 export const selectNewBlockQueryInFlight = <
-  TValidationMeta extends IBlockMatches
+  TValidationMeta extends IMatches
 >(
   oldState: IPluginState<TValidationMeta>,
   newState: IPluginState<TValidationMeta>
@@ -95,7 +95,7 @@ export const selectNewBlockQueryInFlight = <
     [] as TSelectValidationInFlight
   );
 
-export const selectPercentRemaining = <TValidationMeta extends IBlockMatches>(
+export const selectPercentRemaining = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>
 ) => {
   const [sumOfTotals, sumOfValidations] = Object.values(
@@ -110,7 +110,7 @@ export const selectPercentRemaining = <TValidationMeta extends IBlockMatches>(
   return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
 };
 
-export const selectSuggestionAndRange = <TValidationMeta extends IBlockMatches>(
+export const selectSuggestionAndRange = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>,
   matchId: string,
   suggestionIndex: number

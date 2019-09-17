@@ -4,7 +4,7 @@
 
 import {
   IBlockQuery,
-  IBlockMatches,
+  IMatches,
   ICategory,
   IValidationResponse,
   IValidationError
@@ -14,7 +14,7 @@ import {
  * @internal
  */
 export declare class IValidationAPIAdapter<
-  TValidationOutput extends IBlockMatches = IBlockMatches
+  TValidationOutput extends IMatches = IMatches
 > {
   /**
    * Fetch the validation outputs for the given inputs.
@@ -40,7 +40,7 @@ export declare class IValidationAPIAdapter<
 }
 
 export type TValidationReceivedCallback<
-  TValidationOutput extends IBlockMatches = IBlockMatches
+  TValidationOutput extends IMatches = IMatches
 > = (response: IValidationResponse<TValidationOutput>) => void;
 
 export type TValidationErrorCallback = (

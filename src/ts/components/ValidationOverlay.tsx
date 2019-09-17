@@ -2,7 +2,7 @@ import ValidationOutput from "./ValidationOutput";
 import { Component, h } from "preact";
 import { IStateHoverInfo, IPluginState } from "../state/reducer";
 import { selectBlockMatchesByMatchId } from "../state/selectors";
-import { IBlockMatches } from "../interfaces/IValidation";
+import { IMatches } from "../interfaces/IValidation";
 import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 
@@ -10,10 +10,10 @@ interface IState {
   left: number | undefined;
   top: number | undefined;
   hoverInfo: IStateHoverInfo | undefined;
-  validationOutput: IBlockMatches | undefined;
+  validationOutput: IMatches | undefined;
   isVisible: boolean;
 }
-interface IProps<TValidationOutput extends IBlockMatches> {
+interface IProps<TValidationOutput extends IMatches> {
   store: Store<TValidationOutput, IStoreEvents<TValidationOutput>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   // The element that contains the tooltips. Tooltips will be positioned
@@ -25,7 +25,7 @@ interface IProps<TValidationOutput extends IBlockMatches> {
  * An overlay to display validation tooltips. Subscribes to hover events.
  */
 class ValidationOverlay<
-  TValidationOutput extends IBlockMatches = IBlockMatches
+  TValidationOutput extends IMatches = IMatches
 > extends Component<IProps<TValidationOutput>, IState> {
   public state: IState = {
     isVisible: false,
@@ -83,7 +83,7 @@ class ValidationOverlay<
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleNotify = (state: IPluginState<IBlockMatches>) => {
+  private handleNotify = (state: IPluginState<IMatches>) => {
     const newState = {
       isVisible: false,
       left: 0,

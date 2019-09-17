@@ -5,10 +5,10 @@ import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
 import { selectAllAutoFixableValidations } from "../state/state";
-import { IBlockMatches } from "../interfaces/IValidation";
+import { IMatches } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IBlockMatches>;
+  store: Store<IMatches>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
   selectValidation: (matchId: string) => void;
@@ -21,7 +21,7 @@ interface IProps {
 class ValidationSidebar extends Component<
   IProps,
   {
-    pluginState: IPluginState<IBlockMatches> | undefined;
+    pluginState: IPluginState<IMatches> | undefined;
     groupResults: boolean;
   }
 > {
@@ -97,7 +97,7 @@ class ValidationSidebar extends Component<
     );
   }
 
-  private handleNewState = (pluginState: IPluginState<IBlockMatches>) => {
+  private handleNewState = (pluginState: IPluginState<IMatches>) => {
     this.setState({
       pluginState: {
         ...pluginState,

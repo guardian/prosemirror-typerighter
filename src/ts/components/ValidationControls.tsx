@@ -2,10 +2,10 @@ import { Component, h } from "preact";
 import v4 from "uuid/v4";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { IPluginState } from "../state/reducer";
-import { IBlockMatches, ICategory } from "../interfaces/IValidation";
+import { IMatches, ICategory } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IBlockMatches>;
+  store: Store<IMatches>;
   setDebugState: (debug: boolean) => void;
   setValidateOnModifyState: (validate: boolean) => void;
   validateDocument: (validationSetId: string, categoryIds: string[]) => void;
@@ -16,7 +16,7 @@ interface IProps {
 }
 
 interface IState {
-  pluginState?: IPluginState<IBlockMatches>;
+  pluginState?: IPluginState<IMatches>;
   isOpen: boolean;
   allCategories: ICategory[];
   currentCategories: ICategory[];
@@ -152,7 +152,7 @@ class ValidationControls extends Component<IProps, IState> {
       </div>
     );
   }
-  private handleNotify = (state: IPluginState<IBlockMatches>) => {
+  private handleNotify = (state: IPluginState<IMatches>) => {
     this.setState({ pluginState: state });
   };
   private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });

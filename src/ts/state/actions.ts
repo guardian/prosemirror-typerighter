@@ -2,7 +2,7 @@ import {
   IValidationError,
   IValidationResponse,
   IRange,
-  IBlockMatches
+  IMatches
 } from "../interfaces/IValidation";
 import { IStateHoverInfo } from "./reducer";
 
@@ -47,7 +47,7 @@ export type ActionValidationRequestForDocument = ReturnType<
   typeof validationRequestForDocument
 >;
 
-export const validationRequestSuccess = <TBlockMatches extends IBlockMatches>(
+export const validationRequestSuccess = <TBlockMatches extends IMatches>(
   response: IValidationResponse<TBlockMatches>
 ) => ({
   type: VALIDATION_REQUEST_SUCCESS as typeof VALIDATION_REQUEST_SUCCESS,
@@ -55,7 +55,7 @@ export const validationRequestSuccess = <TBlockMatches extends IBlockMatches>(
 });
 // tslint:disable-next-line:interface-over-type-literal
 export type ActionValidationResponseReceived<
-  TValidationOutput extends IBlockMatches
+  TValidationOutput extends IMatches
 > = {
   type: "VALIDATION_REQUEST_SUCCESS";
   payload: { response: IValidationResponse<TValidationOutput> };
@@ -106,7 +106,7 @@ export type ActionSetValidateOnModifyState = ReturnType<
   typeof setValidateOnModifyState
 >;
 
-export type Action<TValidationMeta extends IBlockMatches> =
+export type Action<TValidationMeta extends IMatches> =
   | ActionNewHoverIdReceived
   | ActionValidationResponseReceived<TValidationMeta>
   | ActionValidationRequestForDirtyRanges

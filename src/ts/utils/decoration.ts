@@ -1,7 +1,7 @@
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, IBlockMatches } from "../interfaces/IValidation";
+import { IRange, IMatches } from "../interfaces/IValidation";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
@@ -69,7 +69,7 @@ export const removeDecorationsFromRanges = (
  * returns a new decoration set containing the new validations.
  */
 export const getNewDecorationsForCurrentValidations = (
-  outputs: IBlockMatches[],
+  outputs: IMatches[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
@@ -100,7 +100,7 @@ const createHeightMarkerElement = (id: string) => {
  * Create a validation decoration for the given range.
  */
 export const createDecorationForValidationRange = (
-  output: IBlockMatches,
+  output: IMatches,
   isSelected = false,
   addHeightMarker = true
 ) => {
@@ -148,7 +148,7 @@ export const createDecorationForValidationRange = (
     : decorationArray;
 };
 
-export const createDecorationsForValidationRanges = (ranges: IBlockMatches[]) =>
+export const createDecorationsForValidationRanges = (ranges: IMatches[]) =>
   flatten(ranges.map(_ => createDecorationForValidationRange(_)));
 
 export const findSingleDecoration = (

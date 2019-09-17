@@ -240,19 +240,19 @@ describe("Range utils", () => {
       const outputs = removeOverlappingRanges(
         [
           {
-            inputString: "one",
+            text: "one",
             from: 0,
             to: 2
           },
           {
-            inputString: "two",
+            text: "two",
             from: 5,
             to: 7
           }
         ],
         [
           {
-            inputString: "one",
+            text: "one",
             from: 1,
             to: 3
           }
@@ -260,7 +260,7 @@ describe("Range utils", () => {
       );
       expect(outputs).toEqual([
         {
-          inputString: "two",
+          text: "two",
           from: 5,
           to: 7
         }
@@ -270,19 +270,19 @@ describe("Range utils", () => {
       const outputs = removeOverlappingRanges(
         [
           {
-            inputString: "one",
+            text: "one",
             from: 0,
             to: 2
           },
           {
-            inputString: "two",
+            text: "two",
             from: 5,
             to: 7
           }
         ],
         [
           {
-            inputString: "three",
+            text: "three",
             from: 10,
             to: 12
           }
@@ -290,12 +290,12 @@ describe("Range utils", () => {
       );
       expect(outputs).toEqual([
         {
-          inputString: "one",
+          text: "one",
           from: 0,
           to: 2
         },
         {
-          inputString: "two",
+          text: "two",
           from: 5,
           to: 7
         }
@@ -305,33 +305,33 @@ describe("Range utils", () => {
       const outputs = removeOverlappingRanges(
         [
           {
-            inputString: "one",
+            text: "one",
             from: 0,
             to: 2
           },
           {
-            inputString: "two",
+            text: "two",
             from: 5,
             to: 7
           }
         ],
         [
           {
-            inputString: "three",
+            text: "three",
             from: 10,
             to: 12
           }
         ],
-        (range: any) => range.inputString !== "one"
+        (range: any) => range.text !== "one"
       );
       expect(outputs).toEqual([
         {
-          inputString: "one",
+          text: "one",
           from: 0,
           to: 2
         },
         {
-          inputString: "two",
+          text: "two",
           from: 5,
           to: 7
         }

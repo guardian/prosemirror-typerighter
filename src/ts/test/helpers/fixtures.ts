@@ -1,9 +1,9 @@
 import {
   IValidationLibrary,
-  IBlockMatches,
+  IMatches,
   ISuggestion,
   IBlockQuery,
-  IBlockResult
+  IValidationResponse
 } from "../../interfaces/IValidation";
 import { createValidationId, createMatchId } from "../../utils/validation";
 import { IBlockQueriesInFlightState, IPluginState } from "../../state/reducer";
@@ -42,31 +42,38 @@ export const validationLibrary: IValidationLibrary = [
 export const createBlockQuery = (
   from: number,
   to: number,
-  inputString = "str"
+  text = "str"
 ): IBlockQuery => ({
-  inputString,
+  text,
   from,
   to,
   id: `0-from:${from}-to:${to}`
 });
 
-export const createBlockResults = (
+export const createValidationResponse = (
   from: number,
   to: number,
   wordFrom: number = from,
   wordTo: number = from + 3,
-  suggestions = [] as ISuggestion[],
   category = {
     id: "1",
     name: "Cat",
     colour: "eeeee"
-  }
-): IBlockResult => ({
-  from,
-  to,
+  },
+  suggestions = [] as ISuggestion[],
+  validationSetId: string = exampleValidationSetId,
+): IValidationResponse => ({
+  validationSetId,
   categoryIds: [category.id],
-  validationId: createValidationId(0, from, to),
-  blockMatches: [
+  blocks: [
+    {
+      id: createValidationId(0, from, to),
+      from,
+      to,
+      text: "block text"
+    }
+  ],
+  matches: [
     {
       category,
       annotation: "annotation",
@@ -87,7 +94,7 @@ export const createBlockMatches = (
     name: "Cat",
     colour: "eeeee"
   }
-): IBlockMatches => ({
+): IMatches => ({
   category,
   annotation: "annotation",
   from,
@@ -98,12 +105,13 @@ export const createBlockMatches = (
 
 export const exampleCategoryIds = ["example-category"];
 
-export const validationSetId = "set-id";
+export const exampleValidationSetId = "set-id";
 
 export const createBlockQueriesInFlight = (
   setId: string,
   blockQueries: IBlockQuery[],
-  categoryIds: string[] = exampleCategoryIds,
+  allCategoryIds: string[] = exampleCategoryIds,
+  remainingCategoryIds: string[] = allCategoryIds,
   total?: number
 ): { [setId: string]: IBlockQueriesInFlightState } => ({
   [setId]: {
@@ -111,8 +119,8 @@ export const createBlockQueriesInFlight = (
     current: blockQueries.map(input => ({
       blockQuery: input,
       mapping: new Mapping(),
-      allCategoryIds: categoryIds,
-      remainingCategoryIds: categoryIds
+      allCategoryIds,
+      remainingCategoryIds
     }))
   }
 });
@@ -153,9 +161,9 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
 };
 
 export const addOutputsToState = (
-  state: IPluginState<IBlockMatches>,
+  state: IPluginState<IMatches>,
   doc: any,
-  outputs: IBlockMatches[]
+  outputs: IMatches[]
 ) => {
   const decorations = outputs.reduce(
     (set, output) => set.add(doc, createDecorationForValidationRange(output)),

@@ -19,7 +19,7 @@ import {
 import {
   IValidationResponse,
   IValidationError,
-  IBlockMatches
+  IMatches
 } from "./interfaces/IValidation";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
@@ -29,7 +29,7 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TValidationOutput extends IBlockMatches> = (
+type GetState<TValidationOutput extends IMatches> = (
   state: EditorState
 ) => IPluginState<TValidationOutput>;
 
@@ -94,7 +94,7 @@ export const indicateHoverCommand = (
  * Mark a given validation as active.
  */
 export const selectValidationCommand = <
-  TValidationOutput extends IBlockMatches
+  TValidationOutput extends IMatches
 >(
   validationId: string,
   getState: GetState<TValidationOutput>
@@ -189,7 +189,7 @@ export type ApplySuggestionOptions = Array<{
  * Applies a suggestion from a validation to the document.
  */
 export const applySuggestionsCommand = <
-  TValidationOutput extends IBlockMatches
+  TValidationOutput extends IMatches
 >(
   suggestionOptions: ApplySuggestionOptions,
   getState: GetState<TValidationOutput>
@@ -263,7 +263,7 @@ const maybeApplySuggestions = (
   return true;
 };
 
-export const createBoundCommands = <TValidationOutput extends IBlockMatches>(
+export const createBoundCommands = <TValidationOutput extends IMatches>(
   view: EditorView,
   getState: GetState<TValidationOutput>
 ) => {

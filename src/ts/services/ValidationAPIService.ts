@@ -1,6 +1,6 @@
 import {
   IBlockQuery,
-  IBlockMatches,
+  IMatches,
   ICategory
 } from "../interfaces/IValidation";
 import { IValidationAPIAdapter } from "../interfaces/IValidationAPIAdapter";
@@ -17,7 +17,7 @@ import v4 from "uuid/v4";
  * for ranges, configured via the supplied adapter. Validation results and
  * errors dispatch the appropriate Prosemirror commands.
  */
-class ValidationService<TValidationOutput extends IBlockMatches> {
+class ValidationService<TValidationOutput extends IMatches> {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
   private currentCategories = [] as ICategory[];
