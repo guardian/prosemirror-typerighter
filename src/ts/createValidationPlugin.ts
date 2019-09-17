@@ -4,7 +4,7 @@ import {
   createInitialState,
   createValidationPluginReducer
 } from "./state/reducer";
-import { selectNewBlockQueryInFlight } from "./state/selectors";
+import { selectNewBlockInFlight } from "./state/selectors";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
   DECORATION_ATTRIBUTE_ID
@@ -91,15 +91,15 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
-      const blockQueryStates = selectNewBlockQueryInFlight(
+      const blockStates = selectNewBlockInFlight(
         oldPluginState,
         newPluginState
       );
-      blockQueryStates.forEach(({ validationSetId, pendingBlocks }) =>
+      blockStates.forEach(({ requestId, pendingBlocks }) =>
         store.emit(
           STORE_EVENT_NEW_VALIDATION,
-          validationSetId,
-          pendingBlocks.map(_ => _.blockQuery)
+          requestId,
+          pendingBlocks.map(_ => _.block)
         )
       );
     },
@@ -114,29 +114,29 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
           }
           const target = event.target;
           const targetAttr = target.getAttribute(DECORATION_ATTRIBUTE_ID);
-          const newValidationId = targetAttr ? targetAttr : undefined;
-          if (newValidationId === plugin.getState(view.state).hoverId) {
+          const newMatchId = targetAttr ? targetAttr : undefined;
+          if (newMatchId === plugin.getState(view.state).hoverId) {
             return false;
           }
 
           // Get our height marker, which tells us the height of a single line
           // for the given validation.
           const heightMarker = document.querySelector(
-            `[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newValidationId}"]`
+            `[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newMatchId}"]`
           );
           if (
-            newValidationId &&
+            newMatchId &&
             (!heightMarker || !(heightMarker instanceof HTMLElement))
           ) {
             // tslint:disable-next-line no-console
             console.warn(
-              `No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`
+              `No height marker found for id ${newMatchId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`
             );
             return false;
           }
 
           indicateHoverCommand(
-            newValidationId,
+            newMatchId,
             getStateHoverInfoFromEvent(
               // We're very sure that this is a mouseevent, but Typescript isn't.
               event as MouseEvent,

@@ -8,7 +8,8 @@ import {
   validationRequestError,
   validationRequestForDirtyRanges,
   validationRequestSuccess,
-  newHoverIdReceived
+  newHoverIdReceived,
+  validationRequestComplete
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
 import { createValidationPluginReducer, IPluginState } from "../reducer";
@@ -22,16 +23,16 @@ import { createDoc, p } from "../../test/helpers/prosemirror";
 import { IMatches } from "../../interfaces/IValidation";
 import {
   createValidationResponse,
-  createBlockQuery,
+  createBlock,
   exampleCategoryIds,
   createBlockQueriesInFlight,
-  exampleValidationSetId,
+  exampleRequestId,
   createInitialData,
   defaultDoc,
   addOutputsToState,
   createBlockMatches
 } from "../../test/helpers/fixtures";
-import { createValidationId } from "../../utils/validation";
+import { createBlockId } from "../../utils/validation";
 
 const reducer = createValidationPluginReducer(expandRangesToParentBlockNode);
 
@@ -55,23 +56,17 @@ describe("Action handlers", () => {
         reducer(
           tr,
           state,
-          validationRequestForDocument(
-            exampleValidationSetId,
-            exampleCategoryIds
-          )
+          validationRequestForDocument(exampleRequestId, exampleCategoryIds)
         )
       ).toMatchObject({
-        blockQueriesInFlight: createBlockQueriesInFlight(
-          exampleValidationSetId,
-          [
-            {
-              from: 1,
-              text: "Example text to validate",
-              to: 26,
-              id: "0-from:1-to:26"
-            }
-          ]
-        )
+        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          {
+            from: 1,
+            text: "Example text to validate",
+            to: 26,
+            id: "0-from:1-to:26"
+          }
+        ])
       });
     });
   });
@@ -87,10 +82,7 @@ describe("Action handlers", () => {
             dirtiedRanges: [{ from: 5, to: 10 }],
             validationPending: true
           },
-          validationRequestForDirtyRanges(
-            exampleValidationSetId,
-            exampleCategoryIds
-          )
+          validationRequestForDirtyRanges(exampleRequestId, exampleCategoryIds)
         )
       ).toEqual({
         ...state,
@@ -100,17 +92,14 @@ describe("Action handlers", () => {
           createDebugDecorationFromRange({ from: 1, to: 25 }, false)
         ]),
         validationPending: false,
-        blockQueriesInFlight: createBlockQueriesInFlight(
-          exampleValidationSetId,
-          [
-            {
-              text: "Example text to validate",
-              from: 1,
-              to: 25,
-              id: "0-from:1-to:25"
-            }
-          ]
-        )
+        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          {
+            text: "Example text to validate",
+            from: 1,
+            to: 25,
+            id: "0-from:1-to:25"
+          }
+        ])
       });
     });
     it("should remove debug decorations, if any", () => {
@@ -167,7 +156,7 @@ describe("Action handlers", () => {
             blocks: [{ from: 1, to: 1, text: "hai", id: "1" }],
             matches: [],
             categoryIds: ["some-cat"],
-            validationSetId: exampleValidationSetId
+            requestId: exampleRequestId
           })
         )
       ).toEqual(state);
@@ -182,7 +171,7 @@ describe("Action handlers", () => {
             blocks: [{ from: 1, to: 1, text: "hai", id: "1" }],
             matches: [],
             categoryIds: [],
-            validationSetId: exampleValidationSetId
+            requestId: exampleRequestId
           })
         )
       ).toEqual(state);
@@ -197,10 +186,7 @@ describe("Action handlers", () => {
       localState = reducer(
         tr,
         localState,
-        validationRequestForDirtyRanges(
-          exampleValidationSetId,
-          exampleCategoryIds
-        )
+        validationRequestForDirtyRanges(exampleRequestId, exampleCategoryIds)
       );
       expect(
         reducer(
@@ -222,8 +208,8 @@ describe("Action handlers", () => {
     });
     describe("superceded matches", () => {
       const { state: initialState, tr } = createInitialData();
-      const firstBlock = createBlockQuery(0, 15, "Example text to validate");
-      const secondBlock = createBlockQuery(16, 37, "Another block of text");
+      const firstBlock = createBlock(0, 15, "Example text to validate");
+      const secondBlock = createBlock(16, 37, "Another block of text");
       const blocks = [firstBlock, secondBlock];
       const category = {
         id: "this-category-should-remain",
@@ -241,7 +227,7 @@ describe("Action handlers", () => {
       );
       const validationOutput3 = createValidationResponse(16, 37, 17, 25); // Some other output for another block
       const blockQueriesInFlight = createBlockQueriesInFlight(
-        exampleValidationSetId,
+        exampleRequestId,
         blocks,
         [...validationOutput1.categoryIds, ...validationOutput2.categoryIds]
       );
@@ -267,7 +253,7 @@ describe("Action handlers", () => {
             blocks: [firstBlock],
             categoryIds: ["1"],
             matches: [],
-            validationSetId: exampleValidationSetId
+            requestId: exampleRequestId
           })
         );
 
@@ -284,7 +270,7 @@ describe("Action handlers", () => {
             blocks: [firstBlock],
             categoryIds: ["1"],
             matches: [],
-            validationSetId: exampleValidationSetId
+            requestId: exampleRequestId
           })
         );
 
@@ -304,13 +290,13 @@ describe("Action handlers", () => {
             blocks: [firstBlock],
             categoryIds: ["1"],
             matches: [],
-            validationSetId: exampleValidationSetId
+            requestId: exampleRequestId
           })
         );
 
-        expect(newState.blockQueriesInFlight['set-id']!.pendingBlocks).toEqual([
+        expect(newState.blockQueriesInFlight["set-id"]!.pendingBlocks).toEqual([
           {
-            blockQuery: {
+            block: {
               from: 0,
               id: firstBlock.id,
               text: "Example text to validate",
@@ -319,7 +305,7 @@ describe("Action handlers", () => {
             pendingCategoryIds: ["this-category-should-remain"]
           },
           {
-            blockQuery: {
+            block: {
               from: 16,
               id: secondBlock.id,
               text: "Another block of text",
@@ -337,7 +323,7 @@ describe("Action handlers", () => {
             blocks: [firstBlock],
             categoryIds: ["another-category"],
             matches: [],
-            validationSetId: exampleValidationSetId
+            requestId: exampleRequestId
           })
         );
 
@@ -380,17 +366,16 @@ describe("Action handlers", () => {
       const { state: initialState, tr } = createInitialData();
       const state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(
-          exampleValidationSetId,
-          [createBlockQuery(1, 25, "Example text to validate")]
-        )
+        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          createBlock(1, 25, "Example text to validate")
+        ])
       };
       const newState = reducer(
         tr,
         state,
         validationRequestError({
-          validationSetId: exampleValidationSetId,
-          validationId: createValidationId(0, 1, 25),
+          requestId: exampleRequestId,
+          blockId: createBlockId(0, 1, 25),
           message: "Too many requests"
         })
       );
@@ -405,6 +390,46 @@ describe("Action handlers", () => {
         decorations: new DecorationSet(),
         error: "Too many requests"
       });
+    });
+  });
+  describe("validationRequestComplete", () => {
+    const { state: initialState, tr } = createInitialData();
+    it("should remove the inflight request from the state", () => {
+      const state = {
+        ...initialState,
+        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          createBlock(1, 25, "Example text to validate")
+        ])
+      };
+      const newState = reducer(
+        tr,
+        state,
+        validationRequestComplete(exampleRequestId)
+      );
+      expect(newState.blockQueriesInFlight).toEqual({});
+    });
+    it("should ignore other requests", () => {
+      const state = {
+        ...initialState,
+        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          createBlock(1, 25, "Example text to validate"),
+          createBlock(26, 47, "More text to validate")
+        ])
+      };
+      const newState = reducer(
+        tr,
+        state,
+        validationRequestComplete(exampleRequestId)
+      );
+      expect(newState.blockQueriesInFlight).toEqual({});
+    });
+    it("should do nothing if the request is not found", () => {
+      const newState = reducer(
+        tr,
+        initialState,
+        validationRequestComplete(exampleRequestId)
+      );
+      expect(newState.blockQueriesInFlight).toEqual({});
     });
   });
   describe("newHoverIdReceived", () => {

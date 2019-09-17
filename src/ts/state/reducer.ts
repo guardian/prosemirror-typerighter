@@ -14,13 +14,15 @@ import {
   VALIDATION_REQUEST_FOR_DOCUMENT,
   VALIDATION_REQUEST_SUCCESS,
   VALIDATION_REQUEST_ERROR,
-  SELECT_VALIDATION,
+  SELECT_MATCH,
   APPLY_NEW_DIRTY_RANGES,
   SET_DEBUG_STATE,
   SET_VALIDATE_ON_MODIFY_STATE,
-  Action
+  Action,
+  ActionValidationRequestComplete,
+  VALIDATION_REQUEST_COMPLETE
 } from "./actions";
-import { IMatches, IBlockQuery, IRange } from "../interfaces/IValidation";
+import { IMatches, IBlock, IRange } from "../interfaces/IValidation";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
 import {
@@ -44,13 +46,13 @@ import { ExpandRanges } from "../createValidationPlugin";
 import { createValidationBlocksForDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
-  selectSingleBlockQueryInFlightById,
+  selectSingleBlockInFlightById,
   selectBlockQueriesInFlightForSet,
   selectBlockMatchesByMatchId,
   selectBlockQueriesInFlightById
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
-import { createValidationBlock } from "../utils/validation";
+import { createBlock } from "../utils/validation";
 
 /**
  * Information about the span element the user is hovering over.
@@ -79,17 +81,17 @@ export interface IStateHoverInfo {
   heightOfSingleLine: number;
 }
 
-export interface IInFlightBlockQuery {
+export interface IInFlightBlock {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
-  blockQuery: IBlockQuery;
+  block: IBlock;
 }
 
 export interface IInFlightValidationSetState {
   totalBlocks: number;
   // The category ids that were sent with the request.
   categoryIds: string[];
-  pendingBlocks: IInFlightBlockQuery[];
+  pendingBlocks: IInFlightBlock[];
   mapping: Mapping;
 }
 
@@ -118,7 +120,7 @@ export interface IPluginState<TBlockMatches extends IMatches = IMatches> {
   // The sets of blocks that have been sent to the validation service
   // and have not yet completed processing.
   blockQueriesInFlight: {
-    [validationSetId: string]: IInFlightValidationSetState;
+    [requestId: string]: IInFlightValidationSetState;
   };
   // The current error status.
   error: string | undefined;
@@ -414,7 +416,9 @@ export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
         return handleValidationRequestSuccess(tr, state, action);
       case VALIDATION_REQUEST_ERROR:
         return handleValidationRequestError(tr, state, action);
-      case SELECT_VALIDATION:
+      case VALIDATION_REQUEST_COMPLETE:
+        return handleValidationRequestComplete(tr, state, action);
+      case SELECT_MATCH:
         return handleSelectValidation(tr, state, action);
       case APPLY_NEW_DIRTY_RANGES:
         return handleNewDirtyRanges(tr, state, action);
@@ -440,7 +444,7 @@ const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
 ): IPluginState<TValidationMeta> => {
   const mappedblockQueriesInFlight = Object.entries(
     incomingState.blockQueriesInFlight
-  ).reduce((acc, [validationSetId, blockQueriesInFlight]) => {
+  ).reduce((acc, [requestId, blockQueriesInFlight]) => {
     // We create a new mapping here to preserve state immutability, as
     // appendMapping mutates an existing mapping.
     const mapping = new Mapping();
@@ -448,7 +452,7 @@ const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
     mapping.appendMapping(tr.mapping);
     return {
       ...acc,
-      [validationSetId]: {
+      [requestId]: {
         ...blockQueriesInFlight,
         mapping
       }
@@ -490,7 +494,7 @@ const handleNewHoverId = <TValidationMeta extends IMatches>(
   action: ActionNewHoverIdReceived
 ): IPluginState<TValidationMeta> => {
   let decorations = state.decorations;
-  const incomingHoverId = action.payload.hoverId;
+  const incomingHoverId = action.payload.matchId;
   const currentHoverId = state.hoverId;
 
   // The current hover decorations are no longer valid -- remove them.
@@ -523,7 +527,7 @@ const handleNewHoverId = <TValidationMeta extends IMatches>(
   return {
     ...state,
     decorations,
-    hoverId: action.payload.hoverId,
+    hoverId: action.payload.matchId,
     hoverInfo: action.payload.hoverInfo
   };
 };
@@ -569,19 +573,16 @@ const createHandleValidationRequestForDirtyRanges = (
 ) => <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
-  {
-    payload: { validationSetId, categoryIds }
-  }: ActionValidationRequestForDirtyRanges
+  { payload: { requestId, categoryIds } }: ActionValidationRequestForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const validationInputs: IBlockQuery[] = ranges.map(range =>
-    createValidationBlock(tr, range)
+  const validationInputs: IBlock[] = ranges.map(range =>
+    createBlock(tr, range)
   );
-  return handleValidationRequestStart(
-    validationSetId,
-    validationInputs,
-    categoryIds
-  )(tr, state);
+  return handleValidationRequestStart(requestId, validationInputs, categoryIds)(
+    tr,
+    state
+  );
 };
 
 /**
@@ -590,12 +591,10 @@ const createHandleValidationRequestForDirtyRanges = (
 const handleValidationRequestForDocument = <TValidationMeta extends IMatches>(
   tr: Transaction,
   state: IPluginState<TValidationMeta>,
-  {
-    payload: { validationSetId, categoryIds }
-  }: ActionValidationRequestForDocument
+  { payload: { requestId, categoryIds } }: ActionValidationRequestForDocument
 ) => {
   return handleValidationRequestStart(
-    validationSetId,
+    requestId,
     createValidationBlocksForDocument(tr),
     categoryIds
   )(tr, state);
@@ -605,8 +604,8 @@ const handleValidationRequestForDocument = <TValidationMeta extends IMatches>(
  * Handle a validation request for a given set of validation inputs.
  */
 const handleValidationRequestStart = (
-  validationSetId: string,
-  blockQueries: IBlockQuery[],
+  requestId: string,
+  blockQueries: IBlock[],
   categoryIds: string[]
 ) => <TValidationMeta extends IMatches>(
   tr: Transaction,
@@ -622,12 +621,10 @@ const handleValidationRequestStart = (
       )
     : state.decorations;
 
-  const newBlockQueriesInFlight: IInFlightBlockQuery[] = blockQueries.map(
-    blockQuery => ({
-      blockQuery,
-      pendingCategoryIds: categoryIds
-    })
-  );
+  const newBlockQueriesInFlight: IInFlightBlock[] = blockQueries.map(block => ({
+    block,
+    pendingCategoryIds: categoryIds
+  }));
 
   return {
     ...state,
@@ -637,7 +634,7 @@ const handleValidationRequestStart = (
     validationPending: false,
     blockQueriesInFlight: {
       ...state.blockQueriesInFlight,
-      [validationSetId]: {
+      [requestId]: {
         totalBlocks: newBlockQueriesInFlight.length,
         pendingBlocks: newBlockQueriesInFlight,
         mapping: tr.mapping,
@@ -649,13 +646,13 @@ const handleValidationRequestStart = (
 
 const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
   state: IPluginState<TValidationOutput>,
-  validationSetId: string,
-  blockQueryId: string,
+  requestId: string,
+  blockId: string,
   categoryIds: string[]
 ) => {
   const currentBlockQueriesInFlight = selectBlockQueriesInFlightForSet(
     state,
-    validationSetId
+    requestId
   );
   if (!currentBlockQueriesInFlight) {
     return state.blockQueriesInFlight;
@@ -663,30 +660,30 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
   const newBlockQueriesInFlight: IInFlightValidationSetState = {
     ...currentBlockQueriesInFlight,
     pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
-      (acc, blockQueryInFlight) => {
+      (acc, blockInFlight) => {
         // Don't modify blocks that don't match
-        if (blockQueryInFlight.blockQuery.id !== blockQueryId) {
-          return acc.concat(blockQueryInFlight);
+        if (blockInFlight.block.id !== blockId) {
+          return acc.concat(blockInFlight);
         }
-        const newBlockQueryInFlight = {
-          ...blockQueryInFlight,
-          pendingCategoryIds: blockQueryInFlight.pendingCategoryIds.filter(
+        const newBlockInFlight = {
+          ...blockInFlight,
+          pendingCategoryIds: blockInFlight.pendingCategoryIds.filter(
             id => !categoryIds.includes(id)
           )
         };
-        return newBlockQueryInFlight.pendingCategoryIds.length
-          ? acc.concat(newBlockQueryInFlight)
+        return newBlockInFlight.pendingCategoryIds.length
+          ? acc.concat(newBlockInFlight)
           : acc;
       },
-      [] as IInFlightBlockQuery[]
+      [] as IInFlightBlock[]
     )
   };
   if (!newBlockQueriesInFlight.pendingBlocks.length) {
-    return omit(state.blockQueriesInFlight, validationSetId);
+    return omit(state.blockQueriesInFlight, requestId);
   }
   return {
     ...state.blockQueriesInFlight,
-    [validationSetId]: newBlockQueriesInFlight
+    [requestId]: newBlockQueriesInFlight
   };
 };
 
@@ -705,7 +702,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
 
   const blockQueriesInFlight = selectBlockQueriesInFlightById(
     state,
-    response.validationSetId,
+    response.requestId,
     response.blocks.map(_ => _.id)
   );
 
@@ -716,19 +713,17 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
   // Remove validations superceded by the incoming matches.
   let currentValidations: TBlockMatches[] = removeOverlappingRanges(
     state.currentValidations,
-    blockQueriesInFlight.map(_ => _.blockQuery),
+    blockQueriesInFlight.map(_ => _.block),
     validation => !response.categoryIds.includes(validation.category.id)
   );
 
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = blockQueriesInFlight.reduce(
-    (acc, blockQueryInFlight) =>
+    (acc, blockInFlight) =>
       acc.concat(
         state.decorations
-          .find(
-            blockQueryInFlight.blockQuery.from,
-            blockQueryInFlight.blockQuery.to,
-            spec => response.categoryIds.includes(spec.categoryId)
+          .find(blockInFlight.block.from, blockInFlight.block.to, spec =>
+            response.categoryIds.includes(spec.categoryId)
           )
           .concat(
             state.debug
@@ -748,7 +743,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
   currentValidations = currentValidations.concat(
     mapRanges(
       response.matches,
-      selectBlockQueriesInFlightForSet(state, response.validationSetId)!.mapping
+      selectBlockQueriesInFlightForSet(state, response.requestId)!.mapping
     )
   );
 
@@ -764,11 +759,11 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
 
   // Amend the block queries in flight to
   const newBlockQueriesInFlight = blockQueriesInFlight.reduce(
-    (acc, blockQueryInFlight) =>
+    (acc, blockInFlight) =>
       amendBlockQueriesInFlight(
         { ...state, blockQueriesInFlight: acc },
-        response.validationSetId,
-        blockQueryInFlight.blockQuery.id,
+        response.requestId,
+        blockInFlight.block.id,
         response.categoryIds
       ),
     state.blockQueriesInFlight
@@ -792,36 +787,36 @@ const handleValidationRequestError = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>,
   {
     payload: {
-      validationError: { validationSetId, validationId, message }
+      validationError: { requestId, blockId, message }
     }
   }: ActionValidationRequestError
 ) => {
-  if (!validationId) {
+  if (!blockId) {
     return { ...state, message };
   }
 
   const blockQueriesInFlight = selectBlockQueriesInFlightForSet(
     state,
-    validationSetId
+    requestId
   );
 
   if (!blockQueriesInFlight) {
     return state;
   }
 
-  const blockQueryInFlight = selectSingleBlockQueryInFlightById(
+  const blockInFlight = selectSingleBlockInFlightById(
     state,
-    validationSetId,
-    validationId
+    requestId,
+    blockId
   );
 
-  if (!blockQueryInFlight) {
+  if (!blockInFlight) {
     return { ...state, message };
   }
 
-  const dirtiedRanges = blockQueryInFlight
+  const dirtiedRanges = blockInFlight
     ? mapRanges(
-        [validationInputToRange(blockQueryInFlight.blockQuery)],
+        [validationInputToRange(blockInFlight.block)],
         blockQueriesInFlight.mapping
       )
     : [];
@@ -858,11 +853,35 @@ const handleValidationRequestError = <TValidationMeta extends IMatches>(
     decorations,
     blockQueriesInFlight: amendBlockQueriesInFlight(
       state,
-      validationSetId,
-      validationId,
+      requestId,
+      blockId,
       []
     ),
     error: message
+  };
+};
+
+const handleValidationRequestComplete = <TValidationMeta extends IMatches>(
+  _: Transaction,
+  state: IPluginState<TValidationMeta>,
+  { payload: { requestId } }: ActionValidationRequestComplete
+) => {
+  const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+  const hasUnfinishedWork =
+    requestInFlight &&
+    requestInFlight.pendingBlocks.some(
+      block => block.pendingCategoryIds.length
+    );
+  if (requestInFlight && hasUnfinishedWork) {
+    /* tslint:disable-next-line:no-console */
+    console.warn(
+      `Request ${requestId} was marked as complete, but there is still work remaining.`,
+      requestInFlight.pendingBlocks
+    );
+  }
+  return {
+    ...state,
+    blockQueriesInFlight: omit(state.blockQueriesInFlight, requestId)
   };
 };
 

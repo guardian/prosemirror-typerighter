@@ -4,7 +4,7 @@ export interface ITypeRighterResponse {
   blocks: ITypeRighterBlockResponse[];
   categoryIds: string[];
   matches: ITypeRighterMatch[],
-  validationSetId: string;
+  requestId: string;
 }
 
 export interface ITypeRighterBlockResponse {

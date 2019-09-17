@@ -3,7 +3,7 @@ import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
 import { IRange } from "../interfaces/IValidation";
-import { IBlockQuery } from "../interfaces/IValidation";
+import { IBlock } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
 
 /**
@@ -125,7 +125,7 @@ export const diffRanges = (
   );
 };
 
-export const validationInputToRange = (input: IBlockQuery): IRange => ({
+export const validationInputToRange = (input: IBlock): IRange => ({
   from: input.from,
   to: input.to
 });

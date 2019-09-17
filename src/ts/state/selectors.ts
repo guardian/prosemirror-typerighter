@@ -1,7 +1,7 @@
 import { IMatches } from "../interfaces/IValidation";
 import {
   IPluginState,
-  IInFlightBlockQuery,
+  IInFlightBlock,
   IInFlightValidationSetState
 } from "./reducer";
 
@@ -21,27 +21,27 @@ export const selectBlockQueriesInFlightForSet = <
   TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
-  validationSetId: string
+  requestId: string
 ): IInFlightValidationSetState | undefined => {
-  return state.blockQueriesInFlight[validationSetId];
+  return state.blockQueriesInFlight[requestId];
 };
 
-export const selectSingleBlockQueryInFlightById = <
+export const selectSingleBlockInFlightById = <
   TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
-  validationSetId: string,
-  blockQueryId: string
-): IInFlightBlockQuery | undefined => {
+  requestId: string,
+  blockId: string
+): IInFlightBlock | undefined => {
   const validationInFlightState = selectBlockQueriesInFlightForSet(
     state,
-    validationSetId
+    requestId
   );
   if (!validationInFlightState) {
     return;
   }
   return validationInFlightState.pendingBlocks.find(
-    _ => _.blockQuery.id === blockQueryId
+    _ => _.block.id === blockId
   );
 };
 
@@ -49,39 +49,39 @@ export const selectBlockQueriesInFlightById = <
   TValidationMeta extends IMatches
 >(
   state: IPluginState<TValidationMeta>,
-  validationSetId: string,
-  blockQueryIds: string[]
-): IInFlightBlockQuery[] =>
-  blockQueryIds
-    .map(blockQueryId =>
-      selectSingleBlockQueryInFlightById(state, validationSetId, blockQueryId)
+  requestId: string,
+  blockIds: string[]
+): IInFlightBlock[] =>
+  blockIds
+    .map(blockId =>
+      selectSingleBlockInFlightById(state, requestId, blockId)
     )
-    .filter(_ => !!_) as IInFlightBlockQuery[];
+    .filter(_ => !!_) as IInFlightBlock[];
 
 export const selectAllBlockQueriesInFlight = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>
-): IInFlightBlockQuery[] =>
+): IInFlightBlock[] =>
   Object.values(state.blockQueriesInFlight).reduce(
     (acc, value) => acc.concat(value.pendingBlocks),
-    [] as IInFlightBlockQuery[]
+    [] as IInFlightBlock[]
   );
 
 type TSelectValidationInFlight = Array<
   IInFlightValidationSetState & {
-    validationSetId: string;
+    requestId: string;
   }
 >;
 
-export const selectNewBlockQueryInFlight = <TValidationMeta extends IMatches>(
+export const selectNewBlockInFlight = <TValidationMeta extends IMatches>(
   oldState: IPluginState<TValidationMeta>,
   newState: IPluginState<TValidationMeta>
 ): TSelectValidationInFlight =>
   Object.keys(newState.blockQueriesInFlight).reduce(
-    (acc, validationSetId) =>
-      !oldState.blockQueriesInFlight[validationSetId]
+    (acc, requestId) =>
+      !oldState.blockQueriesInFlight[requestId]
         ? acc.concat({
-            validationSetId,
-            ...selectBlockQueriesInFlightForSet(newState, validationSetId)!
+            requestId,
+            ...selectBlockQueriesInFlightForSet(newState, requestId)!
           })
         : acc,
     [] as TSelectValidationInFlight

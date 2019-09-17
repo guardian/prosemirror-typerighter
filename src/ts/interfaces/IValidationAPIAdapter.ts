@@ -3,7 +3,7 @@
  */
 
 import {
-  IBlockQuery,
+  IBlock,
   IMatches,
   ICategory,
   IValidationResponse,
@@ -20,11 +20,12 @@ export declare class IValidationAPIAdapter<
    * Fetch the validation outputs for the given inputs.
    */
   public fetchMatches: (
-    validationSetId: string,
-    input: IBlockQuery[],
+    requestId: string,
+    input: IBlock[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback<TValidationOutput>,
-    onValidationError: TValidationErrorCallback
+    onValidationError: TValidationErrorCallback,
+    onValidationComplete: TValidationWorkCompleteCallback
   ) => void;
 
   /**
@@ -32,11 +33,7 @@ export declare class IValidationAPIAdapter<
    */
   public fetchCategories: () => Promise<ICategory[]>;
 
-  constructor(
-    apiUrl: string,
-    onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback
-  );
+  constructor(apiUrl: string);
 }
 
 export type TValidationReceivedCallback<
@@ -46,3 +43,5 @@ export type TValidationReceivedCallback<
 export type TValidationErrorCallback = (
   validationError: IValidationError
 ) => void;
+
+export type TValidationWorkCompleteCallback = (requestId: string) => void;

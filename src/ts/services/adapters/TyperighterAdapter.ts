@@ -1,17 +1,18 @@
 import v4 from 'uuid/v4';
-import { IBlockQuery, IValidationResponse } from "../../interfaces/IValidation";
+import { IBlock, IValidationResponse } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
   IValidationAPIAdapter,
   TValidationReceivedCallback,
-  TValidationErrorCallback
+  TValidationErrorCallback,
+  TValidationWorkCompleteCallback
 } from "../../interfaces/IValidationAPIAdapter";
 
 export const convertTyperighterResponse = (
-  validationSetId: string,
+  requestId: string,
   response: ITypeRighterResponse
 ): IValidationResponse => ({
-  validationSetId,
+  requestId,
   categoryIds: response.categoryIds,
   blocks: response.blocks,
   matches: response.matches.map(match => ({
@@ -31,11 +32,12 @@ class TyperighterAdapter implements IValidationAPIAdapter {
   constructor(protected checkUrl: string, protected categoriesUrl: string) {}
 
   public fetchMatches = async (
-    validationSetId: string,
-    inputs: IBlockQuery[],
+    requestId: string,
+    inputs: IBlock[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback
+    onValidationError: TValidationErrorCallback,
+    onValidationComplete: TValidationWorkCompleteCallback
   ) => {
     inputs.map(async input => {
       const body: { text: string; id: string; categoryIds?: string[] } = {
@@ -60,14 +62,14 @@ class TyperighterAdapter implements IValidationAPIAdapter {
         }
         const responseData: ITypeRighterResponse = await response.json();
         const validationResponse = convertTyperighterResponse(
-          validationSetId,
+          requestId,
           responseData
         );
         onValidationReceived(validationResponse);
       } catch (e) {
         onValidationError({
-          validationSetId,
-          validationId: input.id,
+          requestId,
+          blockId: input.id,
           message: e.message
         });
       }

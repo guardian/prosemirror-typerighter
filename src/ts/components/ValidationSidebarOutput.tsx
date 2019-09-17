@@ -9,7 +9,7 @@ interface IProps {
   output: IMatches;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectValidation: (matchId: string) => void;
-  indicateHover: (validationId: string | undefined, _?: any) => void;
+  indicateHover: (blockId: string | undefined, _?: any) => void;
   selectedMatch: string | undefined;
 }
 

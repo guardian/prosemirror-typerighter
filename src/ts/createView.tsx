@@ -46,7 +46,7 @@ const createView = (
       store={store}
       applySuggestions={commands.applySuggestions}
       applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-      selectValidation={commands.selectValidation}
+      selectValidation={commands.selectMatch}
       indicateHover={commands.indicateHover}
     />,
     sidebarNode

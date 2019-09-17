@@ -2,10 +2,10 @@ import {
   IValidationLibrary,
   IMatches,
   ISuggestion,
-  IBlockQuery,
+  IBlock,
   IValidationResponse
 } from "../../interfaces/IValidation";
-import { createValidationId, createMatchId } from "../../utils/validation";
+import { createBlockId, createMatchId } from "../../utils/validation";
 import { IInFlightValidationSetState, IPluginState } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
@@ -39,11 +39,11 @@ export const validationLibrary: IValidationLibrary = [
   ]
 ];
 
-export const createBlockQuery = (
+export const createBlock = (
   from: number,
   to: number,
   text = "str"
-): IBlockQuery => ({
+): IBlock => ({
   text,
   from,
   to,
@@ -61,13 +61,13 @@ export const createValidationResponse = (
     colour: "eeeee"
   },
   suggestions = [] as ISuggestion[],
-  validationSetId: string = exampleValidationSetId
+  requestId: string = exampleRequestId
 ): IValidationResponse => ({
-  validationSetId,
+  requestId,
   categoryIds: [category.id],
   blocks: [
     {
-      id: createValidationId(0, from, to),
+      id: createBlockId(0, from, to),
       from,
       to,
       text: "block text"
@@ -105,11 +105,11 @@ export const createBlockMatches = (
 
 export const exampleCategoryIds = ["example-category"];
 
-export const exampleValidationSetId = "set-id";
+export const exampleRequestId = "set-id";
 
 export const createBlockQueriesInFlight = (
   setId: string,
-  blockQueries: IBlockQuery[],
+  blockQueries: IBlock[],
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
   total?: number
@@ -119,7 +119,7 @@ export const createBlockQueriesInFlight = (
     mapping: new Mapping(),
     categoryIds,
     pendingBlocks: blockQueries.map(input => ({
-      blockQuery: input,
+      block: input,
       pendingCategoryIds
     }))
   }

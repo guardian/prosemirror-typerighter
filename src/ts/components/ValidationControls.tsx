@@ -8,7 +8,7 @@ interface IProps {
   store: Store<IMatches>;
   setDebugState: (debug: boolean) => void;
   setValidateOnModifyState: (validate: boolean) => void;
-  validateDocument: (validationSetId: string, categoryIds: string[]) => void;
+  validateDocument: (requestId: string, categoryIds: string[]) => void;
   fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;

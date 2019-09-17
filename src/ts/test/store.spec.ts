@@ -15,7 +15,7 @@ describe("store", () => {
     expect(newStateSub.mock.calls[0]).toEqual([state]);
 
     const notAValidationInFlight = { exampleValidationInFlight: "" } as any;
-    store.emit("STORE_EVENT_NEW_VALIDATION", notAValidationInFlight);
+    store.emit("STORE_EVENT_NEW_VALIDATION", notAValidationInFlight, []);
     expect(newValidationSub.mock.calls[0]).toEqual([notAValidationInFlight]);
   });
   it("should allow consumers to remove subscriptions", () => {

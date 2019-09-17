@@ -1,6 +1,6 @@
 import v4 from "uuid/v4";
 import {
-  IBlockQuery,
+  IBlock,
   IMatches
 } from "../../interfaces/IValidation";
 import { TValidationReceivedCallback } from "../../interfaces/IValidationAPIAdapter";
@@ -9,7 +9,7 @@ import { TValidationReceivedCallback } from "../../interfaces/IValidationAPIAdap
  * An example adapter that applies a regex to find three letter words in the document.
  */
 const regexAdapter = async (
-  input: IBlockQuery,
+  input: IBlock,
   onValidationReceived: TValidationReceivedCallback
 ) => {
   const outputs = [] as IMatches[];

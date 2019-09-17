@@ -1,14 +1,18 @@
-import { IBlockQuery } from "../../interfaces/IValidation";
+import { IBlock } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
-import TyperighterAdapter, { convertTyperighterResponse } from "./TyperighterAdapter";
+import TyperighterAdapter, {
+  convertTyperighterResponse
+} from "./TyperighterAdapter";
 import {
   TValidationReceivedCallback,
   TValidationErrorCallback,
-  IValidationAPIAdapter
+  IValidationAPIAdapter,
+  TValidationWorkCompleteCallback
 } from "../../interfaces/IValidationAPIAdapter";
 
 const VALIDATOR_RESPONSE = "VALIDATOR_RESPONSE" as const;
 const VALIDATOR_ERROR = "VALIDATOR_ERROR" as const;
+const VALIDATOR_WORK_COMPLETE = "VALIDATOR_WORK_COMPLETE" as const;
 
 interface ISocketValidatorResponse extends ITypeRighterResponse {
   type: typeof VALIDATOR_RESPONSE;
@@ -20,19 +24,28 @@ interface ISocketValidatorError {
   message: string;
 }
 
-type TSocketMessage = ISocketValidatorResponse | ISocketValidatorError;
+interface ISocketValidatorWorkComplete {
+  type: typeof VALIDATOR_WORK_COMPLETE;
+}
+
+type TSocketMessage =
+  | ISocketValidatorResponse
+  | ISocketValidatorError
+  | ISocketValidatorWorkComplete;
 
 /**
  * An adapter for the Typerighter service that uses WebSockets.
  */
 class TyperighterWsAdapter extends TyperighterAdapter
   implements IValidationAPIAdapter {
+
   public fetchMatches = async (
-    validationSetId: string,
-    inputs: IBlockQuery[],
+    requestId: string,
+    inputs: IBlock[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback
+    onValidationError: TValidationErrorCallback,
+    onValidationComplete: TValidationWorkCompleteCallback
   ) => {
     const socket = new WebSocket(this.checkUrl);
     const blocks = inputs.map(input => ({
@@ -47,14 +60,15 @@ class TyperighterWsAdapter extends TyperighterAdapter
       socket.addEventListener("message", event =>
         this.handleMessage(
           event,
-          validationSetId,
+          requestId,
           onValidationReceived,
-          onValidationError
+          onValidationError,
+          onValidationComplete
         )
       );
       socket.send(
         JSON.stringify({
-          validationSetId,
+          requestId,
           blocks
         })
       );
@@ -62,35 +76,47 @@ class TyperighterWsAdapter extends TyperighterAdapter
 
     socket.addEventListener("close", closeEvent => {
       if (closeEvent.code !== 1000) {
-        onValidationError({ validationSetId, message: closeEvent.reason });
+        onValidationError({ requestId, message: closeEvent.reason });
       }
     });
   };
 
   private handleMessage = (
     message: MessageEvent,
-    validationSetId: string,
+    requestId: string,
     onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback
+    onValidationError: TValidationErrorCallback,
+    onValidationComplete: TValidationWorkCompleteCallback
   ) => {
     try {
       const socketMessage: TSocketMessage = JSON.parse(message.data);
       switch (socketMessage.type) {
         case VALIDATOR_ERROR: {
           return onValidationError({
-            validationSetId,
-            validationId: socketMessage.id,
+            requestId,
+            blockId: socketMessage.id,
             message: socketMessage.message
           });
         }
         case VALIDATOR_RESPONSE: {
           return onValidationReceived(
-            convertTyperighterResponse(validationSetId, socketMessage)
+            convertTyperighterResponse(requestId, socketMessage)
           );
+        }
+        case VALIDATOR_WORK_COMPLETE: {
+          return onValidationComplete(requestId);
+        }
+        default: {
+          return onValidationError({
+            requestId,
+            message: `Received unknown message type: ${JSON.stringify(
+              socketMessage
+            )}`
+          });
         }
       }
     } catch (e) {
-      onValidationError({ validationSetId, message: e.message });
+      onValidationError({ requestId, message: e.message });
     }
   };
 }

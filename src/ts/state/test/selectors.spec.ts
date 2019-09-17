@@ -2,13 +2,13 @@ import {
   selectPercentRemaining,
   selectBlockMatchesByMatchId,
   selectSuggestionAndRange,
-  selectSingleBlockQueryInFlightById,
-  selectNewBlockQueryInFlight
+  selectSingleBlockInFlightById,
+  selectNewBlockInFlight
 } from "../selectors";
 import {
-  createBlockQuery,
+  createBlock,
   createBlockQueriesInFlight,
-  exampleValidationSetId,
+  exampleRequestId,
   createInitialData,
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
@@ -38,10 +38,10 @@ describe("selectors", () => {
           {
             currentValidations: [
               {
-                validationId: "1"
+                blockId: "1"
               },
               {
-                validationId: "2"
+                blockId: "2"
               }
             ]
           } as any,
@@ -52,68 +52,68 @@ describe("selectors", () => {
   });
   describe("selectValidationInFlightById", () => {
     it("should find a single validation in flight by its id", () => {
-      const input1 = createBlockQuery(0, 5);
-      const input2 = createBlockQuery(10, 15);
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
       expect(
-        selectSingleBlockQueryInFlightById(
+        selectSingleBlockInFlightById(
           {
             blockQueriesInFlight: createBlockQueriesInFlight(
-              exampleValidationSetId,
+              exampleRequestId,
               [input1, input2]
             )
           } as any,
-          exampleValidationSetId,
+          exampleRequestId,
           input1.id
-        )!.blockQuery
+        )!.block
       ).toEqual(input1);
     });
   });
   describe("selectNewValidationInFlight", () => {
     it("should find the new inflight validations given an old and a new state", () => {
       const { state } = createInitialData();
-      const input1 = createBlockQuery(0, 5);
-      const input2 = createBlockQuery(10, 15);
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
       expect(
-        selectNewBlockQueryInFlight(
+        selectNewBlockInFlight(
           {
             ...state,
             blockQueriesInFlight: createBlockQueriesInFlight(
-              exampleValidationSetId,
+              exampleRequestId,
               [input1]
             )
           },
           {
             ...state,
             blockQueriesInFlight: {
-              ...createBlockQueriesInFlight(exampleValidationSetId, [input1]),
+              ...createBlockQueriesInFlight(exampleRequestId, [input1]),
               ...createBlockQueriesInFlight("set-id-2", [input2])
             }
           }
         )
       ).toEqual([
         {
-          validationSetId: "set-id-2",
+          requestId: "set-id-2",
           ...createBlockQueriesInFlight("set-id-2", [input2])["set-id-2"]
         }
       ]);
     });
     it("shouldn't include validations missing in the new state but present in the old state", () => {
       const { state } = createInitialData();
-      const input1 = createBlockQuery(0, 5);
-      const input2 = createBlockQuery(10, 15);
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
       expect(
-        selectNewBlockQueryInFlight(
+        selectNewBlockInFlight(
           {
             ...state,
             blockQueriesInFlight: {
-              ...createBlockQueriesInFlight(exampleValidationSetId, [input1]),
+              ...createBlockQueriesInFlight(exampleRequestId, [input1]),
               ...createBlockQueriesInFlight("set-id-2", [input2])
             }
           },
           {
             ...state,
             blockQueriesInFlight: createBlockQueriesInFlight(
-              exampleValidationSetId,
+              exampleRequestId,
               [input1]
             )
           }
@@ -228,12 +228,12 @@ describe("selectors", () => {
     });
     it("should select the percentage remaining for a single validation set", () => {
       const { state: initialState } = createInitialData();
-      const input1 = createBlockQuery(0, 5);
-      const input2 = createBlockQuery(10, 15);
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
       let state = {
         ...initialState,
         blockQueriesInFlight: createBlockQueriesInFlight(
-          exampleValidationSetId,
+          exampleRequestId,
           [input1, input2],
           ["1", "2"]
         )
@@ -242,7 +242,7 @@ describe("selectors", () => {
       state = {
         ...initialState,
         blockQueriesInFlight: createBlockQueriesInFlight(
-          exampleValidationSetId,
+          exampleRequestId,
           [input1, input2],
           ["1", "2"],
           ["1"]
@@ -252,14 +252,14 @@ describe("selectors", () => {
     });
     it("should select the percentage remaining for multiple validation sets", () => {
       const { state: initialState } = createInitialData();
-      const input1 = createBlockQuery(0, 5);
-      const input2 = createBlockQuery(10, 15);
-      const input3 = createBlockQuery(15, 20);
-      const input4 = createBlockQuery(20, 25);
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
+      const input3 = createBlock(15, 20);
+      const input4 = createBlock(20, 25);
       let state = {
         ...initialState,
         blockQueriesInFlight: {
-          ...createBlockQueriesInFlight(exampleValidationSetId, [
+          ...createBlockQueriesInFlight(exampleRequestId, [
             input1,
             input2
           ]),
@@ -271,7 +271,7 @@ describe("selectors", () => {
         ...initialState,
         blockQueriesInFlight: {
           ...createBlockQueriesInFlight(
-            exampleValidationSetId,
+            exampleRequestId,
             [input1, input2],
             exampleCategoryIds,
             [],

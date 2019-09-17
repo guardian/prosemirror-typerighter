@@ -1,5 +1,5 @@
 import {
-  IBlockQuery,
+  IBlock,
   IMatches,
   ICategory
 } from "../interfaces/IValidation";
@@ -75,14 +75,15 @@ class ValidationService<TValidationOutput extends IMatches> {
    */
   public async validate(
     validationSetId: string,
-    validationInputs: IBlockQuery[]
+    validationInputs: IBlock[]
   ) {
     this.adapter.fetchMatches(
       validationSetId,
       validationInputs,
       this.currentCategories.map(_ => _.id),
       this.commands.applyValidationResult,
-      this.commands.applyValidationError
+      this.commands.applyValidationError,
+      this.commands.applyValidationComplete
     );
   }
 

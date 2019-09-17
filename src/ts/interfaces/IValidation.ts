@@ -9,7 +9,7 @@ export interface ICategory {
   colour: string;
 }
 
-export interface IBlockQuery {
+export interface IBlock {
   id: string;
   text: string;
   from: number;
@@ -31,10 +31,10 @@ export interface IWikiSuggestion {
 }
 
 export interface IValidationError {
-  validationSetId: string;
+  requestId: string;
   // If we have an id, we can link the error to a specific validation.
   // If not, we treat the error as nonspecific.
-  validationId?: string;
+  blockId?: string;
   message: string;
 }
 
@@ -57,10 +57,10 @@ export interface IBlockResult {
 export interface IValidationResponse<
   TBlockMatches extends IMatches = IMatches
 > {
-  blocks: IBlockQuery[];
+  blocks: IBlock[];
   categoryIds: string[];
   matches: TBlockMatches[];
-  validationSetId: string;
+  requestId: string;
 }
 
 export type IValidationLibrary = Array<

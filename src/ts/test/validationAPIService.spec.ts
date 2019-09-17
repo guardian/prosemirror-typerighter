@@ -5,14 +5,14 @@ import TyperighterAdapter, {
   convertTyperighterResponse
 } from "../services/adapters/TyperighterAdapter";
 import { ITypeRighterResponse } from "../services/adapters/interfaces/ITyperighter";
-import { createValidationId } from "../utils/validation";
+import { createBlockId } from "../utils/validation";
 
 const createResponse = (strs: string[]): ITypeRighterResponse => ({
-  validationSetId: "set-id",
+  requestId: "set-id",
   categoryIds: ["numberCat"],
   blocks: [
     {
-      id: createValidationId(0, 0, 5),
+      id: createBlockId(0, 0, 5),
       from: 0,
       to: 5,
       text: "Some text that has been validated"
@@ -21,7 +21,7 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
   matches: strs.map(str => ({
     fromPos: 0,
     toPos: str.length,
-    id: createValidationId(0, 0, 5),
+    id: createBlockId(0, 0, 5),
     message: "It's just a bunch of numbers, mate",
     shortMessage: "It's just a bunch of numbers, mate",
     rule: {
@@ -107,8 +107,8 @@ describe("ValidationAPIService", () => {
       expect(commands.applyValidationError.mock.calls[0][0]).toEqual({
         message:
           "Error fetching validations. The server responded with status code 400: Bad Request",
-        validationId: "0-from:0-to:10",
-        validationSetId: "set-id"
+        blockId: "0-from:0-to:10",
+        requestId: "set-id"
       });
       done();
     });
