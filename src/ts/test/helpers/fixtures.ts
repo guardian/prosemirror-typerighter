@@ -61,7 +61,7 @@ export const createValidationResponse = (
     colour: "eeeee"
   },
   suggestions = [] as ISuggestion[],
-  validationSetId: string = exampleValidationSetId,
+  validationSetId: string = exampleValidationSetId
 ): IValidationResponse => ({
   validationSetId,
   categoryIds: [category.id],
@@ -110,17 +110,17 @@ export const exampleValidationSetId = "set-id";
 export const createBlockQueriesInFlight = (
   setId: string,
   blockQueries: IBlockQuery[],
-  allCategoryIds: string[] = exampleCategoryIds,
-  remainingCategoryIds: string[] = allCategoryIds,
+  categoryIds: string[] = exampleCategoryIds,
+  pendingCategoryIds: string[] = categoryIds,
   total?: number
 ): { [setId: string]: IBlockQueriesInFlightState } => ({
   [setId]: {
-    total: total || blockQueries.length,
-    current: blockQueries.map(input => ({
+    totalBlocks: total || blockQueries.length,
+    mapping: new Mapping(),
+    categoryIds,
+    pendingBlocks: blockQueries.map(input => ({
       blockQuery: input,
-      mapping: new Mapping(),
-      allCategoryIds,
-      remainingCategoryIds
+      pendingCategoryIds
     }))
   }
 });

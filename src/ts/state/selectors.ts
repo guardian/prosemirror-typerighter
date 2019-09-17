@@ -5,17 +5,13 @@ import {
   IBlockQueriesInFlightState
 } from "./reducer";
 
-export const selectBlockQueriesInFlight = <
-  TValidationMeta extends IMatches
->(
+export const selectBlockQueriesInFlight = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>
 ) => {
   return state.blockQueriesInFlight.validations;
 };
 
-export const selectBlockMatchesByMatchId = <
-  TValidationMeta extends IMatches
->(
+export const selectBlockMatchesByMatchId = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>,
   matchId: string
 ): IMatches | undefined =>
@@ -44,7 +40,7 @@ export const selectSingleBlockQueryInFlightById = <
   if (!validationInFlightState) {
     return;
   }
-  return validationInFlightState.current.find(
+  return validationInFlightState.pendingBlocks.find(
     _ => _.blockQuery.id === blockQueryId
   );
 };
@@ -62,25 +58,21 @@ export const selectBlockQueriesInFlightById = <
     )
     .filter(_ => !!_) as IBlockQueryInFlight[];
 
-export const selectAllBlockQueriesInFlight = <
-  TValidationMeta extends IMatches
->(
+export const selectAllBlockQueriesInFlight = <TValidationMeta extends IMatches>(
   state: IPluginState<TValidationMeta>
 ): IBlockQueryInFlight[] =>
   Object.values(state.blockQueriesInFlight).reduce(
-    (acc, value) => acc.concat(value.current),
+    (acc, value) => acc.concat(value.pendingBlocks),
     [] as IBlockQueryInFlight[]
   );
 
-type TSelectValidationInFlight = Array<{
-  validationSetId: string;
-  total: number;
-  current: IBlockQueryInFlight[];
-}>;
+type TSelectValidationInFlight = Array<
+  IBlockQueriesInFlightState & {
+    validationSetId: string;
+  }
+>;
 
-export const selectNewBlockQueryInFlight = <
-  TValidationMeta extends IMatches
->(
+export const selectNewBlockQueryInFlight = <TValidationMeta extends IMatches>(
   oldState: IPluginState<TValidationMeta>,
   newState: IPluginState<TValidationMeta>
 ): TSelectValidationInFlight =>
@@ -102,8 +94,8 @@ export const selectPercentRemaining = <TValidationMeta extends IMatches>(
     state.blockQueriesInFlight
   ).reduce(
     ([totalsSum, currentSum], _) => [
-      totalsSum + _.total,
-      currentSum + _.current.length
+      totalsSum + _.totalBlocks,
+      currentSum + _.pendingBlocks.length
     ],
     [0, 0]
   );

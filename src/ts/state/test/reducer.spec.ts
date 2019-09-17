@@ -151,9 +151,9 @@ describe("Action handlers", () => {
         },
         validationRequestForDirtyRanges("id", exampleCategoryIds)
       );
-      expect(selectBlockQueriesInFlightForSet(newState, "id")!.total).toEqual(
-        2
-      );
+      expect(
+        selectBlockQueriesInFlightForSet(newState, "id")!.totalBlocks
+      ).toEqual(2);
     });
   });
   describe("validationRequestSuccess", () => {
@@ -308,35 +308,40 @@ describe("Action handlers", () => {
           })
         );
 
-        expect(newState.blockQueriesInFlight).toEqual({
-          "set-id": {
-            current: [
-              {
-                allCategoryIds: ["1", "this-category-should-remain"],
-                blockQuery: {
-                  from: 0,
-                  id: "0-from:0-to:15",
-                  text: "Example text to validate",
-                  to: 15
-                },
-                mapping: { from: 0, maps: [], mirror: undefined, to: 0 },
-                remainingCategoryIds: ["this-category-should-remain"]
-              },
-              {
-                allCategoryIds: ["1", "this-category-should-remain"],
-                blockQuery: {
-                  from: 16,
-                  id: "0-from:16-to:37",
-                  text: "Another block of text",
-                  to: 37
-                },
-                mapping: { from: 0, maps: [], mirror: undefined, to: 0 },
-                remainingCategoryIds: ["1", "this-category-should-remain"]
-              }
-            ],
-            total: 2
+        expect(newState.blockQueriesInFlight['set-id']!.pendingBlocks).toEqual([
+          {
+            blockQuery: {
+              from: 0,
+              id: firstBlock.id,
+              text: "Example text to validate",
+              to: 15
+            },
+            pendingCategoryIds: ["this-category-should-remain"]
+          },
+          {
+            blockQuery: {
+              from: 16,
+              id: secondBlock.id,
+              text: "Another block of text",
+              to: 37
+            },
+            pendingCategoryIds: ["1", "this-category-should-remain"]
           }
-        });
+        ]);
+      });
+      it("should not regenerate decorations for validations that remain", () => {
+        const newState = reducer(
+          tr,
+          state,
+          validationRequestSuccess({
+            blocks: [firstBlock],
+            categoryIds: ["another-category"],
+            matches: [],
+            validationSetId: exampleValidationSetId
+          })
+        );
+
+        expect(newState.decorations).toBe(state.decorations);
       });
     });
     it("should not apply validations if the ranges they apply to have since been dirtied", () => {

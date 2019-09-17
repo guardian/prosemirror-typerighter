@@ -73,14 +73,11 @@ export const getNewDecorationsForCurrentValidations = (
   decorationSet: DecorationSet,
   doc: Node
 ) => {
-  // Remove existing validations for the ranges
-  const newDecorationSet = removeDecorationsFromRanges(decorationSet, outputs);
-
   // There are new validations available; apply them to the document.
   const decorationsToAdd = createDecorationsForValidationRanges(outputs);
 
   // Finally, we add the existing decorations to this new map.
-  return newDecorationSet.add(doc, decorationsToAdd);
+  return decorationSet.add(doc, decorationsToAdd);
 };
 
 /**

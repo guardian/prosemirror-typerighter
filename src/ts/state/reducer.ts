@@ -27,10 +27,10 @@ import {
   createDebugDecorationFromRange,
   DECORATION_DIRTY,
   DECORATION_INFLIGHT,
-  getNewDecorationsForCurrentValidations as createNewDecorationsForCurrentValidations,
   removeDecorationsFromRanges,
   createDecorationForValidationRange,
-  DECORATION_VALIDATION
+  DECORATION_VALIDATION,
+  createDecorationsForValidationRanges
 } from "../utils/decoration";
 import {
   mergeRanges,
@@ -51,7 +51,6 @@ import {
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import { createValidationBlock } from "../utils/validation";
-import { cat } from "shelljs";
 
 /**
  * Information about the span element the user is hovering over.
@@ -81,18 +80,17 @@ export interface IStateHoverInfo {
 }
 
 export interface IBlockQueryInFlight {
-  // The mapping for this block.
-  mapping: Mapping;
-  // The categories applied to this block.
-  allCategoryIds: string[];
-  // The categories that haven't yet reported.
-  remainingCategoryIds: string[];
+  // The categories that haven't yet reported for this block.
+  pendingCategoryIds: string[];
   blockQuery: IBlockQuery;
 }
 
 export interface IBlockQueriesInFlightState {
-  total: number;
-  current: IBlockQueryInFlight[];
+  totalBlocks: number;
+  // The category ids that were sent with the request.
+  categoryIds: string[];
+  pendingBlocks: IBlockQueryInFlight[];
+  mapping: Mapping;
 }
 
 export interface IPluginState<TBlockMatches extends IMatches = IMatches> {
@@ -442,26 +440,20 @@ const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
 ): IPluginState<TValidationMeta> => {
   const mappedblockQueriesInFlight = Object.entries(
     incomingState.blockQueriesInFlight
-  ).reduce(
-    (acc, [validationSetId, blockQueriesInFlight]) => ({
+  ).reduce((acc, [validationSetId, blockQueriesInFlight]) => {
+    // We create a new mapping here to preserve state immutability, as
+    // appendMapping mutates an existing mapping.
+    const mapping = new Mapping();
+    mapping.appendMapping(blockQueriesInFlight.mapping);
+    mapping.appendMapping(tr.mapping);
+    return {
       ...acc,
       [validationSetId]: {
-        total: blockQueriesInFlight.total,
-        current: blockQueriesInFlight.current.map(_ => {
-          // We create a new mapping here to preserve state immutability, as
-          // appendMapping mutates an existing mapping.
-          const mapping = new Mapping();
-          mapping.appendMapping(_.mapping);
-          mapping.appendMapping(tr.mapping);
-          return {
-            ..._,
-            mapping
-          };
-        })
+        ...blockQueriesInFlight,
+        mapping
       }
-    }),
-    {}
-  );
+    };
+  }, {});
   return {
     ...incomingState,
     decorations: incomingState.decorations.map(tr.mapping, tr.doc),
@@ -630,12 +622,10 @@ const handleValidationRequestStart = (
       )
     : state.decorations;
 
-  const newblockQueriesInFlight: IBlockQueryInFlight[] = blockQueries.map(
+  const newBlockQueriesInFlight: IBlockQueryInFlight[] = blockQueries.map(
     blockQuery => ({
-      mapping: new Mapping(),
       blockQuery,
-      allCategoryIds: categoryIds,
-      remainingCategoryIds: categoryIds
+      pendingCategoryIds: categoryIds
     })
   );
 
@@ -648,8 +638,10 @@ const handleValidationRequestStart = (
     blockQueriesInFlight: {
       ...state.blockQueriesInFlight,
       [validationSetId]: {
-        total: newblockQueriesInFlight.length,
-        current: newblockQueriesInFlight
+        totalBlocks: newBlockQueriesInFlight.length,
+        pendingBlocks: newBlockQueriesInFlight,
+        mapping: tr.mapping,
+        categoryIds
       }
     }
   };
@@ -668,9 +660,9 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
   if (!currentBlockQueriesInFlight) {
     return state.blockQueriesInFlight;
   }
-  const newBlockQueriesInFlight = {
-    total: currentBlockQueriesInFlight.total,
-    current: currentBlockQueriesInFlight.current.reduce(
+  const newBlockQueriesInFlight: IBlockQueriesInFlightState = {
+    ...currentBlockQueriesInFlight,
+    pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
       (acc, blockQueryInFlight) => {
         // Don't modify blocks that don't match
         if (blockQueryInFlight.blockQuery.id !== blockQueryId) {
@@ -678,18 +670,18 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
         }
         const newBlockQueryInFlight = {
           ...blockQueryInFlight,
-          remainingCategoryIds: blockQueryInFlight.remainingCategoryIds.filter(
+          pendingCategoryIds: blockQueryInFlight.pendingCategoryIds.filter(
             id => !categoryIds.includes(id)
           )
         };
-        return newBlockQueryInFlight.remainingCategoryIds.length
+        return newBlockQueryInFlight.pendingCategoryIds.length
           ? acc.concat(newBlockQueryInFlight)
           : acc;
       },
       [] as IBlockQueryInFlight[]
     )
   };
-  if (!newBlockQueriesInFlight.current.length) {
+  if (!newBlockQueriesInFlight.pendingBlocks.length) {
     return omit(state.blockQueriesInFlight, validationSetId);
   }
   return {
@@ -751,13 +743,13 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
       ),
     [] as Decoration[]
   );
+
   // Add the response to the current validations
-  const mapping = blockQueriesInFlight.reduce((acc, blockQuery) => {
-    acc.appendMapping(blockQuery.mapping);
-    return acc;
-  }, new Mapping());
   currentValidations = currentValidations.concat(
-    mapRanges(response.matches, mapping)
+    mapRanges(
+      response.matches,
+      selectBlockQueriesInFlightForSet(state, response.validationSetId)!.mapping
+    )
   );
 
   // We don't apply incoming validations to ranges that have
@@ -768,13 +760,9 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
   );
 
   // Create our decorations for the newly current validations.
-  const decorations = createNewDecorationsForCurrentValidations(
-    currentValidations,
-    state.decorations,
-    tr.doc
-  );
+  const newDecorations = createDecorationsForValidationRanges(response.matches);
 
-  // Remove block queries in flight (@todo)
+  // Amend the block queries in flight to
   const newBlockQueriesInFlight = blockQueriesInFlight.reduce(
     (acc, blockQueryInFlight) =>
       amendBlockQueriesInFlight(
@@ -790,7 +778,9 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
     ...state,
     blockQueriesInFlight: newBlockQueriesInFlight,
     currentValidations,
-    decorations: decorations.remove(decsToRemove)
+    decorations: state.decorations
+      .remove(decsToRemove)
+      .add(tr.doc, newDecorations)
   };
 };
 
@@ -810,21 +800,32 @@ const handleValidationRequestError = <TValidationMeta extends IMatches>(
     return { ...state, message };
   }
 
-  const validationInFlight = selectSingleBlockQueryInFlightById(
+  const blockQueriesInFlight = selectBlockQueriesInFlightForSet(
+    state,
+    validationSetId
+  );
+
+  if (!blockQueriesInFlight) {
+    return state;
+  }
+
+  const blockQueryInFlight = selectSingleBlockQueryInFlightById(
     state,
     validationSetId,
     validationId
   );
-  if (!validationInFlight) {
+
+  if (!blockQueryInFlight) {
     return { ...state, message };
   }
 
-  const dirtiedRanges = validationInFlight
+  const dirtiedRanges = blockQueryInFlight
     ? mapRanges(
-        [validationInputToRange(validationInFlight.blockQuery)],
-        validationInFlight.mapping
+        [validationInputToRange(blockQueryInFlight.blockQuery)],
+        blockQueriesInFlight.mapping
       )
     : [];
+
   const decsToRemove = dirtiedRanges.reduce(
     (acc, range) =>
       acc.concat(
