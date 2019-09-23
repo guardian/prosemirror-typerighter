@@ -51,7 +51,7 @@ const commands = {
   validateDirtyRangesCommand: jest.fn()
 };
 
-const validationSetId = "set-id";
+const requestId = "set-id";
 
 const store = new Store();
 
@@ -77,7 +77,7 @@ describe("ValidationAPIService", () => {
     expect.assertions(1);
 
     service.requestValidation();
-    store.emit("STORE_EVENT_NEW_VALIDATION", validationSetId, [
+    store.emit("STORE_EVENT_NEW_VALIDATION", requestId, [
       validationInput
     ]);
 
@@ -100,7 +100,7 @@ describe("ValidationAPIService", () => {
     fetchMock.post("http://endpoint/check", 400);
 
     service.requestValidation();
-    store.emit("STORE_EVENT_NEW_VALIDATION", validationSetId, [
+    store.emit("STORE_EVENT_NEW_VALIDATION", requestId, [
       validationInput
     ]);
     setTimeout(() => {

@@ -35,9 +35,9 @@ class ValidationService<TValidationOutput extends IMatches> {
     this.currentThrottle = initialThrottle;
     this.store.on(
       STORE_EVENT_NEW_VALIDATION,
-      (validationSetId, blockQueriesInFlight) => {
+      (requestId, blockQueriesInFlight) => {
         // If we have a new validation, send it to the validation service.
-        this.validate(validationSetId, blockQueriesInFlight);
+        this.validate(requestId, blockQueriesInFlight);
       }
     );
     this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
@@ -74,11 +74,11 @@ class ValidationService<TValidationOutput extends IMatches> {
    * Validate a Prosemirror node, restricting checks to ranges if they're supplied.
    */
   public async validate(
-    validationSetId: string,
+    requestId: string,
     validationInputs: IBlock[]
   ) {
     this.adapter.fetchMatches(
-      validationSetId,
+      requestId,
       validationInputs,
       this.currentCategories.map(_ => _.id),
       this.commands.applyValidationResult,
@@ -97,9 +97,9 @@ class ValidationService<TValidationOutput extends IMatches> {
     if (!pluginState || selectAllBlockQueriesInFlight(pluginState).length) {
       return this.scheduleValidation();
     }
-    const validationSetId = v4();
+    const requestId = v4();
     this.commands.validateDirtyRanges(
-      validationSetId,
+      requestId,
       this.getCurrentCategories().map(_ => _.id)
     );
   }
