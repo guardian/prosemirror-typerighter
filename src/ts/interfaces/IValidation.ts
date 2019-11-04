@@ -23,6 +23,7 @@ export interface IValidationOutput<TSuggestion = ISuggestion>
   annotation: string;
   category: ICategory;
   suggestions?: TSuggestion[];
+  autoApplyFirstSuggestion?: boolean;
 }
 
 export type ISuggestion = ITextSuggestion | IWikiSuggestion;

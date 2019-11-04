@@ -111,22 +111,22 @@ const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
  * Action types.
  */
 
-const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
-const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
-const NEW_HOVER_ID = "NEW_HOVER_ID";
-const SELECT_VALIDATION = "SELECT_VALIDATION";
-const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
-const SET_DEBUG_STATE = "SET_DEBUG_STATE";
-const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
+const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START" as const;
+const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT" as const;
+const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS" as const;
+const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR" as const;
+const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
+const SELECT_VALIDATION = "SELECT_VALIDATION" as const;
+const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
+const SET_DEBUG_STATE = "SET_DEBUG_STATE" as const;
+const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE" as const;
 
 /**
  * Action creators.
  */
 
 export const validationRequestForDirtyRanges = (validationSetId: string) => ({
-  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES,
+  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
   payload: { validationSetId }
 });
 type ActionValidationRequestForDirtyRanges = ReturnType<
@@ -134,7 +134,7 @@ type ActionValidationRequestForDirtyRanges = ReturnType<
 >;
 
 export const validationRequestForDocument = (validationSetId: string) => ({
-  type: VALIDATION_REQUEST_FOR_DOCUMENT as typeof VALIDATION_REQUEST_FOR_DOCUMENT,
+  type: VALIDATION_REQUEST_FOR_DOCUMENT,
   payload: { validationSetId }
 });
 type ActionValidationRequestForDocument = ReturnType<
@@ -146,7 +146,7 @@ export const validationRequestSuccess = <
 >(
   response: IValidationResponse<TValidationMeta>
 ) => ({
-  type: VALIDATION_REQUEST_SUCCESS as typeof VALIDATION_REQUEST_SUCCESS,
+  type: VALIDATION_REQUEST_SUCCESS,
   payload: { response }
 });
 // tslint:disable-next-line:interface-over-type-literal
@@ -158,7 +158,7 @@ type ActionValidationResponseReceived<
 };
 
 export const validationRequestError = (validationError: IValidationError) => ({
-  type: VALIDATION_REQUEST_ERROR as typeof VALIDATION_REQUEST_ERROR,
+  type: VALIDATION_REQUEST_ERROR,
   payload: { validationError }
 });
 type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
@@ -167,31 +167,31 @@ export const newHoverIdReceived = (
   hoverId: string | undefined,
   hoverInfo?: IStateHoverInfo | undefined
 ) => ({
-  type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
+  type: NEW_HOVER_ID,
   payload: { hoverId, hoverInfo }
 });
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
 export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
-  type: APPLY_NEW_DIRTY_RANGES as typeof APPLY_NEW_DIRTY_RANGES,
+  type: APPLY_NEW_DIRTY_RANGES,
   payload: { ranges }
 });
 type ActionHandleNewDirtyRanges = ReturnType<typeof applyNewDirtiedRanges>;
 
 export const selectMatch = (matchId: string) => ({
-  type: SELECT_VALIDATION as typeof SELECT_VALIDATION,
+  type: SELECT_VALIDATION,
   payload: { matchId }
 });
 type ActionSelectValidation = ReturnType<typeof selectMatch>;
 
 export const setDebugState = (debug: boolean) => ({
-  type: SET_DEBUG_STATE as typeof SET_DEBUG_STATE,
+  type: SET_DEBUG_STATE,
   payload: { debug }
 });
 type ActionSetDebugState = ReturnType<typeof setDebugState>;
 
 export const setValidateOnModifyState = (validateOnModify: boolean) => ({
-  type: SET_VALIDATE_ON_MODIFY_STATE as typeof SET_VALIDATE_ON_MODIFY_STATE,
+  type: SET_VALIDATE_ON_MODIFY_STATE,
   payload: { validateOnModify }
 });
 type ActionSetValidateOnModifyState = ReturnType<
@@ -246,8 +246,15 @@ export const selectValidationByMatchId = <
 >(
   state: IPluginState<TValidationMeta>,
   matchId: string
-): IValidationOutput | undefined =>
+): TValidationMeta | undefined =>
   state.currentValidations.find(validation => validation.matchId === matchId);
+
+export const selectAllAutoFixableValidations = <
+  TValidationMeta extends IValidationOutput
+>(
+  state: IPluginState<TValidationMeta>
+): TValidationMeta[] | undefined =>
+  state.currentValidations.filter(_ => _.autoApplyFirstSuggestion);
 
 export const selectValidationsInFlightForSet = <
   TValidationMeta extends IValidationOutput

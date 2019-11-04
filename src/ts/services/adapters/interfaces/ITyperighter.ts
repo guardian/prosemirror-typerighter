@@ -27,6 +27,8 @@ export interface ITypeRighterRule {
   category: ITypeRighterCategory;
   description: string;
   id: string;
+  suggestions: ISuggestion[];
+  autoApplyFirstSuggestion: boolean;
   issueType: string;
 }
 

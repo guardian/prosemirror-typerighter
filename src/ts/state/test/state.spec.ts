@@ -16,7 +16,9 @@ import {
   validationRequestError,
   validationRequestForDirtyRanges,
   validationRequestSuccess,
-  newHoverIdReceived
+  newHoverIdReceived,
+  selectAllAutoFixableValidations,
+  createInitialState
 } from "../state";
 import {
   createDebugDecorationFromRange,
@@ -100,6 +102,39 @@ const getValidationsInFlight = (
     }))
   }
 });
+
+const getExampleValidation = (id: string) =>
+  ({
+    matchId: `match-id-${id}`,
+    validationId: `validation-id-${id}`,
+    annotation: `annotation-${id}`,
+    category: {
+      id: `category-${id}`,
+      name: "Category 1",
+      colour: "puce"
+    },
+    inputString: `inputString-${id}`,
+    suggestions: [],
+    autoApplyFirstSuggestion: true,
+    from: 0,
+    to: 5
+  } as IValidationOutput);
+
+const exampleValidation2: IValidationOutput = {
+  matchId: "match-id-2",
+  validationId: "validation-id-2",
+  annotation: "annotation-2",
+  category: {
+    id: "category-2",
+    name: "Category 1",
+    colour: "puce"
+  },
+  inputString: "inputString-2",
+  suggestions: [],
+  autoApplyFirstSuggestion: true,
+  from: 0,
+  to: 5
+};
 
 describe("State management", () => {
   describe("Action handlers", () => {
@@ -399,17 +434,17 @@ describe("State management", () => {
             createDecorationForValidationRange(output, false, true)
           )
         };
-        expect(
-          reducer(tr, localState, newHoverIdReceived("match-id"))
-        ).toEqual({
-          ...localState,
-          decorations: new DecorationSet().add(
-            tr.doc,
-            createDecorationForValidationRange(output, true, true)
-          ),
-          hoverId: "match-id",
-          hoverInfo: undefined
-        });
+        expect(reducer(tr, localState, newHoverIdReceived("match-id"))).toEqual(
+          {
+            ...localState,
+            decorations: new DecorationSet().add(
+              tr.doc,
+              createDecorationForValidationRange(output, true, true)
+            ),
+            hoverId: "match-id",
+            hoverInfo: undefined
+          }
+        );
       });
       it("should remove hover decorations", () => {
         const { state, tr } = createInitialData();
@@ -565,6 +600,22 @@ describe("State management", () => {
             "3"
           )
         ).toEqual(undefined);
+      });
+    });
+    describe("selectAllAutoFixableValidations", () => {
+      it("should select all auto fixable validations, and ignore others", () => {
+        const validation1 = getExampleValidation("1");
+        const validation2 = getExampleValidation("2");
+        const validation3 = {
+          ...getExampleValidation("3"),
+          autoApplyFirstSuggestion: false
+        };
+        expect(
+          selectAllAutoFixableValidations({
+            ...createInitialData().state,
+            currentValidations: [validation1, validation2, validation3]
+          })
+        ).toEqual([validation1, validation2]);
       });
     });
     describe("selectValidationInFlightById", () => {
