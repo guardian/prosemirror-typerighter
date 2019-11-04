@@ -55,7 +55,8 @@ class TyperighterAdapter implements IValidationAPIAdapter {
             to: input.from + match.toPos,
             annotation: match.shortMessage,
             category: match.rule.category,
-            suggestions: match.suggestions
+            suggestions: match.suggestions,
+            autoApplyFirstSuggestion: match.rule.autoApplyFirstSuggestion
           }))
         });
       } catch (e) {

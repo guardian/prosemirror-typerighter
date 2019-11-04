@@ -11,7 +11,8 @@ import {
   IStateHoverInfo,
   validationRequestSuccess,
   validationRequestError,
-  validationRequestForDirtyRanges
+  validationRequestForDirtyRanges,
+  selectAllAutoFixableValidations
 } from "./state/state";
 import {
   IValidationResponse,
@@ -191,7 +192,7 @@ export const applySuggestionsCommand = <
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
-  const outputsAndSuggestions = suggestionOptions
+  const suggestionsToApply = suggestionOptions
     .map(opt => {
       const validation = selectValidationByMatchId(pluginState, opt.matchId);
       return validation
@@ -204,14 +205,49 @@ export const applySuggestionsCommand = <
     })
     .filter(compact);
 
-  if (!outputsAndSuggestions.length) {
+  return maybeApplySuggestions(suggestionsToApply, state, dispatch);
+};
+
+/**
+ * Applies the first suggestion for each rule marked as auto-fixable.
+ */
+export const applyAutoFixableSuggestionsCommand = <
+  TValidationOutput extends IValidationOutput
+>(
+  getState: GetState<TValidationOutput>
+): Command => (state, dispatch) => {
+  const pluginState = getState(state);
+  const suggestionsToApply = selectAllAutoFixableValidations(pluginState).map(
+    output => ({
+      from: output.from,
+      to: output.to,
+      text:
+        output.suggestions && output.suggestions.length
+          ? output.suggestions[0].text
+          : undefined
+    })
+  );
+  return maybeApplySuggestions(suggestionsToApply, state, dispatch);
+};
+
+const maybeApplySuggestions = (
+  suggestionsToApply: Array<{
+    from: number;
+    to: number;
+    text: string | undefined;
+  }>,
+  state: EditorState,
+  dispatch?: (tr: Transaction<any>) => void
+) => {
+  if (!suggestionsToApply.length) {
     return false;
   }
 
   if (dispatch) {
     const tr = state.tr;
-    outputsAndSuggestions.forEach(({ from, to, text }) =>
-      tr.replaceWith(from, to, state.schema.text(text))
+    suggestionsToApply.forEach(
+      ({ from, to, text }) =>
+        text && tr.replaceWith(from, to, state.schema.text(text))
     );
     dispatch(tr);
   }
@@ -239,6 +275,8 @@ export const createBoundCommands = <
         view.state,
         view.dispatch
       ),
+    applyAutoFixableSuggestions: () =>
+      applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
     validateDocument: bindCommand(validateDocumentCommand),
     validateDirtyRanges: bindCommand(validateDirtyRangesCommand),
     indicateHover: bindCommand(indicateHoverCommand),

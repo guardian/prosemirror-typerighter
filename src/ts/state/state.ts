@@ -253,7 +253,7 @@ export const selectAllAutoFixableValidations = <
   TValidationMeta extends IValidationOutput
 >(
   state: IPluginState<TValidationMeta>
-): TValidationMeta[] | undefined =>
+): TValidationMeta[] =>
   state.currentValidations.filter(_ => _.autoApplyFirstSuggestion);
 
 export const selectValidationsInFlightForSet = <
