@@ -247,7 +247,12 @@ const maybeApplySuggestions = (
     const tr = state.tr;
     suggestionsToApply.forEach(
       ({ from, to, text }) =>
-        text && tr.replaceWith(from, to, state.schema.text(text))
+        text &&
+        tr.replaceWith(
+          tr.mapping.map(from),
+          tr.mapping.map(to),
+          state.schema.text(text)
+        )
     );
     dispatch(tr);
   }
