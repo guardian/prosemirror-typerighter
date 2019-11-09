@@ -5,7 +5,7 @@ import { IRange, IValidationOutput } from "../interfaces/IValidation";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-export const DECORATION_VALIDATION_IS_HOVERING =
+export const DECORATION_VALIDATION_IS_SELECTED =
   "DECORATION_VALIDATION_IS_HOVERING";
 export const DECORATION_VALIDATION_HEIGHT_MARKER =
   "DECORATION_VALIDATION_HEIGHT_MARKER";
@@ -17,7 +17,7 @@ export const DecorationClassMap = {
   [DECORATION_INFLIGHT]: "ValidationDebugInflight",
   [DECORATION_VALIDATION]: "ValidationDecoration",
   [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
-  [DECORATION_VALIDATION_IS_HOVERING]: "ValidationDecoration--is-hovering"
+  [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
@@ -101,17 +101,19 @@ const createHeightMarkerElement = (id: string) => {
  */
 export const createDecorationForValidationRange = (
   output: IValidationOutput,
-  isHovering = false,
+  isSelected = false,
   addHeightMarker = true
 ) => {
-  const className = isHovering
+  const className = isSelected
     ? `${DecorationClassMap[DECORATION_VALIDATION]} ${
-        DecorationClassMap[DECORATION_VALIDATION_IS_HOVERING]
+        DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
+  const opacity = isSelected ? "30" : "07";
   const style = `background-color: #${
     output.category.colour
-  }07; border-bottom: 2px solid #${output.category.colour}`;
+  }${opacity}; border-bottom: 2px solid #${output.category.colour}`;
+
   const decorationArray = [
     Decoration.inline(
       output.from,
@@ -119,22 +121,27 @@ export const createDecorationForValidationRange = (
       {
         class: className,
         style,
-        [DECORATION_ATTRIBUTE_ID]: output.validationId
+        [DECORATION_ATTRIBUTE_ID]: output.matchId
       } as any,
       {
         type: DECORATION_VALIDATION,
-        id: output.validationId,
+        id: output.matchId,
         inclusiveStart: true
       } as any
     )
   ];
+
   return addHeightMarker
     ? [
         ...decorationArray,
-        Decoration.widget(output.from, createHeightMarkerElement(output.validationId), {
-          type: DECORATION_VALIDATION_HEIGHT_MARKER,
-          id: output.validationId
-        } as any)
+        Decoration.widget(
+          output.from,
+          createHeightMarkerElement(output.matchId),
+          {
+            type: DECORATION_VALIDATION_HEIGHT_MARKER,
+            id: output.matchId
+          } as any
+        )
       ]
     : decorationArray;
 };

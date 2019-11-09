@@ -8,9 +8,9 @@ import SuggestionList from "./SuggestionList";
 interface IProps {
   output: IValidationOutput;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
-  selectValidation: (validationId: string) => void;
+  selectValidation: (matchId: string) => void;
   indicateHover: (validationId: string | undefined, _?: any) => void;
-  selectedValidation: string | undefined;
+  selectedMatch: string | undefined;
 }
 
 interface IState {
@@ -26,13 +26,13 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   };
 
   public render() {
-    const { output, applySuggestions, selectedValidation } = this.props;
+    const { output, applySuggestions, selectedMatch } = this.props;
     const color = `#${output.category.colour}`;
     const hasSuggestions = !!output.suggestions;
     return (
       <div
         className={`ValidationSidebarOutput__container ${
-          selectedValidation === output.validationId
+          selectedMatch === output.matchId
             ? "ValidationSidebarOutput__container--is-selected"
             : ""
         }`}
@@ -75,7 +75,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
               <div className="ValidationSidebarOutput__suggestion-list">
                 <SuggestionList
                   applySuggestions={applySuggestions}
-                  validationId={output.validationId}
+                  matchId={output.matchId}
                   suggestions={output.suggestions}
                 />
               </div>
@@ -92,9 +92,9 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   private scrollToRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    this.props.selectValidation(this.props.output.validationId);
+    this.props.selectValidation(this.props.output.matchId);
     const decorationElement = document.querySelector(
-      `[${DECORATION_ATTRIBUTE_ID}="${this.props.output.validationId}"]`
+      `[${DECORATION_ATTRIBUTE_ID}="${this.props.output.matchId}"]`
     );
     if (decorationElement) {
       decorationElement.scrollIntoView({
@@ -104,7 +104,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   };
 
   private handleMouseOver = () => {
-    this.props.indicateHover(this.props.output.validationId);
+    this.props.indicateHover(this.props.output.matchId);
   };
 
   private handleMouseLeave = () => {

@@ -13,7 +13,7 @@ class ValidationOutput<
 > extends Component<IValidationOutputProps<TValidationOutput>> {
   public ref: HTMLDivElement | undefined;
   public render({
-    validationOutput: { validationId: id, category, annotation, suggestions },
+    validationOutput: { matchId, category, annotation, suggestions },
     applySuggestions
   }: IValidationOutputProps<TValidationOutput>) {
     return (
@@ -30,7 +30,7 @@ class ValidationOutput<
             <div className="ValidationWidget__suggestion-list">
               <SuggestionList
                 applySuggestions={applySuggestions}
-                validationId={id}
+                matchId={matchId}
                 suggestions={suggestions}
               />
             </div>

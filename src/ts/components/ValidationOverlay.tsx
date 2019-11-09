@@ -1,6 +1,6 @@
 import ValidationOutput from "./ValidationOutput";
 import { Component, h } from "preact";
-import { IStateHoverInfo, selectValidationById, IPluginState } from "../state/state";
+import { IStateHoverInfo, selectValidationByMatchId, IPluginState } from "../state/state";
 import { IValidationOutput } from "../interfaces/IValidation";
 import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
 import { ApplySuggestionOptions } from "../commands";
@@ -89,7 +89,7 @@ class ValidationOverlay<
       top: 0
     };
     if (state.hoverId && state.hoverInfo) {
-      const validationOutput = selectValidationById(state, state.hoverId);
+      const validationOutput = selectValidationByMatchId(state, state.hoverId);
       return this.setState({
         hoverInfo: state.hoverInfo,
         validationOutput,

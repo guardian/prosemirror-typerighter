@@ -47,14 +47,16 @@ class TyperighterAdapter implements IValidationAPIAdapter {
         onValidationReceived({
           validationSetId,
           validationId: input.validationId,
-          validationOutputs: validationData.results.map(match => ({
+          validationOutputs: validationData.results.map((match, index) => ({
+            matchId: `${input.validationId}--match-${index}`,
             validationId: input.validationId,
             inputString: input.inputString,
             from: input.from + match.fromPos,
             to: input.from + match.toPos,
             annotation: match.shortMessage,
             category: match.rule.category,
-            suggestions: match.suggestions
+            suggestions: match.suggestions,
+            autoApplyFirstSuggestion: match.rule.autoApplyFirstSuggestion
           }))
         });
       } catch (e) {

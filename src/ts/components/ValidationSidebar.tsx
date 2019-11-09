@@ -4,12 +4,14 @@ import { ApplySuggestionOptions } from "../commands";
 import { IPluginState, selectPercentRemaining } from "../state/state";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
 import { IValidationOutput } from "../interfaces/IValidation";
+import { selectAllAutoFixableValidations } from "../state/state";
 
 interface IProps {
   store: Store<IValidationOutput>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
-  selectValidation: (validationId: string) => void;
-  indicateHover: (validationId: string | undefined, _: any) => void;
+  applyAutoFixableSuggestions: () => void;
+  selectValidation: (matchId: string) => void;
+  indicateHover: (matchId: string | undefined, _: any) => void;
 }
 
 /**
@@ -27,14 +29,20 @@ class ValidationSidebar extends Component<
   }
 
   public render() {
-    const { applySuggestions, selectValidation, indicateHover } = this.props;
+    const {
+      applySuggestions,
+      applyAutoFixableSuggestions,
+      selectValidation,
+      indicateHover
+    } = this.props;
     const {
       currentValidations = [],
       validationsInFlight = [],
       validationPending = false,
-      selectedValidation
-    } = this.state.pluginState || { selectedValidation: undefined };
+      selectedMatch
+    } = this.state.pluginState || { selectedMatch: undefined };
     const hasValidations = !!(currentValidations && currentValidations.length);
+    const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
     const percentRemaining = this.getPercentRemaining();
     return (
       <div className="Sidebar__section">
@@ -53,6 +61,14 @@ class ValidationSidebar extends Component<
               }}
             />
           </span>
+          {!!noOfAutoFixableSuggestions && (
+            <button
+              class="Button flex-align-right"
+              onClick={applyAutoFixableSuggestions}
+            >
+              Fix all ({noOfAutoFixableSuggestions})
+            </button>
+          )}
         </div>
         <div className="Sidebar__content">
           {hasValidations && (
@@ -61,7 +77,7 @@ class ValidationSidebar extends Component<
                 <li className="Sidebar__list-item">
                   <ValidationSidebarOutput
                     output={output}
-                    selectedValidation={selectedValidation}
+                    selectedMatch={selectedMatch}
                     applySuggestions={applySuggestions}
                     selectValidation={selectValidation}
                     indicateHover={indicateHover}
@@ -80,9 +96,7 @@ class ValidationSidebar extends Component<
     );
   }
 
-  private handleNewState = (
-    pluginState: IPluginState<IValidationOutput>
-  ) => {
+  private handleNewState = (pluginState: IPluginState<IValidationOutput>) => {
     this.setState({
       pluginState: {
         ...pluginState,
@@ -99,6 +113,14 @@ class ValidationSidebar extends Component<
       return 0;
     }
     return selectPercentRemaining(state);
+  };
+
+  private getNoOfAutoFixableSuggestions = () => {
+    const state = this.state.pluginState;
+    if (!state) {
+      return 0;
+    }
+    return selectAllAutoFixableValidations(state).length;
   };
 }
 

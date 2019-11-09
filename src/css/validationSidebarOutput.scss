@@ -2,10 +2,6 @@
   padding: ($gutter-width / 2) ;
 }
 
-.ValidationSidebarOutput__container--is-selected {
-  border-left: 2px solid $validation-color;
-}
-
 .ValidationSidebarOutput__list-item:last-child {
   border-bottom: none;
 }

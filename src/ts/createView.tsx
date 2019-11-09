@@ -45,6 +45,7 @@ const createView = (
     <ValidationSidebar
       store={store}
       applySuggestions={commands.applySuggestions}
+      applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
       selectValidation={commands.selectValidation}
       indicateHover={commands.indicateHover}
     />,

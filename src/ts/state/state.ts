@@ -30,8 +30,6 @@ import { ExpandRanges } from "../createValidationPlugin";
 import { createValidationInputsForDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import { Mapping } from "prosemirror-transform";
-import without from "lodash/without";
-import map from "lodash/map";
 import { createValidationInput } from "../utils/validation";
 
 /**
@@ -84,8 +82,8 @@ export interface IPluginState<TValidationOutput extends IValidationOutput> {
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last validation pass.
   dirtiedRanges: IRange[];
-  // The currently selected validation;
-  selectedValidation: string | undefined;
+  // The currently selected match.
+  selectedMatch: string | undefined;
   // The id of the validation the user is currently hovering over.
   hoverId: string | undefined;
   // See StateHoverInfo.
@@ -113,22 +111,22 @@ const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
  * Action types.
  */
 
-const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
-const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
-const NEW_HOVER_ID = "NEW_HOVER_ID";
-const SELECT_VALIDATION = "SELECT_VALIDATION";
-const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
-const SET_DEBUG_STATE = "SET_DEBUG_STATE";
-const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
+const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START" as const;
+const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT" as const;
+const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS" as const;
+const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR" as const;
+const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
+const SELECT_VALIDATION = "SELECT_VALIDATION" as const;
+const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
+const SET_DEBUG_STATE = "SET_DEBUG_STATE" as const;
+const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE" as const;
 
 /**
  * Action creators.
  */
 
 export const validationRequestForDirtyRanges = (validationSetId: string) => ({
-  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES as typeof VALIDATION_REQUEST_FOR_DIRTY_RANGES,
+  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
   payload: { validationSetId }
 });
 type ActionValidationRequestForDirtyRanges = ReturnType<
@@ -136,7 +134,7 @@ type ActionValidationRequestForDirtyRanges = ReturnType<
 >;
 
 export const validationRequestForDocument = (validationSetId: string) => ({
-  type: VALIDATION_REQUEST_FOR_DOCUMENT as typeof VALIDATION_REQUEST_FOR_DOCUMENT,
+  type: VALIDATION_REQUEST_FOR_DOCUMENT,
   payload: { validationSetId }
 });
 type ActionValidationRequestForDocument = ReturnType<
@@ -148,7 +146,7 @@ export const validationRequestSuccess = <
 >(
   response: IValidationResponse<TValidationMeta>
 ) => ({
-  type: VALIDATION_REQUEST_SUCCESS as typeof VALIDATION_REQUEST_SUCCESS,
+  type: VALIDATION_REQUEST_SUCCESS,
   payload: { response }
 });
 // tslint:disable-next-line:interface-over-type-literal
@@ -160,7 +158,7 @@ type ActionValidationResponseReceived<
 };
 
 export const validationRequestError = (validationError: IValidationError) => ({
-  type: VALIDATION_REQUEST_ERROR as typeof VALIDATION_REQUEST_ERROR,
+  type: VALIDATION_REQUEST_ERROR,
   payload: { validationError }
 });
 type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
@@ -169,31 +167,31 @@ export const newHoverIdReceived = (
   hoverId: string | undefined,
   hoverInfo?: IStateHoverInfo | undefined
 ) => ({
-  type: NEW_HOVER_ID as typeof NEW_HOVER_ID,
+  type: NEW_HOVER_ID,
   payload: { hoverId, hoverInfo }
 });
 type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
 export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
-  type: APPLY_NEW_DIRTY_RANGES as typeof APPLY_NEW_DIRTY_RANGES,
+  type: APPLY_NEW_DIRTY_RANGES,
   payload: { ranges }
 });
 type ActionHandleNewDirtyRanges = ReturnType<typeof applyNewDirtiedRanges>;
 
-export const selectValidation = (validationId: string) => ({
-  type: SELECT_VALIDATION as typeof SELECT_VALIDATION,
-  payload: { validationId }
+export const selectMatch = (matchId: string) => ({
+  type: SELECT_VALIDATION,
+  payload: { matchId }
 });
-type ActionSelectValidation = ReturnType<typeof selectValidation>;
+type ActionSelectValidation = ReturnType<typeof selectMatch>;
 
 export const setDebugState = (debug: boolean) => ({
-  type: SET_DEBUG_STATE as typeof SET_DEBUG_STATE,
+  type: SET_DEBUG_STATE,
   payload: { debug }
 });
 type ActionSetDebugState = ReturnType<typeof setDebugState>;
 
 export const setValidateOnModifyState = (validateOnModify: boolean) => ({
-  type: SET_VALIDATE_ON_MODIFY_STATE as typeof SET_VALIDATE_ON_MODIFY_STATE,
+  type: SET_VALIDATE_ON_MODIFY_STATE,
   payload: { validateOnModify }
 });
 type ActionSetValidateOnModifyState = ReturnType<
@@ -222,7 +220,7 @@ export const createInitialState = <TValidationMeta extends IValidationOutput>(
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
   currentValidations: [],
-  selectedValidation: undefined,
+  selectedMatch: undefined,
   hoverId: undefined,
   hoverInfo: undefined,
   trHistory: [],
@@ -243,13 +241,20 @@ export const selectValidationsInFlight = <
   return state.validationsInFlight.validations;
 };
 
-export const selectValidationById = <TValidationMeta extends IValidationOutput>(
+export const selectValidationByMatchId = <
+  TValidationMeta extends IValidationOutput
+>(
   state: IPluginState<TValidationMeta>,
-  validationId: string
-): IValidationOutput | undefined =>
-  state.currentValidations.find(
-    validation => validation.validationId === validationId
-  );
+  matchId: string
+): TValidationMeta | undefined =>
+  state.currentValidations.find(validation => validation.matchId === matchId);
+
+export const selectAllAutoFixableValidations = <
+  TValidationMeta extends IValidationOutput
+>(
+  state: IPluginState<TValidationMeta>
+): TValidationMeta[] =>
+  state.currentValidations.filter(_ => _.autoApplyFirstSuggestion);
 
 export const selectValidationsInFlightForSet = <
   TValidationMeta extends IValidationOutput
@@ -333,10 +338,10 @@ export const selectSuggestionAndRange = <
   TValidationMeta extends IValidationOutput
 >(
   state: IPluginState<TValidationMeta>,
-  validationId: string,
+  matchId: string,
   suggestionIndex: number
 ) => {
-  const output = selectValidationById(state, validationId);
+  const output = selectValidationByMatchId(state, matchId);
   if (!output) {
     return null;
   }
@@ -451,7 +456,7 @@ const handleSelectValidation = <TValidationMeta extends IValidationOutput>(
 ): IPluginState<TValidationMeta> => {
   return {
     ...state,
-    selectedValidation: action.payload.validationId
+    selectedMatch: action.payload.matchId
   };
 };
 
@@ -468,29 +473,29 @@ const handleNewHoverId = <TValidationMeta extends IValidationOutput>(
   const currentHoverId = state.hoverId;
 
   // The current hover decorations are no longer valid -- remove them.
-  if (currentHoverId) {
-    decorations = decorations.remove(
-      state.decorations.find(
-        undefined,
-        undefined,
-        spec =>
-          spec.id === currentHoverId && spec.type === DECORATION_VALIDATION
-      )
-    );
-  }
+  const currentHoverDecorations = decorations.find(
+    undefined,
+    undefined,
+    spec =>
+      (spec.id === currentHoverId || spec.id === incomingHoverId) &&
+      spec.type === DECORATION_VALIDATION
+  );
+
+  decorations = decorations.remove(currentHoverDecorations);
 
   // Add the new decorations for the current and incoming validations.
-  decorations = [
-    { id: incomingHoverId, isHovering: true },
-    { id: currentHoverId, isHovering: false }
-  ].reduce((acc, hoverData) => {
-    const output = selectValidationById(state, hoverData.id || "");
+  const decorationData = [{ id: incomingHoverId, isSelected: true }];
+  if (incomingHoverId !== currentHoverId) {
+    decorationData.push({ id: currentHoverId, isSelected: false });
+  }
+  decorations = decorationData.reduce((acc, hoverData) => {
+    const output = selectValidationByMatchId(state, hoverData.id || "");
     if (!output) {
       return acc;
     }
     return decorations.add(
       tr.doc,
-      createDecorationForValidationRange(output, hoverData.isHovering, false)
+      createDecorationForValidationRange(output, hoverData.isSelected, false)
     );
   }, decorations);
 

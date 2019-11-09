@@ -15,7 +15,7 @@ Object {
   "hoverInfo": undefined,
   "initialThrottle": 100,
   "maxThrottle": 1000,
-  "selectedValidation": undefined,
+  "selectedMatch": undefined,
   "trHistory": Array [
     Transaction {
       "curSelection": undefined,

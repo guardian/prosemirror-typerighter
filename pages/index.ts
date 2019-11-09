@@ -55,7 +55,7 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new ValidationService(
     store,
     commands,
-    new TyperighterAdapter("http://localhost:9000")
+    new TyperighterAdapter("http://localhost:9000/check", "http://localhost:9000/categories")
   );
   (window as any).editor = view;
   createView(
