@@ -16,6 +16,7 @@ import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import ValidationService from "../src/ts/services/ValidationAPIService";
 import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
+import { TyperighterAdapter } from "../src/ts";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -55,11 +56,7 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new ValidationService(
     store,
     commands,
-<<<<<<< HEAD
     new TyperighterAdapter("http://localhost:9000/check", "http://localhost:9000/categories")
-=======
-    new TyperighterWsAdapter("ws://localhost:9000/check-ws", "http://localhost:9000/categories")
->>>>>>> Migrate state management to individual files for ease of use; nest matches inside blocks to ensure clean mappings; update treatment of incoming categories and blocks to allow arbitrary combinations of either
   );
   (window as any).editor = view;
   createView(

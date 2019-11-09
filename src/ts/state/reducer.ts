@@ -81,17 +81,17 @@ export interface IStateHoverInfo {
   heightOfSingleLine: number;
 }
 
-export interface IInFlightBlock {
+export interface IBlockQueryInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
   block: IBlock;
 }
 
-export interface IInFlightValidationSetState {
+export interface IBlockQueriesInFlightState {
   totalBlocks: number;
   // The category ids that were sent with the request.
   categoryIds: string[];
-  pendingBlocks: IInFlightBlock[];
+  pendingBlocks: IBlockQueryInFlight[];
   mapping: Mapping;
 }
 
@@ -120,120 +120,14 @@ export interface IPluginState<TBlockMatches extends IMatches = IMatches> {
   // The sets of blocks that have been sent to the validation service
   // and have not yet completed processing.
   blockQueriesInFlight: {
-    [requestId: string]: IInFlightValidationSetState;
+    [requestId: string]: IBlockQueriesInFlightState;
   };
   // The current error status.
   error: string | undefined;
 }
 
 // The transaction meta key that namespaces our actions.
-<<<<<<< HEAD:src/ts/state/state.ts
-const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
-
-/**
- * Action types.
- */
-
-const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START" as const;
-const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT" as const;
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS" as const;
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR" as const;
-const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
-const SELECT_VALIDATION = "SELECT_VALIDATION" as const;
-const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
-const SET_DEBUG_STATE = "SET_DEBUG_STATE" as const;
-const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE" as const;
-
-/**
- * Action creators.
- */
-
-export const validationRequestForDirtyRanges = (validationSetId: string) => ({
-  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
-  payload: { validationSetId }
-});
-type ActionValidationRequestForDirtyRanges = ReturnType<
-  typeof validationRequestForDirtyRanges
->;
-
-export const validationRequestForDocument = (validationSetId: string) => ({
-  type: VALIDATION_REQUEST_FOR_DOCUMENT,
-  payload: { validationSetId }
-});
-type ActionValidationRequestForDocument = ReturnType<
-  typeof validationRequestForDocument
->;
-
-export const validationRequestSuccess = <
-  TValidationMeta extends IValidationOutput
->(
-  response: IValidationResponse<TValidationMeta>
-) => ({
-  type: VALIDATION_REQUEST_SUCCESS,
-  payload: { response }
-});
-// tslint:disable-next-line:interface-over-type-literal
-type ActionValidationResponseReceived<
-  TValidationOutput extends IValidationOutput
-> = {
-  type: "VALIDATION_REQUEST_SUCCESS";
-  payload: { response: IValidationResponse<TValidationOutput> };
-};
-
-export const validationRequestError = (validationError: IValidationError) => ({
-  type: VALIDATION_REQUEST_ERROR,
-  payload: { validationError }
-});
-type ActionValidationRequestError = ReturnType<typeof validationRequestError>;
-
-export const newHoverIdReceived = (
-  hoverId: string | undefined,
-  hoverInfo?: IStateHoverInfo | undefined
-) => ({
-  type: NEW_HOVER_ID,
-  payload: { hoverId, hoverInfo }
-});
-type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
-
-export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
-  type: APPLY_NEW_DIRTY_RANGES,
-  payload: { ranges }
-});
-type ActionHandleNewDirtyRanges = ReturnType<typeof applyNewDirtiedRanges>;
-
-export const selectMatch = (matchId: string) => ({
-  type: SELECT_VALIDATION,
-  payload: { matchId }
-});
-type ActionSelectValidation = ReturnType<typeof selectMatch>;
-
-export const setDebugState = (debug: boolean) => ({
-  type: SET_DEBUG_STATE,
-  payload: { debug }
-});
-type ActionSetDebugState = ReturnType<typeof setDebugState>;
-
-export const setValidateOnModifyState = (validateOnModify: boolean) => ({
-  type: SET_VALIDATE_ON_MODIFY_STATE,
-  payload: { validateOnModify }
-});
-type ActionSetValidateOnModifyState = ReturnType<
-  typeof setValidateOnModifyState
->;
-
-type Action<TValidationMeta extends IValidationOutput> =
-  | ActionNewHoverIdReceived
-  | ActionValidationResponseReceived<TValidationMeta>
-  | ActionValidationRequestForDirtyRanges
-  | ActionValidationRequestForDocument
-  | ActionValidationRequestError
-  | ActionSelectValidation
-  | ActionHandleNewDirtyRanges
-  | ActionSetDebugState
-  | ActionSetValidateOnModifyState;
-=======
 export const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
->>>>>>> Migrate state management to individual files for ease of use; nest matches inside blocks to ensure clean mappings; update treatment of incoming categories and blocks to allow arbitrary combinations of either:src/ts/state/reducer.ts
 
 /**
  * Initial state.
@@ -254,142 +148,7 @@ export const createInitialState = <TValidationMeta extends IMatches>(
   error: undefined
 });
 
-<<<<<<< HEAD:src/ts/state/state.ts
-/**
- * Selectors.
- */
-
-export const selectValidationsInFlight = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>
-) => {
-  return state.validationsInFlight.validations;
-};
-
-export const selectValidationByMatchId = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>,
-  matchId: string
-): TValidationMeta | undefined =>
-  state.currentValidations.find(validation => validation.matchId === matchId);
-
-export const selectAllAutoFixableValidations = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>
-): TValidationMeta[] =>
-  state.currentValidations.filter(_ => _.autoApplyFirstSuggestion);
-
-export const selectValidationsInFlightForSet = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>,
-  validationSetId: string
-): IValidationInFlightState | undefined => {
-  return state.validationsInFlight[validationSetId];
-};
-
-export const selectValidationInFlightById = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>,
-  validationSetId: string,
-  validationId: string
-): IValidationInFlight | undefined => {
-  const validationInFlightState = selectValidationsInFlightForSet(
-    state,
-    validationSetId
-  );
-  if (!validationInFlightState) {
-    return;
-  }
-  return validationInFlightState.current.find(
-    _ => _.validationInput.validationId === validationId
-  );
-};
-
-export const selectAllValidationsInFlight = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>
-): IValidationInFlight[] =>
-  Object.values(state.validationsInFlight).reduce(
-    (acc, value) => acc.concat(value.current),
-    [] as IValidationInFlight[]
-  );
-
-type TSelectValidationInFlight = Array<{
-  validationSetId: string;
-  total: number;
-  current: IValidationInFlight[];
-}>;
-
-export const selectNewValidationInFlight = <
-  TValidationMeta extends IValidationOutput
->(
-  oldState: IPluginState<TValidationMeta>,
-  newState: IPluginState<TValidationMeta>
-): TSelectValidationInFlight =>
-  Object.keys(newState.validationsInFlight).reduce(
-    (acc, validationSetId) =>
-      !oldState.validationsInFlight[validationSetId]
-        ? acc.concat({
-            validationSetId,
-            ...selectValidationsInFlightForSet(newState, validationSetId)!
-          })
-        : acc,
-    [] as TSelectValidationInFlight
-  );
-
-export const selectPercentRemaining = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>
-) => {
-  const [sumOfTotals, sumOfValidations] = Object.values(
-    state.validationsInFlight
-  ).reduce(
-    ([totalsSum, currentSum], _) => [
-      totalsSum + _.total,
-      currentSum + _.current.length
-    ],
-    [0, 0]
-  );
-  return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
-};
-
-export const selectSuggestionAndRange = <
-  TValidationMeta extends IValidationOutput
->(
-  state: IPluginState<TValidationMeta>,
-  matchId: string,
-  suggestionIndex: number
-) => {
-  const output = selectValidationByMatchId(state, matchId);
-  if (!output) {
-    return null;
-  }
-  const suggestion = output.suggestions && output.suggestions[suggestionIndex];
-  if (!suggestion) {
-    return null;
-  }
-  return {
-    from: output.from,
-    to: output.to,
-    suggestion
-  };
-};
-
-/**
- * Reducer.
- */
-
-const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
-=======
 export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
->>>>>>> Migrate state management to individual files for ease of use; nest matches inside blocks to ensure clean mappings; update treatment of incoming categories and blocks to allow arbitrary combinations of either:src/ts/state/reducer.ts
   const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(
     expandRanges
   );
@@ -621,7 +380,7 @@ const handleValidationRequestStart = (
       )
     : state.decorations;
 
-  const newBlockQueriesInFlight: IInFlightBlock[] = blockQueries.map(block => ({
+  const newBlockQueriesInFlight: IBlockQueryInFlight[] = blockQueries.map(block => ({
     block,
     pendingCategoryIds: categoryIds
   }));
@@ -657,7 +416,7 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
   if (!currentBlockQueriesInFlight) {
     return state.blockQueriesInFlight;
   }
-  const newBlockQueriesInFlight: IInFlightValidationSetState = {
+  const newBlockQueriesInFlight: IBlockQueriesInFlightState = {
     ...currentBlockQueriesInFlight,
     pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
       (acc, blockInFlight) => {
@@ -675,7 +434,7 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
           ? acc.concat(newBlockInFlight)
           : acc;
       },
-      [] as IInFlightBlock[]
+      [] as IBlockQueryInFlight[]
     )
   };
   if (!newBlockQueriesInFlight.pendingBlocks.length) {

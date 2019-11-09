@@ -4,7 +4,7 @@ import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
-import { selectAllAutoFixableValidations } from "../state/state";
+import { selectAllAutoFixableValidations } from "../state/selectors";
 import { IMatches } from "../interfaces/IValidation";
 
 interface IProps {

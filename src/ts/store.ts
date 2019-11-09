@@ -13,7 +13,7 @@ type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 export interface IStoreEvents<TValidationMeta extends IMatches> {
   [STORE_EVENT_NEW_VALIDATION]: (
     requestId: string,
-    v: IBlock[]
+    blocks: IBlock[]
   ) => void;
   [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;

@@ -8,10 +8,12 @@ import {
   validationRequestSuccess,
   validationRequestError,
   validationRequestForDirtyRanges,
-  selectAllAutoFixableValidations,
   validationRequestComplete
 } from "./state/actions";
-import { selectBlockMatchesByMatchId } from "./state/selectors";
+import {
+  selectBlockMatchesByMatchId,
+  selectAllAutoFixableValidations
+} from "./state/selectors";
 import {
   VALIDATION_PLUGIN_ACTION,
   IPluginState,
@@ -94,9 +96,7 @@ export const indicateHoverCommand = (
 /**
  * Mark a given validation as active.
  */
-export const selectMatchCommand = <
-  TValidationOutput extends IMatches
->(
+export const selectMatchCommand = <TValidationOutput extends IMatches>(
   matchId: string,
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
@@ -106,9 +106,7 @@ export const selectMatchCommand = <
     return false;
   }
   if (dispatch) {
-    dispatch(
-      state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(matchId))
-    );
+    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(matchId)));
   }
   return true;
 };
@@ -186,9 +184,10 @@ export const applyValidationErrorCommand = (
  * that failed validation requests are reapplied as dirtied ranges
  * to be resent on the next request.
  */
-export const applyValidationCompleteCommand = (
-  requestId: string
-): Command => (state, dispatch) => {
+export const applyValidationCompleteCommand = (requestId: string): Command => (
+  state,
+  dispatch
+) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
@@ -208,9 +207,7 @@ export type ApplySuggestionOptions = Array<{
 /**
  * Applies a suggestion from a validation to the document.
  */
-export const applySuggestionsCommand = <
-  TValidationOutput extends IMatches
->(
+export const applySuggestionsCommand = <TValidationOutput extends IMatches>(
   suggestionOptions: ApplySuggestionOptions,
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
@@ -234,9 +231,7 @@ export const applySuggestionsCommand = <
 /**
  * Applies the first suggestion for each rule marked as auto-fixable.
  */
-export const applyAutoFixableSuggestionsCommand = <
-  TMatches extends IMatches
->(
+export const applyAutoFixableSuggestionsCommand = <TMatches extends IMatches>(
   getState: GetState<TMatches>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
@@ -297,10 +292,7 @@ export const createBoundCommands = <TValidationOutput extends IMatches>(
         view.dispatch
       ),
     selectMatch: (blockId: string) =>
-      selectMatchCommand(blockId, getState)(
-        view.state,
-        view.dispatch
-      ),
+      selectMatchCommand(blockId, getState)(view.state, view.dispatch),
     applyAutoFixableSuggestions: () =>
       applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
     validateDocument: bindCommand(validateDocumentCommand),

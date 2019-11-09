@@ -1,4 +1,4 @@
-import v4 from 'uuid/v4';
+import v4 from "uuid/v4";
 import { IBlock, IValidationResponse } from "../../interfaces/IValidation";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
@@ -21,7 +21,8 @@ export const convertTyperighterResponse = (
     to: match.toPos,
     annotation: match.shortMessage,
     category: match.rule.category,
-    suggestions: match.suggestions
+    suggestions: match.suggestions,
+    autoApplyFirstSuggestion: match.rule.autoApplyFirstSuggestion
   }))
 });
 
@@ -40,9 +41,9 @@ class TyperighterAdapter implements IValidationAPIAdapter {
     onValidationComplete: TValidationWorkCompleteCallback
   ) => {
     inputs.map(async input => {
-      const body: { text: string; id: string; categoryIds?: string[] } = {
-        id: input.id,
-        text: input.text,
+      const body = {
+        requestId,
+        blocks: [input],
         categoryIds
       };
       try {

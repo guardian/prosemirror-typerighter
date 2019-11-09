@@ -282,11 +282,11 @@ describe("selectors", () => {
             [input3, input4],
             exampleCategoryIds,
             exampleCategoryIds,
-            3
+            2
           )
         }
       };
-      expect(selectPercentRemaining(state)).toEqual(50);
+      expect(selectPercentRemaining(state)).toEqual(40);
     });
   });
 });
