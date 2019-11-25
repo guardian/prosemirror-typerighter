@@ -1,3 +1,4 @@
+import compact from "lodash/compact";
 import { IMatches } from "../interfaces/IValidation";
 import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
@@ -28,7 +29,11 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   public render() {
     const { output, applySuggestions, selectedMatch } = this.props;
     const color = `#${output.category.colour}`;
-    const hasSuggestions = !!output.suggestions;
+    const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
+    const suggestions = compact([
+      output.replacement,
+      ...(output.suggestions || [])
+    ]);
     return (
       <div
         className={`ValidationSidebarOutput__container ${
@@ -50,10 +55,11 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
             </div>
             <div className="ValidationSidebarOutput__header-meta">
               <div
-                className="Button ValidationSidebarOutput__header-range"
+                className="ValidationSidebarOutput__header-range"
                 onClick={this.scrollToRange}
               >
-                {output.from}-{output.to}
+                <span className="Button">{output.from}-{output.to}</span>
+                
               </div>
               <div
                 className="ValidationSidebarOutput__header-category"
@@ -71,12 +77,12 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
         </div>
         {this.state.isOpen && (
           <div className="ValidationSidebarOutput__content">
-            {output.suggestions && (
+            {suggestions.length && (
               <div className="ValidationSidebarOutput__suggestion-list">
                 <SuggestionList
                   applySuggestions={applySuggestions}
                   matchId={output.matchId}
-                  suggestions={output.suggestions}
+                  suggestions={suggestions}
                 />
               </div>
             )}

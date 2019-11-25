@@ -45,17 +45,19 @@ class ValidationControls extends Component<IProps, IState> {
     const { isOpen, isLoadingCategories } = this.state;
     return (
       <div className="Sidebar__section">
-        <div
-          className="Sidebar__header Sidebar__header-toggle"
-          onClick={this.toggleOpenState}
-        >
-          Controls
-          <div className="Sidebar__toggle-label">Show more</div>
+        <div className="Sidebar__header-container">
           <div
-            className="Sidebar__toggle"
-            style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+            className="Sidebar__header Sidebar__header-toggle"
+            onClick={this.toggleOpenState}
           >
-            ▼
+            Controls
+            <div className="Sidebar__toggle-label">Advanced</div>
+            <div
+              className="Sidebar__toggle"
+              style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+            >
+              ▼
+            </div>
           </div>
         </div>
         <div className="Sidebar__content">

@@ -3,12 +3,12 @@ import { ISuggestion } from "../../../interfaces/IValidation";
 export interface ITypeRighterResponse {
   blocks: ITypeRighterBlockResponse[];
   categoryIds: string[];
-  matches: ITypeRighterMatch[],
+  matches: ITypeRighterMatch[];
   requestId: string;
 }
 
 export interface ITypeRighterBlockResponse {
-  id: string,
+  id: string;
   text: string;
   from: number;
   to: number;
@@ -21,6 +21,7 @@ export interface ITypeRighterMatch {
   shortMessage: string;
   rule: ITypeRighterRule;
   suggestions: ISuggestion[];
+  markAsCorrect: boolean;
 }
 
 export interface ITypeRighterReplacement {
@@ -36,7 +37,7 @@ export interface ITypeRighterRule {
   description: string;
   id: string;
   suggestions: ISuggestion[];
-  autoApplyFirstSuggestion: boolean;
+  replacement?: ISuggestion;
   issueType: string;
 }
 

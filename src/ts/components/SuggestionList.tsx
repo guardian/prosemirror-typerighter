@@ -10,26 +10,20 @@ interface IProps {
   applySuggestions: (opts: ApplySuggestionOptions) => void;
 }
 
-const SuggestionList = ({
-  suggestions,
-  matchId,
-  applySuggestions
-}: IProps) => {
+const SuggestionList = ({ suggestions, matchId, applySuggestions }: IProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const firstSuggestion = suggestions[0];
   const otherSuggestions = suggestions.slice(1);
   return (
     <div className="ValidationSidebarOutput__suggestion-list">
-      {!suggestions.length ? (
-        <p>No suggestions found.</p>
-      ) : (
+      {suggestions.length ? (
         <Suggestion
           matchId={matchId}
           suggestion={firstSuggestion}
           applySuggestions={applySuggestions}
         />
-      )}
-      {!!otherSuggestions.length && (
+      ) : null}
+      {!!otherSuggestions.length ? (
         <div
           className="Button SuggestionList__see-more"
           onClick={() => setIsOpen(!isOpen)}
@@ -37,7 +31,7 @@ const SuggestionList = ({
           See {!isOpen ? "more" : "fewer"} suggestions (
           {otherSuggestions.length})
         </div>
-      )}
+      ) : null}
       {isOpen && (
         <Fragment>
           {otherSuggestions.map(suggestion => (

@@ -10,7 +10,7 @@ import {
   DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
-import { Plugin, Transaction, EditorState } from "prosemirror-state";
+import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
@@ -59,6 +59,7 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
   const reducer = createValidationPluginReducer(expandRanges);
 
   const plugin: Plugin = new Plugin({
+    key: new PluginKey('prosemirror-typerighter'),
     state: {
       init: (_, { doc }) => createInitialState(doc),
       apply(tr: Transaction, state: TPluginState): TPluginState {

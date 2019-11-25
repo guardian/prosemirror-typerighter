@@ -135,8 +135,10 @@ class ValidationOverlay<
 
   private getTooltipCoords = (hoverInfo: IStateHoverInfo) => {
     // The mouse offset isn't an integer, so we round it here to avoid oddness.
+    // @todo -- the plus three is a bit of a hack based on manual testing, but
+    // we should figure out why this is necessary and remove if possible.
     const isHoveringOverFirstLine =
-      hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);
+      hoverInfo.heightOfSingleLine + 3 >= Math.floor(hoverInfo.mouseOffsetY);
     const left = isHoveringOverFirstLine
       ? hoverInfo.offsetLeft
       : hoverInfo.left;

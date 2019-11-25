@@ -46,7 +46,8 @@ export interface IMatches<TSuggestion = ISuggestion> {
   annotation: string;
   category: ICategory;
   suggestions?: TSuggestion[];
-  autoApplyFirstSuggestion?: boolean;
+  replacement?: TSuggestion;
+  markAsCorrect: boolean;
 }
 
 export interface IBlockResult {

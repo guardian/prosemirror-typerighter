@@ -22,7 +22,8 @@ export const convertTyperighterResponse = (
     annotation: match.shortMessage,
     category: match.rule.category,
     suggestions: match.suggestions,
-    autoApplyFirstSuggestion: match.rule.autoApplyFirstSuggestion
+    replacement: match.rule.replacement,
+    markAsCorrect: match.markAsCorrect
   }))
 });
 

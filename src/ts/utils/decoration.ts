@@ -5,6 +5,8 @@ import { IRange, IMatches } from "../interfaces/IValidation";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
+export const DECORATION_VALIDATION_IS_CORRECT =
+  "DECORATION_VALIDATION_IS_CORRECT";
 export const DECORATION_VALIDATION_IS_SELECTED =
   "DECORATION_VALIDATION_IS_HOVERING";
 export const DECORATION_VALIDATION_HEIGHT_MARKER =
@@ -17,7 +19,8 @@ export const DecorationClassMap = {
   [DECORATION_INFLIGHT]: "ValidationDebugInflight",
   [DECORATION_VALIDATION]: "ValidationDecoration",
   [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
-  [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected"
+  [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected",
+  [DECORATION_VALIDATION_IS_CORRECT]: "ValidationDecoration--is-correct"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
@@ -101,11 +104,14 @@ export const createDecorationForValidationRange = (
   isSelected = false,
   addHeightMarker = true
 ) => {
-  const className = isSelected
+  let className = isSelected
     ? `${DecorationClassMap[DECORATION_VALIDATION]} ${
         DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
+  if (output.markAsCorrect) {
+    className += ` ${DecorationClassMap[DECORATION_VALIDATION_IS_CORRECT]}`;
+  }
   const opacity = isSelected ? "30" : "07";
   const style = `background-color: #${
     output.category.colour
