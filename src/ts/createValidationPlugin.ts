@@ -74,6 +74,7 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
     appendTransaction(trs: Transaction[], oldState, newState) {
       const oldPluginState: TPluginState = plugin.getState(oldState);
       const newPluginState: TPluginState = plugin.getState(newState);
+
       const tr = newState.tr;
 
       const newDirtiedRanges = trs.reduce(

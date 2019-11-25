@@ -14,6 +14,9 @@ import {
 } from "../../test/helpers/fixtures";
 
 describe("selectors", () => {
+  describe("selectAllAutoFixableValidations", () => {
+
+  })
   describe("selectValidationById", () => {
     it("should find the given validation by id", () => {
       expect(
@@ -154,7 +157,7 @@ describe("selectors", () => {
         selectSuggestionAndRange(
           {
             ...state,
-            currentValidations
+            currentValidations: currentValidations
           },
           "id",
           15
@@ -189,7 +192,7 @@ describe("selectors", () => {
         selectSuggestionAndRange(
           {
             ...state,
-            currentValidations
+            currentValidations: currentValidations
           },
           "match-id",
           0
@@ -206,7 +209,7 @@ describe("selectors", () => {
         selectSuggestionAndRange(
           {
             ...state,
-            currentValidations
+            currentValidations: currentValidations
           },
           "match-id",
           1

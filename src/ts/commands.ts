@@ -12,7 +12,7 @@ import {
 } from "./state/actions";
 import {
   selectBlockMatchesByMatchId,
-  selectAllAutoFixableValidations
+  selectAllAutoFixableMatches
 } from "./state/selectors";
 import {
   VALIDATION_PLUGIN_ACTION,
@@ -235,7 +235,7 @@ export const applyAutoFixableSuggestionsCommand = <TMatches extends IMatches>(
   getState: GetState<TMatches>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
-  const suggestionsToApply = selectAllAutoFixableValidations(pluginState).map(
+  const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(
     output => ({
       from: output.from,
       to: output.to,

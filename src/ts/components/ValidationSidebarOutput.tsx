@@ -37,7 +37,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
             : ""
         }`}
         style={{ borderLeft: `2px solid ${color}` }}
-        onMouseOver={this.handleMouseOver}
+        onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
       >
         <div
@@ -103,7 +103,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
     }
   };
 
-  private handleMouseOver = () => {
+  private handleMouseEnter = () => {
     this.props.indicateHover(this.props.output.matchId);
   };
 

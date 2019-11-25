@@ -4,7 +4,7 @@ import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
-import { selectAllAutoFixableValidations } from "../state/selectors";
+import { selectAllAutoFixableMatches } from "../state/selectors";
 import { IMatches } from "../interfaces/IValidation";
 
 interface IProps {
@@ -37,7 +37,7 @@ class ValidationSidebar extends Component<
       indicateHover
     } = this.props;
     const {
-      currentValidations = [],
+      currentValidations: currentValidations = [],
       blockQueriesInFlight = [],
       validationPending = false,
       selectedMatch
@@ -75,7 +75,7 @@ class ValidationSidebar extends Component<
           {hasValidations && (
             <ul className="Sidebar__list">
               {currentValidations.map(output => (
-                <li className="Sidebar__list-item">
+                <li className="Sidebar__list-item" key={output.matchId}>
                   <ValidationSidebarOutput
                     output={output}
                     selectedMatch={selectedMatch}
@@ -121,7 +121,7 @@ class ValidationSidebar extends Component<
     if (!state) {
       return 0;
     }
-    return selectAllAutoFixableValidations(state).length;
+    return selectAllAutoFixableMatches(state).length;
   };
 }
 

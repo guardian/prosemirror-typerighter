@@ -158,7 +158,7 @@ export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
     action?: Action<TValidationMeta>
   ): IPluginState<TValidationMeta> => {
     // There are certain things we need to do every time a transaction is dispatched, e.g. mapping ranges.
-    const state = getNewStateFromTransaction(tr, incomingState);
+    const state = tr.docChanged ? getNewStateFromTransaction(tr, incomingState) : incomingState;
 
     if (!action) {
       return state;
@@ -531,7 +531,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
   return {
     ...state,
     blockQueriesInFlight: newBlockQueriesInFlight,
-    currentValidations,
+    currentValidations: currentValidations,
     decorations: state.decorations
       .remove(decsToRemove)
       .add(tr.doc, newDecorations)

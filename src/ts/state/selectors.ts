@@ -127,7 +127,7 @@ export const selectSuggestionAndRange = <TValidationMeta extends IMatches>(
   };
 };
 
-export const selectAllAutoFixableValidations = <
+export const selectAllAutoFixableMatches = <
   TMatches extends IMatches
 >(
   state: IPluginState<TMatches>
