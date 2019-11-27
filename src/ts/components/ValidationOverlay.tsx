@@ -1,7 +1,8 @@
 import ValidationOutput from "./ValidationOutput";
 import { Component, h } from "preact";
-import { IStateHoverInfo, selectValidationByMatchId, IPluginState } from "../state/state";
-import { IValidationOutput } from "../interfaces/IValidation";
+import { IStateHoverInfo, IPluginState } from "../state/reducer";
+import { selectBlockMatchesByMatchId } from "../state/selectors";
+import { IMatches } from "../interfaces/IValidation";
 import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 
@@ -9,10 +10,10 @@ interface IState {
   left: number | undefined;
   top: number | undefined;
   hoverInfo: IStateHoverInfo | undefined;
-  validationOutput: IValidationOutput | undefined;
+  validationOutput: IMatches | undefined;
   isVisible: boolean;
 }
-interface IProps<TValidationOutput extends IValidationOutput> {
+interface IProps<TValidationOutput extends IMatches> {
   store: Store<TValidationOutput, IStoreEvents<TValidationOutput>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   // The element that contains the tooltips. Tooltips will be positioned
@@ -24,7 +25,7 @@ interface IProps<TValidationOutput extends IValidationOutput> {
  * An overlay to display validation tooltips. Subscribes to hover events.
  */
 class ValidationOverlay<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+  TValidationOutput extends IMatches = IMatches
 > extends Component<IProps<TValidationOutput>, IState> {
   public state: IState = {
     isVisible: false,
@@ -82,14 +83,14 @@ class ValidationOverlay<
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleNotify = (state: IPluginState<IValidationOutput>) => {
+  private handleNotify = (state: IPluginState<IMatches>) => {
     const newState = {
       isVisible: false,
       left: 0,
       top: 0
     };
     if (state.hoverId && state.hoverInfo) {
-      const validationOutput = selectValidationByMatchId(state, state.hoverId);
+      const validationOutput = selectBlockMatchesByMatchId(state, state.hoverId);
       return this.setState({
         hoverInfo: state.hoverInfo,
         validationOutput,
@@ -134,8 +135,10 @@ class ValidationOverlay<
 
   private getTooltipCoords = (hoverInfo: IStateHoverInfo) => {
     // The mouse offset isn't an integer, so we round it here to avoid oddness.
+    // @todo -- the plus three is a bit of a hack based on manual testing, but
+    // we should figure out why this is necessary and remove if possible.
     const isHoveringOverFirstLine =
-      hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);
+      hoverInfo.heightOfSingleLine + 3 >= Math.floor(hoverInfo.mouseOffsetY);
     const left = isHoveringOverFirstLine
       ? hoverInfo.offsetLeft
       : hoverInfo.left;

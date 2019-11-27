@@ -1,4 +1,5 @@
-import { IValidationOutput } from "../interfaces/IValidation";
+import compact from "lodash/compact";
+import { IMatches } from "../interfaces/IValidation";
 import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
@@ -6,10 +7,10 @@ import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 
 interface IProps {
-  output: IValidationOutput;
+  output: IMatches;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectValidation: (matchId: string) => void;
-  indicateHover: (validationId: string | undefined, _?: any) => void;
+  indicateHover: (blockId: string | undefined, _?: any) => void;
   selectedMatch: string | undefined;
 }
 
@@ -28,7 +29,11 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   public render() {
     const { output, applySuggestions, selectedMatch } = this.props;
     const color = `#${output.category.colour}`;
-    const hasSuggestions = !!output.suggestions;
+    const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
+    const suggestions = compact([
+      output.replacement,
+      ...(output.suggestions || [])
+    ]);
     return (
       <div
         className={`ValidationSidebarOutput__container ${
@@ -37,7 +42,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
             : ""
         }`}
         style={{ borderLeft: `2px solid ${color}` }}
-        onMouseOver={this.handleMouseOver}
+        onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
       >
         <div
@@ -50,10 +55,11 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
             </div>
             <div className="ValidationSidebarOutput__header-meta">
               <div
-                className="Button ValidationSidebarOutput__header-range"
+                className="ValidationSidebarOutput__header-range"
                 onClick={this.scrollToRange}
               >
-                {output.from}-{output.to}
+                <span className="Button">{output.from}-{output.to}</span>
+                
               </div>
               <div
                 className="ValidationSidebarOutput__header-category"
@@ -71,12 +77,12 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
         </div>
         {this.state.isOpen && (
           <div className="ValidationSidebarOutput__content">
-            {output.suggestions && (
+            {suggestions.length && (
               <div className="ValidationSidebarOutput__suggestion-list">
                 <SuggestionList
                   applySuggestions={applySuggestions}
                   matchId={output.matchId}
-                  suggestions={output.suggestions}
+                  suggestions={suggestions}
                 />
               </div>
             )}
@@ -103,7 +109,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
     }
   };
 
-  private handleMouseOver = () => {
+  private handleMouseEnter = () => {
     this.props.indicateHover(this.props.output.matchId);
   };
 

@@ -1,16 +1,16 @@
 import { Transaction } from "prosemirror-state";
-import { IRange } from "../interfaces/IValidation";
+import { IRange, IBlock } from "../interfaces/IValidation";
 
-export const createValidationInput = (tr: Transaction, range: IRange) => {
-  const inputString = tr.doc.textBetween(range.from, range.to);
+export const createBlock = (tr: Transaction, range: IRange): IBlock => {
+  const text = tr.doc.textBetween(range.from, range.to);
   return {
-    inputString,
+    text,
     ...range,
-    validationId: createValidationId(tr.time, range.from, range.to)
+    id: createBlockId(tr.time, range.from, range.to)
   };
 };
 
-export const createValidationId = (time: number, from: number, to: number) =>
+export const createBlockId = (time: number, from: number, to: number) =>
   `${time}-from:${from}-to:${to}`;
 
 export const createMatchId = (
@@ -18,4 +18,4 @@ export const createMatchId = (
   from: number,
   to: number,
   index: number = 0
-) => `${createValidationId(time, from, to)}--match-${index}`;
+) => `${createBlockId(time, from, to)}--match-${index}`;

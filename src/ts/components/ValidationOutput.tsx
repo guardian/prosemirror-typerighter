@@ -1,15 +1,15 @@
 import { Component, h } from "preact";
-import { IValidationOutput } from "../interfaces/IValidation";
+import { IMatches } from "../interfaces/IValidation";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 
-interface IValidationOutputProps<TValidationOutput extends IValidationOutput> {
+interface IValidationOutputProps<TValidationOutput extends IMatches> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   validationOutput: TValidationOutput;
 }
 
 class ValidationOutput<
-  TValidationOutput extends IValidationOutput
+  TValidationOutput extends IMatches
 > extends Component<IValidationOutputProps<TValidationOutput>> {
   public ref: HTMLDivElement | undefined;
   public render({

@@ -3,8 +3,8 @@
  */
 
 import {
-  IValidationInput,
-  IValidationOutput,
+  IBlock,
+  IMatches,
   ICategory,
   IValidationResponse,
   IValidationError
@@ -14,17 +14,18 @@ import {
  * @internal
  */
 export declare class IValidationAPIAdapter<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+  TValidationOutput extends IMatches = IMatches
 > {
   /**
    * Fetch the validation outputs for the given inputs.
    */
-  public fetchValidationOutputs: (
-    validationSetId: string,
-    input: IValidationInput[],
+  public fetchMatches: (
+    requestId: string,
+    input: IBlock[],
     categoryIds: string[],
     onValidationReceived: TValidationReceivedCallback<TValidationOutput>,
-    onValidationError: TValidationErrorCallback
+    onValidationError: TValidationErrorCallback,
+    onValidationComplete: TValidationWorkCompleteCallback
   ) => void;
 
   /**
@@ -32,17 +33,15 @@ export declare class IValidationAPIAdapter<
    */
   public fetchCategories: () => Promise<ICategory[]>;
 
-  constructor(
-    apiUrl: string,
-    onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback
-  );
+  constructor(apiUrl: string);
 }
 
 export type TValidationReceivedCallback<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+  TValidationOutput extends IMatches = IMatches
 > = (response: IValidationResponse<TValidationOutput>) => void;
 
 export type TValidationErrorCallback = (
   validationError: IValidationError
 ) => void;
+
+export type TValidationWorkCompleteCallback = (requestId: string) => void;

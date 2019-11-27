@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`State management Action handlers validationRequestSuccess should create decorations for the incoming validations 1`] = `
+exports[`Action handlers validationRequestSuccess should create decorations for the incoming validations 1`] = `
 Object {
+  "blockQueriesInFlight": Object {},
   "currentThrottle": 100,
   "currentValidations": Array [],
   "debug": false,
@@ -50,6 +51,5 @@ Object {
   ],
   "validateOnModify": true,
   "validationPending": false,
-  "validationsInFlight": Object {},
 }
 `;

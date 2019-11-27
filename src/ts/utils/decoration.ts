@@ -1,10 +1,12 @@
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, IValidationOutput } from "../interfaces/IValidation";
+import { IRange, IMatches } from "../interfaces/IValidation";
 
 // Our decoration types.
 export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
+export const DECORATION_VALIDATION_IS_CORRECT =
+  "DECORATION_VALIDATION_IS_CORRECT";
 export const DECORATION_VALIDATION_IS_SELECTED =
   "DECORATION_VALIDATION_IS_HOVERING";
 export const DECORATION_VALIDATION_HEIGHT_MARKER =
@@ -17,7 +19,8 @@ export const DecorationClassMap = {
   [DECORATION_INFLIGHT]: "ValidationDebugInflight",
   [DECORATION_VALIDATION]: "ValidationDecoration",
   [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
-  [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected"
+  [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected",
+  [DECORATION_VALIDATION_IS_CORRECT]: "ValidationDecoration--is-correct"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
@@ -69,18 +72,15 @@ export const removeDecorationsFromRanges = (
  * returns a new decoration set containing the new validations.
  */
 export const getNewDecorationsForCurrentValidations = (
-  outputs: IValidationOutput[],
+  outputs: IMatches[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
-  // Remove existing validations for the ranges
-  const newDecorationSet = removeDecorationsFromRanges(decorationSet, outputs);
-
   // There are new validations available; apply them to the document.
   const decorationsToAdd = createDecorationsForValidationRanges(outputs);
 
   // Finally, we add the existing decorations to this new map.
-  return newDecorationSet.add(doc, decorationsToAdd);
+  return decorationSet.add(doc, decorationsToAdd);
 };
 
 /**
@@ -100,15 +100,18 @@ const createHeightMarkerElement = (id: string) => {
  * Create a validation decoration for the given range.
  */
 export const createDecorationForValidationRange = (
-  output: IValidationOutput,
+  output: IMatches,
   isSelected = false,
   addHeightMarker = true
 ) => {
-  const className = isSelected
+  let className = isSelected
     ? `${DecorationClassMap[DECORATION_VALIDATION]} ${
         DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]
       }`
     : DecorationClassMap[DECORATION_VALIDATION];
+  if (output.markAsCorrect) {
+    className += ` ${DecorationClassMap[DECORATION_VALIDATION_IS_CORRECT]}`;
+  }
   const opacity = isSelected ? "30" : "07";
   const style = `background-color: #${
     output.category.colour
@@ -126,6 +129,7 @@ export const createDecorationForValidationRange = (
       {
         type: DECORATION_VALIDATION,
         id: output.matchId,
+        categoryId: output.category.id,
         inclusiveStart: true
       } as any
     )
@@ -139,16 +143,16 @@ export const createDecorationForValidationRange = (
           createHeightMarkerElement(output.matchId),
           {
             type: DECORATION_VALIDATION_HEIGHT_MARKER,
-            id: output.matchId
+            id: output.matchId,
+            categoryId: output.category.id
           } as any
         )
       ]
     : decorationArray;
 };
 
-export const createDecorationsForValidationRanges = (
-  ranges: IValidationOutput[]
-) => flatten(ranges.map(_ => createDecorationForValidationRange(_)));
+export const createDecorationsForValidationRanges = (ranges: IMatches[]) =>
+  flatten(ranges.map(_ => createDecorationForValidationRange(_)));
 
 export const findSingleDecoration = (
   decorationSet: DecorationSet,

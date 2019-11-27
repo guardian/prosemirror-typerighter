@@ -5,7 +5,7 @@ import Store from "./store";
 import ValidationSidebar from "./components/ValidationSidebar";
 import ValidationControls from "./components/ValidationControls";
 import { Commands } from "./commands";
-import { IValidationOutput } from "./interfaces/IValidation";
+import { IMatches } from "./interfaces/IValidation";
 import { ValidationService } from ".";
 
 /**
@@ -13,8 +13,8 @@ import { ValidationService } from ".";
  */
 const createView = (
   view: EditorView,
-  store: Store<IValidationOutput>,
-  validationService: ValidationService<IValidationOutput>,
+  store: Store<IMatches>,
+  validationService: ValidationService<IMatches>,
   commands: Commands,
   sidebarNode: Element,
   controlsNode: Element
@@ -46,7 +46,7 @@ const createView = (
       store={store}
       applySuggestions={commands.applySuggestions}
       applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-      selectValidation={commands.selectValidation}
+      selectValidation={commands.selectMatch}
       indicateHover={commands.indicateHover}
     />,
     sidebarNode

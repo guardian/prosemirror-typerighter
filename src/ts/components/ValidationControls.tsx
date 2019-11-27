@@ -1,14 +1,14 @@
 import { Component, h } from "preact";
-import v4 from 'uuid/v4';
+import v4 from "uuid/v4";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
-import { IPluginState } from "../state/state";
-import { IValidationOutput, ICategory } from "../interfaces/IValidation";
+import { IPluginState } from "../state/reducer";
+import { IMatches, ICategory } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IValidationOutput>;
+  store: Store<IMatches>;
   setDebugState: (debug: boolean) => void;
   setValidateOnModifyState: (validate: boolean) => void;
-  validateDocument: (validationSetId: string) => void;
+  validateDocument: (requestId: string, categoryIds: string[]) => void;
   fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
@@ -16,7 +16,7 @@ interface IProps {
 }
 
 interface IState {
-  pluginState?: IPluginState<IValidationOutput>;
+  pluginState?: IPluginState<IMatches>;
   isOpen: boolean;
   allCategories: ICategory[];
   currentCategories: ICategory[];
@@ -45,17 +45,19 @@ class ValidationControls extends Component<IProps, IState> {
     const { isOpen, isLoadingCategories } = this.state;
     return (
       <div className="Sidebar__section">
-        <div
-          className="Sidebar__header Sidebar__header-toggle"
-          onClick={this.toggleOpenState}
-        >
-          Controls
-          <div className="Sidebar__toggle-label">Show more</div>
+        <div className="Sidebar__header-container">
           <div
-            className="Sidebar__toggle"
-            style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+            className="Sidebar__header Sidebar__header-toggle"
+            onClick={this.toggleOpenState}
           >
-            ▼
+            Controls
+            <div className="Sidebar__toggle-label">Advanced</div>
+            <div
+              className="Sidebar__toggle"
+              style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+            >
+              ▼
+            </div>
           </div>
         </div>
         <div className="Sidebar__content">
@@ -152,7 +154,7 @@ class ValidationControls extends Component<IProps, IState> {
       </div>
     );
   }
-  private handleNotify = (state: IPluginState<IValidationOutput>) => {
+  private handleNotify = (state: IPluginState<IMatches>) => {
     this.setState({ pluginState: state });
   };
   private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
@@ -193,8 +195,11 @@ class ValidationControls extends Component<IProps, IState> {
   };
 
   private validateDocument = () => {
-    this.props.validateDocument(v4())
-  }
+    this.props.validateDocument(
+      v4(),
+      this.props.getCurrentCategories().map(_ => _.id)
+    );
+  };
 }
 
 export default ValidationControls;

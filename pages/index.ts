@@ -15,7 +15,8 @@ import createValidatorPlugin from "../src/ts/createValidationPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import ValidationService from "../src/ts/services/ValidationAPIService";
-import TyperighterAdapter from "../src/ts/services/adapters/TyperighterAdapter";
+import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
+import { TyperighterAdapter } from "../src/ts";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),

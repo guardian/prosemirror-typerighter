@@ -21,12 +21,21 @@
   margin-top: $gutter-width;
 }
 
+.Sidebar__header-container {
+  position: relative;
+  padding: $gutter-width $gutter-width/2;
+  border-bottom: 1px solid $sidebar-border-color;
+}
+
+.Sidebar__header-contact {
+  margin-top: 5px;
+  font-size: 11px;
+}
+
 .Sidebar__header {
   display: flex;
   position: relative;
   flex-shrink: 0;
-  border-bottom: 1px solid $sidebar-border-color;
-  padding: $gutter-width $gutter-width/2;
   font-weight: 500;
   justify-content: space-between;
 }
@@ -45,7 +54,8 @@
   color: #aaa;
 }
 
-.Sidebar__toggle, .Sidebar__toggle-label {
+.Sidebar__toggle,
+.Sidebar__toggle-label {
   align-self: baseline;
   font-size: 0.8em;
 }

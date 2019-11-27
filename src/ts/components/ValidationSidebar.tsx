@@ -1,13 +1,15 @@
 import { Component, h } from "preact";
+import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { ApplySuggestionOptions } from "../commands";
-import { IPluginState, selectPercentRemaining } from "../state/state";
+import { IPluginState } from "../state/reducer";
+import { selectPercentRemaining } from "../state/selectors";
 import ValidationSidebarOutput from "./ValidationSidebarOutput";
-import { IValidationOutput } from "../interfaces/IValidation";
-import { selectAllAutoFixableValidations } from "../state/state";
+import { selectAllAutoFixableMatches } from "../state/selectors";
+import { IMatches } from "../interfaces/IValidation";
 
 interface IProps {
-  store: Store<IValidationOutput>;
+  store: Store<IMatches>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
   selectValidation: (matchId: string) => void;
@@ -20,7 +22,7 @@ interface IProps {
 class ValidationSidebar extends Component<
   IProps,
   {
-    pluginState: IPluginState<IValidationOutput> | undefined;
+    pluginState: IPluginState<IMatches> | undefined;
     groupResults: boolean;
   }
 > {
@@ -36,8 +38,8 @@ class ValidationSidebar extends Component<
       indicateHover
     } = this.props;
     const {
-      currentValidations = [],
-      validationsInFlight = [],
+      currentValidations: currentValidations = [],
+      blockQueriesInFlight = [],
       validationPending = false,
       selectedMatch
     } = this.state.pluginState || { selectedMatch: undefined };
@@ -46,35 +48,42 @@ class ValidationSidebar extends Component<
     const percentRemaining = this.getPercentRemaining();
     return (
       <div className="Sidebar__section">
-        <div className="Sidebar__header">
-          <span>
-            Validation results{" "}
-            {hasValidations && <span>({currentValidations.length}) </span>}
-            {(validationsInFlight.length || validationPending) && (
-              <span className="Sidebar__loading-spinner">|</span>
+        <div className="Sidebar__header-container">
+          <div className="Sidebar__header">
+            <span>
+              Validation results{" "}
+              {hasValidations && <span>({currentValidations.length}) </span>}
+              {(blockQueriesInFlight.length || validationPending) && (
+                <span className="Sidebar__loading-spinner">|</span>
+              )}
+              
+            </span>
+            {!!noOfAutoFixableSuggestions && (
+              <button
+                class="Button flex-align-right"
+                onClick={applyAutoFixableSuggestions}
+              >
+                Fix all ({noOfAutoFixableSuggestions})
+              </button>
             )}
-            <div
-              class="LoadingBar"
-              style={{
-                opacity: percentRemaining === 0 ? 0 : 1,
-                width: `${100 - percentRemaining}%`
-              }}
-            />
-          </span>
-          {!!noOfAutoFixableSuggestions && (
-            <button
-              class="Button flex-align-right"
-              onClick={applyAutoFixableSuggestions}
-            >
-              Fix all ({noOfAutoFixableSuggestions})
-            </button>
-          )}
+          </div>
+          <div className="Sidebar__header-contact">
+            <a href="mailto:tbc@example.co.uk">Issue with a rule? Let us know!</a>
+          </div> 
+          <div
+            class="LoadingBar"
+            style={{
+              opacity: percentRemaining === 0 ? 0 : 1,
+              width: `${100 - percentRemaining}%`
+            }}
+          />
         </div>
+
         <div className="Sidebar__content">
           {hasValidations && (
             <ul className="Sidebar__list">
               {currentValidations.map(output => (
-                <li className="Sidebar__list-item">
+                <li className="Sidebar__list-item" key={output.matchId}>
                   <ValidationSidebarOutput
                     output={output}
                     selectedMatch={selectedMatch}
@@ -96,13 +105,11 @@ class ValidationSidebar extends Component<
     );
   }
 
-  private handleNewState = (pluginState: IPluginState<IValidationOutput>) => {
+  private handleNewState = (pluginState: IPluginState<IMatches>) => {
     this.setState({
       pluginState: {
         ...pluginState,
-        currentValidations: pluginState.currentValidations.sort((a, b) =>
-          a.from > b.from ? 1 : -1
-        )
+        currentValidations: sortBy(pluginState.currentValidations, "from")
       }
     });
   };
@@ -120,7 +127,7 @@ class ValidationSidebar extends Component<
     if (!state) {
       return 0;
     }
-    return selectAllAutoFixableValidations(state).length;
+    return selectAllAutoFixableMatches(state).length;
   };
 }
 

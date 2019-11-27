@@ -1,9 +1,17 @@
 import { ISuggestion } from "../../../interfaces/IValidation";
 
 export interface ITypeRighterResponse {
-  input: string;
+  blocks: ITypeRighterBlockResponse[];
+  categoryIds: string[];
+  matches: ITypeRighterMatch[];
+  requestId: string;
+}
+
+export interface ITypeRighterBlockResponse {
   id: string;
-  results: ITypeRighterMatch[];
+  text: string;
+  from: number;
+  to: number;
 }
 
 export interface ITypeRighterMatch {
@@ -13,6 +21,7 @@ export interface ITypeRighterMatch {
   shortMessage: string;
   rule: ITypeRighterRule;
   suggestions: ISuggestion[];
+  markAsCorrect: boolean;
 }
 
 export interface ITypeRighterReplacement {
@@ -28,7 +37,7 @@ export interface ITypeRighterRule {
   description: string;
   id: string;
   suggestions: ISuggestion[];
-  autoApplyFirstSuggestion: boolean;
+  replacement?: ISuggestion;
   issueType: string;
 }
 

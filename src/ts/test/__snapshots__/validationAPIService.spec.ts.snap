@@ -1,9 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`ValidationAPIService should handle validation errors 1`] = `
-Object {
-  "message": "Error fetching validations. The server responded with status code 400: Bad Request",
-  "validationId": "0-from:0-to:10",
-  "validationSetId": "set-id",
-}
-`;

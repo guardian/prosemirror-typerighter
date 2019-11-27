@@ -2,8 +2,8 @@ import clamp from "lodash/clamp";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
-import { IRange, IValidationOutput } from "../interfaces/IValidation";
-import { IValidationInput } from "../interfaces/IValidation";
+import { IRange } from "../interfaces/IValidation";
+import { IBlock } from "../interfaces/IValidation";
 import { Mapping } from "prosemirror-transform";
 
 /**
@@ -44,14 +44,15 @@ export const removeOverlappingRanges = <
   SecondRange extends IRange
 >(
   firstRanges: FirstRange[],
-  secondRanges: SecondRange[]
+  secondRanges: SecondRange[],
+  predicate?: (range: FirstRange) => boolean
 ) => {
   return firstRanges.reduce(
-    (acc, range) => {
-      return findOverlappingRangeIndex(range, secondRanges) === -1
+    (acc, range) =>
+      (predicate && predicate(range)) ||
+      findOverlappingRangeIndex(range, secondRanges) === -1
         ? acc.concat(range)
-        : acc;
-    },
+        : acc,
     [] as FirstRange[]
   );
 };
@@ -124,35 +125,10 @@ export const diffRanges = (
   );
 };
 
-export const validationInputToRange = (input: IValidationInput): IRange => ({
+export const validationInputToRange = (input: IBlock): IRange => ({
   from: input.from,
   to: input.to
 });
-
-/**
- * Get the current set of validations for the given response.
- */
-export const getCurrentValidationsFromValidationResponse = <
-  TValidationOutput extends IValidationOutput
->(
-  input: IValidationInput,
-  incomingOutputs: TValidationOutput[],
-  currentOutputs: TValidationOutput[],
-  mapping: Mapping
-): TValidationOutput[] => {
-  if (!incomingOutputs.length) {
-    return currentOutputs;
-  }
-
-  // Map _all_ the things.
-  const mappedInputs = mapRanges([input], mapping);
-
-  const newOutputs = mapAndMergeRanges(incomingOutputs, mapping);
-
-  return removeOverlappingRanges(currentOutputs, mappedInputs).concat(
-    newOutputs
-  );
-};
 
 /**
  * Expand a range in a document to encompass the nearest ancestor block node.

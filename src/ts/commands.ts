@@ -1,23 +1,28 @@
 import { Transaction, EditorState } from "prosemirror-state";
 import {
-  VALIDATION_PLUGIN_ACTION,
   newHoverIdReceived,
-  selectValidationByMatchId,
-  IPluginState,
   validationRequestForDocument,
   selectMatch,
   setDebugState,
   setValidateOnModifyState,
-  IStateHoverInfo,
   validationRequestSuccess,
   validationRequestError,
   validationRequestForDirtyRanges,
-  selectAllAutoFixableValidations
-} from "./state/state";
+  validationRequestComplete
+} from "./state/actions";
+import {
+  selectBlockMatchesByMatchId,
+  selectAllAutoFixableMatches
+} from "./state/selectors";
+import {
+  VALIDATION_PLUGIN_ACTION,
+  IPluginState,
+  IStateHoverInfo
+} from "./state/reducer";
 import {
   IValidationResponse,
   IValidationError,
-  IValidationOutput
+  IMatches
 } from "./interfaces/IValidation";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
@@ -27,22 +32,22 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TValidationOutput extends IValidationOutput> = (
+type GetState<TValidationOutput extends IMatches> = (
   state: EditorState
 ) => IPluginState<TValidationOutput>;
 
 /**
  * Validates an entire document.
  */
-export const validateDocumentCommand = (validationSetId: string): Command => (
-  state,
-  dispatch
-) => {
+export const validateDocumentCommand = (
+  requestId: string,
+  categoryIds: string[]
+): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         VALIDATION_PLUGIN_ACTION,
-        validationRequestForDocument(validationSetId)
+        validationRequestForDocument(requestId, categoryIds)
       )
     );
   }
@@ -53,13 +58,14 @@ export const validateDocumentCommand = (validationSetId: string): Command => (
  * Validates the current set of dirty ranges.
  */
 export const validateDirtyRangesCommand = (
-  validationSetId: string
+  requestId: string,
+  categoryIds: string[]
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         VALIDATION_PLUGIN_ACTION,
-        validationRequestForDirtyRanges(validationSetId)
+        validationRequestForDirtyRanges(requestId, categoryIds)
       )
     );
   }
@@ -73,14 +79,14 @@ export const validateDirtyRangesCommand = (
  * over a validation decoration) to allow the positioning of e.g. tooltips.
  */
 export const indicateHoverCommand = (
-  id: string | undefined,
+  matchId: string | undefined,
   hoverInfo: IStateHoverInfo | undefined
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         VALIDATION_PLUGIN_ACTION,
-        newHoverIdReceived(id, hoverInfo)
+        newHoverIdReceived(matchId, hoverInfo)
       )
     );
   }
@@ -90,21 +96,17 @@ export const indicateHoverCommand = (
 /**
  * Mark a given validation as active.
  */
-export const selectValidationCommand = <
-  TValidationOutput extends IValidationOutput
->(
-  validationId: string,
+export const selectMatchCommand = <TValidationOutput extends IMatches>(
+  matchId: string,
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
-  const output = selectValidationByMatchId(pluginState, validationId);
+  const output = selectBlockMatchesByMatchId(pluginState, matchId);
   if (!output) {
     return false;
   }
   if (dispatch) {
-    dispatch(
-      state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(validationId))
-    );
+    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(matchId)));
   }
   return true;
 };
@@ -177,6 +179,26 @@ export const applyValidationErrorCommand = (
   return true;
 };
 
+/**
+ * Apply a validation error to the document. Important to ensure
+ * that failed validation requests are reapplied as dirtied ranges
+ * to be resent on the next request.
+ */
+export const applyValidationCompleteCommand = (requestId: string): Command => (
+  state,
+  dispatch
+) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        VALIDATION_PLUGIN_ACTION,
+        validationRequestComplete(requestId)
+      )
+    );
+  }
+  return true;
+};
+
 export type ApplySuggestionOptions = Array<{
   matchId: string;
   text: string;
@@ -185,16 +207,14 @@ export type ApplySuggestionOptions = Array<{
 /**
  * Applies a suggestion from a validation to the document.
  */
-export const applySuggestionsCommand = <
-  TValidationOutput extends IValidationOutput
->(
+export const applySuggestionsCommand = <TValidationOutput extends IMatches>(
   suggestionOptions: ApplySuggestionOptions,
   getState: GetState<TValidationOutput>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const suggestionsToApply = suggestionOptions
     .map(opt => {
-      const validation = selectValidationByMatchId(pluginState, opt.matchId);
+      const validation = selectBlockMatchesByMatchId(pluginState, opt.matchId);
       return validation
         ? {
             from: validation.from,
@@ -211,13 +231,11 @@ export const applySuggestionsCommand = <
 /**
  * Applies the first suggestion for each rule marked as auto-fixable.
  */
-export const applyAutoFixableSuggestionsCommand = <
-  TValidationOutput extends IValidationOutput
->(
-  getState: GetState<TValidationOutput>
+export const applyAutoFixableSuggestionsCommand = <TMatches extends IMatches>(
+  getState: GetState<TMatches>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
-  const suggestionsToApply = selectAllAutoFixableValidations(pluginState).map(
+  const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(
     output => ({
       from: output.from,
       to: output.to,
@@ -260,9 +278,7 @@ const maybeApplySuggestions = (
   return true;
 };
 
-export const createBoundCommands = <
-  TValidationOutput extends IValidationOutput
->(
+export const createBoundCommands = <TValidationOutput extends IMatches>(
   view: EditorView,
   getState: GetState<TValidationOutput>
 ) => {
@@ -275,11 +291,8 @@ export const createBoundCommands = <
         view.state,
         view.dispatch
       ),
-    selectValidation: (validationId: string) =>
-      selectValidationCommand(validationId, getState)(
-        view.state,
-        view.dispatch
-      ),
+    selectMatch: (blockId: string) =>
+      selectMatchCommand(blockId, getState)(view.state, view.dispatch),
     applyAutoFixableSuggestions: () =>
       applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
     validateDocument: bindCommand(validateDocumentCommand),
@@ -288,7 +301,8 @@ export const createBoundCommands = <
     setDebugState: bindCommand(setDebugStateCommand),
     setValidateOnModifyState: bindCommand(setValidateOnModifyStateCommand),
     applyValidationResult: bindCommand(applyValidationResponseCommand),
-    applyValidationError: bindCommand(applyValidationErrorCommand)
+    applyValidationError: bindCommand(applyValidationErrorCommand),
+    applyValidationComplete: bindCommand(applyValidationCompleteCommand)
   };
 };
 

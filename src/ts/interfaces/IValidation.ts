@@ -3,27 +3,17 @@ export interface IRange {
   to: number;
 }
 
-export interface IValidationInput {
-  validationId: string;
-  inputString: string;
-  from: number;
-  to: number;
-}
-
 export interface ICategory {
   id: string;
   name: string;
   colour: string;
 }
 
-export interface IValidationOutput<TSuggestion = ISuggestion>
-  extends IValidationInput {
-  matchId: string;
-  validationId: string;
-  annotation: string;
-  category: ICategory;
-  suggestions?: TSuggestion[];
-  autoApplyFirstSuggestion?: boolean;
+export interface IBlock {
+  id: string;
+  text: string;
+  from: number;
+  to: number;
 }
 
 export type ISuggestion = ITextSuggestion | IWikiSuggestion;
@@ -41,19 +31,37 @@ export interface IWikiSuggestion {
 }
 
 export interface IValidationError {
-  validationSetId: string;
+  requestId: string;
   // If we have an id, we can link the error to a specific validation.
   // If not, we treat the error as nonspecific.
-  validationId?: string;
+  blockId?: string;
   message: string;
 }
 
+
+export interface IMatches<TSuggestion = ISuggestion> {
+  matchId: string;
+  from: number;
+  to: number;
+  annotation: string;
+  category: ICategory;
+  suggestions?: TSuggestion[];
+  replacement?: TSuggestion;
+  markAsCorrect: boolean;
+}
+
+export interface IBlockResult {
+  categoryIds: string[];
+  id: string;
+}
+
 export interface IValidationResponse<
-  TValidationOutput extends IValidationOutput = IValidationOutput
+  TBlockMatches extends IMatches = IMatches
 > {
-  validationOutputs: TValidationOutput[];
-  validationId: string;
-  validationSetId: string;
+  blocks: IBlock[];
+  categoryIds: string[];
+  matches: TBlockMatches[];
+  requestId: string;
 }
 
 export type IValidationLibrary = Array<

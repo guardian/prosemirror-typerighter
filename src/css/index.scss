@@ -163,6 +163,21 @@ hr {
   border-bottom: 2px solid $validation-color;
 }
 
+.ValidationDecoration--is-correct {
+  position: relative;
+  margin-right: 5px;
+  &:after {
+    display: block;
+    content: "✓";
+    position: absolute;
+    right: -10px;
+    top: -8px;
+    color: rgb(4, 213, 20);
+    font-weight: bold;
+    pointer-events: none;
+  }
+}
+
 .ValidationDebugDirty {
   background-color: $validation-debug-color-dirty;
 }
