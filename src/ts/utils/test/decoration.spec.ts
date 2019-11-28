@@ -81,7 +81,7 @@ describe("Decoration utils", () => {
           from: 5,
           to: 5,
           type: {
-            side: 0,
+            side: -1,
             spec: {
               categoryId: "1",
               id: "0-from:0-to:5--match-0",

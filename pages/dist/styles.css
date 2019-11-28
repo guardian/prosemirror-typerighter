@@ -593,8 +593,7 @@ hr {
   border-bottom: 2px solid #3dcde6; }
 
 .MatchDecoration--is-correct {
-  position: relative;
-  margin-right: 5px; }
+  position: relative; }
   .MatchDecoration--is-correct:after {
     display: block;
     content: "✓";

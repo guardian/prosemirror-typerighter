@@ -45,7 +45,11 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
 export const removeDecorationsFromRanges = (
   decorationSet: DecorationSet,
   ranges: IRange[],
-  types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]
+  types = [
+    DECORATION_MATCH,
+    DECORATION_MATCH_HEIGHT_MARKER,
+    DECORATION_MATCH_IS_CORRECT
+  ]
 ) =>
   ranges.reduce((acc, range) => {
     const predicate = (spec: { [key: string]: any }) =>
@@ -109,7 +113,7 @@ const createIsCorrectElement = (id: string) => {
 export const createDecorationsForMatch = (
   match: IMatch,
   isSelected = false,
-  addHeightMarker = true
+  addWidgetDecorations = true
 ) => {
   const className = isSelected
     ? `${DecorationClassMap[DECORATION_MATCH]} ${
@@ -141,7 +145,7 @@ export const createDecorationsForMatch = (
     )
   ];
 
-  if (addHeightMarker) {
+  if (addWidgetDecorations) {
     decorations.push(
       Decoration.widget(match.from, createHeightMarkerElement(match.matchId), {
         type: DECORATION_MATCH_HEIGHT_MARKER,
@@ -151,12 +155,15 @@ export const createDecorationsForMatch = (
     );
   }
 
-  if (match.markAsCorrect) {
+  if (addWidgetDecorations && match.markAsCorrect) {
     decorations.push(
       Decoration.widget(match.to, createIsCorrectElement(match.matchId), {
         type: DECORATION_MATCH_IS_CORRECT,
         id: match.matchId,
-        categoryId: match.category.id
+        categoryId: match.category.id,
+        // Important to keep the user from being able to insert characters
+        // between the inline decorations and this widget decoration
+        side: -1
       } as any)
     );
   }

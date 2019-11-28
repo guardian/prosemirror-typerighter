@@ -6,7 +6,7 @@ import {
   IMatcherResponse
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
-import { IPluginState } from "../../state/reducer";
+import { IPluginState, IBlocksInFlightState } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
@@ -113,7 +113,7 @@ export const createBlockQueriesInFlight = (
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
   total?: number
-): { [setId: string]: IBlockIn } => ({
+): { [setId: string]: IBlocksInFlightState } => ({
   [setId]: {
     totalBlocks: total || blockQueries.length,
     mapping: new Mapping(),

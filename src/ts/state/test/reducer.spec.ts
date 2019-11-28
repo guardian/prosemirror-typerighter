@@ -12,7 +12,7 @@ import {
   requestMatchesComplete as requestComplete
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
-import { createTyperighterPluginReducer, IPluginState } from "../reducer";
+import { createReducer, IPluginState } from "../reducer";
 import {
   createDebugDecorationFromRange,
   getNewDecorationsForCurrentMatches,
@@ -34,7 +34,7 @@ import {
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
 
-const reducer = createTyperighterPluginReducer(expandRangesToParentBlockNode);
+const reducer = createReducer(expandRangesToParentBlockNode);
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -224,7 +224,10 @@ describe("Action handlers", () => {
         name:
           "This category should remain untouched -- it's not included in the categories for the incoming matches"
       };
-      const matcherResponse1 = createMatcherResponse(0, 15, 1, 7);
+      const matcherResponse1 = {
+        ...createMatcherResponse(0, 15, 1, 7),
+        markAsCorrect: true
+      };
       const matcherResponse2 = createMatcherResponse(0, 15, 9, 13, category);
       const matcherResponse3 = createMatcherResponse(16, 37, 17, 25); // Some other output for another block
       const requestsInFlight = createBlockQueriesInFlight(
@@ -246,23 +249,6 @@ describe("Action handlers", () => {
         ]
       );
 
-      it("should remove previous matches that match the block and category of the incoming match", () => {
-        const newState = reducer(
-          tr,
-          state,
-          requestMatchesSuccess({
-            blocks: [firstBlock],
-            categoryIds: ["1"],
-            matches: [],
-            requestId: exampleRequestId
-          })
-        );
-
-        expect(newState.currentMatches).toEqual([
-          matcherResponse2.matches[0],
-          matcherResponse3.matches[0]
-        ]);
-      });
       it("should remove previous decorations that match block and category of the incoming match", () => {
         const newState = reducer(
           tr,
@@ -283,7 +269,7 @@ describe("Action handlers", () => {
         );
       });
 
-      it("should remove checkd categories from the remaining categories list for in-flight blocks", () => {
+      it("should remove checked categories from the remaining categories list for in-flight blocks", () => {
         const newState = reducer(
           tr,
           state,
@@ -518,7 +504,8 @@ describe("Action handlers", () => {
             id: "1",
             name: "cat",
             colour: "eeeeee"
-          }
+          },
+          markAsCorrect: true
         }
       ];
       const stateWithCurrentMatchesAndDecorations = {
