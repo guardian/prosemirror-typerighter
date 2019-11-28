@@ -15,7 +15,6 @@ import createTyperighterPlugin from "../src/ts/createTyperighterPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
-import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
 import { TyperighterAdapter } from "../src/ts";
 
 const mySchema = new Schema({
@@ -65,6 +64,7 @@ if (editorElement && sidebarElement && controlsElement) {
     validationService,
     commands,
     sidebarElement,
-    controlsElement
+    controlsElement,
+    'mailto:example@typerighter.co.uk'
   );
 }

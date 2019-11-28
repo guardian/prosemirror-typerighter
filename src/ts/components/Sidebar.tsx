@@ -14,6 +14,7 @@ interface IProps {
   applyAutoFixableSuggestions: () => void;
   selectMatch: (matchId: string) => void;
   indicateHover: (matchId: string | undefined, _: any) => void;
+  contactHref: string;
 }
 
 /**
@@ -35,7 +36,8 @@ class Sidebar extends Component<
       applySuggestions,
       applyAutoFixableSuggestions,
       selectMatch,
-      indicateHover
+      indicateHover,
+      contactHref
     } = this.props;
     const {
       currentMatches = [],
@@ -51,12 +53,10 @@ class Sidebar extends Component<
         <div className="Sidebar__header-container">
           <div className="Sidebar__header">
             <span>
-              Results{" "}
-              {hasMatches && <span>({currentMatches.length}) </span>}
+              Results {hasMatches && <span>({currentMatches.length}) </span>}
               {(requestsInFlight.length || requestPending) && (
                 <span className="Sidebar__loading-spinner">|</span>
               )}
-              
             </span>
             {!!noOfAutoFixableSuggestions && (
               <button
@@ -68,8 +68,8 @@ class Sidebar extends Component<
             )}
           </div>
           <div className="Sidebar__header-contact">
-            <a href="mailto:tbc@example.co.uk">Issue with a rule? Let us know!</a>
-          </div> 
+            <a href={contactHref} target="_blank">Issue with a rule? Let us know!</a>
+          </div>
           <div
             class="LoadingBar"
             style={{
@@ -96,9 +96,7 @@ class Sidebar extends Component<
             </ul>
           )}
           {!hasMatches && (
-            <div className="Sidebar__awaiting-match">
-              No matches to report.
-            </div>
+            <div className="Sidebar__awaiting-match">No matches to report.</div>
           )}
         </div>
       </div>
