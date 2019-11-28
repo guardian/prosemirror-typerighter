@@ -17,7 +17,8 @@ const createView = (
   matcherService: MatcherService<IMatch>,
   commands: Commands,
   sidebarNode: Element,
-  controlsNode: Element
+  controlsNode: Element,
+  contactHref: string
 ) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
@@ -48,6 +49,7 @@ const createView = (
       applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
       selectMatch={commands.selectMatch}
       indicateHover={commands.indicateHover}
+      contactHref={contactHref}
     />,
     sidebarNode
   );
