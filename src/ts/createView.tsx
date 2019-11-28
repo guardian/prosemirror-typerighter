@@ -1,39 +1,39 @@
 import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
-import ValidationOverlay from "./components/ValidationOverlay";
+import MatchOverlay from "./components/MatchOverlay";
 import Store from "./store";
-import ValidationSidebar from "./components/ValidationSidebar";
-import ValidationControls from "./components/ValidationControls";
+import Sidebar from "./components/Sidebar";
+import Controls from "./components/Controls";
 import { Commands } from "./commands";
-import { IMatches } from "./interfaces/IValidation";
-import { ValidationService } from ".";
+import { IMatch } from "./interfaces/IMatch";
+import { MatcherService } from ".";
 
 /**
  * Scaffolding for an example view.
  */
 const createView = (
   view: EditorView,
-  store: Store<IMatches>,
-  validationService: ValidationService<IMatches>,
+  store: Store<IMatch>,
+  matcherService: MatcherService<IMatch>,
   commands: Commands,
   sidebarNode: Element,
   controlsNode: Element
 ) => {
   // Create our overlay node, which is responsible for displaying
-  // validation messages when the user hovers over highlighted ranges.
+  // match messages when the user hovers over highlighted ranges.
   const overlayNode = document.createElement("div");
 
   // We wrap this in a container to allow the overlay to be positioned
   // relative to the editable document.
   const wrapperElement = document.createElement("div");
-  wrapperElement.classList.add("ValidationPlugin__container");
+  wrapperElement.classList.add("TyperighterPlugin__container");
   view.dom.parentNode!.replaceChild(wrapperElement, view.dom);
   wrapperElement.appendChild(view.dom);
   view.dom.insertAdjacentElement("afterend", overlayNode);
 
   // Finally, render our components.
   render(
-    <ValidationOverlay
+    <MatchOverlay
       store={store}
       applySuggestions={commands.applySuggestions}
       containerElement={wrapperElement}
@@ -42,26 +42,26 @@ const createView = (
   );
 
   render(
-    <ValidationSidebar
+    <Sidebar
       store={store}
       applySuggestions={commands.applySuggestions}
       applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-      selectValidation={commands.selectMatch}
+      selectMatch={commands.selectMatch}
       indicateHover={commands.indicateHover}
     />,
     sidebarNode
   );
 
   render(
-    <ValidationControls
+    <Controls
       store={store}
       setDebugState={commands.setDebugState}
-      setValidateOnModifyState={commands.setValidateOnModifyState}
-      validateDocument={commands.validateDocument}
-      fetchCategories={validationService.fetchCategories}
-      getCurrentCategories={validationService.getCurrentCategories}
-      addCategory={validationService.addCategory}
-      removeCategory={validationService.removeCategory}
+      setRequestOnDocModified={commands.setRequestOnDocModified}
+      requestMatchesForDocument={commands.requestMatchesForDocument}
+      fetchCategories={matcherService.fetchCategories}
+      getCurrentCategories={matcherService.getCurrentCategories}
+      addCategory={matcherService.addCategory}
+      removeCategory={matcherService.removeCategory}
     />,
     controlsNode
   );

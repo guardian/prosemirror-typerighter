@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { ApplySuggestionOptions } from "../commands";
-import { ISuggestion } from "../interfaces/IValidation";
+import { ISuggestion } from "../interfaces/IMatch";
 import WikiSuggestion from "./WikiSuggestion";
 
 interface IProps {
@@ -22,7 +22,7 @@ const Suggestion = ({ matchId, suggestion, applySuggestions }: IProps) => {
     case "TEXT_SUGGESTION": {
       return (
         <div
-          class="ValidationWidget__suggestion"
+          class="MatchWidget__suggestion"
           onClick={boundApplySuggestions}
         >
           {suggestion.text}

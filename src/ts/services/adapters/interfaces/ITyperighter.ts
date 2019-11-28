@@ -1,4 +1,4 @@
-import { ISuggestion } from "../../../interfaces/IValidation";
+import { ISuggestion } from "../../../interfaces/IMatch";
 
 export interface ITypeRighterResponse {
   blocks: ITypeRighterBlockResponse[];

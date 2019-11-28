@@ -1,15 +1,15 @@
-.ValidationControls__row {
+.Controls__row {
   position: relative;
   display: flex;
   padding: $gutter-width / 2;
 }
 
-.ValidationControls__input {
+.Controls__input {
   min-width: 30px;
   margin-left: auto;
 }
 
-.ValidationControls__label {
+.Controls__label {
   font-weight: normal;
   cursor: pointer;
   width: 100%;

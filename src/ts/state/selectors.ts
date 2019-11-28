@@ -1,93 +1,87 @@
-import { IMatches } from "../interfaces/IValidation";
+import { IMatch } from "../interfaces/IMatch";
 import {
   IPluginState,
-  IBlockQueryInFlight,
-  IBlockQueriesInFlightState
+  IBlockInFlight,
+  IBlocksInFlightState
 } from "./reducer";
 
-export const selectBlockQueriesInFlight = <TValidationMeta extends IMatches>(
-  state: IPluginState<TValidationMeta>
-) => {
-  return state.blockQueriesInFlight.validations;
-};
-
-export const selectBlockMatchesByMatchId = <TValidationMeta extends IMatches>(
-  state: IPluginState<TValidationMeta>,
+export const selectMatchByMatchId = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>,
   matchId: string
-): IMatches | undefined =>
-  state.currentValidations.find(validation => validation.matchId === matchId);
+): IMatch | undefined =>
+  state.currentMatches.find(match => match.matchId === matchId);
 
 export const selectBlockQueriesInFlightForSet = <
-  TValidationMeta extends IMatches
+  TMatch extends IMatch
 >(
-  state: IPluginState<TValidationMeta>,
+  state: IPluginState<TMatch>,
   requestId: string
-): IBlockQueriesInFlightState | undefined => {
-  return state.blockQueriesInFlight[requestId];
+): IBlocksInFlightState | undefined => {
+  return state.requestsInFlight[requestId];
 };
 
-export const selectSingleBlockInFlightById = <TValidationMeta extends IMatches>(
-  state: IPluginState<TValidationMeta>,
+export const selectSingleBlockInFlightById = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>,
   requestId: string,
   blockId: string
-): IBlockQueryInFlight | undefined => {
-  const validationInFlightState = selectBlockQueriesInFlightForSet(
+): IBlockInFlight | undefined => {
+  const blocksInFlight = selectBlockQueriesInFlightForSet(
     state,
     requestId
   );
-  if (!validationInFlightState) {
+  if (!blocksInFlight) {
     return;
   }
-  return validationInFlightState.pendingBlocks.find(
+  return blocksInFlight.pendingBlocks.find(
     _ => _.block.id === blockId
   );
 };
 
 export const selectBlockQueriesInFlightById = <
-  TValidationMeta extends IMatches
+  TMatch extends IMatch
 >(
-  state: IPluginState<TValidationMeta>,
+  state: IPluginState<TMatch>,
   requestId: string,
   blockIds: string[]
-): IBlockQueryInFlight[] =>
+): IBlockInFlight[] =>
   blockIds
     .map(blockId => selectSingleBlockInFlightById(state, requestId, blockId))
-    .filter(_ => !!_) as IBlockQueryInFlight[];
+    .filter(_ => !!_) as IBlockInFlight[];
 
-export const selectAllBlockQueriesInFlight = <TValidationMeta extends IMatches>(
-  state: IPluginState<TValidationMeta>
-): IBlockQueryInFlight[] =>
-  Object.values(state.blockQueriesInFlight).reduce(
+export const selectAllBlockQueriesInFlight = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): IBlockInFlight[] =>
+  Object.values(state.requestsInFlight).reduce(
     (acc, value) => acc.concat(value.pendingBlocks),
-    [] as IBlockQueryInFlight[]
+    [] as IBlockInFlight[]
   );
 
-type TSelectValidationInFlight = Array<
-  IBlockQueriesInFlightState & {
+type TSelectRequestInFlight = Array<
+  IBlocksInFlightState & {
     requestId: string;
   }
 >;
 
-export const selectNewBlockInFlight = <TValidationMeta extends IMatches>(
-  oldState: IPluginState<TValidationMeta>,
-  newState: IPluginState<TValidationMeta>
-): TSelectValidationInFlight =>
-  Object.keys(newState.blockQueriesInFlight).reduce(
+export const selectNewBlockInFlight = <TMatch extends IMatch>(
+  oldState: IPluginState<TMatch>,
+  newState: IPluginState<TMatch>
+): TSelectRequestInFlight =>
+  Object.keys(newState.requestsInFlight).reduce(
     (acc, requestId) =>
-      !oldState.blockQueriesInFlight[requestId]
+      !oldState.requestsInFlight[requestId]
         ? acc.concat({
             requestId,
             ...selectBlockQueriesInFlightForSet(newState, requestId)!
           })
         : acc,
-    [] as TSelectValidationInFlight
+    [] as TSelectRequestInFlight
   );
 
-export const selectPercentRemaining = <TValidationMeta extends IMatches>(
-  state: IPluginState<TValidationMeta>
+export const selectPercentRemaining = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
 ) => {
   const [totalWork, totalRemainingWork] = Object.values(
-    state.blockQueriesInFlight
+    state.requestsInFlight
   ).reduce(
     ([totalWorkAcc, remainingWorkAcc], queryState) => {
       const allWork = queryState.totalBlocks * queryState.categoryIds.length;
@@ -102,12 +96,12 @@ export const selectPercentRemaining = <TValidationMeta extends IMatches>(
   return totalRemainingWork ? (totalRemainingWork / totalWork) * 100 : 0;
 };
 
-export const selectSuggestionAndRange = <TValidationMeta extends IMatches>(
-  state: IPluginState<TValidationMeta>,
+export const selectSuggestionAndRange = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>,
   matchId: string,
   suggestionIndex: number
 ) => {
-  const output = selectBlockMatchesByMatchId(state, matchId);
+  const output = selectMatchByMatchId(state, matchId);
   if (!output) {
     return null;
   }
@@ -122,9 +116,9 @@ export const selectSuggestionAndRange = <TValidationMeta extends IMatches>(
   };
 };
 
-export const selectAllAutoFixableMatches = <TMatches extends IMatches>(
-  state: IPluginState<TMatches>
-): TMatches[] =>
-  state.currentValidations.filter(
+export const selectAllAutoFixableMatches = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): TMatch[] =>
+  state.currentMatches.filter(
     _ => _.replacement && _.replacement.text === _.annotation
   );

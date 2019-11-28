@@ -1,5 +1,5 @@
 import { Transaction } from "prosemirror-state";
-import { IRange, IBlock } from "../interfaces/IValidation";
+import { IRange, IBlock } from "../interfaces/IMatch";
 
 export const createBlock = (tr: Transaction, range: IRange): IBlock => {
   const text = tr.doc.textBetween(range.from, range.to);

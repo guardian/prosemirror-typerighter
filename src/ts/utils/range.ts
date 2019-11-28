@@ -2,8 +2,8 @@ import clamp from "lodash/clamp";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
-import { IRange } from "../interfaces/IValidation";
-import { IBlock } from "../interfaces/IValidation";
+import { IRange } from "../interfaces/IMatch";
+import { IBlock } from "../interfaces/IMatch";
 import { Mapping } from "prosemirror-transform";
 
 /**
@@ -125,7 +125,7 @@ export const diffRanges = (
   );
 };
 
-export const validationInputToRange = (input: IBlock): IRange => ({
+export const blockToRange = (input: IBlock): IRange => ({
   from: input.from,
   to: input.to
 });
@@ -159,7 +159,7 @@ export const expandRangeToParentBlockNode = (
  * Expand the given ranges to include their ancestor block nodes.
  */
 export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
-  const validationRanges = ranges.reduce(
+  const matchRanges = ranges.reduce(
     (acc, range: IRange) => {
       const expandedRange = expandRangeToParentBlockNode(
         { from: range.from, to: range.to },
@@ -178,7 +178,7 @@ export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
     },
     [] as IRange[]
   );
-  return mergeRanges(validationRanges);
+  return mergeRanges(matchRanges);
 };
 
 export const expandRangesToParentBlockNode = (ranges: IRange[], doc: Node) =>

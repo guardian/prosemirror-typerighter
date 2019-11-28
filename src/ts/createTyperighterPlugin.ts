@@ -1,8 +1,8 @@
 import { applyNewDirtiedRanges } from "./state/actions";
-import { IPluginState, VALIDATION_PLUGIN_ACTION } from "./state/reducer";
+import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
 import {
   createInitialState,
-  createValidationPluginReducer
+  createTyperighterPluginReducer
 } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
@@ -14,17 +14,17 @@ import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { getStateHoverInfoFromEvent } from "./utils/dom";
-import { IRange, IMatches } from "./interfaces/IValidation";
+import { IRange, IMatch } from "./interfaces/IMatch";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
-  STORE_EVENT_NEW_VALIDATION,
-  STORE_EVENT_NEW_DIRTIED_RANGES as STORE_EVENT_NEW_DIRTY_RANGES
+  STORE_EVENT_NEW_MATCHES,
+  STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./store";
 import { indicateHoverCommand } from "./commands";
 
 /**
- * @module createValidationPlugin
+ * @module createTyperighterPlugin
  */
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
@@ -32,7 +32,7 @@ export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 interface IPluginOptions {
   /**
    * A function that receives ranges that have been dirtied since the
-   * last validation request, and returns the new ranges to validate. The
+   * last request, and returns the new ranges to find matches for. The
    * default implementation expands the dirtied ranges to cover the parent
    * block node.
    */
@@ -40,23 +40,23 @@ interface IPluginOptions {
 }
 
 /**
- * Creates a document validator plugin, responsible for issuing validation
- * requests when the document is changed, decorating the document when they
- * are returned, and applying suggestions.
+ * Creates the plugin. The plugin is responsible for issuing requests when the
+ * document is changed via the supplied servier, decorating the document with matches
+ * when they are are returned, and applying suggestions to the document.
  *
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createValidatorPlugin = <TValidationMeta extends IMatches>(
+const createTyperighterPlugin = <TMatch extends IMatch>(
   options: IPluginOptions = {}
 ) => {
   const { expandRanges = expandRangesToParentBlockNode } = options;
   // A handy alias to reduce repetition
-  type TPluginState = IPluginState<TValidationMeta>;
+  type TPluginState = IPluginState<TMatch>;
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
-  const reducer = createValidationPluginReducer(expandRanges);
+  const reducer = createTyperighterPluginReducer(expandRanges);
 
   const plugin: Plugin = new Plugin({
     key: new PluginKey('prosemirror-typerighter'),
@@ -64,7 +64,7 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
       init: (_, { doc }) => createInitialState(doc),
       apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
-        return reducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
+        return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));
       }
     },
 
@@ -86,10 +86,10 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
         // We wait a tick here, as applyNewDirtiedRanges must run
         // before the newly dirtied range is available in the state.
         // @todo -- this is a bit of a hack, it can be done better.
-        setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTY_RANGES));
+        setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
 
         return tr.setMeta(
-          VALIDATION_PLUGIN_ACTION,
+          PROSEMIRROR_TYPERIGHTER_ACTION,
           applyNewDirtiedRanges(newDirtiedRanges)
         );
       }
@@ -99,7 +99,7 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
       );
       blockStates.forEach(({ requestId, pendingBlocks }) =>
         store.emit(
-          STORE_EVENT_NEW_VALIDATION,
+          STORE_EVENT_NEW_MATCHES,
           requestId,
           pendingBlocks.map(_ => _.block)
         )
@@ -122,7 +122,7 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
           }
 
           // Get our height marker, which tells us the height of a single line
-          // for the given validation.
+          // for the given match.
           const heightMarker = document.querySelector(
             `[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newMatchId}"]`
           );
@@ -169,4 +169,4 @@ const createValidatorPlugin = <TValidationMeta extends IMatches>(
   };
 };
 
-export default createValidatorPlugin;
+export default createTyperighterPlugin;

@@ -1,18 +1,18 @@
 import v4 from "uuid/v4";
 import {
   IBlock,
-  IMatches
-} from "../../interfaces/IValidation";
-import { TValidationReceivedCallback } from "../../interfaces/IValidationAPIAdapter";
+  IMatch
+} from "../../interfaces/IMatch";
+import { TMatchesReceivedCallback } from "../../interfaces/IMatcherAdapter";
 
 /**
  * An example adapter that applies a regex to find three letter words in the document.
  */
 const regexAdapter = async (
   input: IBlock,
-  onValidationReceived: TValidationReceivedCallback
+  onMatchesReceived: TMatchesReceivedCallback
 ) => {
-  const outputs = [] as IMatches[];
+  const outputs = [] as IMatch[];
   const threeLetterExpr = /\b[a-zA-Z]{3}\b/g;
   const sixLetterExpr = /\b[a-zA-Z]{6}\b/g;
   let result;
@@ -64,7 +64,7 @@ const regexAdapter = async (
   // Add some latency.
   await new Promise(_ => setTimeout(_, 1000));
 
-  onValidationReceived({
+  onMatchesReceived({
     id: input.id,
     blockQueries: outputs
   });

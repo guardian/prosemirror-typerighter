@@ -1,29 +1,29 @@
 import { Transaction, EditorState } from "prosemirror-state";
 import {
   newHoverIdReceived,
-  validationRequestForDocument,
+  requestMatchesForDocument,
   selectMatch,
   setDebugState,
-  setValidateOnModifyState,
-  validationRequestSuccess,
-  validationRequestError,
-  validationRequestForDirtyRanges,
-  validationRequestComplete
+  setRequestMatchesOnDocModified,
+  requestMatchesSuccess,
+  requestError,
+  requestMatchesForDirtyRanges,
+  requestMatchesComplete
 } from "./state/actions";
 import {
-  selectBlockMatchesByMatchId,
+  selectMatchByMatchId,
   selectAllAutoFixableMatches
 } from "./state/selectors";
 import {
-  VALIDATION_PLUGIN_ACTION,
+  PROSEMIRROR_TYPERIGHTER_ACTION,
   IPluginState,
   IStateHoverInfo
 } from "./state/reducer";
 import {
-  IValidationResponse,
-  IValidationError,
-  IMatches
-} from "./interfaces/IValidation";
+  IMatcherResponse,
+  IMatchRequestError,
+  IMatch
+} from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
 
@@ -32,22 +32,22 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TValidationOutput extends IMatches> = (
+type GetState<TMatch extends IMatch> = (
   state: EditorState
-) => IPluginState<TValidationOutput>;
+) => IPluginState<TMatch>;
 
 /**
- * Validates an entire document.
+ * Requests matches for an entire document.
  */
-export const validateDocumentCommand = (
+export const requestMatchesForDocumentCommand = (
   requestId: string,
   categoryIds: string[]
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        validationRequestForDocument(requestId, categoryIds)
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        requestMatchesForDocument(requestId, categoryIds)
       )
     );
   }
@@ -55,17 +55,17 @@ export const validateDocumentCommand = (
 };
 
 /**
- * Validates the current set of dirty ranges.
+ * Request matches for the current set of dirty ranges.
  */
-export const validateDirtyRangesCommand = (
+export const requestMatchesForDirtyRangesCommand = (
   requestId: string,
   categoryIds: string[]
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        validationRequestForDirtyRanges(requestId, categoryIds)
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        requestMatchesForDirtyRanges(requestId, categoryIds)
       )
     );
   }
@@ -76,7 +76,7 @@ export const validateDirtyRangesCommand = (
 /**
  * Indicate new hover information is available. This could include
  * details on hover coords if available (for example, if hovering
- * over a validation decoration) to allow the positioning of e.g. tooltips.
+ * over a match decoration) to allow the positioning of e.g. tooltips.
  */
 export const indicateHoverCommand = (
   matchId: string | undefined,
@@ -85,7 +85,7 @@ export const indicateHoverCommand = (
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
+        PROSEMIRROR_TYPERIGHTER_ACTION,
         newHoverIdReceived(matchId, hoverInfo)
       )
     );
@@ -94,49 +94,52 @@ export const indicateHoverCommand = (
 };
 
 /**
- * Mark a given validation as active.
+ * Mark a given match as active.
  */
-export const selectMatchCommand = <TValidationOutput extends IMatches>(
+export const selectMatchCommand = <TMatch extends IMatch>(
   matchId: string,
-  getState: GetState<TValidationOutput>
+  getState: GetState<TMatch>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
-  const output = selectBlockMatchesByMatchId(pluginState, matchId);
+  const output = selectMatchByMatchId(pluginState, matchId);
   if (!output) {
     return false;
   }
   if (dispatch) {
-    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(matchId)));
+    dispatch(
+      state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, selectMatch(matchId))
+    );
   }
   return true;
 };
 
 /**
  * Set the debug state. Enabling debug mode provides additional marks
- * to reveal dirty ranges and ranges sent for validation.
+ * to reveal dirty ranges and ranges sent for matching.
  */
 export const setDebugStateCommand = (debug: boolean): Command => (
   state,
   dispatch
 ) => {
   if (dispatch) {
-    dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
+    dispatch(
+      state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, setDebugState(debug))
+    );
   }
   return true;
 };
 
 /**
- * Set the validate on modify state. When enabled, the plugin will queue
- * validation requests as soon as the document is modified.
+ * When enabled, the plugin will queue match requests as soon as the document is modified.
  */
-export const setValidateOnModifyStateCommand = (
-  validateOnModify: boolean
+export const setRequestOnDocModifiedState = (
+  requestMatchesOnDocModified: boolean
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        setValidateOnModifyState(validateOnModify)
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        setRequestMatchesOnDocModified(requestMatchesOnDocModified)
       )
     );
   }
@@ -144,16 +147,16 @@ export const setValidateOnModifyStateCommand = (
 };
 
 /**
- * Apply a successful validation response to the document.
+ * Apply a successful matcher response to the document.
  */
-export const applyValidationResponseCommand = (
-  validationResponse: IValidationResponse
+export const applyMatcherResponseCommand = (
+  matcherResponse: IMatcherResponse
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        validationRequestSuccess(validationResponse)
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        requestMatchesSuccess(matcherResponse)
       )
     );
   }
@@ -161,18 +164,18 @@ export const applyValidationResponseCommand = (
 };
 
 /**
- * Apply a validation error to the document. Important to ensure
- * that failed validation requests are reapplied as dirtied ranges
+ * Apply an error to the document. Important to ensure
+ * that failed matcher requests are reapplied as dirtied ranges
  * to be resent on the next request.
  */
-export const applyValidationErrorCommand = (
-  validationError: IValidationError
+export const applyRequestErrorCommand = (
+  matchRequestError: IMatchRequestError
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        validationRequestError(validationError)
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        requestError(matchRequestError)
       )
     );
   }
@@ -180,19 +183,17 @@ export const applyValidationErrorCommand = (
 };
 
 /**
- * Apply a validation error to the document. Important to ensure
- * that failed validation requests are reapplied as dirtied ranges
- * to be resent on the next request.
+ * Mark the
  */
-export const applyValidationCompleteCommand = (requestId: string): Command => (
+export const applyRequestCompleteCommand = (requestId: string): Command => (
   state,
   dispatch
 ) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
-        VALIDATION_PLUGIN_ACTION,
-        validationRequestComplete(requestId)
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        requestMatchesComplete(requestId)
       )
     );
   }
@@ -205,20 +206,20 @@ export type ApplySuggestionOptions = Array<{
 }>;
 
 /**
- * Applies a suggestion from a validation to the document.
+ * Applies a suggestion from a match to the document.
  */
-export const applySuggestionsCommand = <TValidationOutput extends IMatches>(
+export const applySuggestionsCommand = <TMatch extends IMatch>(
   suggestionOptions: ApplySuggestionOptions,
-  getState: GetState<TValidationOutput>
+  getState: GetState<TMatch>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const suggestionsToApply = suggestionOptions
     .map(opt => {
-      const validation = selectBlockMatchesByMatchId(pluginState, opt.matchId);
-      return validation
+      const maybeMatch = selectMatchByMatchId(pluginState, opt.matchId);
+      return maybeMatch
         ? {
-            from: validation.from,
-            to: validation.to,
+            from: maybeMatch.from,
+            to: maybeMatch.to,
             text: opt.text
           }
         : undefined;
@@ -231,8 +232,8 @@ export const applySuggestionsCommand = <TValidationOutput extends IMatches>(
 /**
  * Applies the first suggestion for each rule marked as auto-fixable.
  */
-export const applyAutoFixableSuggestionsCommand = <TMatches extends IMatches>(
-  getState: GetState<TMatches>
+export const applyAutoFixableSuggestionsCommand = <TMatch extends IMatch>(
+  getState: GetState<TMatch>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(
@@ -278,9 +279,9 @@ const maybeApplySuggestions = (
   return true;
 };
 
-export const createBoundCommands = <TValidationOutput extends IMatches>(
+export const createBoundCommands = <TMatch extends IMatch>(
   view: EditorView,
-  getState: GetState<TValidationOutput>
+  getState: GetState<TMatch>
 ) => {
   const bindCommand = <CommandArgs extends any[]>(
     action: (...args: CommandArgs) => Command
@@ -295,14 +296,16 @@ export const createBoundCommands = <TValidationOutput extends IMatches>(
       selectMatchCommand(blockId, getState)(view.state, view.dispatch),
     applyAutoFixableSuggestions: () =>
       applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
-    validateDocument: bindCommand(validateDocumentCommand),
-    validateDirtyRanges: bindCommand(validateDirtyRangesCommand),
+    requestMatchesForDocument: bindCommand(requestMatchesForDocumentCommand),
+    requestMatchesForDirtyRanges: bindCommand(
+      requestMatchesForDirtyRangesCommand
+    ),
     indicateHover: bindCommand(indicateHoverCommand),
     setDebugState: bindCommand(setDebugStateCommand),
-    setValidateOnModifyState: bindCommand(setValidateOnModifyStateCommand),
-    applyValidationResult: bindCommand(applyValidationResponseCommand),
-    applyValidationError: bindCommand(applyValidationErrorCommand),
-    applyValidationComplete: bindCommand(applyValidationCompleteCommand)
+    setRequestOnDocModified: bindCommand(setRequestOnDocModifiedState),
+    applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
+    applyRequestError: bindCommand(applyRequestErrorCommand),
+    applyRequestComplete: bindCommand(applyRequestCompleteCommand)
   };
 };
 

@@ -14,11 +14,11 @@
   padding: $gutter-width $gutter-width $gutter-width 0;
   font-weight: 700;
   font-size: 16px;
-  color: $validation-suggestion-color;
+  color: $match-suggestion-color;
   cursor: pointer;
   &:hover {
     background-color: transparent;
-    color: lighten($validation-suggestion-color, 15%);
+    color: lighten($match-suggestion-color, 15%);
   }
 }
 
@@ -27,7 +27,7 @@
   height: 123px;
   width: 95px;
   background-size: cover;
-  background-color: $validation-suggestion-color-hover;
+  background-color: $match-suggestion-color-hover;
   &.WikiSuggestion__thumbnail--placeholder {
     @include placeholderAnimation();
   }
@@ -35,7 +35,7 @@
 
 .WikiSuggestion__extract {
   position: relative;
-  height: $validation-suggestion-wiki-extract-height;
+  height: $match-suggestion-wiki-extract-height;
   overflow: hidden;
   font-size: 12px;
 }
@@ -56,13 +56,13 @@
 .WikiSuggestion__extract--placeholder {
   background: repeating-linear-gradient(
     180deg,
-    $validation-suggestion-color-hover,
-    $validation-suggestion-color-hover 11px,
+    $match-suggestion-color-hover,
+    $match-suggestion-color-hover 11px,
     #fff 11px,
     #fff 18px
   );
   position: relative;
-  height: $validation-suggestion-wiki-extract-height;
+  height: $match-suggestion-wiki-extract-height;
 
   @include placeholderAnimation();
 }

@@ -1,81 +1,75 @@
 import {
-  IValidationError,
-  IValidationResponse,
+  IMatchRequestError,
+  IMatcherResponse,
   IRange,
-  IMatches
-} from "../interfaces/IValidation";
+  IMatch
+} from "../interfaces/IMatch";
 import { IStateHoverInfo } from "./reducer";
 
 /**
  * Action types.
  */
 
-export const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START" as const;
-export const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT" as const;
-export const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS" as const;
-export const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR" as const;
-export const VALIDATION_REQUEST_COMPLETE = "VALIDATION_REQUEST_COMPLETE" as const;
+export const REQUEST_FOR_DIRTY_RANGES = "REQUEST_START" as const;
+export const REQUEST_FOR_DOCUMENT = "REQUEST_FOR_DOCUMENT" as const;
+export const REQUEST_SUCCESS = "REQUEST_SUCCESS" as const;
+export const REQUEST_ERROR = "REQUEST_ERROR" as const;
+export const REQUEST_COMPLETE = "REQUEST_COMPLETE" as const;
 export const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
 export const SELECT_MATCH = "SELECT_MATCH" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
 export const SET_DEBUG_STATE = "SET_DEBUG_STATE" as const;
-export const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE" as const;
+export const SET_REQUEST_MATCHES_ON_DOC_MODIFIED = "SET_REQUEST_MATCHES_ON_DOC_MODIFIED" as const;
 
 /**
  * Action creators.
  */
 
-export const validationRequestForDirtyRanges = (
+export const requestMatchesForDirtyRanges = (
   requestId: string,
   categoryIds: string[]
 ) => ({
-  type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
+  type: REQUEST_FOR_DIRTY_RANGES,
   payload: { requestId, categoryIds }
 });
-export type ActionValidationRequestForDirtyRanges = ReturnType<
-  typeof validationRequestForDirtyRanges
+export type ActionRequestMatchesForDirtyRanges = ReturnType<
+  typeof requestMatchesForDirtyRanges
 >;
 
-export const validationRequestForDocument = (
+export const requestMatchesForDocument = (
   requestId: string,
   categoryIds: string[]
 ) => ({
-  type: VALIDATION_REQUEST_FOR_DOCUMENT,
+  type: REQUEST_FOR_DOCUMENT,
   payload: { requestId, categoryIds }
 });
-export type ActionValidationRequestForDocument = ReturnType<
-  typeof validationRequestForDocument
+export type ActionRequestMatchesForDocument = ReturnType<
+  typeof requestMatchesForDocument
 >;
 
-export const validationRequestSuccess = <TBlockMatches extends IMatches>(
-  response: IValidationResponse<TBlockMatches>
+export const requestMatchesSuccess = <TBlockMatches extends IMatch>(
+  response: IMatcherResponse<TBlockMatches>
 ) => ({
-  type: VALIDATION_REQUEST_SUCCESS,
+  type: REQUEST_SUCCESS,
   payload: { response }
 });
 // tslint:disable-next-line:interface-over-type-literal
-export type ActionValidationResponseReceived<
-  TValidationOutput extends IMatches
-> = {
-  type: "VALIDATION_REQUEST_SUCCESS";
-  payload: { response: IValidationResponse<TValidationOutput> };
+export type ActionRequestMatchesSuccess<TMatch extends IMatch> = {
+  type: "REQUEST_SUCCESS";
+  payload: { response: IMatcherResponse<TMatch> };
 };
 
-export const validationRequestError = (validationError: IValidationError) => ({
-  type: VALIDATION_REQUEST_ERROR,
-  payload: { validationError }
+export const requestError = (matchRequestError: IMatchRequestError) => ({
+  type: REQUEST_ERROR,
+  payload: { matchRequestError }
 });
-export type ActionValidationRequestError = ReturnType<
-  typeof validationRequestError
->;
+export type ActionRequestError = ReturnType<typeof requestError>;
 
-export const validationRequestComplete = (requestId: string) => ({
-  type: VALIDATION_REQUEST_COMPLETE,
+export const requestMatchesComplete = (requestId: string) => ({
+  type: REQUEST_COMPLETE,
   payload: { requestId }
 });
-export type ActionValidationRequestComplete = ReturnType<
-  typeof validationRequestComplete
->;
+export type ActionRequestComplete = ReturnType<typeof requestMatchesComplete>;
 
 export const newHoverIdReceived = (
   matchId: string | undefined,
@@ -98,7 +92,7 @@ export const selectMatch = (matchId: string) => ({
   type: SELECT_MATCH,
   payload: { matchId }
 });
-export type ActionSelectValidation = ReturnType<typeof selectMatch>;
+export type ActionSelectMatch = ReturnType<typeof selectMatch>;
 
 export const setDebugState = (debug: boolean) => ({
   type: SET_DEBUG_STATE,
@@ -106,22 +100,24 @@ export const setDebugState = (debug: boolean) => ({
 });
 export type ActionSetDebugState = ReturnType<typeof setDebugState>;
 
-export const setValidateOnModifyState = (validateOnModify: boolean) => ({
-  type: SET_VALIDATE_ON_MODIFY_STATE,
-  payload: { validateOnModify }
+export const setRequestMatchesOnDocModified = (
+  requestMatchesOnDocModified: boolean
+) => ({
+  type: SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
+  payload: { requestMatchesOnDocModified }
 });
-export type ActionSetValidateOnModifyState = ReturnType<
-  typeof setValidateOnModifyState
+export type ActionSetRequestMatchesOnDocModified = ReturnType<
+  typeof setRequestMatchesOnDocModified
 >;
 
-export type Action<TValidationMeta extends IMatches> =
+export type Action<TMatch extends IMatch> =
   | ActionNewHoverIdReceived
-  | ActionValidationResponseReceived<TValidationMeta>
-  | ActionValidationRequestForDirtyRanges
-  | ActionValidationRequestForDocument
-  | ActionValidationRequestError
-  | ActionValidationRequestComplete
-  | ActionSelectValidation
+  | ActionRequestMatchesSuccess<TMatch>
+  | ActionRequestMatchesForDirtyRanges
+  | ActionRequestMatchesForDocument
+  | ActionRequestError
+  | ActionRequestComplete
+  | ActionSelectMatch
   | ActionHandleNewDirtyRanges
   | ActionSetDebugState
-  | ActionSetValidateOnModifyState;
+  | ActionSetRequestMatchesOnDocModified;

@@ -6,17 +6,17 @@ describe("store", () => {
   it("should allow consumers to subscribe to all store events, and trigger subscriptions when those events are emitted", () => {
     const store = new Store();
     const newStateSub = jest.fn();
-    const newValidationSub = jest.fn();
+    const newSub = jest.fn();
     const state = createInitialState(createDoc(p("Example doc")));
     store.on("STORE_EVENT_NEW_STATE", newStateSub);
-    store.on("STORE_EVENT_NEW_VALIDATION", newValidationSub);
+    store.on("STORE_EVENT_NEW_MATCHES", newSub);
 
     store.emit("STORE_EVENT_NEW_STATE", state);
     expect(newStateSub.mock.calls[0]).toEqual([state]);
 
-    const notAValidationInFlight = { exampleValidationInFlight: "" } as any;
-    store.emit("STORE_EVENT_NEW_VALIDATION", notAValidationInFlight, []);
-    expect(newValidationSub.mock.calls[0]).toEqual([notAValidationInFlight, []]);
+    const notABlockInFlight = { exampleBlockInFlight: "" } as any;
+    store.emit("STORE_EVENT_NEW_MATCHES", notABlockInFlight, []);
+    expect(newSub.mock.calls[0]).toEqual([notABlockInFlight, []]);
   });
   it("should allow consumers to remove subscriptions", () => {
     const store = new Store();

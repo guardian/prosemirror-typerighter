@@ -1,15 +1,15 @@
 // Variables
 $gutter-width: 10px;
 $sidebar-border-color: #ccc;
-$validation-color: #3dcde6;
-$validation-color-hover: #3dcde624;
-$validation-gray: #a0a0a0;
-$validation-debug-color-dirty: #f7a85e66;
-$validation-debug-color-inflight: #31a72085;
-$validation-suggestion-background-color: #fff;
-$validation-suggestion-color: #999;
-$validation-suggestion-color-hover: #f1f1f1;
-$validation-suggestion-wiki-extract-height: 85px;
+$match-color: #3dcde6;
+$match-color-hover: #3dcde624;
+$match-gray: #a0a0a0;
+$match-debug-color-dirty: #f7a85e66;
+$match-debug-color-inflight: #31a72085;
+$match-suggestion-background-color: #fff;
+$match-suggestion-color: #999;
+$match-suggestion-color-hover: #f1f1f1;
+$match-suggestion-wiki-extract-height: 85px;
 
 // Mixins
 @mixin placeholderAnimation {
@@ -36,9 +36,9 @@ $validation-suggestion-wiki-extract-height: 85px;
 }
 
 // Imports
-@import "./ValidationControls.scss";
-@import "./ValidationSidebar.scss";
-@import "./ValidationSidebarOutput.scss";
+@import "./Controls.scss";
+@import "./Sidebar.scss";
+@import "./SidebarMatch.scss";
 @import "./Suggestion.scss";
 @import "./SuggestionList.scss";
 
@@ -49,7 +49,7 @@ hr {
   border: initial;
   border-bottom: 1px solid $sidebar-border-color;
   width: 100%;
-  margin: 5px 0; 
+  margin: 5px 0;
 }
 
 // Helpers
@@ -83,7 +83,7 @@ hr {
   outline: none;
 }
 
-.ValidationWidget {
+.MatchWidget {
   display: block;
   position: relative;
   font-family: sans-serif;
@@ -100,70 +100,70 @@ hr {
   overflow: hidden;
 }
 
-.ValidationWidget__container {
+.MatchWidget__container {
   margin-top: 8px;
   position: relative;
 }
 
-.ValidationWidget__container--is-hovering .ValidationWidget {
+.MatchWidget__container--is-hovering .MatchWidget {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
-.ValidationWidget__type {
-  color: $validation-gray;
+.MatchWidget__type {
+  color: $match-gray;
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.3px;
 }
 
-.ValidationWidget__annotation,
-.ValidationWidget__suggestion,
-.ValidationWidget__type {
+.MatchWidget__annotation,
+.MatchWidget__suggestion,
+.MatchWidget__type {
   padding: $gutter-width;
 }
 
-.ValidationWidget__annotation {
+.MatchWidget__annotation {
   padding-top: 0;
 }
 
-.ValidationWidget__label {
+.MatchWidget__label {
   display: block;
   margin-bottom: 2px;
   transition: background-color 0.1s;
 }
 
-.ValidationWidget__suggestion-list {
+.MatchWidget__suggestion-list {
   display: block;
   margin-top: 3px;
   padding: 0 $gutter-width $gutter-width $gutter-width;
 }
 
-.ValidationWidget__suggestion {
+.MatchWidget__suggestion {
   display: block;
   cursor: pointer;
   font-weight: 700;
   font-size: 16px;
-  color: $validation-suggestion-color;
+  color: $match-suggestion-color;
 }
 
-.ValidationWidget__suggestion:nth-child(even) {
-  background-color: darken($validation-suggestion-background-color, 2%);
+.MatchWidget__suggestion:nth-child(even) {
+  background-color: darken($match-suggestion-background-color, 2%);
 }
 
-.ValidationWidget__suggestion:hover {
-  background-color: $validation-suggestion-color-hover;
+.MatchWidget__suggestion:hover {
+  background-color: $match-suggestion-color-hover;
 }
-.ValidationWidget__suggestion + .ValidationWidget__suggestion {
+.MatchWidget__suggestion + .MatchWidget__suggestion {
   margin-top: 3px;
 }
 
-.ValidationDecoration,
-.ValidationDecoration__height-marker {
-  border-bottom: 2px solid $validation-color;
+.MatchDecoration,
+.MatchDecoration__height-marker {
+  border-bottom: 2px solid $match-color;
 }
 
-.ValidationDecoration--is-correct {
+.MatchDecoration--is-correct {
   position: relative;
   margin-right: 5px;
   &:after {
@@ -178,24 +178,24 @@ hr {
   }
 }
 
-.ValidationDebugDirty {
-  background-color: $validation-debug-color-dirty;
+.MatchDebugDirty {
+  background-color: $match-debug-color-dirty;
 }
 
-.ValidationDebugInflight {
-  background-color: $validation-debug-color-inflight;
+.MatchDebugInflight {
+  background-color: $match-debug-color-inflight;
 }
 
-.ValidationPlugin__overlay {
+.TyperighterPlugin__overlay {
   position: absolute;
   top: 0;
   left: 0;
 }
 
-.ValidationPlugin__decoration-container {
+.TyperighterPlugin__decoration-container {
   position: absolute;
 }
 
-.ValidationPlugin__container {
+.TyperighterPlugin__container {
   position: relative;
 }

@@ -1,8 +1,8 @@
-import ValidationOutput from "./ValidationOutput";
+import Match from "./Match";
 import { Component, h } from "preact";
 import { IStateHoverInfo, IPluginState } from "../state/reducer";
-import { selectBlockMatchesByMatchId } from "../state/selectors";
-import { IMatches } from "../interfaces/IValidation";
+import { selectMatchByMatchId } from "../state/selectors";
+import { IMatch } from "../interfaces/IMatch";
 import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 
@@ -10,11 +10,11 @@ interface IState {
   left: number | undefined;
   top: number | undefined;
   hoverInfo: IStateHoverInfo | undefined;
-  validationOutput: IMatches | undefined;
+  match: IMatch | undefined;
   isVisible: boolean;
 }
-interface IProps<TValidationOutput extends IMatches> {
-  store: Store<TValidationOutput, IStoreEvents<TValidationOutput>>;
+interface IProps<TMatch extends IMatch> {
+  store: Store<TMatch, IStoreEvents<TMatch>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   // The element that contains the tooltips. Tooltips will be positioned
   // within this element.
@@ -22,20 +22,20 @@ interface IProps<TValidationOutput extends IMatches> {
 }
 
 /**
- * An overlay to display validation tooltips. Subscribes to hover events.
+ * An overlay to display match tooltips. Subscribes to hover events.
  */
-class ValidationOverlay<
-  TValidationOutput extends IMatches = IMatches
-> extends Component<IProps<TValidationOutput>, IState> {
+class MatchOverlay<
+  TMatch extends IMatch = IMatch
+> extends Component<IProps<TMatch>, IState> {
   public state: IState = {
     isVisible: false,
     left: undefined,
     top: undefined,
     hoverInfo: undefined,
-    validationOutput: undefined
+    match: undefined
   };
   private decorationRef:
-    | ValidationOutput<TValidationOutput>
+    | Match<TMatch>
     | undefined = undefined;
 
   public componentWillMount() {
@@ -55,14 +55,14 @@ class ValidationOverlay<
   }
 
   public render() {
-    const { validationOutput, left, top } = this.state;
-    if (!validationOutput || left === undefined || top === undefined) {
+    const { match, left, top } = this.state;
+    if (!match || left === undefined || top === undefined) {
       return null;
     }
     return (
-      <div class="ValidationPlugin__overlay" onMouseOver={this.handleMouseOver}>
+      <div class="TyperighterPlugin__overlay" onMouseOver={this.handleMouseOver}>
         <div
-          class="ValidationPlugin__decoration-container"
+          class="TyperighterPlugin__decoration-container"
           style={{
             // We hoist top slightly to ensure that the rendered element overlaps the
             // span that triggered the overlay -- if the mouse falls through a gap it
@@ -71,9 +71,9 @@ class ValidationOverlay<
             left
           }}
         >
-          <ValidationOutput
+          <Match
             ref={_ => (this.decorationRef = _)}
-            validationOutput={validationOutput}
+            match={match}
             applySuggestions={this.props.applySuggestions}
           />
         </div>
@@ -83,23 +83,23 @@ class ValidationOverlay<
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleNotify = (state: IPluginState<IMatches>) => {
+  private handleNotify = (state: IPluginState<IMatch>) => {
     const newState = {
       isVisible: false,
       left: 0,
       top: 0
     };
     if (state.hoverId && state.hoverInfo) {
-      const validationOutput = selectBlockMatchesByMatchId(state, state.hoverId);
+      const match = selectMatchByMatchId(state, state.hoverId);
       return this.setState({
         hoverInfo: state.hoverInfo,
-        validationOutput,
+        match: match,
         ...newState
       });
     }
     this.setState({
       hoverInfo: undefined,
-      validationOutput: undefined,
+      match: undefined,
       ...newState
     });
   };
@@ -149,4 +149,4 @@ class ValidationOverlay<
   };
 }
 
-export default ValidationOverlay;
+export default MatchOverlay;

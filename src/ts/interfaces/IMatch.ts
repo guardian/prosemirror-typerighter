@@ -30,16 +30,16 @@ export interface IWikiSuggestion {
   score: number;
 }
 
-export interface IValidationError {
+export interface IMatchRequestError {
   requestId: string;
-  // If we have an id, we can link the error to a specific validation.
+  // If we have an id, we can link the error to a specific block.
   // If not, we treat the error as nonspecific.
   blockId?: string;
   message: string;
 }
 
 
-export interface IMatches<TSuggestion = ISuggestion> {
+export interface IMatch<TSuggestion = ISuggestion> {
   matchId: string;
   from: number;
   to: number;
@@ -47,7 +47,7 @@ export interface IMatches<TSuggestion = ISuggestion> {
   category: ICategory;
   suggestions?: TSuggestion[];
   replacement?: TSuggestion;
-  markAsCorrect: boolean;
+  markAsCorrect?: boolean;
 }
 
 export interface IBlockResult {
@@ -55,16 +55,16 @@ export interface IBlockResult {
   id: string;
 }
 
-export interface IValidationResponse<
-  TBlockMatches extends IMatches = IMatches
+export interface IMatcherResponse<
+  TBlockMatch extends IMatch = IMatch
 > {
   blocks: IBlock[];
   categoryIds: string[];
-  matches: TBlockMatches[];
+  matches: TBlockMatch[];
   requestId: string;
 }
 
-export type IValidationLibrary = Array<
+export type IMatchLibrary = Array<
   Array<{
     regExp: RegExp;
     annotation: string;

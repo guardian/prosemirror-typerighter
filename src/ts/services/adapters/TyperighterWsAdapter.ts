@@ -1,51 +1,51 @@
-import { IBlock } from "../../interfaces/IValidation";
+import { IBlock } from "../../interfaces/IMatch";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import TyperighterAdapter, {
   convertTyperighterResponse
 } from "./TyperighterAdapter";
 import {
-  TValidationReceivedCallback,
-  TValidationErrorCallback,
-  IValidationAPIAdapter,
-  TValidationWorkCompleteCallback
-} from "../../interfaces/IValidationAPIAdapter";
+  TMatchesReceivedCallback,
+  TRequestErrorCallback,
+  IMatcherAdapter,
+  TRequestCompleteCallback
+} from "../../interfaces/IMatcherAdapter";
 
-const VALIDATOR_RESPONSE = "VALIDATOR_RESPONSE" as const;
-const VALIDATOR_ERROR = "VALIDATOR_ERROR" as const;
-const VALIDATOR_WORK_COMPLETE = "VALIDATOR_WORK_COMPLETE" as const;
+const MATCHER_RESPONSE = "MATCHER_RESPONSE" as const;
+const REQUEST_ERROR = "REQUEST_ERROR" as const;
+const REQUEST_COMPLETE = "REQUEST_COMPLETE" as const;
 
-interface ISocketValidatorResponse extends ITypeRighterResponse {
-  type: typeof VALIDATOR_RESPONSE;
+interface ISocketResponse extends ITypeRighterResponse {
+  type: typeof MATCHER_RESPONSE;
 }
 
-interface ISocketValidatorError {
-  type: typeof VALIDATOR_ERROR;
+interface ISocketError {
+  type: typeof REQUEST_ERROR;
   id: string | undefined;
   message: string;
 }
 
-interface ISocketValidatorWorkComplete {
-  type: typeof VALIDATOR_WORK_COMPLETE;
+interface ISocketWorkComplete {
+  type: typeof REQUEST_COMPLETE;
 }
 
 type TSocketMessage =
-  | ISocketValidatorResponse
-  | ISocketValidatorError
-  | ISocketValidatorWorkComplete;
+  | ISocketResponse
+  | ISocketError
+  | ISocketWorkComplete;
 
 /**
  * An adapter for the Typerighter service that uses WebSockets.
  */
 class TyperighterWsAdapter extends TyperighterAdapter
-  implements IValidationAPIAdapter {
+  implements IMatcherAdapter {
 
   public fetchMatches = async (
     requestId: string,
     inputs: IBlock[],
     categoryIds: string[],
-    onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback,
-    onValidationComplete: TValidationWorkCompleteCallback
+    onMatchesReceived: TMatchesReceivedCallback,
+    onRequestError: TRequestErrorCallback,
+    onRequestComplete: TRequestCompleteCallback
   ) => {
     const socket = new WebSocket(this.checkUrl);
     const blocks = inputs.map(input => ({
@@ -61,9 +61,9 @@ class TyperighterWsAdapter extends TyperighterAdapter
         this.handleMessage(
           event,
           requestId,
-          onValidationReceived,
-          onValidationError,
-          onValidationComplete
+          onMatchesReceived,
+          onRequestError,
+          onRequestComplete
         )
       );
       socket.send(
@@ -76,7 +76,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
 
     socket.addEventListener("close", closeEvent => {
       if (closeEvent.code !== 1000) {
-        onValidationError({ requestId, message: closeEvent.reason });
+        onRequestError({ requestId, message: closeEvent.reason });
       }
     });
   };
@@ -84,30 +84,30 @@ class TyperighterWsAdapter extends TyperighterAdapter
   private handleMessage = (
     message: MessageEvent,
     requestId: string,
-    onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback,
-    onValidationComplete: TValidationWorkCompleteCallback
+    onMatchesReceived: TMatchesReceivedCallback,
+    onRequestError: TRequestErrorCallback,
+    onRequestComplete: TRequestCompleteCallback
   ) => {
     try {
       const socketMessage: TSocketMessage = JSON.parse(message.data);
       switch (socketMessage.type) {
-        case VALIDATOR_ERROR: {
-          return onValidationError({
+        case REQUEST_ERROR: {
+          return onRequestError({
             requestId,
             blockId: socketMessage.id,
             message: socketMessage.message
           });
         }
-        case VALIDATOR_RESPONSE: {
-          return onValidationReceived(
+        case MATCHER_RESPONSE: {
+          return onMatchesReceived(
             convertTyperighterResponse(requestId, socketMessage)
           );
         }
-        case VALIDATOR_WORK_COMPLETE: {
-          return onValidationComplete(requestId);
+        case REQUEST_COMPLETE: {
+          return onRequestComplete(requestId);
         }
         default: {
-          return onValidationError({
+          return onRequestError({
             requestId,
             message: `Received unknown message type: ${JSON.stringify(
               socketMessage
@@ -116,7 +116,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
         }
       }
     } catch (e) {
-      onValidationError({ requestId, message: e.message });
+      onRequestError({ requestId, message: e.message });
     }
   };
 }

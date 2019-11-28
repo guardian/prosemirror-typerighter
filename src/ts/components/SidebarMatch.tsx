@@ -1,5 +1,5 @@
 import compact from "lodash/compact";
-import { IMatches } from "../interfaces/IValidation";
+import { IMatch } from "../interfaces/IMatch";
 import { Component, h } from "preact";
 import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
 import titleCase from "lodash/startCase";
@@ -7,9 +7,9 @@ import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 
 interface IProps {
-  output: IMatches;
+  output: IMatch;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
-  selectValidation: (matchId: string) => void;
+  selectMatch: (matchId: string) => void;
   indicateHover: (blockId: string | undefined, _?: any) => void;
   selectedMatch: string | undefined;
 }
@@ -19,9 +19,9 @@ interface IState {
 }
 
 /**
- * Display information for a single validation output.
+ * Display information for a single match
  */
-class ValidationSidebarOutput extends Component<IProps, IState> {
+class SidebarMatch extends Component<IProps, IState> {
   public state = {
     isOpen: false
   };
@@ -36,9 +36,9 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
     ]);
     return (
       <div
-        className={`ValidationSidebarOutput__container ${
+        className={`SidebarMatch__container ${
           selectedMatch === output.matchId
-            ? "ValidationSidebarOutput__container--is-selected"
+            ? "SidebarMatch__container--is-selected"
             : ""
         }`}
         style={{ borderLeft: `2px solid ${color}` }}
@@ -46,29 +46,29 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
         onMouseLeave={this.handleMouseLeave}
       >
         <div
-          className={"ValidationSidebarOutput__header"}
+          className={"SidebarMatch__header"}
           onClick={hasSuggestions ? this.toggleOpen : undefined}
         >
-          <div className="ValidationSidebarOutput__header-label">
-            <div className="ValidationSidebarOutput__header-description">
+          <div className="SidebarMatch__header-label">
+            <div className="SidebarMatch__header-description">
               {output.annotation}
             </div>
-            <div className="ValidationSidebarOutput__header-meta">
+            <div className="SidebarMatch__header-meta">
               <div
-                className="ValidationSidebarOutput__header-range"
+                className="SidebarMatch__header-range"
                 onClick={this.scrollToRange}
               >
                 <span className="Button">{output.from}-{output.to}</span>
                 
               </div>
               <div
-                className="ValidationSidebarOutput__header-category"
+                className="SidebarMatch__header-category"
                 style={{ color }}
               >
                 {titleCase(output.category.name)}
               </div>
               {hasSuggestions && (
-                <div className="ValidationSidebarOutput__header-toggle-status">
+                <div className="SidebarMatch__header-toggle-status">
                   {this.state.isOpen ? "-" : "+"}
                 </div>
               )}
@@ -76,9 +76,9 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
           </div>
         </div>
         {this.state.isOpen && (
-          <div className="ValidationSidebarOutput__content">
+          <div className="SidebarMatch__content">
             {suggestions.length && (
-              <div className="ValidationSidebarOutput__suggestion-list">
+              <div className="SidebarMatch__suggestion-list">
                 <SuggestionList
                   applySuggestions={applySuggestions}
                   matchId={output.matchId}
@@ -98,7 +98,7 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   private scrollToRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    this.props.selectValidation(this.props.output.matchId);
+    this.props.selectMatch(this.props.output.matchId);
     const decorationElement = document.querySelector(
       `[${DECORATION_ATTRIBUTE_ID}="${this.props.output.matchId}"]`
     );
@@ -118,4 +118,4 @@ class ValidationSidebarOutput extends Component<IProps, IState> {
   };
 }
 
-export default ValidationSidebarOutput;
+export default SidebarMatch;

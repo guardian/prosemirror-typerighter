@@ -246,16 +246,16 @@ li.ProseMirror-selectednode:after {
   margin-top: 5px;
   display: none; }
 
-.ValidationControls__row {
+.Controls__row {
   position: relative;
   display: flex;
   padding: 5px; }
 
-.ValidationControls__input {
+.Controls__input {
   min-width: 30px;
   margin-left: auto; }
 
-.ValidationControls__label {
+.Controls__label {
   font-weight: normal;
   cursor: pointer;
   width: 100%; }
@@ -287,12 +287,19 @@ li.ProseMirror-selectednode:after {
 .Sidebar__container + .Sidebar__container {
   margin-top: 10px; }
 
+.Sidebar__header-container {
+  position: relative;
+  padding: 10px 5px;
+  border-bottom: 1px solid #ccc; }
+
+.Sidebar__header-contact {
+  margin-top: 5px;
+  font-size: 11px; }
+
 .Sidebar__header {
   display: flex;
   position: relative;
   flex-shrink: 0;
-  border-bottom: 1px solid #ccc;
-  padding: 10px 5px;
   font-weight: 500;
   justify-content: space-between; }
 
@@ -303,11 +310,12 @@ li.ProseMirror-selectednode:after {
   font-weight: 400;
   font-size: 14px; }
 
-.Sidebar__awaiting-validation {
+.Sidebar__awaiting-match {
   padding: 5px;
   color: #aaa; }
 
-.Sidebar__toggle, .Sidebar__toggle-label {
+.Sidebar__toggle,
+.Sidebar__toggle-label {
   align-self: baseline;
   font-size: 0.8em; }
 
@@ -325,7 +333,7 @@ li.ProseMirror-selectednode:after {
   padding: 0;
   list-style: none; }
 
-.Sidebar__awaiting-validation {
+.Sidebar__awaiting-match {
   padding: 5px;
   color: gray; }
 
@@ -352,52 +360,52 @@ li.ProseMirror-selectednode:after {
   to {
     transform: rotate(360deg); } }
 
-.ValidationSidebarOutput__container {
+.SidebarMatch__container {
   padding: 5px; }
 
-.ValidationSidebarOutput__list-item:last-child {
+.SidebarMatch__list-item:last-child {
   border-bottom: none; }
 
-.ValidationSidebarOutput__header {
+.SidebarMatch__header {
   display: flex;
   justify-content: space-between;
   cursor: pointer; }
 
-.ValidationSidebarOutput__header-label {
+.SidebarMatch__header-label {
   display: flex;
   width: 100%; }
 
-.ValidationSidebarOutput__header-meta {
+.SidebarMatch__header-meta {
   margin-left: auto; }
 
-.Button.ValidationSidebarOutput__header-range,
-.ValidationSidebarOutput__header-category {
+.SidebarMatch__header-range,
+.SidebarMatch__header-category {
   text-align: right;
   font-size: 12px; }
 
-.ValidationSidebarOutput__header-category {
+.SidebarMatch__header-category {
   margin-top: 2px;
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.3px; }
 
-.ValidationSidebarOutput__header-range {
+.SidebarMatch__header-range {
   color: grey;
   white-space: nowrap; }
 
-.ValidationSidebarOutput__header-toggle-status {
+.SidebarMatch__header-toggle-status {
   min-width: 20px;
   color: grey;
   text-align: right; }
 
-.ValidationSidebarOutput__content {
+.SidebarMatch__content {
   margin-top: 5px;
   font-size: 14px; }
 
-.ValidationSidebarOutput__suggestion-list {
+.SidebarMatch__suggestion-list {
   margin-top: 5px; }
 
-.ValidationSidebarOutput__list-title {
+.SidebarMatch__list-title {
   font-style: italic;
   margin-bottom: 5px; }
 
@@ -496,6 +504,9 @@ hr {
 .flex-align-right {
   margin-left: auto; }
 
+.pull-right {
+  float: right; }
+
 .Button {
   padding: 1px 4px;
   border: 1px solid lightgrey;
@@ -513,7 +524,7 @@ hr {
 .Button:focus {
   outline: none; }
 
-.ValidationWidget {
+.MatchWidget {
   display: block;
   position: relative;
   font-family: sans-serif;
@@ -529,71 +540,84 @@ hr {
   z-index: 100;
   overflow: hidden; }
 
-.ValidationWidget__container {
+.MatchWidget__container {
   margin-top: 8px;
   position: relative; }
 
-.ValidationWidget__container--is-hovering .ValidationWidget {
+.MatchWidget__container--is-hovering .MatchWidget {
   opacity: 1;
   transform: translate3d(0, 0, 0); }
 
-.ValidationWidget__type {
+.MatchWidget__type {
   color: #a0a0a0;
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.3px; }
 
-.ValidationWidget__annotation,
-.ValidationWidget__suggestion,
-.ValidationWidget__type {
+.MatchWidget__annotation,
+.MatchWidget__suggestion,
+.MatchWidget__type {
   padding: 10px; }
 
-.ValidationWidget__annotation {
+.MatchWidget__annotation {
   padding-top: 0; }
 
-.ValidationWidget__label {
+.MatchWidget__label {
   display: block;
   margin-bottom: 2px;
   transition: background-color 0.1s; }
 
-.ValidationWidget__suggestion-list {
+.MatchWidget__suggestion-list {
   display: block;
   margin-top: 3px;
   padding: 0 10px 10px 10px; }
 
-.ValidationWidget__suggestion {
+.MatchWidget__suggestion {
   display: block;
   cursor: pointer;
   font-weight: 700;
   font-size: 16px;
   color: #999; }
 
-.ValidationWidget__suggestion:nth-child(even) {
+.MatchWidget__suggestion:nth-child(even) {
   background-color: #fafafa; }
 
-.ValidationWidget__suggestion:hover {
+.MatchWidget__suggestion:hover {
   background-color: #f1f1f1; }
 
-.ValidationWidget__suggestion + .ValidationWidget__suggestion {
+.MatchWidget__suggestion + .MatchWidget__suggestion {
   margin-top: 3px; }
 
-.ValidationDecoration,
-.ValidationDecoration__height-marker {
+.MatchDecoration,
+.MatchDecoration__height-marker {
   border-bottom: 2px solid #3dcde6; }
 
-.ValidationDebugDirty {
+.MatchDecoration--is-correct {
+  position: relative;
+  margin-right: 5px; }
+  .MatchDecoration--is-correct:after {
+    display: block;
+    content: "✓";
+    position: absolute;
+    right: -10px;
+    top: -8px;
+    color: #04d514;
+    font-weight: bold;
+    pointer-events: none; }
+
+.MatchDebugDirty {
   background-color: #f7a85e66; }
 
-.ValidationDebugInflight {
+.MatchDebugInflight {
   background-color: #31a72085; }
 
-.ValidationPlugin__overlay {
+.TyperighterPlugin__overlay {
   position: absolute;
   top: 0;
   left: 0; }
 
-.ValidationPlugin__decoration-container {
+.TyperighterPlugin__decoration-container {
   position: absolute; }
 
-.ValidationPlugin__container {
+.TyperighterPlugin__container {
   position: relative; }

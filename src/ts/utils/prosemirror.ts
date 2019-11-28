@@ -1,8 +1,8 @@
 import { Node } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
-import { IBlock } from "../interfaces/IValidation";
-import { createBlock } from "./validation";
+import { IBlock } from "../interfaces/IMatch";
+import { createBlock } from "./block";
 
 export const MarkTypes = {
   legal: "legal",
@@ -35,7 +35,7 @@ export const findChildren = (
   return flatten(node, descend).filter(child => predicate(child.node));
 };
 
-export const createValidationBlocksForDocument = (
+export const createBlocksForDocument = (
   tr: Transaction
 ): IBlock[] => {
   const ranges = [] as IBlock[];

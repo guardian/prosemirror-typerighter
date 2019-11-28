@@ -1,11 +1,11 @@
 import fetchMock from "fetch-mock";
-import ValidationAPIService from "../services/ValidationAPIService";
+import MatcherService from "../services/MatcherService";
 import Store from "../store";
 import TyperighterAdapter, {
   convertTyperighterResponse
 } from "../services/adapters/TyperighterAdapter";
 import { ITypeRighterResponse } from "../services/adapters/interfaces/ITyperighter";
-import { createBlockId } from "../utils/validation";
+import { createBlockId } from "../utils/block";
 
 const createResponse = (strs: string[]): ITypeRighterResponse => ({
   requestId: "set-id",
@@ -15,7 +15,7 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
       id: createBlockId(0, 0, 5),
       from: 0,
       to: 5,
-      text: "Some text that has been validated"
+      text: "Some text that has been checkd"
     }
   ],
   matches: strs.map(str => ({
@@ -32,13 +32,15 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
       },
       description: "Number things",
       id: "number-rule",
-      issueType: "issue-type"
+      issueType: "issue-type",
+      suggestions: []
     },
-    suggestions: []
+    suggestions: [],
+    markAsCorrect: false
   }))
 });
 
-const validationInput = {
+const block = {
   from: 0,
   to: 10,
   text: "1234567890",
@@ -46,9 +48,9 @@ const validationInput = {
 };
 
 const commands = {
-  applyValidationResult: jest.fn(),
-  applyValidationError: jest.fn(),
-  validateDirtyRangesCommand: jest.fn()
+  applyMatcherResponse: jest.fn(),
+  applyRequestError: jest.fn(),
+  checkDirtyRangesCommand: jest.fn()
 };
 
 const requestId = "set-id";
@@ -57,13 +59,13 @@ const store = new Store();
 
 jest.mock("uuid/v4", () => () => "id");
 
-describe("ValidationAPIService", () => {
+describe("MatcherService", () => {
   afterEach(() => {
     fetchMock.reset();
-    commands.applyValidationResult.mockReset();
+    commands.applyMatcherResponse.mockReset();
   });
-  it("should issue a fetch given a validation input, resolving with a validation output and broadcasting the correct event", done => {
-    const service = new ValidationAPIService(
+  it("should issue a fetch given a block, resolving with matches and broadcasting the correct event", done => {
+    const service = new MatcherService(
       store,
       commands as any,
       new TyperighterAdapter(
@@ -76,20 +78,20 @@ describe("ValidationAPIService", () => {
 
     expect.assertions(1);
 
-    service.requestValidation();
-    store.emit("STORE_EVENT_NEW_VALIDATION", requestId, [
-      validationInput
+    service.requestFetchMatches();
+    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [
+      block
     ]);
 
     setTimeout(() => {
-      expect(commands.applyValidationResult.mock.calls[0]).toEqual([
+      expect(commands.applyMatcherResponse.mock.calls[0]).toEqual([
         convertTyperighterResponse("set-id", response)
       ]);
       done();
     });
   });
-  it("should handle validation errors", done => {
-    const service = new ValidationAPIService(
+  it("should handle request errors", done => {
+    const service = new MatcherService(
       store,
       commands as any,
       new TyperighterAdapter(
@@ -99,14 +101,14 @@ describe("ValidationAPIService", () => {
     );
     fetchMock.post("http://endpoint/check", 400);
 
-    service.requestValidation();
-    store.emit("STORE_EVENT_NEW_VALIDATION", requestId, [
-      validationInput
+    service.requestFetchMatches();
+    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [
+      block
     ]);
     setTimeout(() => {
-      expect(commands.applyValidationError.mock.calls[0][0]).toEqual({
+      expect(commands.applyRequestError.mock.calls[0][0]).toEqual({
         message:
-          "Error fetching validations. The server responded with status code 400: Bad Request",
+          "Error fetching matches. The server responded with status code 400: Bad Request",
         blockId: "0-from:0-to:10",
         requestId: "set-id"
       });

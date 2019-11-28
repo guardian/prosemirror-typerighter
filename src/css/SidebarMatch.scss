@@ -1,60 +1,60 @@
-.ValidationSidebarOutput__container {
+.SidebarMatch__container {
   padding: ($gutter-width / 2) ;
 }
 
-.ValidationSidebarOutput__list-item:last-child {
+.SidebarMatch__list-item:last-child {
   border-bottom: none;
 }
 
-.ValidationSidebarOutput__header {
+.SidebarMatch__header {
   display: flex;
   justify-content: space-between;
   cursor: pointer;
 }
 
-.ValidationSidebarOutput__header-label {
+.SidebarMatch__header-label {
   display: flex;
   width: 100%;
 }
 
-.ValidationSidebarOutput__header-meta {
+.SidebarMatch__header-meta {
   margin-left: auto;
 }
 
-.ValidationSidebarOutput__header-range,
-.ValidationSidebarOutput__header-category {
+.SidebarMatch__header-range,
+.SidebarMatch__header-category {
   text-align: right;
   font-size: 12px;
 }
 
-.ValidationSidebarOutput__header-category {
+.SidebarMatch__header-category {
   margin-top: 2px;
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.3px;
 }
 
-.ValidationSidebarOutput__header-range {
+.SidebarMatch__header-range {
   color: grey;
   white-space: nowrap;
 }
 
-.ValidationSidebarOutput__header-toggle-status {
+.SidebarMatch__header-toggle-status {
   min-width: 20px;
   color: grey;
   text-align: right;
 }
 
-.ValidationSidebarOutput__content {
+.SidebarMatch__content {
   margin-top: ($gutter-width / 2) ;
   font-size: 14px;
 }
 
-.ValidationSidebarOutput__suggestion-list {
+.SidebarMatch__suggestion-list {
   margin-top: ($gutter-width / 2) ;
 }
 
-.ValidationSidebarOutput__list-title {
+.SidebarMatch__list-title {
   font-style: italic;
   margin-bottom: ($gutter-width / 2) ;
 }
