@@ -3,7 +3,7 @@ import { Component, h } from "preact";
 import { IStateHoverInfo, IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
-import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../store";
+import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 
 interface IState {

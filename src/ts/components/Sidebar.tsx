@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import sortBy from "lodash/sortBy";
-import Store, { STORE_EVENT_NEW_STATE } from "../store";
+import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";

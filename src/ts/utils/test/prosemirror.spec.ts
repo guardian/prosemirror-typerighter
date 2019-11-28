@@ -2,7 +2,7 @@ import builder from "prosemirror-test-builder";
 import {
   createBlocksForDocument,
   getReplaceStepRangesFromTransaction
-} from "../utils/prosemirror";
+} from "../prosemirror";
 import { Transaction } from "prosemirror-state";
 import { schema } from "prosemirror-schema-basic";
 import { flatten } from "prosemirror-utils";

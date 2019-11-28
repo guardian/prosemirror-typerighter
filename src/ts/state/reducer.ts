@@ -30,7 +30,7 @@ import {
   DECORATION_DIRTY,
   DECORATION_INFLIGHT,
   removeDecorationsFromRanges,
-  createDecorationForMatch,
+  createDecorationsForMatch,
   DECORATION_MATCH,
   createDecorationsForMatches
 } from "../utils/decoration";
@@ -281,7 +281,7 @@ const handleNewHoverId = <TMatch extends IMatch>(
     }
     return decorations.add(
       tr.doc,
-      createDecorationForMatch(output, hoverData.isSelected, false)
+      createDecorationsForMatch(output, hoverData.isSelected, false)
     );
   }, decorations);
 
@@ -471,7 +471,6 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
     requestsInFlight.map(_ => _.block),
     match => !response.categoryIds.includes(match.category.id)
   );
-
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = requestsInFlight.reduce(
     (acc, blockInFlight) =>
@@ -505,7 +504,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
-
+     
   // Create our decorations for the newly current matches.
   const newDecorations = createDecorationsForMatches(response.matches);
 

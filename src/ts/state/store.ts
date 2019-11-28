@@ -1,6 +1,6 @@
-import { IPluginState } from "./state/reducer";
-import { ArgumentTypes } from "./utils/types";
-import { IMatch, IBlock } from "./interfaces/IMatch";
+import { IPluginState } from "./reducer";
+import { ArgumentTypes } from "../utils/types";
+import { IMatch, IBlock } from "../interfaces/IMatch";
 
 export const STORE_EVENT_NEW_MATCHES = "STORE_EVENT_NEW_MATCHES";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";

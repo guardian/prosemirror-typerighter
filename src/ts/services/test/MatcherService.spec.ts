@@ -1,11 +1,11 @@
 import fetchMock from "fetch-mock";
-import MatcherService from "../services/MatcherService";
-import Store from "../store";
+import MatcherService from "../MatcherService";
+import Store from "../../state/store";
 import TyperighterAdapter, {
   convertTyperighterResponse
-} from "../services/adapters/TyperighterAdapter";
-import { ITypeRighterResponse } from "../services/adapters/interfaces/ITyperighter";
-import { createBlockId } from "../utils/block";
+} from "../adapters/TyperighterAdapter";
+import { ITypeRighterResponse } from "../adapters/interfaces/ITyperighter";
+import { createBlockId } from "../../utils/block";
 
 const createResponse = (strs: string[]): ITypeRighterResponse => ({
   requestId: "set-id",

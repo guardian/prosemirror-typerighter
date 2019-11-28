@@ -1,6 +1,6 @@
 import Store from "../store";
-import { createInitialState } from "../state/reducer";
-import { createDoc, p } from "./helpers/prosemirror";
+import { createInitialState } from "../reducer";
+import { createDoc, p } from "../../test/helpers/prosemirror";
 
 describe("store", () => {
   it("should allow consumers to subscribe to all store events, and trigger subscriptions when those events are emitted", () => {

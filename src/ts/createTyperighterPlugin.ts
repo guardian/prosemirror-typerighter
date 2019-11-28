@@ -20,7 +20,7 @@ import Store, {
   STORE_EVENT_NEW_STATE,
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
-} from "./store";
+} from "./state/store";
 import { indicateHoverCommand } from "./commands";
 
 /**
