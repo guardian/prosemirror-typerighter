@@ -18105,6 +18105,7 @@ const DecorationClassMap = {
 };
 const DECORATION_ATTRIBUTE_ID = "data-match-id";
 const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
+const DECORATION_ATTRIBUTE_IS_CORRECT_ID = "data-is-correct-id";
 const createDebugDecorationFromRange = (range, dirty = true) => {
     const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
     return dist_2$3.inline(range.from, range.to + 1, {
@@ -18113,7 +18114,11 @@ const createDebugDecorationFromRange = (range, dirty = true) => {
         type
     });
 };
-const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]) => ranges.reduce((acc, range) => {
+const removeDecorationsFromRanges = (decorationSet, ranges, types = [
+    DECORATION_MATCH,
+    DECORATION_MATCH_HEIGHT_MARKER,
+    DECORATION_MATCH_IS_CORRECT
+]) => ranges.reduce((acc, range) => {
     const predicate = (spec) => types.indexOf(spec.type) !== -1;
     const decorations = decorationSet.find(range.from, range.to, predicate);
     if (!decorations.length) {
@@ -18131,41 +18136,49 @@ const createHeightMarkerElement = (id) => {
     element.className = DecorationClassMap[DECORATION_MATCH_HEIGHT_MARKER];
     return element;
 };
-const createDecorationForMatch = (output, isSelected = false, addHeightMarker = true) => {
-    let className = isSelected
+const createIsCorrectElement = (id) => {
+    const element = document.createElement("span");
+    element.setAttribute(DECORATION_ATTRIBUTE_IS_CORRECT_ID, id);
+    element.className = DecorationClassMap[DECORATION_MATCH_IS_CORRECT];
+    return element;
+};
+const createDecorationsForMatch = (match, isSelected = false, addWidgetDecorations = true) => {
+    const className = isSelected
         ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
         : DecorationClassMap[DECORATION_MATCH];
-    if (output.markAsCorrect) {
-        className += ` ${DecorationClassMap[DECORATION_MATCH_IS_CORRECT]}`;
-    }
     const opacity = isSelected ? "30" : "07";
-    const style = `background-color: #${output.category.colour}${opacity}; border-bottom: 2px solid #${output.category.colour}`;
-    const decorationArray = [
-        dist_2$3.inline(output.from, output.to, {
+    const style = `background-color: #${match.category.colour}${opacity}; border-bottom: 2px solid #${match.category.colour}`;
+    const decorations = [
+        dist_2$3.inline(match.from, match.to, {
             class: className,
             style,
-            [DECORATION_ATTRIBUTE_ID]: output.matchId
+            [DECORATION_ATTRIBUTE_ID]: match.matchId
         }, {
             type: DECORATION_MATCH,
-            id: output.matchId,
-            categoryId: output.category.id,
-            inclusiveStart: true
+            id: match.matchId,
+            categoryId: match.category.id,
+            inclusiveStart: false,
+            inclusiveEnd: false
         })
     ];
-    return addHeightMarker
-        ? [
-            ...decorationArray,
-            dist_2$3.widget(output.from, createHeightMarkerElement(output.matchId), {
-                type: DECORATION_MATCH_HEIGHT_MARKER,
-                id: output.matchId,
-                categoryId: output.category.id
-            })
-        ]
-        : decorationArray;
+    if (addWidgetDecorations) {
+        decorations.push(dist_2$3.widget(match.from, createHeightMarkerElement(match.matchId), {
+            type: DECORATION_MATCH_HEIGHT_MARKER,
+            id: match.matchId,
+            categoryId: match.category.id
+        }));
+    }
+    if (addWidgetDecorations && match.markAsCorrect) {
+        decorations.push(dist_2$3.widget(match.to, createIsCorrectElement(match.matchId), {
+            type: DECORATION_MATCH_IS_CORRECT,
+            id: match.matchId,
+            categoryId: match.category.id,
+            side: -1
+        }));
+    }
+    return decorations;
 };
-const createDecorationsForMatches = (ranges) => flatten_1(ranges.map(_ => createDecorationForMatch(_)));
-
-//# sourceMappingURL=decoration.js.map
+const createDecorationsForMatches = (matches) => flatten_1(matches.map(_ => createDecorationsForMatch(_)));
 
 /**
  * The base implementation of `_.clamp` which doesn't coerce arguments.
@@ -22070,7 +22083,7 @@ const createInitialState = (doc) => ({
     requestPending: false,
     error: undefined
 });
-const createTyperighterPluginReducer = (expandRanges) => {
+const createReducer = (expandRanges) => {
     const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(expandRanges);
     return (tr, incomingState, action) => {
         const state = tr.docChanged
@@ -22106,13 +22119,13 @@ const createTyperighterPluginReducer = (expandRanges) => {
     };
 };
 const getNewStateFromTransaction = (tr, incomingState) => {
-    const mappedrequestsInFlight = Object.entries(incomingState.requestsInFlight).reduce((acc, [requestId, requestsInFlight]) => {
+    const mappedRequestsInFlight = Object.entries(incomingState.requestsInFlight).reduce((acc, [requestId, requestsInFlight]) => {
         const mapping = new dist_14();
         mapping.appendMapping(requestsInFlight.mapping);
         mapping.appendMapping(tr.mapping);
         return Object.assign({}, acc, { [requestId]: Object.assign({}, requestsInFlight, { mapping }) });
     }, {});
-    return Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentMatches: mapRanges(incomingState.currentMatches, tr.mapping), requestsInFlight: mappedrequestsInFlight });
+    return Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentMatches: mapRanges(incomingState.currentMatches, tr.mapping), requestsInFlight: mappedRequestsInFlight });
 };
 const handleSelectMatch = (_, state, action) => {
     return Object.assign({}, state, { selectedMatch: action.payload.matchId });
@@ -22133,7 +22146,7 @@ const handleNewHoverId = (tr, state, action) => {
         if (!output) {
             return acc;
         }
-        return decorations.add(tr.doc, createDecorationForMatch(output, hoverData.isSelected, false));
+        return decorations.add(tr.doc, createDecorationsForMatch(output, hoverData.isSelected, false));
     }, decorations);
     return Object.assign({}, state, { decorations, hoverId: action.payload.matchId, hoverInfo: action.payload.hoverInfo });
 };
@@ -22315,6 +22328,8 @@ class Store {
     }
 }
 
+//# sourceMappingURL=store.js.map
+
 const compact = (value) => !!value;
 //# sourceMappingURL=array.js.map
 
@@ -22437,7 +22452,7 @@ const createBoundCommands = (view, getState) => {
 const createTyperighterPlugin = (options = {}) => {
     const { expandRanges = expandRangesToParentBlockNode } = options;
     const store = new Store();
-    const reducer = createTyperighterPluginReducer(expandRanges);
+    const reducer = createReducer(expandRanges);
     const plugin = new dist_8({
         key: new dist_9('prosemirror-typerighter'),
         state: {

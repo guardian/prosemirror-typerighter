@@ -3,7 +3,7 @@ import { IMatcherAdapter } from "../interfaces/IMatcherAdapter";
 import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
-} from "../store";
+} from "../state/store";
 import { Commands } from "../commands";
 import { selectAllBlockQueriesInFlight } from "../state/selectors";
 import v4 from "uuid/v4";

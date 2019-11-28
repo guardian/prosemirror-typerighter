@@ -57,7 +57,7 @@ describe("selectors", () => {
       expect(
         selectSingleBlockInFlightById(
           {
-            requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+            requestsInFlight: createBlockQueriesInFlight([
               input1,
               input2
             ])
@@ -77,22 +77,22 @@ describe("selectors", () => {
         selectNewBlockInFlight(
           {
             ...state,
-            requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+            requestsInFlight: createBlockQueriesInFlight([
               input1
             ])
           },
           {
             ...state,
             requestsInFlight: {
-              ...createBlockQueriesInFlight(exampleRequestId, [input1]),
-              ...createBlockQueriesInFlight("set-id-2", [input2])
+              ...createBlockQueriesInFlight([input1]),
+              ...createBlockQueriesInFlight([input2], "set-id-2")
             }
           }
         )
       ).toEqual([
         {
           requestId: "set-id-2",
-          ...createBlockQueriesInFlight("set-id-2", [input2])["set-id-2"]
+          ...createBlockQueriesInFlight([input2], "set-id-2")["set-id-2"]
         }
       ]);
     });
@@ -105,15 +105,15 @@ describe("selectors", () => {
           {
             ...state,
             requestsInFlight: {
-              ...createBlockQueriesInFlight(exampleRequestId, [input1]),
-              ...createBlockQueriesInFlight("set-id-2", [input2])
+              ...createBlockQueriesInFlight([input1]),
+              ...createBlockQueriesInFlight([input2], "set-id-2")
             }
           },
           {
             ...state,
-            requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+            requestsInFlight: createBlockQueriesInFlight([
               input1
-            ])
+            ], exampleRequestId)
           }
         )
       ).toEqual([]);
@@ -231,8 +231,8 @@ describe("selectors", () => {
       let state = {
         ...initialState,
         requestsInFlight: createBlockQueriesInFlight(
-          exampleRequestId,
           [input1, input2],
+          exampleRequestId,
           ["1", "2"]
         )
       };
@@ -240,8 +240,8 @@ describe("selectors", () => {
       state = {
         ...initialState,
         requestsInFlight: createBlockQueriesInFlight(
-          exampleRequestId,
           [input1, input2],
+          exampleRequestId,
           ["1", "2"],
           ["1"]
         )
@@ -257,8 +257,8 @@ describe("selectors", () => {
       let state = {
         ...initialState,
         requestsInFlight: {
-          ...createBlockQueriesInFlight(exampleRequestId, [input1, input2]),
-          ...createBlockQueriesInFlight("set-id-2", [input3])
+          ...createBlockQueriesInFlight([input1, input2]),
+          ...createBlockQueriesInFlight([input3], "set-id-2")
         }
       };
       expect(selectPercentRemaining(state)).toEqual(100);
@@ -266,15 +266,15 @@ describe("selectors", () => {
         ...initialState,
         requestsInFlight: {
           ...createBlockQueriesInFlight(
-            exampleRequestId,
             [input1, input2],
+            exampleRequestId,
             exampleCategoryIds,
             [],
             3
           ),
           ...createBlockQueriesInFlight(
-            "set-id-2",
             [input3, input4],
+            "set-id-2",
             exampleCategoryIds,
             exampleCategoryIds,
             2

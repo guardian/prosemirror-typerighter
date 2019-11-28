@@ -2,7 +2,7 @@ import { applyNewDirtiedRanges } from "./state/actions";
 import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
 import {
   createInitialState,
-  createTyperighterPluginReducer
+  createReducer
 } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
@@ -20,7 +20,7 @@ import Store, {
   STORE_EVENT_NEW_STATE,
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
-} from "./store";
+} from "./state/store";
 import { indicateHoverCommand } from "./commands";
 
 /**
@@ -56,7 +56,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
-  const reducer = createTyperighterPluginReducer(expandRanges);
+  const reducer = createReducer(expandRanges);
 
   const plugin: Plugin = new Plugin({
     key: new PluginKey('prosemirror-typerighter'),

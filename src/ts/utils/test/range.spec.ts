@@ -4,8 +4,8 @@ import {
   mergeRanges,
   removeOverlappingRanges,
   getRangesOfParentBlockNodes
-} from "../utils/range";
-import { createDoc, p } from "./helpers/prosemirror";
+} from "../range";
+import { createDoc, p } from "../../test/helpers/prosemirror";
 
 describe("Range utils", () => {
   describe("expandRangeToParentBlockNode", () => {

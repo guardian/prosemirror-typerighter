@@ -30,8 +30,8 @@ import {
   DECORATION_DIRTY,
   DECORATION_INFLIGHT,
   removeDecorationsFromRanges,
-  createDecorationForMatch,
   DECORATION_MATCH,
+  createDecorationsForMatch,
   createDecorationsForMatches
 } from "../utils/decoration";
 import {
@@ -148,7 +148,7 @@ export const createInitialState = <TMatch extends IMatch>(
   error: undefined
 });
 
-export const createTyperighterPluginReducer = (expandRanges: ExpandRanges) => {
+export const createReducer = (expandRanges: ExpandRanges) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
@@ -157,7 +157,7 @@ export const createTyperighterPluginReducer = (expandRanges: ExpandRanges) => {
     incomingState: IPluginState<TMatch>,
     action?: Action<TMatch>
   ): IPluginState<TMatch> => {
-    // There are certain things we need to do every time a transaction is dispatched, e.g. mapping ranges.
+    // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
     const state = tr.docChanged
       ? getNewStateFromTransaction(tr, incomingState)
       : incomingState;
@@ -203,7 +203,7 @@ const getNewStateFromTransaction = <TMatch extends IMatch>(
   tr: Transaction,
   incomingState: IPluginState<TMatch>
 ): IPluginState<TMatch> => {
-  const mappedrequestsInFlight = Object.entries(
+  const mappedRequestsInFlight = Object.entries(
     incomingState.requestsInFlight
   ).reduce((acc, [requestId, requestsInFlight]) => {
     // We create a new mapping here to preserve state immutability, as
@@ -224,7 +224,7 @@ const getNewStateFromTransaction = <TMatch extends IMatch>(
     decorations: incomingState.decorations.map(tr.mapping, tr.doc),
     dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
     currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
-    requestsInFlight: mappedrequestsInFlight
+    requestsInFlight: mappedRequestsInFlight
   };
 };
 
@@ -281,7 +281,7 @@ const handleNewHoverId = <TMatch extends IMatch>(
     }
     return decorations.add(
       tr.doc,
-      createDecorationForMatch(output, hoverData.isSelected, false)
+      createDecorationsForMatch(output, hoverData.isSelected, false)
     );
   }, decorations);
 
@@ -471,7 +471,6 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
     requestsInFlight.map(_ => _.block),
     match => !response.categoryIds.includes(match.category.id)
   );
-
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = requestsInFlight.reduce(
     (acc, blockInFlight) =>
@@ -505,7 +504,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
-
+     
   // Create our decorations for the newly current matches.
   const newDecorations = createDecorationsForMatches(response.matches);
 

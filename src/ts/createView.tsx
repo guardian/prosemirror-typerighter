@@ -1,7 +1,7 @@
 import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
 import MatchOverlay from "./components/MatchOverlay";
-import Store from "./store";
+import Store from "./state/store";
 import Sidebar from "./components/Sidebar";
 import Controls from "./components/Controls";
 import { Commands } from "./commands";

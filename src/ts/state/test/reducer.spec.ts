@@ -12,11 +12,11 @@ import {
   requestMatchesComplete as requestComplete
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
-import { createTyperighterPluginReducer, IPluginState } from "../reducer";
+import { createReducer, IPluginState } from "../reducer";
 import {
   createDebugDecorationFromRange,
   getNewDecorationsForCurrentMatches,
-  createDecorationForMatch
+  createDecorationsForMatch
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
@@ -29,12 +29,12 @@ import {
   exampleRequestId,
   createInitialData,
   defaultDoc,
-  addOutputsToState,
-  createBlockMatches
+  createMatch,
+  addMatchesToState
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
 
-const reducer = createTyperighterPluginReducer(expandRangesToParentBlockNode);
+const reducer = createReducer(expandRangesToParentBlockNode);
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -59,7 +59,7 @@ describe("Action handlers", () => {
           requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
         )
       ).toMatchObject({
-        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestsInFlight: createBlockQueriesInFlight([
           {
             from: 1,
             text: "Example text to check",
@@ -92,7 +92,7 @@ describe("Action handlers", () => {
           createDebugDecorationFromRange({ from: 1, to: 22 }, false)
         ]),
         requestPending: false,
-        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestsInFlight: createBlockQueriesInFlight([
           {
             text: "Example text to check",
             from: 1,
@@ -194,17 +194,24 @@ describe("Action handlers", () => {
           localState,
           requestMatchesSuccess(createMatcherResponse(1, 22))
         ).currentMatches
-      ).toMatchObject([createBlockMatches(1, 4)]);
+      ).toMatchObject([createMatch(1, 4)]);
     });
     it("should create decorations for the incoming matches", () => {
       const { state, tr } = createInitialData();
-      expect(
-        reducer(
-          tr,
-          state,
-          requestMatchesSuccess(createMatcherResponse(5, 10))
-        )
-      ).toMatchSnapshot();
+      const newState = reducer(
+        tr,
+        {
+          ...state,
+          requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+        },
+        requestMatchesSuccess(createMatcherResponse(5, 10))
+      );
+      const newMatch = newState.currentMatches[0];
+      const newDecorations = new DecorationSet().add(
+        tr.doc,
+        createDecorationsForMatch(newMatch)
+      );
+      expect(newState.decorations).toEqual(newDecorations);
     });
     describe("superceded matches", () => {
       const { state: initialState, tr } = createInitialData();
@@ -217,16 +224,19 @@ describe("Action handlers", () => {
         name:
           "This category should remain untouched -- it's not included in the categories for the incoming matches"
       };
-      const matcherResponse1 = createMatcherResponse(0, 15, 1, 7);
+      const matcherResponse1 = {
+        ...createMatcherResponse(0, 15, 1, 7),
+        markAsCorrect: true
+      };
       const matcherResponse2 = createMatcherResponse(0, 15, 9, 13, category);
       const matcherResponse3 = createMatcherResponse(16, 37, 17, 25); // Some other output for another block
       const requestsInFlight = createBlockQueriesInFlight(
-        exampleRequestId,
         blocks,
+        exampleRequestId,
         [...matcherResponse1.categoryIds, ...matcherResponse2.categoryIds]
       );
 
-      const state: IPluginState = addOutputsToState(
+      const state: IPluginState = addMatchesToState(
         {
           ...initialState,
           requestsInFlight
@@ -239,23 +249,6 @@ describe("Action handlers", () => {
         ]
       );
 
-      it("should remove previous matches that match the block and category of the incoming match", () => {
-        const newState = reducer(
-          tr,
-          state,
-          requestMatchesSuccess({
-            blocks: [firstBlock],
-            categoryIds: ["1"],
-            matches: [],
-            requestId: exampleRequestId
-          })
-        );
-
-        expect(newState.currentMatches).toEqual([
-          matcherResponse2.matches[0],
-          matcherResponse3.matches[0]
-        ]);
-      });
       it("should remove previous decorations that match block and category of the incoming match", () => {
         const newState = reducer(
           tr,
@@ -270,13 +263,13 @@ describe("Action handlers", () => {
 
         expect(newState.decorations).toEqual(
           new DecorationSet().add(tr.doc, [
-            ...createDecorationForMatch(matcherResponse2.matches[0]),
-            ...createDecorationForMatch(matcherResponse3.matches[0])
+            ...createDecorationsForMatch(matcherResponse2.matches[0]),
+            ...createDecorationsForMatch(matcherResponse3.matches[0])
           ])
         );
       });
 
-      it("should remove checkd categories from the remaining categories list for in-flight blocks", () => {
+      it("should remove checked categories from the remaining categories list for in-flight blocks", () => {
         const newState = reducer(
           tr,
           state,
@@ -360,7 +353,7 @@ describe("Action handlers", () => {
       const { state: initialState, tr } = createInitialData();
       const state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestsInFlight: createBlockQueriesInFlight([
           createBlock(1, 25, "Example text to check")
         ])
       };
@@ -391,7 +384,7 @@ describe("Action handlers", () => {
     it("should remove the inflight request from the state", () => {
       const state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestsInFlight: createBlockQueriesInFlight([
           createBlock(1, 25, "Example text to check")
         ])
       };
@@ -401,7 +394,7 @@ describe("Action handlers", () => {
     it("should ignore other requests", () => {
       const state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestsInFlight: createBlockQueriesInFlight([
           createBlock(1, 25, "Example text to check"),
           createBlock(26, 47, "More text to check")
         ])
@@ -451,14 +444,14 @@ describe("Action handlers", () => {
         currentMatches: [output],
         decorations: new DecorationSet().add(
           tr.doc,
-          createDecorationForMatch(output, false, true)
+          createDecorationsForMatch(output, false)
         )
       };
       expect(reducer(tr, localState, newHoverIdReceived("match-id"))).toEqual({
         ...localState,
         decorations: new DecorationSet().add(
           tr.doc,
-          createDecorationForMatch(output, true, true)
+          createDecorationsForMatch(output, true)
         ),
         hoverId: "match-id",
         hoverInfo: undefined
@@ -480,7 +473,7 @@ describe("Action handlers", () => {
       const localState = {
         ...state,
         decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationForMatch(output, true, true)
+          ...createDecorationsForMatch(output, true)
         ]),
         currentMatches: [output],
         hoverId: "match-id",
@@ -491,7 +484,7 @@ describe("Action handlers", () => {
       ).toEqual({
         ...localState,
         decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationForMatch(output, false, true)
+          ...createDecorationsForMatch(output, false)
         ]),
         hoverId: undefined,
         hoverInfo: undefined
@@ -511,7 +504,8 @@ describe("Action handlers", () => {
             id: "1",
             name: "cat",
             colour: "eeeeee"
-          }
+          },
+          markAsCorrect: true
         }
       ];
       const stateWithCurrentMatchesAndDecorations = {
