@@ -1,29 +1,29 @@
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, IMatches } from "../interfaces/IValidation";
+import { IRange, IMatch } from "../interfaces/IMatch";
 
 // Our decoration types.
-export const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-export const DECORATION_VALIDATION_IS_CORRECT =
-  "DECORATION_VALIDATION_IS_CORRECT";
-export const DECORATION_VALIDATION_IS_SELECTED =
-  "DECORATION_VALIDATION_IS_HOVERING";
-export const DECORATION_VALIDATION_HEIGHT_MARKER =
-  "DECORATION_VALIDATION_HEIGHT_MARKER";
+export const DECORATION_MATCH = "DECORATION_MATCH";
+export const DECORATION_MATCH_IS_CORRECT =
+  "DECORATION_MATCH_IS_CORRECT";
+export const DECORATION_MATCH_IS_SELECTED =
+  "DECORATION_MATCH_IS_HOVERING";
+export const DECORATION_MATCH_HEIGHT_MARKER =
+  "DECORATION_MATCH_HEIGHT_MARKER";
 export const DECORATION_DIRTY = "DECORATION_DIRTY";
 export const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
 
 export const DecorationClassMap = {
-  [DECORATION_DIRTY]: "ValidationDebugDirty",
-  [DECORATION_INFLIGHT]: "ValidationDebugInflight",
-  [DECORATION_VALIDATION]: "ValidationDecoration",
-  [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
-  [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected",
-  [DECORATION_VALIDATION_IS_CORRECT]: "ValidationDecoration--is-correct"
+  [DECORATION_DIRTY]: "MatchDebugDirty",
+  [DECORATION_INFLIGHT]: "MatchDebugInflight",
+  [DECORATION_MATCH]: "MatchDecoration",
+  [DECORATION_MATCH_HEIGHT_MARKER]: "MatchDecoration__height-marker",
+  [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected",
+  [DECORATION_MATCH_IS_CORRECT]: "MatchDecoration--is-correct"
 };
 
-export const DECORATION_ATTRIBUTE_ID = "data-validation-id";
+export const DECORATION_ATTRIBUTE_ID = "data-match-id";
 export const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
 
 export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
@@ -47,7 +47,7 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
 export const removeDecorationsFromRanges = (
   decorationSet: DecorationSet,
   ranges: IRange[],
-  types = [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]
+  types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]
 ) =>
   ranges.reduce((acc, range) => {
     const predicate = (spec: { [key: string]: any }) =>
@@ -68,16 +68,16 @@ export const removeDecorationsFromRanges = (
   }, decorationSet);
 
 /**
- * Given a validation response and the current decoration set,
- * returns a new decoration set containing the new validations.
+ * Given a matcher response and the current decoration set,
+ * returns a new decoration set containing the new matches.
  */
-export const getNewDecorationsForCurrentValidations = (
-  outputs: IMatches[],
+export const getNewDecorationsForCurrentMatches = (
+  outputs: IMatch[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
-  // There are new validations available; apply them to the document.
-  const decorationsToAdd = createDecorationsForValidationRanges(outputs);
+  // There are new matches available; apply them to the document.
+  const decorationsToAdd = createDecorationsForMatches(outputs);
 
   // Finally, we add the existing decorations to this new map.
   return decorationSet.add(doc, decorationsToAdd);
@@ -92,25 +92,25 @@ export const getNewDecorationsForCurrentValidations = (
 const createHeightMarkerElement = (id: string) => {
   const element = document.createElement("span");
   element.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
-  element.className = DecorationClassMap[DECORATION_VALIDATION_HEIGHT_MARKER];
+  element.className = DecorationClassMap[DECORATION_MATCH_HEIGHT_MARKER];
   return element;
 };
 
 /**
- * Create a validation decoration for the given range.
+ * Create a match decoration for the given range.
  */
-export const createDecorationForValidationRange = (
-  output: IMatches,
+export const createDecorationForMatch = (
+  output: IMatch,
   isSelected = false,
   addHeightMarker = true
 ) => {
   let className = isSelected
-    ? `${DecorationClassMap[DECORATION_VALIDATION]} ${
-        DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]
+    ? `${DecorationClassMap[DECORATION_MATCH]} ${
+        DecorationClassMap[DECORATION_MATCH_IS_SELECTED]
       }`
-    : DecorationClassMap[DECORATION_VALIDATION];
+    : DecorationClassMap[DECORATION_MATCH];
   if (output.markAsCorrect) {
-    className += ` ${DecorationClassMap[DECORATION_VALIDATION_IS_CORRECT]}`;
+    className += ` ${DecorationClassMap[DECORATION_MATCH_IS_CORRECT]}`;
   }
   const opacity = isSelected ? "30" : "07";
   const style = `background-color: #${
@@ -127,7 +127,7 @@ export const createDecorationForValidationRange = (
         [DECORATION_ATTRIBUTE_ID]: output.matchId
       } as any,
       {
-        type: DECORATION_VALIDATION,
+        type: DECORATION_MATCH,
         id: output.matchId,
         categoryId: output.category.id,
         inclusiveStart: true
@@ -142,7 +142,7 @@ export const createDecorationForValidationRange = (
           output.from,
           createHeightMarkerElement(output.matchId),
           {
-            type: DECORATION_VALIDATION_HEIGHT_MARKER,
+            type: DECORATION_MATCH_HEIGHT_MARKER,
             id: output.matchId,
             categoryId: output.category.id
           } as any
@@ -151,8 +151,8 @@ export const createDecorationForValidationRange = (
     : decorationArray;
 };
 
-export const createDecorationsForValidationRanges = (ranges: IMatches[]) =>
-  flatten(ranges.map(_ => createDecorationForValidationRange(_)));
+export const createDecorationsForMatches = (ranges: IMatch[]) =>
+  flatten(ranges.map(_ => createDecorationForMatch(_)));
 
 export const findSingleDecoration = (
   decorationSet: DecorationSet,

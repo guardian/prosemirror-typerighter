@@ -1,6 +1,6 @@
 import {
   selectPercentRemaining,
-  selectBlockMatchesByMatchId,
+  selectMatchByMatchId,
   selectSuggestionAndRange,
   selectSingleBlockInFlightById,
   selectNewBlockInFlight
@@ -14,15 +14,12 @@ import {
 } from "../../test/helpers/fixtures";
 
 describe("selectors", () => {
-  describe("selectAllAutoFixableValidations", () => {
-
-  })
-  describe("selectValidationById", () => {
-    it("should find the given validation by id", () => {
+  describe("selectMatchById", () => {
+    it("should find the given match by id", () => {
       expect(
-        selectBlockMatchesByMatchId(
+        selectMatchByMatchId(
           {
-            currentValidations: [
+            currentMatches: [
               {
                 matchId: "1"
               },
@@ -35,11 +32,11 @@ describe("selectors", () => {
         )
       ).toEqual({ matchId: "1" });
     });
-    it("should return undefined if there is no validation", () => {
+    it("should return undefined if there is no match", () => {
       expect(
-        selectBlockMatchesByMatchId(
+        selectMatchByMatchId(
           {
-            currentValidations: [
+            currentMatches: [
               {
                 blockId: "1"
               },
@@ -53,17 +50,17 @@ describe("selectors", () => {
       ).toEqual(undefined);
     });
   });
-  describe("selectValidationInFlightById", () => {
-    it("should find a single validation in flight by its id", () => {
+  describe("selectBlockInFlightById", () => {
+    it("should find a single block in flight by its id", () => {
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       expect(
         selectSingleBlockInFlightById(
           {
-            blockQueriesInFlight: createBlockQueriesInFlight(
-              exampleRequestId,
-              [input1, input2]
-            )
+            requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+              input1,
+              input2
+            ])
           } as any,
           exampleRequestId,
           input1.id
@@ -71,8 +68,8 @@ describe("selectors", () => {
       ).toEqual(input1);
     });
   });
-  describe("selectNewValidationInFlight", () => {
-    it("should find the new inflight validations given an old and a new state", () => {
+  describe("selectNewBlockInFlight", () => {
+    it("should find the new inflight matches given an old and a new state", () => {
       const { state } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
@@ -80,14 +77,13 @@ describe("selectors", () => {
         selectNewBlockInFlight(
           {
             ...state,
-            blockQueriesInFlight: createBlockQueriesInFlight(
-              exampleRequestId,
-              [input1]
-            )
+            requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+              input1
+            ])
           },
           {
             ...state,
-            blockQueriesInFlight: {
+            requestsInFlight: {
               ...createBlockQueriesInFlight(exampleRequestId, [input1]),
               ...createBlockQueriesInFlight("set-id-2", [input2])
             }
@@ -100,7 +96,7 @@ describe("selectors", () => {
         }
       ]);
     });
-    it("shouldn't include validations missing in the new state but present in the old state", () => {
+    it("shouldn't include matches missing in the new state but present in the old state", () => {
       const { state } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
@@ -108,17 +104,16 @@ describe("selectors", () => {
         selectNewBlockInFlight(
           {
             ...state,
-            blockQueriesInFlight: {
+            requestsInFlight: {
               ...createBlockQueriesInFlight(exampleRequestId, [input1]),
               ...createBlockQueriesInFlight("set-id-2", [input2])
             }
           },
           {
             ...state,
-            blockQueriesInFlight: createBlockQueriesInFlight(
-              exampleRequestId,
-              [input1]
-            )
+            requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+              input1
+            ])
           }
         )
       ).toEqual([]);
@@ -131,7 +126,7 @@ describe("selectors", () => {
     });
     it("should handle unknown suggestions for found outputs", () => {
       const { state } = createInitialData();
-      const currentValidations = [
+      const currentMatches = [
         {
           matchId: "match-id",
           id: "id",
@@ -157,16 +152,16 @@ describe("selectors", () => {
         selectSuggestionAndRange(
           {
             ...state,
-            currentValidations: currentValidations
+            currentMatches
           },
           "id",
           15
         )
       ).toEqual(null);
     });
-    it("should select a suggestion and the range it should be applied to, given a validation id and suggestion index", () => {
+    it("should select a suggestion and the range it should be applied to, given a match id and suggestion index", () => {
       const { state } = createInitialData();
-      const currentValidations = [
+      const currentMatches = [
         {
           matchId: "match-id",
           id: "id",
@@ -192,7 +187,7 @@ describe("selectors", () => {
         selectSuggestionAndRange(
           {
             ...state,
-            currentValidations: currentValidations
+            currentMatches
           },
           "match-id",
           0
@@ -209,7 +204,7 @@ describe("selectors", () => {
         selectSuggestionAndRange(
           {
             ...state,
-            currentValidations: currentValidations
+            currentMatches
           },
           "match-id",
           1
@@ -225,17 +220,17 @@ describe("selectors", () => {
     });
   });
   describe("selectPercentRemaining", () => {
-    it("should report nothing when there are no validations in flight", () => {
+    it("should report nothing when there are no requests in flight", () => {
       const { state } = createInitialData();
       expect(selectPercentRemaining(state)).toEqual(0);
     });
-    it("should select the percentage remaining for a single validation set", () => {
+    it("should select the percentage remaining for a single request", () => {
       const { state: initialState } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       let state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(
+        requestsInFlight: createBlockQueriesInFlight(
           exampleRequestId,
           [input1, input2],
           ["1", "2"]
@@ -244,7 +239,7 @@ describe("selectors", () => {
       expect(selectPercentRemaining(state)).toEqual(100);
       state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(
+        requestsInFlight: createBlockQueriesInFlight(
           exampleRequestId,
           [input1, input2],
           ["1", "2"],
@@ -253,7 +248,7 @@ describe("selectors", () => {
       };
       expect(selectPercentRemaining(state)).toEqual(50);
     });
-    it("should select the percentage remaining for multiple validation sets", () => {
+    it("should select the percentage remaining for multiple requests", () => {
       const { state: initialState } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
@@ -261,18 +256,15 @@ describe("selectors", () => {
       const input4 = createBlock(20, 25);
       let state = {
         ...initialState,
-        blockQueriesInFlight: {
-          ...createBlockQueriesInFlight(exampleRequestId, [
-            input1,
-            input2
-          ]),
+        requestsInFlight: {
+          ...createBlockQueriesInFlight(exampleRequestId, [input1, input2]),
           ...createBlockQueriesInFlight("set-id-2", [input3])
         }
       };
       expect(selectPercentRemaining(state)).toEqual(100);
       state = {
         ...initialState,
-        blockQueriesInFlight: {
+        requestsInFlight: {
           ...createBlockQueriesInFlight(
             exampleRequestId,
             [input1, input2],

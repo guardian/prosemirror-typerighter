@@ -1,20 +1,20 @@
 import {
-  IValidationLibrary,
-  IMatches,
+  IMatchLibrary,
+  IMatch,
   ISuggestion,
   IBlock,
-  IValidationResponse
-} from "../../interfaces/IValidation";
-import { createBlockId, createMatchId } from "../../utils/validation";
-import { IInFlightValidationSetState, IPluginState } from "../../state/reducer";
+  IMatcherResponse
+} from "../../interfaces/IMatch";
+import { createBlockId, createMatchId } from "../../utils/block";
+import { IPluginState } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
 import { DecorationSet } from "prosemirror-view";
 import { createDoc, p } from "./prosemirror";
-import { createDecorationForValidationRange } from "../../utils/decoration";
+import { createDecorationForMatch } from "../../utils/decoration";
 
-export const validationLibrary: IValidationLibrary = [
+export const matchLibrary: IMatchLibrary = [
   [
     {
       regExp: new RegExp("first match", "g"),
@@ -50,7 +50,7 @@ export const createBlock = (
   id: `0-from:${from}-to:${to}`
 });
 
-export const createValidationResponse = (
+export const createMatcherResponse = (
   from: number,
   to: number,
   wordFrom: number = from,
@@ -62,7 +62,7 @@ export const createValidationResponse = (
   },
   suggestions = [] as ISuggestion[],
   requestId: string = exampleRequestId
-): IValidationResponse => ({
+): IMatcherResponse => ({
   requestId,
   categoryIds: [category.id],
   blocks: [
@@ -94,7 +94,7 @@ export const createBlockMatches = (
     name: "Cat",
     colour: "eeeee"
   }
-): IMatches => ({
+): IMatch => ({
   category,
   annotation: "annotation",
   from,
@@ -113,7 +113,7 @@ export const createBlockQueriesInFlight = (
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
   total?: number
-): { [setId: string]: IInFlightValidationSetState } => ({
+): { [setId: string]: IBlockIn } => ({
   [setId]: {
     totalBlocks: total || blockQueries.length,
     mapping: new Mapping(),
@@ -125,7 +125,7 @@ export const createBlockQueriesInFlight = (
   }
 });
 
-export const defaultDoc = createDoc(p("Example text to validate"));
+export const defaultDoc = createDoc(p("Example text to check"));
 
 export const createInitialTr = (doc: Node = defaultDoc) => {
   const tr = new Transaction(doc);
@@ -142,36 +142,36 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
     tr,
     state: {
       debug: false,
-      validateOnModify: true,
+      requestMatchesOnDocModified: true,
       currentThrottle: 100,
       initialThrottle: 100,
       maxThrottle: 1000,
       decorations: DecorationSet.create(tr.doc, []),
       dirtiedRanges: [],
-      currentValidations: [],
+      currentMatches: [],
       selectedMatch: undefined,
       hoverId: undefined,
       hoverInfo: undefined,
       trHistory: [tr],
-      blockQueriesInFlight: {},
-      validationPending: false,
+      requestsInFlight: {},
+      requestPending: false,
       error: undefined
     } as IPluginState
   };
 };
 
 export const addOutputsToState = (
-  state: IPluginState<IMatches>,
+  state: IPluginState<IMatch>,
   doc: any,
-  outputs: IMatches[]
+  outputs: IMatch[]
 ) => {
   const decorations = outputs.reduce(
-    (set, output) => set.add(doc, createDecorationForValidationRange(output)),
+    (set, output) => set.add(doc, createDecorationForMatch(output)),
     new DecorationSet()
   );
   return {
     ...state,
-    currentValidations: outputs,
+    currentMatches: outputs,
     decorations
   };
 };

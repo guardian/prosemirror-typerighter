@@ -2,13 +2,13 @@ import { Component, h } from "preact";
 import v4 from "uuid/v4";
 import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { IPluginState } from "../state/reducer";
-import { IMatches, ICategory } from "../interfaces/IValidation";
+import { IMatch, ICategory } from "../interfaces/IMatch";
 
 interface IProps {
-  store: Store<IMatches>;
+  store: Store<IMatch>;
   setDebugState: (debug: boolean) => void;
-  setValidateOnModifyState: (validate: boolean) => void;
-  validateDocument: (requestId: string, categoryIds: string[]) => void;
+  setRequestOnDocModified: (r: boolean) => void;
+  requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
   fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
@@ -16,7 +16,7 @@ interface IProps {
 }
 
 interface IState {
-  pluginState?: IPluginState<IMatches>;
+  pluginState?: IPluginState<IMatch>;
   isOpen: boolean;
   allCategories: ICategory[];
   currentCategories: ICategory[];
@@ -24,9 +24,9 @@ interface IState {
 }
 
 /**
- * A sidebar to display current validations and allow users to apply suggestions.
+ * A sidebar to display current matches and allow users to apply suggestions.
  */
-class ValidationControls extends Component<IProps, IState> {
+class Controls extends Component<IProps, IState> {
   public state = {
     isOpen: false,
     allCategories: [],
@@ -39,8 +39,8 @@ class ValidationControls extends Component<IProps, IState> {
   }
 
   public render() {
-    const { setDebugState, setValidateOnModifyState } = this.props;
-    const { debug = false, validateOnModify = false } =
+    const { setDebugState, setRequestOnDocModified } = this.props;
+    const { debug = false, requestMatchesOnDocModified = false } =
       this.state.pluginState || {};
     const { isOpen, isLoadingCategories } = this.state;
     return (
@@ -63,33 +63,37 @@ class ValidationControls extends Component<IProps, IState> {
         <div className="Sidebar__content">
           {isOpen && (
             <div>
-              <div className="ValidationControls__row">
+              <div className="Controls__row">
                 <label
-                  className="ValidationControls__label"
-                  for="ValidationControls__validate-on-modify"
+                  className="Controls__label"
+                  for="Controls__check-on-modify"
                 >
-                  Validate when the document is modified
+                  Run checks when the document is modified
                 </label>
-                <div class="ValidationControls__input">
+                <div class="Controls__input">
                   <input
                     type="checkbox"
-                    id="ValidationControls__validate-on-modify"
-                    checked={validateOnModify}
+                    id="Controls__check-on-modify"
+                    checked={requestMatchesOnDocModified}
                     className="Input"
-                    onClick={() => setValidateOnModifyState(!validateOnModify)}
+                    onClick={() =>
+                      setRequestOnDocModified(
+                        !requestMatchesOnDocModified
+                      )
+                    }
                   />
                 </div>
               </div>
-              <div className="ValidationControls__row">
+              <div className="Controls__row">
                 <label
-                  className="ValidationControls__label"
-                  for="ValidationControls__show-dirty-ranges"
+                  className="Controls__label"
+                  for="Controls__show-dirty-ranges"
                 >
                   Show dirty and pending ranges
                 </label>
-                <div class="ValidationControls__input">
+                <div class="Controls__input">
                   <input
-                    id="ValidationControls__show-dirty-ranges"
+                    id="Controls__show-dirty-ranges"
                     type="checkbox"
                     checked={debug}
                     className="Input"
@@ -97,10 +101,10 @@ class ValidationControls extends Component<IProps, IState> {
                   />
                 </div>
               </div>
-              <div className="ValidationControls__row">
+              <div className="Controls__row">
                 <hr />
               </div>
-              <div className="ValidationControls__row">
+              <div className="Controls__row">
                 Select categories&nbsp;
                 {isLoadingCategories && (
                   <span className="Sidebar__loading-spinner">|</span>
@@ -113,16 +117,16 @@ class ValidationControls extends Component<IProps, IState> {
                 </button>
               </div>
               {this.state.allCategories.map(category => (
-                <div className="ValidationControls__row">
+                <div className="Controls__row">
                   <label
-                    className="ValidationControls__label"
-                    for="ValidationControls__show-dirty-ranges"
+                    className="Controls__label"
+                    for="Controls__show-dirty-ranges"
                   >
                     {category.name}
                   </label>
-                  <div class="ValidationControls__input">
+                  <div class="Controls__input">
                     <input
-                      id="ValidationControls__show-dirty-ranges"
+                      id="Controls__show-dirty-ranges"
                       type="checkbox"
                       checked={
                         !!this.state.currentCategories.find(
@@ -140,21 +144,21 @@ class ValidationControls extends Component<IProps, IState> {
                   </div>
                 </div>
               ))}
-              <div className="ValidationControls__row">
+              <div className="Controls__row">
                 <hr />
               </div>
             </div>
           )}
-          <div className="ValidationControls__row">
-            <button className="Button" onClick={this.validateDocument}>
-              Validate whole document
+          <div className="Controls__row">
+            <button className="Button" onClick={this.requestMatchesForDocument}>
+              Check whole document
             </button>
           </div>
         </div>
       </div>
     );
   }
-  private handleNotify = (state: IPluginState<IMatches>) => {
+  private handleNotify = (state: IPluginState<IMatch>) => {
     this.setState({ pluginState: state });
   };
   private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
@@ -194,12 +198,12 @@ class ValidationControls extends Component<IProps, IState> {
     }
   };
 
-  private validateDocument = () => {
-    this.props.validateDocument(
+  private requestMatchesForDocument = () => {
+    this.props.requestMatchesForDocument(
       v4(),
       this.props.getCurrentCategories().map(_ => _.id)
     );
   };
 }
 
-export default ValidationControls;
+export default Controls;

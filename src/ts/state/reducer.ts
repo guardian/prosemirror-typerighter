@@ -1,28 +1,28 @@
 import { Transaction } from "prosemirror-state";
 import {
-  ActionSetValidateOnModifyState,
+  ActionSetRequestMatchesOnDocModified,
   ActionSetDebugState,
-  ActionValidationRequestError,
-  ActionValidationResponseReceived,
-  ActionValidationRequestForDocument,
-  ActionValidationRequestForDirtyRanges,
+  ActionRequestError,
+  ActionRequestMatchesSuccess,
+  ActionRequestMatchesForDocument,
+  ActionRequestMatchesForDirtyRanges,
   ActionHandleNewDirtyRanges,
   ActionNewHoverIdReceived,
-  ActionSelectValidation,
+  ActionSelectMatch,
   NEW_HOVER_ID,
-  VALIDATION_REQUEST_FOR_DIRTY_RANGES,
-  VALIDATION_REQUEST_FOR_DOCUMENT,
-  VALIDATION_REQUEST_SUCCESS,
-  VALIDATION_REQUEST_ERROR,
+  REQUEST_FOR_DIRTY_RANGES,
+  REQUEST_FOR_DOCUMENT,
+  REQUEST_SUCCESS,
+  REQUEST_ERROR,
+  REQUEST_COMPLETE,
   SELECT_MATCH,
   APPLY_NEW_DIRTY_RANGES,
   SET_DEBUG_STATE,
-  SET_VALIDATE_ON_MODIFY_STATE,
+  SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
   Action,
-  ActionValidationRequestComplete,
-  VALIDATION_REQUEST_COMPLETE
+  ActionRequestComplete
 } from "./actions";
-import { IMatches, IBlock, IRange } from "../interfaces/IValidation";
+import { IMatch, IBlock, IRange } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
 import {
@@ -30,29 +30,29 @@ import {
   DECORATION_DIRTY,
   DECORATION_INFLIGHT,
   removeDecorationsFromRanges,
-  createDecorationForValidationRange,
-  DECORATION_VALIDATION,
-  createDecorationsForValidationRanges
+  createDecorationForMatch,
+  DECORATION_MATCH,
+  createDecorationsForMatches
 } from "../utils/decoration";
 import {
   mergeRanges,
-  validationInputToRange,
+  blockToRange,
   mapAndMergeRanges,
   mapRanges,
   findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
-import { ExpandRanges } from "../createValidationPlugin";
-import { createValidationBlocksForDocument } from "../utils/prosemirror";
+import { ExpandRanges } from "../createTyperighterPlugin";
+import { createBlocksForDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
   selectSingleBlockInFlightById,
   selectBlockQueriesInFlightForSet,
-  selectBlockMatchesByMatchId,
+  selectMatchByMatchId,
   selectBlockQueriesInFlightById
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
-import { createBlock } from "../utils/validation";
+import { createBlock } from "../utils/block";
 
 /**
  * Information about the span element the user is hovering over.
@@ -81,84 +81,86 @@ export interface IStateHoverInfo {
   heightOfSingleLine: number;
 }
 
-export interface IBlockQueryInFlight {
+export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
   block: IBlock;
 }
 
-export interface IBlockQueriesInFlightState {
+export interface IBlocksInFlightState {
   totalBlocks: number;
   // The category ids that were sent with the request.
   categoryIds: string[];
-  pendingBlocks: IBlockQueryInFlight[];
+  pendingBlocks: IBlockInFlight[];
   mapping: Mapping;
 }
 
-export interface IPluginState<TBlockMatches extends IMatches = IMatches> {
+export interface IPluginState<TBlockMatches extends IMatch = IMatch> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
-  // Should we trigger validations when the document is modified?
-  validateOnModify: boolean;
+  // Should we trigger a request when the document is modified?
+  requestMatchesOnDocModified: boolean;
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
-  // The current validation outputs for the document.
-  currentValidations: TBlockMatches[];
+  // The current matches for the document.
+  currentMatches: TBlockMatches[];
   // The current ranges that are marked as dirty, that is, have been
-  // changed since the last validation pass.
+  // changed since the last request.
   dirtiedRanges: IRange[];
   // The currently selected match.
   selectedMatch: string | undefined;
-  // The id of the validation the user is currently hovering over.
+  // The id of the match the user is currently hovering over.
   hoverId: string | undefined;
   // See StateHoverInfo.
   hoverInfo: IStateHoverInfo | undefined;
-  // Are there validations pending: have ranges been dirtied but
-  // not yet been expanded and sent for validation?
-  validationPending: boolean;
-  // The sets of blocks that have been sent to the validation service
+  // Are there requests pending: have ranges been dirtied but
+  // not yet been expanded and sent in a request?
+  requestPending: boolean;
+  // The sets of blocks that have been sent to the matcher service
   // and have not yet completed processing.
-  blockQueriesInFlight: {
-    [requestId: string]: IBlockQueriesInFlightState;
+  requestsInFlight: {
+    [requestId: string]: IBlocksInFlightState;
   };
   // The current error status.
   error: string | undefined;
 }
 
 // The transaction meta key that namespaces our actions.
-export const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
+export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 
 /**
  * Initial state.
  */
-export const createInitialState = <TValidationMeta extends IMatches>(
+export const createInitialState = <TMatch extends IMatch>(
   doc: Node
-): IPluginState<TValidationMeta> => ({
+): IPluginState<TMatch> => ({
   debug: false,
-  validateOnModify: false,
+  requestMatchesOnDocModified: false,
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
-  currentValidations: [],
+  currentMatches: [],
   selectedMatch: undefined,
   hoverId: undefined,
   hoverInfo: undefined,
-  blockQueriesInFlight: {},
-  validationPending: false,
+  requestsInFlight: {},
+  requestPending: false,
   error: undefined
 });
 
-export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
-  const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(
+export const createTyperighterPluginReducer = (expandRanges: ExpandRanges) => {
+  const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
-  return <TValidationMeta extends IMatches>(
+  return <TMatch extends IMatch>(
     tr: Transaction,
-    incomingState: IPluginState<TValidationMeta>,
-    action?: Action<TValidationMeta>
-  ): IPluginState<TValidationMeta> => {
+    incomingState: IPluginState<TMatch>,
+    action?: Action<TMatch>
+  ): IPluginState<TMatch> => {
     // There are certain things we need to do every time a transaction is dispatched, e.g. mapping ranges.
-    const state = tr.docChanged ? getNewStateFromTransaction(tr, incomingState) : incomingState;
+    const state = tr.docChanged
+      ? getNewStateFromTransaction(tr, incomingState)
+      : incomingState;
 
     if (!action) {
       return state;
@@ -167,24 +169,24 @@ export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
     switch (action.type) {
       case NEW_HOVER_ID:
         return handleNewHoverId(tr, state, action);
-      case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
-        return handleValidationRequestForDirtyRanges(tr, state, action);
-      case VALIDATION_REQUEST_FOR_DOCUMENT:
-        return handleValidationRequestForDocument(tr, state, action);
-      case VALIDATION_REQUEST_SUCCESS:
-        return handleValidationRequestSuccess(tr, state, action);
-      case VALIDATION_REQUEST_ERROR:
-        return handleValidationRequestError(tr, state, action);
-      case VALIDATION_REQUEST_COMPLETE:
-        return handleValidationRequestComplete(tr, state, action);
+      case REQUEST_FOR_DIRTY_RANGES:
+        return handleMatchesRequestForDirtyRanges(tr, state, action);
+      case REQUEST_FOR_DOCUMENT:
+        return handleMatchesRequestForDocument(tr, state, action);
+      case REQUEST_SUCCESS:
+        return handleMatchesRequestSuccess(tr, state, action);
+      case REQUEST_ERROR:
+        return handleMatchesRequestError(tr, state, action);
+      case REQUEST_COMPLETE:
+        return handleRequestComplete(tr, state, action);
       case SELECT_MATCH:
-        return handleSelectValidation(tr, state, action);
+        return handleSelectMatch(tr, state, action);
       case APPLY_NEW_DIRTY_RANGES:
         return handleNewDirtyRanges(tr, state, action);
       case SET_DEBUG_STATE:
         return handleSetDebugState(tr, state, action);
-      case SET_VALIDATE_ON_MODIFY_STATE:
-        return handleSetValidateOnModifyState(tr, state, action);
+      case SET_REQUEST_MATCHES_ON_DOC_MODIFIED:
+        return handleSetRequestOnDocModifiedState(tr, state, action);
       default:
         return state;
     }
@@ -197,22 +199,22 @@ export const createValidationPluginReducer = (expandRanges: ExpandRanges) => {
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
  */
-const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
+const getNewStateFromTransaction = <TMatch extends IMatch>(
   tr: Transaction,
-  incomingState: IPluginState<TValidationMeta>
-): IPluginState<TValidationMeta> => {
-  const mappedblockQueriesInFlight = Object.entries(
-    incomingState.blockQueriesInFlight
-  ).reduce((acc, [requestId, blockQueriesInFlight]) => {
+  incomingState: IPluginState<TMatch>
+): IPluginState<TMatch> => {
+  const mappedrequestsInFlight = Object.entries(
+    incomingState.requestsInFlight
+  ).reduce((acc, [requestId, requestsInFlight]) => {
     // We create a new mapping here to preserve state immutability, as
     // appendMapping mutates an existing mapping.
     const mapping = new Mapping();
-    mapping.appendMapping(blockQueriesInFlight.mapping);
+    mapping.appendMapping(requestsInFlight.mapping);
     mapping.appendMapping(tr.mapping);
     return {
       ...acc,
       [requestId]: {
-        ...blockQueriesInFlight,
+        ...requestsInFlight,
         mapping
       }
     };
@@ -221,8 +223,8 @@ const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
     ...incomingState,
     decorations: incomingState.decorations.map(tr.mapping, tr.doc),
     dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentValidations: mapRanges(incomingState.currentValidations, tr.mapping),
-    blockQueriesInFlight: mappedblockQueriesInFlight
+    currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
+    requestsInFlight: mappedrequestsInFlight
   };
 };
 
@@ -233,11 +235,11 @@ const getNewStateFromTransaction = <TValidationMeta extends IMatches>(
 /**
  * Handle the selection of a hover id.
  */
-const handleSelectValidation = <TValidationMeta extends IMatches>(
+const handleSelectMatch = <TMatch extends IMatch>(
   _: unknown,
-  state: IPluginState<TValidationMeta>,
-  action: ActionSelectValidation
-): IPluginState<TValidationMeta> => {
+  state: IPluginState<TMatch>,
+  action: ActionSelectMatch
+): IPluginState<TMatch> => {
   return {
     ...state,
     selectedMatch: action.payload.matchId
@@ -247,11 +249,11 @@ const handleSelectValidation = <TValidationMeta extends IMatches>(
 /**
  * Handle the receipt of a new hover id.
  */
-const handleNewHoverId = <TValidationMeta extends IMatches>(
+const handleNewHoverId = <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>,
+  state: IPluginState<TMatch>,
   action: ActionNewHoverIdReceived
-): IPluginState<TValidationMeta> => {
+): IPluginState<TMatch> => {
   let decorations = state.decorations;
   const incomingHoverId = action.payload.matchId;
   const currentHoverId = state.hoverId;
@@ -262,24 +264,24 @@ const handleNewHoverId = <TValidationMeta extends IMatches>(
     undefined,
     spec =>
       (spec.id === currentHoverId || spec.id === incomingHoverId) &&
-      spec.type === DECORATION_VALIDATION
+      spec.type === DECORATION_MATCH
   );
 
   decorations = decorations.remove(currentHoverDecorations);
 
-  // Add the new decorations for the current and incoming validations.
+  // Add the new decorations for the current and incoming matches.
   const decorationData = [{ id: incomingHoverId, isSelected: true }];
   if (incomingHoverId !== currentHoverId) {
     decorationData.push({ id: currentHoverId, isSelected: false });
   }
   decorations = decorationData.reduce((acc, hoverData) => {
-    const output = selectBlockMatchesByMatchId(state, hoverData.id || "");
+    const output = selectMatchByMatchId(state, hoverData.id || "");
     if (!output) {
       return acc;
     }
     return decorations.add(
       tr.doc,
-      createDecorationForValidationRange(output, hoverData.isSelected, false)
+      createDecorationForMatch(output, hoverData.isSelected, false)
     );
   }, decorations);
 
@@ -291,9 +293,9 @@ const handleNewHoverId = <TValidationMeta extends IMatches>(
   };
 };
 
-const handleNewDirtyRanges = <TValidationMeta extends IMatches>(
+const handleNewDirtyRanges = <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>,
+  state: IPluginState<TMatch>,
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
 ) => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
@@ -304,83 +306,78 @@ const handleNewDirtyRanges = <TValidationMeta extends IMatches>(
       )
     : state.decorations;
 
-  // Remove any validations and associated decorations
+  // Remove any matches and associated decorations
   // touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
-  const currentValidations = state.currentValidations.filter(
+  const currentMatches = state.currentMatches.filter(
     output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
   );
 
   return {
     ...state,
-    currentValidations,
+    currentMatches,
     decorations: newDecorations,
     // We only care about storing dirtied ranges if we're validating
     // in response to user edits.
-    validationPending: state.validateOnModify ? true : false,
-    dirtiedRanges: state.validateOnModify
+    requestPending: state.requestMatchesOnDocModified ? true : false,
+    dirtiedRanges: state.requestMatchesOnDocModified
       ? state.dirtiedRanges.concat(dirtiedRanges)
       : []
   };
 };
 
 /**
- * Handle a validation request for the current set of dirty ranges.
+ * Handle a matches request for the current set of dirty ranges.
  */
-const createHandleValidationRequestForDirtyRanges = (
+const createHandleMatchesRequestForDirtyRanges = (
   expandRanges: ExpandRanges
-) => <TValidationMeta extends IMatches>(
+) => <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>,
-  { payload: { requestId, categoryIds } }: ActionValidationRequestForDirtyRanges
+  state: IPluginState<TMatch>,
+  { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const validationInputs: IBlock[] = ranges.map(range =>
-    createBlock(tr, range)
-  );
-  return handleValidationRequestStart(requestId, validationInputs, categoryIds)(
-    tr,
-    state
-  );
+  const blocks: IBlock[] = ranges.map(range => createBlock(tr, range));
+  return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
 
 /**
- * Handle a validation request for the entire document.
+ * Handle a matches request for the entire document.
  */
-const handleValidationRequestForDocument = <TValidationMeta extends IMatches>(
+const handleMatchesRequestForDocument = <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>,
-  { payload: { requestId, categoryIds } }: ActionValidationRequestForDocument
+  state: IPluginState<TMatch>,
+  { payload: { requestId, categoryIds } }: ActionRequestMatchesForDocument
 ) => {
-  return handleValidationRequestStart(
+  return handleRequestStart(
     requestId,
-    createValidationBlocksForDocument(tr),
+    createBlocksForDocument(tr),
     categoryIds
   )(tr, state);
 };
 
 /**
- * Handle a validation request for a given set of validation inputs.
+ * Handle a matches request for a given set of blocks.
  */
-const handleValidationRequestStart = (
+const handleRequestStart = (
   requestId: string,
-  blockQueries: IBlock[],
+  blocks: IBlock[],
   categoryIds: string[]
-) => <TValidationMeta extends IMatches>(
+) => <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>
-): IPluginState<TValidationMeta> => {
+  state: IPluginState<TMatch>
+): IPluginState<TMatch> => {
   // Replace any debug decorations, if they exist.
   const decorations = state.debug
-    ? removeDecorationsFromRanges(state.decorations, blockQueries, [
+    ? removeDecorationsFromRanges(state.decorations, blocks, [
         DECORATION_DIRTY
       ]).add(
         tr.doc,
-        blockQueries.map(range => createDebugDecorationFromRange(range, false))
+        blocks.map(range => createDebugDecorationFromRange(range, false))
       )
     : state.decorations;
 
-  const newBlockQueriesInFlight: IBlockQueryInFlight[] = blockQueries.map(block => ({
+  const newBlockQueriesInFlight: IBlockInFlight[] = blocks.map(block => ({
     block,
     pendingCategoryIds: categoryIds
   }));
@@ -388,11 +385,11 @@ const handleValidationRequestStart = (
   return {
     ...state,
     decorations,
-    // We reset the dirty ranges, as they've been expanded and sent for validation.
+    // We reset the dirty ranges, as they've been expanded and sent in a request.
     dirtiedRanges: [],
-    validationPending: false,
-    blockQueriesInFlight: {
-      ...state.blockQueriesInFlight,
+    requestPending: false,
+    requestsInFlight: {
+      ...state.requestsInFlight,
       [requestId]: {
         totalBlocks: newBlockQueriesInFlight.length,
         pendingBlocks: newBlockQueriesInFlight,
@@ -403,8 +400,8 @@ const handleValidationRequestStart = (
   };
 };
 
-const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
-  state: IPluginState<TValidationOutput>,
+const amendBlockQueriesInFlight = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>,
   requestId: string,
   blockId: string,
   categoryIds: string[]
@@ -414,9 +411,9 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
     requestId
   );
   if (!currentBlockQueriesInFlight) {
-    return state.blockQueriesInFlight;
+    return state.requestsInFlight;
   }
-  const newBlockQueriesInFlight: IBlockQueriesInFlightState = {
+  const newBlockQueriesInFlight: IBlocksInFlightState = {
     ...currentBlockQueriesInFlight,
     pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
       (acc, blockInFlight) => {
@@ -434,50 +431,49 @@ const amendBlockQueriesInFlight = <TValidationOutput extends IMatches>(
           ? acc.concat(newBlockInFlight)
           : acc;
       },
-      [] as IBlockQueryInFlight[]
+      [] as IBlockInFlight[]
     )
   };
   if (!newBlockQueriesInFlight.pendingBlocks.length) {
-    return omit(state.blockQueriesInFlight, requestId);
+    return omit(state.requestsInFlight, requestId);
   }
   return {
-    ...state.blockQueriesInFlight,
+    ...state.requestsInFlight,
     [requestId]: newBlockQueriesInFlight
   };
 };
 
 /**
- * Handle a validation response, decorating the document with
- * any validations we've received.
+ * Handle a response, decorating the document with any matches we've received.
  */
-const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
+const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TBlockMatches>,
-  { payload: { response } }: ActionValidationResponseReceived<TBlockMatches>
-): IPluginState<TBlockMatches> => {
+  state: IPluginState<TMatch>,
+  { payload: { response } }: ActionRequestMatchesSuccess<TMatch>
+): IPluginState<TMatch> => {
   if (!response) {
     return state;
   }
 
-  const blockQueriesInFlight = selectBlockQueriesInFlightById(
+  const requestsInFlight = selectBlockQueriesInFlightById(
     state,
     response.requestId,
     response.blocks.map(_ => _.id)
   );
 
-  if (!blockQueriesInFlight.length) {
+  if (!requestsInFlight.length) {
     return state;
   }
 
-  // Remove validations superceded by the incoming matches.
-  let currentValidations: TBlockMatches[] = removeOverlappingRanges(
-    state.currentValidations,
-    blockQueriesInFlight.map(_ => _.block),
-    validation => !response.categoryIds.includes(validation.category.id)
+  // Remove matches superceded by the incoming matches.
+  let currentMatches: TMatch[] = removeOverlappingRanges(
+    state.currentMatches,
+    requestsInFlight.map(_ => _.block),
+    match => !response.categoryIds.includes(match.category.id)
   );
 
   // Remove decorations superceded by the incoming matches.
-  const decsToRemove = blockQueriesInFlight.reduce(
+  const decsToRemove = requestsInFlight.reduce(
     (acc, blockInFlight) =>
       acc.concat(
         state.decorations
@@ -486,7 +482,7 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
           )
           .concat(
             state.debug
-              ? // Ditch any decorations marking inflight validations.
+              ? // Ditch any decorations marking inflight matches.
                 state.decorations.find(
                   undefined,
                   undefined,
@@ -498,40 +494,37 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
     [] as Decoration[]
   );
 
-  // Add the response to the current validations
-  currentValidations = currentValidations.concat(
+  // Add the response to the current matches.
+  currentMatches = currentMatches.concat(
     mapRanges(
       response.matches,
       selectBlockQueriesInFlightForSet(state, response.requestId)!.mapping
     )
   );
 
-  // We don't apply incoming validations to ranges that have
+  // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
-  currentValidations = removeOverlappingRanges(
-    currentValidations,
-    state.dirtiedRanges
-  );
+  currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
 
-  // Create our decorations for the newly current validations.
-  const newDecorations = createDecorationsForValidationRanges(response.matches);
+  // Create our decorations for the newly current matches.
+  const newDecorations = createDecorationsForMatches(response.matches);
 
   // Amend the block queries in flight to
-  const newBlockQueriesInFlight = blockQueriesInFlight.reduce(
+  const newBlockQueriesInFlight = requestsInFlight.reduce(
     (acc, blockInFlight) =>
       amendBlockQueriesInFlight(
-        { ...state, blockQueriesInFlight: acc },
+        { ...state, requestsInFlight: acc },
         response.requestId,
         blockInFlight.block.id,
         response.categoryIds
       ),
-    state.blockQueriesInFlight
+    state.requestsInFlight
   );
 
   return {
     ...state,
-    blockQueriesInFlight: newBlockQueriesInFlight,
-    currentValidations: currentValidations,
+    requestsInFlight: newBlockQueriesInFlight,
+    currentMatches,
     decorations: state.decorations
       .remove(decsToRemove)
       .add(tr.doc, newDecorations)
@@ -539,27 +532,24 @@ const handleValidationRequestSuccess = <TBlockMatches extends IMatches>(
 };
 
 /**
- * Handle a validation request error.
+ * Handle a matches request error.
  */
-const handleValidationRequestError = <TValidationMeta extends IMatches>(
+const handleMatchesRequestError = <TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TValidationMeta>,
+  state: IPluginState<TMatch>,
   {
     payload: {
-      validationError: { requestId, blockId, message }
+      matchRequestError: { requestId, blockId, message }
     }
-  }: ActionValidationRequestError
+  }: ActionRequestError
 ) => {
   if (!blockId) {
     return { ...state, message };
   }
 
-  const blockQueriesInFlight = selectBlockQueriesInFlightForSet(
-    state,
-    requestId
-  );
+  const requestsInFlight = selectBlockQueriesInFlightForSet(state, requestId);
 
-  if (!blockQueriesInFlight) {
+  if (!requestsInFlight) {
     return state;
   }
 
@@ -574,10 +564,7 @@ const handleValidationRequestError = <TValidationMeta extends IMatches>(
   }
 
   const dirtiedRanges = blockInFlight
-    ? mapRanges(
-        [validationInputToRange(blockInFlight.block)],
-        blockQueriesInFlight.mapping
-      )
+    ? mapRanges([blockToRange(blockInFlight.block)], requestsInFlight.mapping)
     : [];
 
   const decsToRemove = dirtiedRanges.reduce(
@@ -592,9 +579,9 @@ const handleValidationRequestError = <TValidationMeta extends IMatches>(
     [] as Decoration[]
   );
 
-  // When we get errors, we map the ranges due to be validated back
+  // When we get errors, we map the ranges due to be checked back
   // through the document and add them to the dirtied ranges to be
-  // validated on the next pass.
+  // checked on the next pass.
   let decorations = state.decorations.remove(decsToRemove);
 
   if (dirtiedRanges.length && state.debug) {
@@ -610,20 +597,15 @@ const handleValidationRequestError = <TValidationMeta extends IMatches>(
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    blockQueriesInFlight: amendBlockQueriesInFlight(
-      state,
-      requestId,
-      blockId,
-      []
-    ),
+    requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, []),
     error: message
   };
 };
 
-const handleValidationRequestComplete = <TValidationMeta extends IMatches>(
+const handleRequestComplete = <TMatch extends IMatch>(
   _: Transaction,
-  state: IPluginState<TValidationMeta>,
-  { payload: { requestId } }: ActionValidationRequestComplete
+  state: IPluginState<TMatch>,
+  { payload: { requestId } }: ActionRequestComplete
 ) => {
   const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
   const hasUnfinishedWork =
@@ -640,13 +622,13 @@ const handleValidationRequestComplete = <TValidationMeta extends IMatches>(
   }
   return {
     ...state,
-    blockQueriesInFlight: omit(state.blockQueriesInFlight, requestId)
+    requestsInFlight: omit(state.requestsInFlight, requestId)
   };
 };
 
-const handleSetDebugState = <TValidationMeta extends IMatches>(
+const handleSetDebugState = <TMatch extends IMatch>(
   _: Transaction,
-  state: IPluginState<TValidationMeta>,
+  state: IPluginState<TMatch>,
   { payload: { debug } }: ActionSetDebugState
 ) => {
   return {
@@ -655,13 +637,13 @@ const handleSetDebugState = <TValidationMeta extends IMatches>(
   };
 };
 
-const handleSetValidateOnModifyState = <TValidationMeta extends IMatches>(
+const handleSetRequestOnDocModifiedState = <TMatch extends IMatch>(
   _: Transaction,
-  state: IPluginState<TValidationMeta>,
-  { payload: { validateOnModify } }: ActionSetValidateOnModifyState
+  state: IPluginState<TMatch>,
+  { payload: { requestMatchesOnDocModified } }: ActionSetRequestMatchesOnDocModified
 ) => {
   return {
     ...state,
-    validateOnModify
+    requestMatchesOnDocModified
   };
 };

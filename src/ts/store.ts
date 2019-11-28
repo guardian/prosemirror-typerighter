@@ -1,41 +1,41 @@
 import { IPluginState } from "./state/reducer";
 import { ArgumentTypes } from "./utils/types";
-import { IMatches, IBlock } from "./interfaces/IValidation";
+import { IMatch, IBlock } from "./interfaces/IMatch";
 
-export const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
+export const STORE_EVENT_NEW_MATCHES = "STORE_EVENT_NEW_MATCHES";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
 export const STORE_EVENT_NEW_DIRTIED_RANGES = "STORE_EVENT_DOCUMENT_DIRTIED";
 
-type STORE_EVENT_NEW_VALIDATION = typeof STORE_EVENT_NEW_VALIDATION;
+type STORE_EVENT_NEW_MATCHES = typeof STORE_EVENT_NEW_MATCHES;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-export interface IStoreEvents<TValidationMeta extends IMatches> {
-  [STORE_EVENT_NEW_VALIDATION]: (
+export interface IStoreEvents<TMatch extends IMatch> {
+  [STORE_EVENT_NEW_MATCHES]: (
     requestId: string,
     blocks: IBlock[]
   ) => void;
-  [STORE_EVENT_NEW_STATE]: (state: IPluginState<TValidationMeta>) => void;
+  [STORE_EVENT_NEW_STATE]: (state: IPluginState<TMatch>) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
-type EventNames = keyof IStoreEvents<IMatches>;
+type EventNames = keyof IStoreEvents<IMatch>;
 
 /**
- * A store to allow consumers to subscribe to validator state updates.
+ * A store to allow consumers to subscribe to state updates.
  */
 class Store<
-  TValidationOutput extends IMatches,
-  TStoreEvents extends IStoreEvents<TValidationOutput> = IStoreEvents<
-    TValidationOutput
+  TMatch extends IMatch,
+  TStoreEvents extends IStoreEvents<TMatch> = IStoreEvents<
+    TMatch
   >
 > {
-  private state: IPluginState<TValidationOutput> | undefined;
+  private state: IPluginState<TMatch> | undefined;
   private subscribers: {
     [EventName in EventNames]: Array<TStoreEvents[EventName]>
   } = {
     [STORE_EVENT_NEW_STATE]: [],
-    [STORE_EVENT_NEW_VALIDATION]: [],
+    [STORE_EVENT_NEW_MATCHES]: [],
     [STORE_EVENT_NEW_DIRTIED_RANGES]: []
   };
 
@@ -95,7 +95,7 @@ class Store<
   /**
    * Update the store's reference to the plugin state.
    */
-  private updateState(state: IPluginState<TValidationOutput>) {
+  private updateState(state: IPluginState<TMatch>) {
     this.state = state;
   }
 }

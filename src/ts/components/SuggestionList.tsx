@@ -1,6 +1,6 @@
 import { h, Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { ISuggestion } from "../interfaces/IValidation";
+import { ISuggestion } from "../interfaces/IMatch";
 import Suggestion from "./Suggestion";
 import { ApplySuggestionOptions } from "../commands";
 
@@ -15,7 +15,7 @@ const SuggestionList = ({ suggestions, matchId, applySuggestions }: IProps) => {
   const firstSuggestion = suggestions[0];
   const otherSuggestions = suggestions.slice(1);
   return (
-    <div className="ValidationSidebarOutput__suggestion-list">
+    <div className="SidebarMatch__suggestion-list">
       {suggestions.length ? (
         <Suggestion
           matchId={matchId}

@@ -1,6 +1,6 @@
 import builder from "prosemirror-test-builder";
 import {
-  createValidationBlocksForDocument,
+  createBlocksForDocument,
   getReplaceStepRangesFromTransaction
 } from "../utils/prosemirror";
 import { Transaction } from "prosemirror-state";
@@ -10,7 +10,7 @@ import { flatten } from "prosemirror-utils";
 const { doc, p, ul, li } = builder;
 
 describe("Prosemirror utils", () => {
-  describe("createValidationInputsForDocument", () => {
+  describe("createBlocksForDocument", () => {
     it("should get the ranges of all the leaf block nodes in a given node", () => {
       const node = doc(
         p("Paragraph 1"),
@@ -20,7 +20,7 @@ describe("Prosemirror utils", () => {
       const tr = new Transaction(node);
       tr.doc = node;
       tr.time = 0;
-      expect(createValidationBlocksForDocument(tr)).toEqual([
+      expect(createBlocksForDocument(tr)).toEqual([
         { from: 1, to: 13, text: "Paragraph 1", id: "0-from:1-to:13" },
         { from: 14, to: 26, text: "Paragraph 2", id: "0-from:14-to:26" },
         {

@@ -143,12 +143,21 @@ OrderedMap.from = function(value) {
 
 var orderedmap = OrderedMap;
 
+
+
+
+var orderedmap$2 = Object.freeze({
+	default: orderedmap
+});
+
+var require$$0 = ( orderedmap$2 && orderedmap ) || orderedmap$2;
+
 var dist$1 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var OrderedMap = _interopDefault(orderedmap);
+var OrderedMap = _interopDefault(require$$0);
 
 function findDiffStart(a, b, pos) {
   for (var i = 0;; i++) {
@@ -11462,12 +11471,6 @@ var schemaBasic_1 = schemaBasic.nodes;
 var schemaBasic_2 = schemaBasic.marks;
 var schemaBasic_3 = schemaBasic.schema;
 
-var schemaList = createCommonjsModule(function (module, exports) {
-Object.defineProperty(exports, '__esModule', { value: true });
-
-
-
-
 var olDOM = ["ol", 0];
 var ulDOM = ["ul", 0];
 var liDOM = ["li", 0];
@@ -11547,12 +11550,12 @@ function wrapInList(listType, attrs) {
       // Don't do anything if this is the top of the list
       if ($from.index(range.depth - 1) == 0) { return false }
       var $insert = state.doc.resolve(range.start - 2);
-      outerRange = new dist$1.NodeRange($insert, $insert, range.depth);
+      outerRange = new dist_3$1($insert, $insert, range.depth);
       if (range.endIndex < range.parent.childCount)
-        { range = new dist$1.NodeRange($from, state.doc.resolve($to.end(range.depth)), range.depth); }
+        { range = new dist_3$1($from, state.doc.resolve($to.end(range.depth)), range.depth); }
       doJoin = true;
     }
-    var wrap = dist$2.findWrapping(outerRange, listType, attrs, range);
+    var wrap = dist_11$1(outerRange, listType, attrs, range);
     if (!wrap) { return false }
     if (dispatch) { dispatch(doWrapInList(state.tr, range, wrap, doJoin, listType).scrollIntoView()); }
     return true
@@ -11560,12 +11563,12 @@ function wrapInList(listType, attrs) {
 }
 
 function doWrapInList(tr, range, wrappers, joinBefore, listType) {
-  var content = dist$1.Fragment.empty;
+  var content = dist_4$1.empty;
   for (var i = wrappers.length - 1; i >= 0; i--)
-    { content = dist$1.Fragment.from(wrappers[i].type.create(wrappers[i].attrs, content)); }
+    { content = dist_4$1.from(wrappers[i].type.create(wrappers[i].attrs, content)); }
 
-  tr.step(new dist$2.ReplaceAroundStep(range.start - (joinBefore ? 2 : 0), range.end, range.start, range.end,
-                                new dist$1.Slice(content, 0, 0), wrappers.length, true));
+  tr.step(new dist_18(range.start - (joinBefore ? 2 : 0), range.end, range.start, range.end,
+                                new dist_5$1(content, 0, 0), wrappers.length, true));
 
   var found = 0;
   for (var i$1 = 0; i$1 < wrappers.length; i$1++) { if (wrappers[i$1].type == listType) { found = i$1 + 1; } }
@@ -11573,7 +11576,7 @@ function doWrapInList(tr, range, wrappers, joinBefore, listType) {
 
   var splitPos = range.start + wrappers.length - (joinBefore ? 2 : 0), parent = range.parent;
   for (var i$2 = range.startIndex, e = range.endIndex, first = true; i$2 < e; i$2++, first = false) {
-    if (!first && dist$2.canSplit(tr.doc, splitPos, splitDepth)) {
+    if (!first && dist_7$2(tr.doc, splitPos, splitDepth)) {
       tr.split(splitPos, splitDepth);
       splitPos += 2 * splitDepth;
     }
@@ -11601,23 +11604,23 @@ function splitListItem(itemType) {
       if ($from.depth == 2 || $from.node(-3).type != itemType ||
           $from.index(-2) != $from.node(-2).childCount - 1) { return false }
       if (dispatch) {
-        var wrap = dist$1.Fragment.empty, keepItem = $from.index(-1) > 0;
+        var wrap = dist_4$1.empty, keepItem = $from.index(-1) > 0;
         // Build a fragment containing empty versions of the structure
         // from the outer list item to the parent node of the cursor
         for (var d = $from.depth - (keepItem ? 1 : 2); d >= $from.depth - 3; d--)
-          { wrap = dist$1.Fragment.from($from.node(d).copy(wrap)); }
+          { wrap = dist_4$1.from($from.node(d).copy(wrap)); }
         // Add a second list item with an empty default start node
-        wrap = wrap.append(dist$1.Fragment.from(itemType.createAndFill()));
-        var tr$1 = state.tr.replace($from.before(keepItem ? null : -1), $from.after(-3), new dist$1.Slice(wrap, keepItem ? 3 : 2, 2));
+        wrap = wrap.append(dist_4$1.from(itemType.createAndFill()));
+        var tr$1 = state.tr.replace($from.before(keepItem ? null : -1), $from.after(-3), new dist_5$1(wrap, keepItem ? 3 : 2, 2));
         tr$1.setSelection(state.selection.constructor.near(tr$1.doc.resolve($from.pos + (keepItem ? 3 : 2))));
         dispatch(tr$1.scrollIntoView());
       }
       return true
     }
-    var nextType = $to.pos == $from.end() ? grandParent.defaultContentType(0) : null;
+    var nextType = $to.pos == $from.end() ? grandParent.contentMatchAt(0).defaultType : null;
     var tr = state.tr.delete($from.pos, $to.pos);
     var types = nextType && [null, {type: nextType}];
-    if (!dist$2.canSplit(tr.doc, $from.pos, 2, types)) { return false }
+    if (!dist_7$2(tr.doc, $from.pos, 2, types)) { return false }
     if (dispatch) { dispatch(tr.split($from.pos, 2, types).scrollIntoView()); }
     return true
   }
@@ -11646,11 +11649,11 @@ function liftToOuterList(state, dispatch, itemType, range) {
   if (end < endOfList) {
     // There are siblings after the lifted items, which must become
     // children of the last item
-    tr.step(new dist$2.ReplaceAroundStep(end - 1, endOfList, end, endOfList,
-                                  new dist$1.Slice(dist$1.Fragment.from(itemType.create(null, range.parent.copy())), 1, 0), 1, true));
-    range = new dist$1.NodeRange(tr.doc.resolve(range.$from.pos), tr.doc.resolve(endOfList), range.depth);
+    tr.step(new dist_18(end - 1, endOfList, end, endOfList,
+                                  new dist_5$1(dist_4$1.from(itemType.create(null, range.parent.copy())), 1, 0), 1, true));
+    range = new dist_3$1(tr.doc.resolve(range.$from.pos), tr.doc.resolve(endOfList), range.depth);
   }
-  dispatch(tr.lift(range, dist$2.liftTarget(range)).scrollIntoView());
+  dispatch(tr.lift(range, dist_10$1(range)).scrollIntoView());
   return true
 }
 
@@ -11665,15 +11668,15 @@ function liftOutOfList(state, dispatch, range) {
   var atStart = range.startIndex == 0, atEnd = range.endIndex == list.childCount;
   var parent = $start.node(-1), indexBefore = $start.index(-1);
   if (!parent.canReplace(indexBefore + (atStart ? 0 : 1), indexBefore + 1,
-                         item.content.append(atEnd ? dist$1.Fragment.empty : dist$1.Fragment.from(list))))
+                         item.content.append(atEnd ? dist_4$1.empty : dist_4$1.from(list))))
     { return false }
   var start = $start.pos, end = start + item.nodeSize;
   // Strip off the surrounding list. At the sides where we're not at
   // the end of the list, the existing list is closed. At sides where
   // this is the end, it is overwritten to its end.
-  tr.step(new dist$2.ReplaceAroundStep(start - (atStart ? 1 : 0), end + (atEnd ? 1 : 0), start + 1, end - 1,
-                                new dist$1.Slice((atStart ? dist$1.Fragment.empty : dist$1.Fragment.from(list.copy(dist$1.Fragment.empty)))
-                                          .append(atEnd ? dist$1.Fragment.empty : dist$1.Fragment.from(list.copy(dist$1.Fragment.empty))),
+  tr.step(new dist_18(start - (atStart ? 1 : 0), end + (atEnd ? 1 : 0), start + 1, end - 1,
+                                new dist_5$1((atStart ? dist_4$1.empty : dist_4$1.from(list.copy(dist_4$1.empty)))
+                                          .append(atEnd ? dist_4$1.empty : dist_4$1.from(list.copy(dist_4$1.empty))),
                                           atStart ? 0 : 1, atEnd ? 0 : 1), atStart ? 0 : 1));
   dispatch(tr.scrollIntoView());
   return true
@@ -11696,11 +11699,11 @@ function sinkListItem(itemType) {
 
     if (dispatch) {
       var nestedBefore = nodeBefore.lastChild && nodeBefore.lastChild.type == parent.type;
-      var inner = dist$1.Fragment.from(nestedBefore ? itemType.create() : null);
-      var slice = new dist$1.Slice(dist$1.Fragment.from(itemType.create(null, dist$1.Fragment.from(parent.copy(inner)))),
+      var inner = dist_4$1.from(nestedBefore ? itemType.create() : null);
+      var slice = new dist_5$1(dist_4$1.from(itemType.create(null, dist_4$1.from(parent.type.create(null, inner)))),
                             nestedBefore ? 3 : 1, 0);
       var before = range.start, after = range.end;
-      dispatch(state.tr.step(new dist$2.ReplaceAroundStep(before - (nestedBefore ? 3 : 1), after,
+      dispatch(state.tr.step(new dist_18(before - (nestedBefore ? 3 : 1), after,
                                                    before, after, slice, 1, true))
                .scrollIntoView());
     }
@@ -11708,26 +11711,20 @@ function sinkListItem(itemType) {
   }
 }
 
-exports.orderedList = orderedList;
-exports.bulletList = bulletList;
-exports.listItem = listItem;
-exports.addListNodes = addListNodes;
-exports.wrapInList = wrapInList;
-exports.splitListItem = splitListItem;
-exports.liftListItem = liftListItem;
-exports.sinkListItem = sinkListItem;
-//# sourceMappingURL=schema-list.js.map
-});
 
-unwrapExports(schemaList);
-var schemaList_1 = schemaList.orderedList;
-var schemaList_2 = schemaList.bulletList;
-var schemaList_3 = schemaList.listItem;
-var schemaList_4 = schemaList.addListNodes;
-var schemaList_5 = schemaList.wrapInList;
-var schemaList_6 = schemaList.splitListItem;
-var schemaList_7 = schemaList.liftListItem;
-var schemaList_8 = schemaList.sinkListItem;
+//# sourceMappingURL=index.es.js.map
+
+
+var index_es = Object.freeze({
+	addListNodes: addListNodes,
+	bulletList: bulletList,
+	liftListItem: liftListItem,
+	listItem: listItem,
+	orderedList: orderedList,
+	sinkListItem: sinkListItem,
+	splitListItem: splitListItem,
+	wrapInList: wrapInList
+});
 
 var GOOD_LEAF_SIZE = 200;
 
@@ -11809,7 +11806,7 @@ RopeSequence.from = function from (values) {
   return values && values.length ? new Leaf(values) : RopeSequence.empty
 };
 
-var Leaf = (function (RopeSequence) {
+var Leaf = /*@__PURE__*/(function (RopeSequence) {
   function Leaf(values) {
     RopeSequence.call(this);
     this.values = values;
@@ -11819,7 +11816,7 @@ var Leaf = (function (RopeSequence) {
   Leaf.prototype = Object.create( RopeSequence && RopeSequence.prototype );
   Leaf.prototype.constructor = Leaf;
 
-  var prototypeAccessors = { length: {},depth: {} };
+  var prototypeAccessors = { length: { configurable: true },depth: { configurable: true } };
 
   Leaf.prototype.flatten = function flatten () {
     return this.values
@@ -11835,17 +11832,13 @@ var Leaf = (function (RopeSequence) {
   };
 
   Leaf.prototype.forEachInner = function forEachInner (f, from, to, start) {
-    var this$1 = this;
-
     for (var i = from; i < to; i++)
-      { if (f(this$1.values[i], start + i) === false) { return false } }
+      { if (f(this.values[i], start + i) === false) { return false } }
   };
 
   Leaf.prototype.forEachInvertedInner = function forEachInvertedInner (f, from, to, start) {
-    var this$1 = this;
-
     for (var i = from - 1; i >= to; i--)
-      { if (f(this$1.values[i], start + i) === false) { return false } }
+      { if (f(this.values[i], start + i) === false) { return false } }
   };
 
   Leaf.prototype.leafAppend = function leafAppend (other) {
@@ -11871,7 +11864,7 @@ var Leaf = (function (RopeSequence) {
 // The empty rope sequence.
 RopeSequence.empty = new Leaf([]);
 
-var Append = (function (RopeSequence) {
+var Append = /*@__PURE__*/(function (RopeSequence) {
   function Append(left, right) {
     RopeSequence.call(this);
     this.left = left;
@@ -11939,14 +11932,23 @@ var Append = (function (RopeSequence) {
   return Append;
 }(RopeSequence));
 
-var dist$4 = RopeSequence;
+var ropeSequence = RopeSequence;
+
+
+
+
+var index_es$1 = Object.freeze({
+	default: ropeSequence
+});
+
+var require$$0$1 = ( index_es$1 && ropeSequence ) || index_es$1;
 
 var history_1 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var RopeSequence = _interopDefault(dist$4);
+var RopeSequence = _interopDefault(require$$0$1);
 
 
 
@@ -12637,15 +12639,6 @@ unwrapExports(keymap_1);
 var keymap_2 = keymap_1.keymap;
 var keymap_3 = keymap_1.keydownHandler;
 
-var commands = createCommonjsModule(function (module, exports) {
-Object.defineProperty(exports, '__esModule', { value: true });
-
-
-
-
-
-// :: (EditorState, ?(tr: Transaction)) → bool
-// Delete the selection, if there is one.
 function deleteSelection(state, dispatch) {
   if (state.selection.empty) { return false }
   if (dispatch) { dispatch(state.tr.deleteSelection().scrollIntoView()); }
@@ -12671,7 +12664,7 @@ function joinBackward(state, dispatch, view) {
 
   // If there is no node before this, try to lift
   if (!$cut) {
-    var range = $cursor.blockRange(), target = range && dist$2.liftTarget(range);
+    var range = $cursor.blockRange(), target = range && dist_10$1(range);
     if (target == null) { return false }
     if (dispatch) { dispatch(state.tr.lift(range, target).scrollIntoView()); }
     return true
@@ -12685,11 +12678,11 @@ function joinBackward(state, dispatch, view) {
   // If the node below has no content and the node above is
   // selectable, delete the node below and select the one above.
   if ($cursor.parent.content.size == 0 &&
-      (textblockAt(before, "end") || dist.NodeSelection.isSelectable(before))) {
+      (textblockAt(before, "end") || dist_4.isSelectable(before))) {
     if (dispatch) {
       var tr = state.tr.deleteRange($cursor.before(), $cursor.after());
-      tr.setSelection(textblockAt(before, "end") ? dist.Selection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos, -1)), -1)
-                      : dist.NodeSelection.create(tr.doc, $cut.pos - before.nodeSize));
+      tr.setSelection(textblockAt(before, "end") ? dist_1.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos, -1)), -1)
+                      : dist_4.create(tr.doc, $cut.pos - before.nodeSize));
       dispatch(tr.scrollIntoView());
     }
     return true
@@ -12725,9 +12718,9 @@ function selectNodeBackward(state, dispatch, view) {
     { return false }
 
   var $cut = findCutBefore($cursor), node = $cut && $cut.nodeBefore;
-  if (!node || !dist.NodeSelection.isSelectable(node)) { return false }
+  if (!node || !dist_4.isSelectable(node)) { return false }
   if (dispatch)
-    { dispatch(state.tr.setSelection(dist.NodeSelection.create(state.doc, $cut.pos - node.nodeSize)).scrollIntoView()); }
+    { dispatch(state.tr.setSelection(dist_4.create(state.doc, $cut.pos - node.nodeSize)).scrollIntoView()); }
   return true
 }
 
@@ -12764,11 +12757,11 @@ function joinForward(state, dispatch, view) {
   // If the node above has no content and the node below is
   // selectable, delete the node above and select the one below.
   if ($cursor.parent.content.size == 0 &&
-      (textblockAt(after, "start") || dist.NodeSelection.isSelectable(after))) {
+      (textblockAt(after, "start") || dist_4.isSelectable(after))) {
     if (dispatch) {
       var tr = state.tr.deleteRange($cursor.before(), $cursor.after());
-      tr.setSelection(textblockAt(after, "start") ? dist.Selection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos)), 1)
-                      : dist.NodeSelection.create(tr.doc, tr.mapping.map($cut.pos)));
+      tr.setSelection(textblockAt(after, "start") ? dist_1.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos)), 1)
+                      : dist_4.create(tr.doc, tr.mapping.map($cut.pos)));
       dispatch(tr.scrollIntoView());
     }
     return true
@@ -12798,9 +12791,9 @@ function selectNodeForward(state, dispatch, view) {
     { return false }
 
   var $cut = findCutAfter($cursor), node = $cut && $cut.nodeAfter;
-  if (!node || !dist.NodeSelection.isSelectable(node)) { return false }
+  if (!node || !dist_4.isSelectable(node)) { return false }
   if (dispatch)
-    { dispatch(state.tr.setSelection(dist.NodeSelection.create(state.doc, $cut.pos)).scrollIntoView()); }
+    { dispatch(state.tr.setSelection(dist_4.create(state.doc, $cut.pos)).scrollIntoView()); }
   return true
 }
 
@@ -12818,17 +12811,17 @@ function findCutAfter($pos) {
 // closest ancestor block of the selection that can be joined, with
 // the sibling above it.
 function joinUp(state, dispatch) {
-  var sel = state.selection, nodeSel = sel instanceof dist.NodeSelection, point;
+  var sel = state.selection, nodeSel = sel instanceof dist_4, point;
   if (nodeSel) {
-    if (sel.node.isTextblock || !dist$2.canJoin(state.doc, sel.from)) { return false }
+    if (sel.node.isTextblock || !dist_6$2(state.doc, sel.from)) { return false }
     point = sel.from;
   } else {
-    point = dist$2.joinPoint(state.doc, sel.from, -1);
+    point = dist_5$2(state.doc, sel.from, -1);
     if (point == null) { return false }
   }
   if (dispatch) {
     var tr = state.tr.join(point);
-    if (nodeSel) { tr.setSelection(dist.NodeSelection.create(tr.doc, point - state.doc.resolve(point).nodeBefore.nodeSize)); }
+    if (nodeSel) { tr.setSelection(dist_4.create(tr.doc, point - state.doc.resolve(point).nodeBefore.nodeSize)); }
     dispatch(tr.scrollIntoView());
   }
   return true
@@ -12839,11 +12832,11 @@ function joinUp(state, dispatch) {
 // that can be joined, with the sibling after it.
 function joinDown(state, dispatch) {
   var sel = state.selection, point;
-  if (sel instanceof dist.NodeSelection) {
-    if (sel.node.isTextblock || !dist$2.canJoin(state.doc, sel.to)) { return false }
+  if (sel instanceof dist_4) {
+    if (sel.node.isTextblock || !dist_6$2(state.doc, sel.to)) { return false }
     point = sel.to;
   } else {
-    point = dist$2.joinPoint(state.doc, sel.to, 1);
+    point = dist_5$2(state.doc, sel.to, 1);
     if (point == null) { return false }
   }
   if (dispatch)
@@ -12858,7 +12851,7 @@ function lift(state, dispatch) {
   var ref = state.selection;
   var $from = ref.$from;
   var $to = ref.$to;
-  var range = $from.blockRange($to), target = range && dist$2.liftTarget(range);
+  var range = $from.blockRange($to), target = range && dist_10$1(range);
   if (target == null) { return false }
   if (dispatch) { dispatch(state.tr.lift(range, target).scrollIntoView()); }
   return true
@@ -12890,7 +12883,7 @@ function exitCode(state, dispatch) {
   if (!above.canReplaceWith(after, after, type)) { return false }
   if (dispatch) {
     var pos = $head.after(), tr = state.tr.replaceWith(pos, pos, type.createAndFill());
-    tr.setSelection(dist.Selection.near(tr.doc.resolve(pos), 1));
+    tr.setSelection(dist_1.near(tr.doc.resolve(pos), 1));
     dispatch(tr.scrollIntoView());
   }
   return true
@@ -12909,7 +12902,7 @@ function createParagraphNear(state, dispatch) {
   if (dispatch) {
     var side = (!$from.parentOffset && $to.index() < $to.parent.childCount ? $from : $to).pos;
     var tr = state.tr.insert(side, type.createAndFill());
-    tr.setSelection(dist.TextSelection.create(tr.doc, side + 1));
+    tr.setSelection(dist_3.create(tr.doc, side + 1));
     dispatch(tr.scrollIntoView());
   }
   return true
@@ -12924,12 +12917,12 @@ function liftEmptyBlock(state, dispatch) {
   if (!$cursor || $cursor.parent.content.size) { return false }
   if ($cursor.depth > 1 && $cursor.after() != $cursor.end(-1)) {
     var before = $cursor.before();
-    if (dist$2.canSplit(state.doc, before)) {
+    if (dist_7$2(state.doc, before)) {
       if (dispatch) { dispatch(state.tr.split(before).scrollIntoView()); }
       return true
     }
   }
-  var range = $cursor.blockRange(), target = range && dist$2.liftTarget(range);
+  var range = $cursor.blockRange(), target = range && dist_10$1(range);
   if (target == null) { return false }
   if (dispatch) { dispatch(state.tr.lift(range, target).scrollIntoView()); }
   return true
@@ -12942,8 +12935,8 @@ function splitBlock(state, dispatch) {
   var ref = state.selection;
   var $from = ref.$from;
   var $to = ref.$to;
-  if (state.selection instanceof dist.NodeSelection && state.selection.node.isBlock) {
-    if (!$from.parentOffset || !dist$2.canSplit(state.doc, $from.pos)) { return false }
+  if (state.selection instanceof dist_4 && state.selection.node.isBlock) {
+    if (!$from.parentOffset || !dist_7$2(state.doc, $from.pos)) { return false }
     if (dispatch) { dispatch(state.tr.split($from.pos).scrollIntoView()); }
     return true
   }
@@ -12953,18 +12946,18 @@ function splitBlock(state, dispatch) {
   if (dispatch) {
     var atEnd = $to.parentOffset == $to.parent.content.size;
     var tr = state.tr;
-    if (state.selection instanceof dist.TextSelection) { tr.deleteSelection(); }
+    if (state.selection instanceof dist_3) { tr.deleteSelection(); }
     var deflt = $from.depth == 0 ? null : $from.node(-1).contentMatchAt($from.indexAfter(-1)).defaultType;
     var types = atEnd && deflt ? [{type: deflt}] : null;
-    var can = dist$2.canSplit(tr.doc, $from.pos, 1, types);
-    if (!types && !can && dist$2.canSplit(tr.doc, tr.mapping.map($from.pos), 1, deflt && [{type: deflt}])) {
+    var can = dist_7$2(tr.doc, tr.mapping.map($from.pos), 1, types);
+    if (!types && !can && dist_7$2(tr.doc, tr.mapping.map($from.pos), 1, deflt && [{type: deflt}])) {
       types = [{type: deflt}];
       can = true;
     }
     if (can) {
       tr.split(tr.mapping.map($from.pos), 1, types);
       if (!atEnd && !$from.parentOffset && $from.parent.type != deflt &&
-          $from.node(-1).canReplace($from.index(-1), $from.indexAfter(-1), dist$1.Fragment.from(deflt.create(), $from.parent)))
+          $from.node(-1).canReplace($from.index(-1), $from.indexAfter(-1), dist_4$1.from(deflt.create(), $from.parent)))
         { tr.setNodeMarkup(tr.mapping.map($from.before()), deflt); }
     }
     dispatch(tr.scrollIntoView());
@@ -12994,25 +12987,25 @@ function selectParentNode(state, dispatch) {
   var same = $from.sharedDepth(to);
   if (same == 0) { return false }
   pos = $from.before(same);
-  if (dispatch) { dispatch(state.tr.setSelection(dist.NodeSelection.create(state.doc, pos))); }
+  if (dispatch) { dispatch(state.tr.setSelection(dist_4.create(state.doc, pos))); }
   return true
 }
 
 // :: (EditorState, ?(tr: Transaction)) → bool
 // Select the whole document.
 function selectAll(state, dispatch) {
-  if (dispatch) { dispatch(state.tr.setSelection(new dist.AllSelection(state.doc))); }
+  if (dispatch) { dispatch(state.tr.setSelection(new dist_5(state.doc))); }
   return true
 }
 
 function joinMaybeClear(state, $pos, dispatch) {
-  var before = $pos.nodeBefore, after = $pos.nodeAfter, index = $pos.index();
+  var before = $pos.nodeBefore, after = $pos.nodeAfter, index$$1 = $pos.index();
   if (!before || !after || !before.type.compatibleContent(after.type)) { return false }
-  if (!before.content.size && $pos.parent.canReplace(index - 1, index)) {
+  if (!before.content.size && $pos.parent.canReplace(index$$1 - 1, index$$1)) {
     if (dispatch) { dispatch(state.tr.delete($pos.pos - before.nodeSize, $pos.pos).scrollIntoView()); }
     return true
   }
-  if (!$pos.parent.canReplace(index, index + 1) || !(after.isTextblock || dist$2.canJoin(state.doc, $pos.pos)))
+  if (!$pos.parent.canReplace(index$$1, index$$1 + 1) || !(after.isTextblock || dist_6$2(state.doc, $pos.pos)))
     { return false }
   if (dispatch)
     { dispatch(state.tr
@@ -13031,20 +13024,20 @@ function deleteBarrier(state, $cut, dispatch) {
       (conn = (match = before.contentMatchAt(before.childCount)).findWrapping(after.type)) &&
       match.matchType(conn[0] || after.type).validEnd) {
     if (dispatch) {
-      var end = $cut.pos + after.nodeSize, wrap = dist$1.Fragment.empty;
+      var end = $cut.pos + after.nodeSize, wrap = dist_4$1.empty;
       for (var i = conn.length - 1; i >= 0; i--)
-        { wrap = dist$1.Fragment.from(conn[i].create(null, wrap)); }
-      wrap = dist$1.Fragment.from(before.copy(wrap));
-      var tr = state.tr.step(new dist$2.ReplaceAroundStep($cut.pos - 1, end, $cut.pos, end, new dist$1.Slice(wrap, 1, 0), conn.length, true));
+        { wrap = dist_4$1.from(conn[i].create(null, wrap)); }
+      wrap = dist_4$1.from(before.copy(wrap));
+      var tr = state.tr.step(new dist_18($cut.pos - 1, end, $cut.pos, end, new dist_5$1(wrap, 1, 0), conn.length, true));
       var joinAt = end + 2 * conn.length;
-      if (dist$2.canJoin(tr.doc, joinAt)) { tr.join(joinAt); }
+      if (dist_6$2(tr.doc, joinAt)) { tr.join(joinAt); }
       dispatch(tr.scrollIntoView());
     }
     return true
   }
 
-  var selAfter = dist.Selection.findFrom($cut, 1);
-  var range = selAfter && selAfter.$from.blockRange(selAfter.$to), target = range && dist$2.liftTarget(range);
+  var selAfter = dist_1.findFrom($cut, 1);
+  var range = selAfter && selAfter.$from.blockRange(selAfter.$to), target = range && dist_10$1(range);
   if (target != null && target >= $cut.depth) {
     if (dispatch) { dispatch(state.tr.lift(range, target).scrollIntoView()); }
     return true
@@ -13063,7 +13056,7 @@ function wrapIn(nodeType, attrs) {
     var ref = state.selection;
     var $from = ref.$from;
     var $to = ref.$to;
-    var range = $from.blockRange($to), wrapping = range && dist$2.findWrapping(range, nodeType, attrs);
+    var range = $from.blockRange($to), wrapping = range && dist_11$1(range, nodeType, attrs);
     if (!wrapping) { return false }
     if (dispatch) { dispatch(state.tr.wrap(range, wrapping).scrollIntoView()); }
     return true
@@ -13085,8 +13078,8 @@ function setBlockType(nodeType, attrs) {
       if (node.type == nodeType) {
         applicable = true;
       } else {
-        var $pos = state.doc.resolve(pos), index = $pos.index();
-        applicable = $pos.parent.canReplaceWith(index, index + 1, nodeType);
+        var $pos = state.doc.resolve(pos), index$$1 = $pos.index();
+        applicable = $pos.parent.canReplaceWith(index$$1, index$$1 + 1, nodeType);
       }
     });
     if (!applicable) { return false }
@@ -13177,11 +13170,11 @@ function wrapDispatchForJoin(dispatch, isJoinable) {
     for (var i$1 = 0; i$1 < ranges.length; i$1 += 2) {
       var from = ranges[i$1], to = ranges[i$1 + 1];
       var $from = tr.doc.resolve(from), depth = $from.sharedDepth(to), parent = $from.node(depth);
-      for (var index = $from.indexAfter(depth), pos = $from.after(depth + 1); pos <= to; ++index) {
-        var after = parent.maybeChild(index);
+      for (var index$$1 = $from.indexAfter(depth), pos = $from.after(depth + 1); pos <= to; ++index$$1) {
+        var after = parent.maybeChild(index$$1);
         if (!after) { break }
-        if (index && joinable.indexOf(pos) == -1) {
-          var before = parent.child(index - 1);
+        if (index$$1 && joinable.indexOf(pos) == -1) {
+          var before = parent.child(index$$1 - 1);
           if (before.type == after.type && isJoinable(before, after))
             { joinable.push(pos); }
         }
@@ -13191,7 +13184,7 @@ function wrapDispatchForJoin(dispatch, isJoinable) {
     // Join the joinable points
     joinable.sort(function (a, b) { return a - b; });
     for (var i$2 = joinable.length - 1; i$2 >= 0; i$2--) {
-      if (dist$2.canJoin(tr.doc, joinable[i$2])) { tr.join(joinable[i$2]); }
+      if (dist_6$2(tr.doc, joinable[i$2])) { tr.join(joinable[i$2]); }
     }
     dispatch(tr);
   }
@@ -13266,78 +13259,50 @@ var macBaseKeymap = {
 for (var key in pcBaseKeymap) { macBaseKeymap[key] = pcBaseKeymap[key]; }
 
 // declare global: os, navigator
-var mac = typeof navigator != "undefined" ? /Mac/.test(navigator.platform)
+var mac$1 = typeof navigator != "undefined" ? /Mac/.test(navigator.platform)
           : typeof os != "undefined" ? os.platform() == "darwin" : false;
 
 // :: Object
 // Depending on the detected platform, this will hold
 // [`pcBasekeymap`](#commands.pcBaseKeymap) or
 // [`macBaseKeymap`](#commands.macBaseKeymap).
-var baseKeymap = mac ? macBaseKeymap : pcBaseKeymap;
+var baseKeymap = mac$1 ? macBaseKeymap : pcBaseKeymap;
 
-exports.deleteSelection = deleteSelection;
-exports.joinBackward = joinBackward;
-exports.selectNodeBackward = selectNodeBackward;
-exports.joinForward = joinForward;
-exports.selectNodeForward = selectNodeForward;
-exports.joinUp = joinUp;
-exports.joinDown = joinDown;
-exports.lift = lift;
-exports.newlineInCode = newlineInCode;
-exports.exitCode = exitCode;
-exports.createParagraphNear = createParagraphNear;
-exports.liftEmptyBlock = liftEmptyBlock;
-exports.splitBlock = splitBlock;
-exports.splitBlockKeepMarks = splitBlockKeepMarks;
-exports.selectParentNode = selectParentNode;
-exports.selectAll = selectAll;
-exports.wrapIn = wrapIn;
-exports.setBlockType = setBlockType;
-exports.toggleMark = toggleMark;
-exports.autoJoin = autoJoin;
-exports.chainCommands = chainCommands;
-exports.pcBaseKeymap = pcBaseKeymap;
-exports.macBaseKeymap = macBaseKeymap;
-exports.baseKeymap = baseKeymap;
-//# sourceMappingURL=commands.js.map
+
+//# sourceMappingURL=index.es.js.map
+
+
+var index_es$2 = Object.freeze({
+	autoJoin: autoJoin,
+	baseKeymap: baseKeymap,
+	chainCommands: chainCommands,
+	createParagraphNear: createParagraphNear,
+	deleteSelection: deleteSelection,
+	exitCode: exitCode,
+	joinBackward: joinBackward,
+	joinDown: joinDown,
+	joinForward: joinForward,
+	joinUp: joinUp,
+	lift: lift,
+	liftEmptyBlock: liftEmptyBlock,
+	macBaseKeymap: macBaseKeymap,
+	newlineInCode: newlineInCode,
+	pcBaseKeymap: pcBaseKeymap,
+	selectAll: selectAll,
+	selectNodeBackward: selectNodeBackward,
+	selectNodeForward: selectNodeForward,
+	selectParentNode: selectParentNode,
+	setBlockType: setBlockType,
+	splitBlock: splitBlock,
+	splitBlockKeepMarks: splitBlockKeepMarks,
+	toggleMark: toggleMark,
+	wrapIn: wrapIn
 });
-
-unwrapExports(commands);
-var commands_1 = commands.deleteSelection;
-var commands_2 = commands.joinBackward;
-var commands_3 = commands.selectNodeBackward;
-var commands_4 = commands.joinForward;
-var commands_5 = commands.selectNodeForward;
-var commands_6 = commands.joinUp;
-var commands_7 = commands.joinDown;
-var commands_8 = commands.lift;
-var commands_9 = commands.newlineInCode;
-var commands_10 = commands.exitCode;
-var commands_11 = commands.createParagraphNear;
-var commands_12 = commands.liftEmptyBlock;
-var commands_13 = commands.splitBlock;
-var commands_14 = commands.splitBlockKeepMarks;
-var commands_15 = commands.selectParentNode;
-var commands_16 = commands.selectAll;
-var commands_17 = commands.wrapIn;
-var commands_18 = commands.setBlockType;
-var commands_19 = commands.toggleMark;
-var commands_20 = commands.autoJoin;
-var commands_21 = commands.chainCommands;
-var commands_22 = commands.pcBaseKeymap;
-var commands_23 = commands.macBaseKeymap;
-var commands_24 = commands.baseKeymap;
-
-var dropcursor = createCommonjsModule(function (module, exports) {
-Object.defineProperty(exports, '__esModule', { value: true });
-
-
-
 
 function dropCursor(options) {
   if ( options === void 0 ) options = {};
 
-  return new dist.Plugin({
+  return new dist_8({
     view: function view(editorView) { return new DropCursorView(editorView, options) }
   })
 }
@@ -13348,6 +13313,7 @@ var DropCursorView = function DropCursorView(editorView, options) {
   this.editorView = editorView;
   this.width = options.width || 1;
   this.color = options.color || "black";
+  this.class = options.class;
   this.cursorPos = null;
   this.element = null;
   this.timeout = null;
@@ -13378,7 +13344,7 @@ DropCursorView.prototype.setCursor = function setCursor (pos) {
   if (pos == this.cursorPos) { return }
   this.cursorPos = pos;
   if (pos == null) {
-    this.element.remove();
+    this.element.parentNode.removeChild(this.element);
     this.element = null;
   } else {
     this.updateOverlay();
@@ -13405,9 +13371,10 @@ DropCursorView.prototype.updateOverlay = function updateOverlay () {
   var parent = this.editorView.dom.offsetParent;
   if (!this.element) {
     this.element = parent.appendChild(document.createElement("div"));
+    if (this.class) { this.element.className = this.class; }
     this.element.style.cssText = "position: absolute; z-index: 50; pointer-events: none; background-color: " + this.color;
   }
-  var parentRect = parent == document.body && getComputedStyle(parent).position == "static"
+  var parentRect = !parent || parent == document.body && getComputedStyle(parent).position == "static"
       ? {left: -pageXOffset, top: -pageYOffset} : parent.getBoundingClientRect();
   this.element.style.left = (rect.left - parentRect.left) + "px";
   this.element.style.top = (rect.top - parentRect.top) + "px";
@@ -13423,11 +13390,12 @@ DropCursorView.prototype.scheduleRemoval = function scheduleRemoval (timeout) {
 };
 
 DropCursorView.prototype.dragover = function dragover (event) {
+  if (!this.editorView.editable) { return }
   var pos = this.editorView.posAtCoords({left: event.clientX, top: event.clientY});
   if (pos) {
     var target = pos.pos;
     if (this.editorView.dragging && this.editorView.dragging.slice) {
-      target = dist$2.dropPoint(this.editorView.state.doc, target, this.editorView.dragging.slice);
+      target = dist_9$2(this.editorView.state.doc, target, this.editorView.dragging.slice);
       if (target == null) { target = pos.pos; }
     }
     this.setCursor(target);
@@ -13448,38 +13416,29 @@ DropCursorView.prototype.dragleave = function dragleave (event) {
     { this.setCursor(null); }
 };
 
-exports.dropCursor = dropCursor;
-//# sourceMappingURL=dropcursor.js.map
+
+//# sourceMappingURL=index.es.js.map
+
+
+var index_es$3 = Object.freeze({
+	dropCursor: dropCursor
 });
 
-unwrapExports(dropcursor);
-var dropcursor_1 = dropcursor.dropCursor;
-
-var dist$7 = createCommonjsModule(function (module, exports) {
-Object.defineProperty(exports, '__esModule', { value: true });
-
-
-
-
-
-
-// ::- Gap cursor selections are represented using this class. Its
-// `$anchor` and `$head` properties both point at the cursor position.
-var GapCursor = (function (Selection$$1) {
+var GapCursor = /*@__PURE__*/(function (Selection) {
   function GapCursor($pos) {
-    Selection$$1.call(this, $pos, $pos);
+    Selection.call(this, $pos, $pos);
   }
 
-  if ( Selection$$1 ) GapCursor.__proto__ = Selection$$1;
-  GapCursor.prototype = Object.create( Selection$$1 && Selection$$1.prototype );
+  if ( Selection ) GapCursor.__proto__ = Selection;
+  GapCursor.prototype = Object.create( Selection && Selection.prototype );
   GapCursor.prototype.constructor = GapCursor;
 
   GapCursor.prototype.map = function map (doc, mapping) {
     var $pos = doc.resolve(mapping.map(this.head));
-    return GapCursor.valid($pos) ? new GapCursor($pos) : Selection$$1.near($pos)
+    return GapCursor.valid($pos) ? new GapCursor($pos) : Selection.near($pos)
   };
 
-  GapCursor.prototype.content = function content () { return dist$1.Slice.empty };
+  GapCursor.prototype.content = function content () { return dist_5$1.empty };
 
   GapCursor.prototype.eq = function eq (other) {
     return other instanceof GapCursor && other.head == this.head
@@ -13536,11 +13495,11 @@ var GapCursor = (function (Selection$$1) {
   };
 
   return GapCursor;
-}(dist.Selection));
+}(dist_1));
 
 GapCursor.prototype.visible = false;
 
-dist.Selection.jsonID("gapcursor", GapCursor);
+dist_1.jsonID("gapcursor", GapCursor);
 
 var GapBookmark = function GapBookmark(pos) {
   this.pos = pos;
@@ -13550,16 +13509,16 @@ GapBookmark.prototype.map = function map (mapping) {
 };
 GapBookmark.prototype.resolve = function resolve (doc) {
   var $pos = doc.resolve(this.pos);
-  return GapCursor.valid($pos) ? new GapCursor($pos) : dist.Selection.near($pos)
+  return GapCursor.valid($pos) ? new GapCursor($pos) : dist_1.near($pos)
 };
 
 function closedBefore($pos) {
   for (var d = $pos.depth; d >= 0; d--) {
-    var index = $pos.index(d);
+    var index$$1 = $pos.index(d);
     // At the start of this parent, look at next one
-    if (index == 0) { continue }
+    if (index$$1 == 0) { continue }
     // See if the node before (or its first ancestor) is closed
-    for (var before = $pos.node(d).child(index - 1);; before = before.lastChild) {
+    for (var before = $pos.node(d).child(index$$1 - 1);; before = before.lastChild) {
       if ((before.childCount == 0 && !before.inlineContent) || before.isAtom || before.type.spec.isolating) { return true }
       if (before.inlineContent) { return false }
     }
@@ -13570,9 +13529,9 @@ function closedBefore($pos) {
 
 function closedAfter($pos) {
   for (var d = $pos.depth; d >= 0; d--) {
-    var index = $pos.indexAfter(d), parent = $pos.node(d);
-    if (index == parent.childCount) { continue }
-    for (var after = parent.child(index);; after = after.firstChild) {
+    var index$$1 = $pos.indexAfter(d), parent = $pos.node(d);
+    if (index$$1 == parent.childCount) { continue }
+    for (var after = parent.child(index$$1);; after = after.firstChild) {
       if ((after.childCount == 0 && !after.inlineContent) || after.isAtom || after.type.spec.isolating) { return true }
       if (after.inlineContent) { return false }
     }
@@ -13589,7 +13548,7 @@ function closedAfter($pos) {
 // `style/gapcursor.css` from the package's directory or add your own
 // styles to make it visible.
 var gapCursor = function() {
-  return new dist.Plugin({
+  return new dist_8({
     props: {
       decorations: drawGapCursor,
 
@@ -13603,7 +13562,7 @@ var gapCursor = function() {
   })
 };
 
-var handleKeyDown = keymap_1.keydownHandler({
+var handleKeyDown = keymap_3({
   "ArrowLeft": arrow("horiz", -1),
   "ArrowRight": arrow("horiz", 1),
   "ArrowUp": arrow("vert", -1),
@@ -13615,7 +13574,7 @@ function arrow(axis, dir) {
   return function(state, dispatch, view) {
     var sel = state.selection;
     var $start = dir > 0 ? sel.$to : sel.$from, mustMove = sel.empty;
-    if (sel instanceof dist.TextSelection) {
+    if (sel instanceof dist_3) {
       if (!view.endOfTextblock(dirStr)) { return false }
       mustMove = false;
       $start = state.doc.resolve(dir > 0 ? $start.after() : $start.before());
@@ -13628,11 +13587,12 @@ function arrow(axis, dir) {
 }
 
 function handleClick(view, pos, event) {
+  if (!view.editable) { return false }
   var $pos = view.state.doc.resolve(pos);
   if (!GapCursor.valid($pos)) { return false }
   var ref = view.posAtCoords({left: event.clientX, top: event.clientY});
   var inside = ref.inside;
-  if (inside > -1 && dist.NodeSelection.isSelectable(view.state.doc.nodeAt(inside))) { return false }
+  if (inside > -1 && dist_4.isSelectable(view.state.doc.nodeAt(inside))) { return false }
   view.dispatch(view.state.tr.setSelection(new GapCursor($pos)));
   return true
 }
@@ -13641,17 +13601,17 @@ function drawGapCursor(state) {
   if (!(state.selection instanceof GapCursor)) { return null }
   var node = document.createElement("div");
   node.className = "ProseMirror-gapcursor";
-  return dist$3.DecorationSet.create(state.doc, [dist$3.Decoration.widget(state.selection.head, node, {key: "gapcursor"})])
+  return dist_3$3.create(state.doc, [dist_2$3.widget(state.selection.head, node, {key: "gapcursor"})])
 }
 
-exports.gapCursor = gapCursor;
-exports.GapCursor = GapCursor;
-//# sourceMappingURL=index.js.map
-});
 
-unwrapExports(dist$7);
-var dist_1$5 = dist$7.gapCursor;
-var dist_2$5 = dist$7.GapCursor;
+//# sourceMappingURL=index.es.js.map
+
+
+var index_es$4 = Object.freeze({
+	GapCursor: GapCursor,
+	gapCursor: gapCursor
+});
 
 var crel = createCommonjsModule(function (module, exports) {
 //Copyright (C) 2012 Kory Nunn
@@ -13818,7 +13778,7 @@ var crel = createCommonjsModule(function (module, exports) {
 }));
 });
 
-var dist$8 = createCommonjsModule(function (module, exports) {
+var dist$5 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -14222,8 +14182,8 @@ var icons = {
 // Menu item for the `joinUp` command.
 var joinUpItem = new MenuItem({
   title: "Join with above block",
-  run: commands.joinUp,
-  select: function (state) { return commands.joinUp(state); },
+  run: index_es$2.joinUp,
+  select: function (state) { return index_es$2.joinUp(state); },
   icon: icons.join
 });
 
@@ -14231,8 +14191,8 @@ var joinUpItem = new MenuItem({
 // Menu item for the `lift` command.
 var liftItem = new MenuItem({
   title: "Lift out of enclosing block",
-  run: commands.lift,
-  select: function (state) { return commands.lift(state); },
+  run: index_es$2.lift,
+  select: function (state) { return index_es$2.lift(state); },
   icon: icons.lift
 });
 
@@ -14240,8 +14200,8 @@ var liftItem = new MenuItem({
 // Menu item for the `selectParentNode` command.
 var selectParentNodeItem = new MenuItem({
   title: "Select parent node",
-  run: commands.selectParentNode,
-  select: function (state) { return commands.selectParentNode(state); },
+  run: index_es$2.selectParentNode,
+  select: function (state) { return index_es$2.selectParentNode(state); },
   icon: icons.selectParentNode
 });
 
@@ -14271,10 +14231,10 @@ function wrapItem(nodeType, options) {
   var passedOptions = {
     run: function run(state, dispatch) {
       // FIXME if (options.attrs instanceof Function) options.attrs(state, attrs => wrapIn(nodeType, attrs)(state))
-      return commands.wrapIn(nodeType, options.attrs)(state, dispatch)
+      return index_es$2.wrapIn(nodeType, options.attrs)(state, dispatch)
     },
     select: function select(state) {
-      return commands.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
+      return index_es$2.wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state)
     }
   };
   for (var prop in options) { passedOptions[prop] = options[prop]; }
@@ -14287,7 +14247,7 @@ function wrapItem(nodeType, options) {
 // properties. Others must be given in `options`. `options.attrs` may
 // be an object to provide the attributes for the textblock node.
 function blockTypeItem(nodeType, options) {
-  var command = commands.setBlockType(nodeType, options.attrs);
+  var command = index_es$2.setBlockType(nodeType, options.attrs);
   var passedOptions = {
     run: command,
     enable: function enable(state) { return command(state) },
@@ -14493,31 +14453,21 @@ exports.menuBar = menuBar;
 //# sourceMappingURL=index.js.map
 });
 
-unwrapExports(dist$8);
-var dist_1$6 = dist$8.MenuItem;
-var dist_2$6 = dist$8.Dropdown;
-var dist_3$5 = dist$8.DropdownSubmenu;
-var dist_4$5 = dist$8.renderGrouped;
-var dist_5$4 = dist$8.icons;
-var dist_6$3 = dist$8.joinUpItem;
-var dist_7$3 = dist$8.liftItem;
-var dist_8$3 = dist$8.selectParentNodeItem;
-var dist_9$3 = dist$8.undoItem;
-var dist_10$2 = dist$8.redoItem;
-var dist_11$2 = dist$8.wrapItem;
-var dist_12$2 = dist$8.blockTypeItem;
-var dist_13$2 = dist$8.menuBar;
+unwrapExports(dist$5);
+var dist_1$5 = dist$5.MenuItem;
+var dist_2$5 = dist$5.Dropdown;
+var dist_3$5 = dist$5.DropdownSubmenu;
+var dist_4$5 = dist$5.renderGrouped;
+var dist_5$4 = dist$5.icons;
+var dist_6$3 = dist$5.joinUpItem;
+var dist_7$3 = dist$5.liftItem;
+var dist_8$3 = dist$5.selectParentNodeItem;
+var dist_9$3 = dist$5.undoItem;
+var dist_10$2 = dist$5.redoItem;
+var dist_11$2 = dist$5.wrapItem;
+var dist_12$2 = dist$5.blockTypeItem;
+var dist_13$2 = dist$5.menuBar;
 
-var dist$9 = createCommonjsModule(function (module, exports) {
-Object.defineProperty(exports, '__esModule', { value: true });
-
-
-
-
-// ::- Input rules are regular expressions describing a piece of text
-// that, when typed, causes something to happen. This might be
-// changing two dashes into an emdash, wrapping a paragraph starting
-// with `"> "` into a blockquote, or something entirely different.
 var InputRule = function InputRule(match, handler) {
   this.match = match;
   this.handler = typeof handler == "string" ? stringHandler(handler) : handler;
@@ -14536,8 +14486,7 @@ function stringHandler(string) {
         start = end;
       }
     }
-    var marks = state.doc.resolve(start).marks();
-    return state.tr.replaceWith(start, end, state.schema.text(insert, marks))
+    return state.tr.insertText(insert, start, end)
   }
 }
 
@@ -14550,7 +14499,7 @@ var MAX_MATCH = 500;
 function inputRules(ref) {
   var rules = ref.rules;
 
-  return new dist.Plugin({
+  var plugin = new dist_8({
     state: {
       init: function init() { return null },
       apply: function apply(tr, prev) {
@@ -14562,25 +14511,38 @@ function inputRules(ref) {
 
     props: {
       handleTextInput: function handleTextInput(view, from, to, text) {
-        var this$1 = this;
-
-        var state = view.state, $from = state.doc.resolve(from);
-        if ($from.parent.type.spec.code) { return false }
-        var textBefore = $from.parent.textBetween(Math.max(0, $from.parentOffset - MAX_MATCH), $from.parentOffset,
-                                                  null, "\ufffc") + text;
-        for (var i = 0; i < rules.length; i++) {
-          var match = rules[i].match.exec(textBefore);
-          var tr = match && rules[i].handler(state, match, from - (match[0].length - text.length), to);
-          if (!tr) { continue }
-          view.dispatch(tr.setMeta(this$1, {transform: tr, from: from, to: to, text: text}));
-          return true
+        return run(view, from, to, text, rules, plugin)
+      },
+      handleDOMEvents: {
+        compositionend: function (view) {
+          setTimeout(function () {
+            var ref = view.state.selection;
+            var $cursor = ref.$cursor;
+            if ($cursor) { run(view, $cursor.pos, $cursor.pos, "", rules, plugin); }
+          });
         }
-        return false
       }
     },
 
     isInputRules: true
-  })
+  });
+  return plugin
+}
+
+function run(view, from, to, text, rules, plugin) {
+  if (view.composing) { return false }
+  var state = view.state, $from = state.doc.resolve(from);
+  if ($from.parent.type.spec.code) { return false }
+  var textBefore = $from.parent.textBetween(Math.max(0, $from.parentOffset - MAX_MATCH), $from.parentOffset,
+                                            null, "\ufffc") + text;
+  for (var i = 0; i < rules.length; i++) {
+    var match = rules[i].match.exec(textBefore);
+    var tr = match && rules[i].handler(state, match, from - (match[0].length - text.length), to);
+    if (!tr) { continue }
+    view.dispatch(tr.setMeta(plugin, {transform: tr, from: from, to: to, text: text}));
+    return true
+  }
+  return false
 }
 
 // :: (EditorState, ?(Transaction)) → bool
@@ -14640,11 +14602,11 @@ function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
   return new InputRule(regexp, function (state, match, start, end) {
     var attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
     var tr = state.tr.delete(start, end);
-    var $start = tr.doc.resolve(start), range = $start.blockRange(), wrapping = range && dist$2.findWrapping(range, nodeType, attrs);
+    var $start = tr.doc.resolve(start), range = $start.blockRange(), wrapping = range && dist_11$1(range, nodeType, attrs);
     if (!wrapping) { return null }
     tr.wrap(range, wrapping);
     var before = tr.doc.resolve(start - 1).nodeBefore;
-    if (before && before.type == nodeType && dist$2.canJoin(tr.doc, start - 1) &&
+    if (before && before.type == nodeType && dist_6$2(tr.doc, start - 1) &&
         (!joinPredicate || joinPredicate(match, before)))
       { tr.join(start - 1); }
     return tr
@@ -14669,36 +14631,26 @@ function textblockTypeInputRule(regexp, nodeType, getAttrs) {
   })
 }
 
-exports.InputRule = InputRule;
-exports.inputRules = inputRules;
-exports.undoInputRule = undoInputRule;
-exports.emDash = emDash;
-exports.ellipsis = ellipsis;
-exports.openDoubleQuote = openDoubleQuote;
-exports.closeDoubleQuote = closeDoubleQuote;
-exports.openSingleQuote = openSingleQuote;
-exports.closeSingleQuote = closeSingleQuote;
-exports.smartQuotes = smartQuotes;
-exports.wrappingInputRule = wrappingInputRule;
-exports.textblockTypeInputRule = textblockTypeInputRule;
-//# sourceMappingURL=index.js.map
+
+//# sourceMappingURL=index.es.js.map
+
+
+var index_es$5 = Object.freeze({
+	InputRule: InputRule,
+	closeDoubleQuote: closeDoubleQuote,
+	closeSingleQuote: closeSingleQuote,
+	ellipsis: ellipsis,
+	emDash: emDash,
+	inputRules: inputRules,
+	openDoubleQuote: openDoubleQuote,
+	openSingleQuote: openSingleQuote,
+	smartQuotes: smartQuotes,
+	textblockTypeInputRule: textblockTypeInputRule,
+	undoInputRule: undoInputRule,
+	wrappingInputRule: wrappingInputRule
 });
 
-unwrapExports(dist$9);
-var dist_1$7 = dist$9.InputRule;
-var dist_2$7 = dist$9.inputRules;
-var dist_3$6 = dist$9.undoInputRule;
-var dist_4$6 = dist$9.emDash;
-var dist_5$5 = dist$9.ellipsis;
-var dist_6$4 = dist$9.openDoubleQuote;
-var dist_7$4 = dist$9.closeDoubleQuote;
-var dist_8$4 = dist$9.openSingleQuote;
-var dist_9$4 = dist$9.closeSingleQuote;
-var dist_10$3 = dist$9.smartQuotes;
-var dist_11$3 = dist$9.wrappingInputRule;
-var dist_12$3 = dist$9.textblockTypeInputRule;
-
-var dist$6 = createCommonjsModule(function (module, exports) {
+var dist$4 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 
@@ -14896,7 +14848,7 @@ function canInsert(state, nodeType) {
 }
 
 function insertImageItem(nodeType) {
-  return new dist$8.MenuItem({
+  return new dist$5.MenuItem({
     title: "Insert image",
     label: "Image",
     enable: function enable(state) { return canInsert(state, nodeType) },
@@ -14933,7 +14885,7 @@ function cmdItem(cmd, options) {
   if ((!options.enable || options.enable === true) && !options.select)
     { passedOptions[options.enable ? "enable" : "select"] = function (state) { return cmd(state); }; }
 
-  return new dist$8.MenuItem(passedOptions)
+  return new dist$5.MenuItem(passedOptions)
 }
 
 function markActive(state, type) {
@@ -14952,18 +14904,18 @@ function markItem(markType, options) {
     enable: true
   };
   for (var prop in options) { passedOptions[prop] = options[prop]; }
-  return cmdItem(commands.toggleMark(markType), passedOptions)
+  return cmdItem(index_es$2.toggleMark(markType), passedOptions)
 }
 
 function linkItem(markType) {
-  return new dist$8.MenuItem({
+  return new dist$5.MenuItem({
     title: "Add or remove link",
-    icon: dist$8.icons.link,
+    icon: dist$5.icons.link,
     active: function active(state) { return markActive(state, markType) },
     enable: function enable(state) { return !state.selection.empty },
     run: function run(state, dispatch, view) {
       if (markActive(state, markType)) {
-        commands.toggleMark(markType)(state, dispatch);
+        index_es$2.toggleMark(markType)(state, dispatch);
         return true
       }
       openPrompt({
@@ -14976,7 +14928,7 @@ function linkItem(markType) {
           title: new TextField({label: "Title"})
         },
         callback: function callback(attrs) {
-          commands.toggleMark(markType, attrs)(view.state, view.dispatch);
+          index_es$2.toggleMark(markType, attrs)(view.state, view.dispatch);
           view.focus();
         }
       });
@@ -14985,7 +14937,7 @@ function linkItem(markType) {
 }
 
 function wrapListItem(nodeType, options) {
-  return cmdItem(schemaList.wrapInList(nodeType, options.attrs), options)
+  return cmdItem(index_es.wrapInList(nodeType, options.attrs), options)
 }
 
 // :: (Schema) → Object
@@ -15049,11 +15001,11 @@ function wrapListItem(nodeType, options) {
 function buildMenuItems(schema) {
   var r = {}, type;
   if (type = schema.marks.strong)
-    { r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: dist$8.icons.strong}); }
+    { r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: dist$5.icons.strong}); }
   if (type = schema.marks.em)
-    { r.toggleEm = markItem(type, {title: "Toggle emphasis", icon: dist$8.icons.em}); }
+    { r.toggleEm = markItem(type, {title: "Toggle emphasis", icon: dist$5.icons.em}); }
   if (type = schema.marks.code)
-    { r.toggleCode = markItem(type, {title: "Toggle code font", icon: dist$8.icons.code}); }
+    { r.toggleCode = markItem(type, {title: "Toggle code font", icon: dist$5.icons.code}); }
   if (type = schema.marks.link)
     { r.toggleLink = linkItem(type); }
 
@@ -15062,38 +15014,38 @@ function buildMenuItems(schema) {
   if (type = schema.nodes.bullet_list)
     { r.wrapBulletList = wrapListItem(type, {
       title: "Wrap in bullet list",
-      icon: dist$8.icons.bulletList
+      icon: dist$5.icons.bulletList
     }); }
   if (type = schema.nodes.ordered_list)
     { r.wrapOrderedList = wrapListItem(type, {
       title: "Wrap in ordered list",
-      icon: dist$8.icons.orderedList
+      icon: dist$5.icons.orderedList
     }); }
   if (type = schema.nodes.blockquote)
-    { r.wrapBlockQuote = dist$8.wrapItem(type, {
+    { r.wrapBlockQuote = dist$5.wrapItem(type, {
       title: "Wrap in block quote",
-      icon: dist$8.icons.blockquote
+      icon: dist$5.icons.blockquote
     }); }
   if (type = schema.nodes.paragraph)
-    { r.makeParagraph = dist$8.blockTypeItem(type, {
+    { r.makeParagraph = dist$5.blockTypeItem(type, {
       title: "Change to paragraph",
       label: "Plain"
     }); }
   if (type = schema.nodes.code_block)
-    { r.makeCodeBlock = dist$8.blockTypeItem(type, {
+    { r.makeCodeBlock = dist$5.blockTypeItem(type, {
       title: "Change to code block",
       label: "Code"
     }); }
   if (type = schema.nodes.heading)
     { for (var i = 1; i <= 10; i++)
-      { r["makeHead" + i] = dist$8.blockTypeItem(type, {
+      { r["makeHead" + i] = dist$5.blockTypeItem(type, {
         title: "Change to heading " + i,
         label: "Level " + i,
         attrs: {level: i}
       }); } }
   if (type = schema.nodes.horizontal_rule) {
     var hr = type;
-    r.insertHorizontalRule = new dist$8.MenuItem({
+    r.insertHorizontalRule = new dist$5.MenuItem({
       title: "Insert horizontal rule",
       label: "Horizontal rule",
       enable: function enable(state) { return canInsert(state, hr) },
@@ -15102,15 +15054,15 @@ function buildMenuItems(schema) {
   }
 
   var cut = function (arr) { return arr.filter(function (x) { return x; }); };
-  r.insertMenu = new dist$8.Dropdown(cut([r.insertImage, r.insertHorizontalRule]), {label: "Insert"});
-  r.typeMenu = new dist$8.Dropdown(cut([r.makeParagraph, r.makeCodeBlock, r.makeHead1 && new dist$8.DropdownSubmenu(cut([
+  r.insertMenu = new dist$5.Dropdown(cut([r.insertImage, r.insertHorizontalRule]), {label: "Insert"});
+  r.typeMenu = new dist$5.Dropdown(cut([r.makeParagraph, r.makeCodeBlock, r.makeHead1 && new dist$5.DropdownSubmenu(cut([
     r.makeHead1, r.makeHead2, r.makeHead3, r.makeHead4, r.makeHead5, r.makeHead6
   ]), {label: "Heading"})]), {label: "Type..."});
 
   r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleCode, r.toggleLink])];
-  r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, dist$8.joinUpItem,
-                      dist$8.liftItem, dist$8.selectParentNodeItem])];
-  r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu]], [[dist$8.undoItem, dist$8.redoItem]], r.blockMenu);
+  r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, dist$5.joinUpItem,
+                      dist$5.liftItem, dist$5.selectParentNodeItem])];
+  r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu]], [[dist$5.undoItem, dist$5.redoItem]], r.blockMenu);
 
   return r
 }
@@ -15159,29 +15111,29 @@ function buildKeymap(schema, mapKeys) {
 
   bind("Mod-z", history_1.undo);
   bind("Shift-Mod-z", history_1.redo);
-  bind("Backspace", dist$9.undoInputRule);
+  bind("Backspace", index_es$5.undoInputRule);
   if (!mac) { bind("Mod-y", history_1.redo); }
 
-  bind("Alt-ArrowUp", commands.joinUp);
-  bind("Alt-ArrowDown", commands.joinDown);
-  bind("Mod-BracketLeft", commands.lift);
-  bind("Escape", commands.selectParentNode);
+  bind("Alt-ArrowUp", index_es$2.joinUp);
+  bind("Alt-ArrowDown", index_es$2.joinDown);
+  bind("Mod-BracketLeft", index_es$2.lift);
+  bind("Escape", index_es$2.selectParentNode);
 
   if (type = schema.marks.strong)
-    { bind("Mod-b", commands.toggleMark(type)); }
+    { bind("Mod-b", index_es$2.toggleMark(type)); }
   if (type = schema.marks.em)
-    { bind("Mod-i", commands.toggleMark(type)); }
+    { bind("Mod-i", index_es$2.toggleMark(type)); }
   if (type = schema.marks.code)
-    { bind("Mod-`", commands.toggleMark(type)); }
+    { bind("Mod-`", index_es$2.toggleMark(type)); }
 
   if (type = schema.nodes.bullet_list)
-    { bind("Shift-Ctrl-8", schemaList.wrapInList(type)); }
+    { bind("Shift-Ctrl-8", index_es.wrapInList(type)); }
   if (type = schema.nodes.ordered_list)
-    { bind("Shift-Ctrl-9", schemaList.wrapInList(type)); }
+    { bind("Shift-Ctrl-9", index_es.wrapInList(type)); }
   if (type = schema.nodes.blockquote)
-    { bind("Ctrl->", commands.wrapIn(type)); }
+    { bind("Ctrl->", index_es$2.wrapIn(type)); }
   if (type = schema.nodes.hard_break) {
-    var br = type, cmd = commands.chainCommands(commands.exitCode, function (state, dispatch) {
+    var br = type, cmd = index_es$2.chainCommands(index_es$2.exitCode, function (state, dispatch) {
       dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
       return true
     });
@@ -15190,16 +15142,16 @@ function buildKeymap(schema, mapKeys) {
     if (mac) { bind("Ctrl-Enter", cmd); }
   }
   if (type = schema.nodes.list_item) {
-    bind("Enter", schemaList.splitListItem(type));
-    bind("Mod-[", schemaList.liftListItem(type));
-    bind("Mod-]", schemaList.sinkListItem(type));
+    bind("Enter", index_es.splitListItem(type));
+    bind("Mod-[", index_es.liftListItem(type));
+    bind("Mod-]", index_es.sinkListItem(type));
   }
   if (type = schema.nodes.paragraph)
-    { bind("Shift-Ctrl-0", commands.setBlockType(type)); }
+    { bind("Shift-Ctrl-0", index_es$2.setBlockType(type)); }
   if (type = schema.nodes.code_block)
-    { bind("Shift-Ctrl-\\", commands.setBlockType(type)); }
+    { bind("Shift-Ctrl-\\", index_es$2.setBlockType(type)); }
   if (type = schema.nodes.heading)
-    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, commands.setBlockType(type, {level: i})); } }
+    { for (var i = 1; i <= 6; i++) { bind("Shift-Ctrl-" + i, index_es$2.setBlockType(type, {level: i})); } }
   if (type = schema.nodes.horizontal_rule) {
     var hr = type;
     bind("Mod-_", function (state, dispatch) {
@@ -15215,14 +15167,14 @@ function buildKeymap(schema, mapKeys) {
 // Given a blockquote node type, returns an input rule that turns `"> "`
 // at the start of a textblock into a blockquote.
 function blockQuoteRule(nodeType) {
-  return dist$9.wrappingInputRule(/^\s*>\s$/, nodeType)
+  return index_es$5.wrappingInputRule(/^\s*>\s$/, nodeType)
 }
 
 // : (NodeType) → InputRule
 // Given a list node type, returns an input rule that turns a number
 // followed by a dot at the start of a textblock into an ordered list.
 function orderedListRule(nodeType) {
-  return dist$9.wrappingInputRule(/^(\d+)\.\s$/, nodeType, function (match) { return ({order: +match[1]}); },
+  return index_es$5.wrappingInputRule(/^(\d+)\.\s$/, nodeType, function (match) { return ({order: +match[1]}); },
                            function (match, node) { return node.childCount + node.attrs.order == +match[1]; })
 }
 
@@ -15231,14 +15183,14 @@ function orderedListRule(nodeType) {
 // (dash, plush, or asterisk) at the start of a textblock into a
 // bullet list.
 function bulletListRule(nodeType) {
-  return dist$9.wrappingInputRule(/^\s*([-+*])\s$/, nodeType)
+  return index_es$5.wrappingInputRule(/^\s*([-+*])\s$/, nodeType)
 }
 
 // : (NodeType) → InputRule
 // Given a code block node type, returns an input rule that turns a
 // textblock starting with three backticks into a code block.
 function codeBlockRule(nodeType) {
-  return dist$9.textblockTypeInputRule(/^```$/, nodeType)
+  return index_es$5.textblockTypeInputRule(/^```$/, nodeType)
 }
 
 // : (NodeType, number) → InputRule
@@ -15247,7 +15199,7 @@ function codeBlockRule(nodeType) {
 // the start of a textblock into a heading whose level corresponds to
 // the number of `#` signs.
 function headingRule(nodeType, maxLevel) {
-  return dist$9.textblockTypeInputRule(new RegExp("^(#{1," + maxLevel + "})\\s$"),
+  return index_es$5.textblockTypeInputRule(new RegExp("^(#{1," + maxLevel + "})\\s$"),
                                 nodeType, function (match) { return ({level: match[1].length}); })
 }
 
@@ -15255,13 +15207,13 @@ function headingRule(nodeType, maxLevel) {
 // A set of input rules for creating the basic block quotes, lists,
 // code blocks, and heading.
 function buildInputRules(schema) {
-  var rules = dist$9.smartQuotes.concat(dist$9.ellipsis, dist$9.emDash), type;
+  var rules = index_es$5.smartQuotes.concat(index_es$5.ellipsis, index_es$5.emDash), type;
   if (type = schema.nodes.blockquote) { rules.push(blockQuoteRule(type)); }
   if (type = schema.nodes.ordered_list) { rules.push(orderedListRule(type)); }
   if (type = schema.nodes.bullet_list) { rules.push(bulletListRule(type)); }
   if (type = schema.nodes.code_block) { rules.push(codeBlockRule(type)); }
   if (type = schema.nodes.heading) { rules.push(headingRule(type, 6)); }
-  return dist$9.inputRules({rules: rules})
+  return index_es$5.inputRules({rules: rules})
 }
 
 // !! This module exports helper functions for deriving a set of basic
@@ -15304,12 +15256,12 @@ function exampleSetup(options) {
   var plugins = [
     buildInputRules(options.schema),
     keymap_1.keymap(buildKeymap(options.schema, options.mapKeys)),
-    keymap_1.keymap(commands.baseKeymap),
-    dropcursor.dropCursor(),
-    dist$7.gapCursor()
+    keymap_1.keymap(index_es$2.baseKeymap),
+    index_es$3.dropCursor(),
+    index_es$4.gapCursor()
   ];
   if (options.menuBar !== false)
-    { plugins.push(dist$8.menuBar({floating: options.floatingMenu !== false,
+    { plugins.push(dist$5.menuBar({floating: options.floatingMenu !== false,
                           content: options.menuContent || buildMenuItems(options.schema).fullMenu})); }
   if (options.history !== false)
     { plugins.push(history_1.history()); }
@@ -15328,56 +15280,61 @@ exports.exampleSetup = exampleSetup;
 //# sourceMappingURL=index.js.map
 });
 
-unwrapExports(dist$6);
-var dist_1$4 = dist$6.buildMenuItems;
-var dist_2$4 = dist$6.buildKeymap;
-var dist_3$4 = dist$6.buildInputRules;
-var dist_4$4 = dist$6.exampleSetup;
+unwrapExports(dist$4);
+var dist_1$4 = dist$4.buildMenuItems;
+var dist_2$4 = dist$4.buildKeymap;
+var dist_3$4 = dist$4.buildInputRules;
+var dist_4$4 = dist$4.exampleSetup;
 
-const VALIDATION_REQUEST_FOR_DIRTY_RANGES = "VAlIDATION_REQUEST_START";
-const VALIDATION_REQUEST_FOR_DOCUMENT = "VALIDATION_REQUEST_FOR_DOCUMENT";
-const VALIDATION_REQUEST_SUCCESS = "VALIDATION_REQUEST_SUCCESS";
-const VALIDATION_REQUEST_ERROR = "VALIDATION_REQUEST_ERROR";
+const REQUEST_FOR_DIRTY_RANGES = "REQUEST_START";
+const REQUEST_FOR_DOCUMENT = "REQUEST_FOR_DOCUMENT";
+const REQUEST_SUCCESS = "REQUEST_SUCCESS";
+const REQUEST_ERROR = "REQUEST_ERROR";
+const REQUEST_COMPLETE = "REQUEST_COMPLETE";
 const NEW_HOVER_ID = "NEW_HOVER_ID";
-const SELECT_VALIDATION = "SELECT_VALIDATION";
+const SELECT_MATCH = "SELECT_MATCH";
 const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
 const SET_DEBUG_STATE = "SET_DEBUG_STATE";
-const SET_VALIDATE_ON_MODIFY_STATE = "SET_VALIDATE_ON_MODIFY_STATE";
-const validationRequestForDirtyRanges = (validationSetId, categoryIds) => ({
-    type: VALIDATION_REQUEST_FOR_DIRTY_RANGES,
-    payload: { validationSetId, categoryIds }
+const SET_REQUEST_MATCHES_ON_DOC_MODIFIED = "SET_REQUEST_MATCHES_ON_DOC_MODIFIED";
+const requestMatchesForDirtyRanges = (requestId, categoryIds) => ({
+    type: REQUEST_FOR_DIRTY_RANGES,
+    payload: { requestId, categoryIds }
 });
-const validationRequestForDocument = (validationSetId, categoryIds) => ({
-    type: VALIDATION_REQUEST_FOR_DOCUMENT,
-    payload: { validationSetId, categoryIds }
+const requestMatchesForDocument = (requestId, categoryIds) => ({
+    type: REQUEST_FOR_DOCUMENT,
+    payload: { requestId, categoryIds }
 });
-const validationRequestSuccess = (response) => ({
-    type: VALIDATION_REQUEST_SUCCESS,
+const requestMatchesSuccess = (response) => ({
+    type: REQUEST_SUCCESS,
     payload: { response }
 });
-const validationRequestError = (validationError) => ({
-    type: VALIDATION_REQUEST_ERROR,
-    payload: { validationError }
+const requestError = (matchRequestError) => ({
+    type: REQUEST_ERROR,
+    payload: { matchRequestError }
 });
-const newHoverIdReceived = (hoverId, hoverInfo) => ({
+const requestMatchesComplete = (requestId) => ({
+    type: REQUEST_COMPLETE,
+    payload: { requestId }
+});
+const newHoverIdReceived = (matchId, hoverInfo) => ({
     type: NEW_HOVER_ID,
-    payload: { hoverId, hoverInfo }
+    payload: { matchId, hoverInfo }
 });
 const applyNewDirtiedRanges = (ranges) => ({
     type: APPLY_NEW_DIRTY_RANGES,
     payload: { ranges }
 });
 const selectMatch = (matchId) => ({
-    type: SELECT_VALIDATION,
+    type: SELECT_MATCH,
     payload: { matchId }
 });
 const setDebugState = (debug) => ({
     type: SET_DEBUG_STATE,
     payload: { debug }
 });
-const setValidateOnModifyState = (validateOnModify) => ({
-    type: SET_VALIDATE_ON_MODIFY_STATE,
-    payload: { validateOnModify }
+const setRequestMatchesOnDocModified = (requestMatchesOnDocModified) => ({
+    type: SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
+    payload: { requestMatchesOnDocModified }
 });
 //# sourceMappingURL=actions.js.map
 
@@ -17465,16 +17422,10 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
     value.forEach(function(subValue) {
       result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
     });
-
-    return result;
-  }
-
-  if (isMap_1(value)) {
+  } else if (isMap_1(value)) {
     value.forEach(function(subValue, key) {
       result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
     });
-
-    return result;
   }
 
   var keysFunc = isFull
@@ -18138,19 +18089,21 @@ var omit = _flatRest(function(object, paths) {
 
 var omit_1 = omit;
 
-const DECORATION_VALIDATION = "DECORATION_VALIDATION";
-const DECORATION_VALIDATION_IS_SELECTED = "DECORATION_VALIDATION_IS_HOVERING";
-const DECORATION_VALIDATION_HEIGHT_MARKER = "DECORATION_VALIDATION_HEIGHT_MARKER";
+const DECORATION_MATCH = "DECORATION_MATCH";
+const DECORATION_MATCH_IS_CORRECT = "DECORATION_MATCH_IS_CORRECT";
+const DECORATION_MATCH_IS_SELECTED = "DECORATION_MATCH_IS_HOVERING";
+const DECORATION_MATCH_HEIGHT_MARKER = "DECORATION_MATCH_HEIGHT_MARKER";
 const DECORATION_DIRTY = "DECORATION_DIRTY";
 const DECORATION_INFLIGHT = "DECORATION_INFLIGHT";
 const DecorationClassMap = {
-    [DECORATION_DIRTY]: "ValidationDebugDirty",
-    [DECORATION_INFLIGHT]: "ValidationDebugInflight",
-    [DECORATION_VALIDATION]: "ValidationDecoration",
-    [DECORATION_VALIDATION_HEIGHT_MARKER]: "ValidationDecoration__height-marker",
-    [DECORATION_VALIDATION_IS_SELECTED]: "ValidationDecoration--is-selected"
+    [DECORATION_DIRTY]: "MatchDebugDirty",
+    [DECORATION_INFLIGHT]: "MatchDebugInflight",
+    [DECORATION_MATCH]: "MatchDecoration",
+    [DECORATION_MATCH_HEIGHT_MARKER]: "MatchDecoration__height-marker",
+    [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected",
+    [DECORATION_MATCH_IS_CORRECT]: "MatchDecoration--is-correct"
 };
-const DECORATION_ATTRIBUTE_ID = "data-validation-id";
+const DECORATION_ATTRIBUTE_ID = "data-match-id";
 const DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID = "data-height-marker-id";
 const createDebugDecorationFromRange = (range, dirty = true) => {
     const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
@@ -18160,7 +18113,7 @@ const createDebugDecorationFromRange = (range, dirty = true) => {
         type
     });
 };
-const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_VALIDATION, DECORATION_VALIDATION_HEIGHT_MARKER]) => ranges.reduce((acc, range) => {
+const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]) => ranges.reduce((acc, range) => {
     const predicate = (spec) => types.indexOf(spec.type) !== -1;
     const decorations = decorationSet.find(range.from, range.to, predicate);
     if (!decorations.length) {
@@ -18171,21 +18124,20 @@ const removeDecorationsFromRanges = (decorationSet, ranges, types = [DECORATION_
         .filter(_ => !!_));
     return acc.remove(decorationsToRemove);
 }, decorationSet);
-const getNewDecorationsForCurrentValidations = (outputs, decorationSet, doc) => {
-    const newDecorationSet = removeDecorationsFromRanges(decorationSet, outputs);
-    const decorationsToAdd = createDecorationsForValidationRanges(outputs);
-    return newDecorationSet.add(doc, decorationsToAdd);
-};
+
 const createHeightMarkerElement = (id) => {
     const element = document.createElement("span");
     element.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
-    element.className = DecorationClassMap[DECORATION_VALIDATION_HEIGHT_MARKER];
+    element.className = DecorationClassMap[DECORATION_MATCH_HEIGHT_MARKER];
     return element;
 };
-const createDecorationForValidationRange = (output, isSelected = false, addHeightMarker = true) => {
-    const className = isSelected
-        ? `${DecorationClassMap[DECORATION_VALIDATION]} ${DecorationClassMap[DECORATION_VALIDATION_IS_SELECTED]}`
-        : DecorationClassMap[DECORATION_VALIDATION];
+const createDecorationForMatch = (output, isSelected = false, addHeightMarker = true) => {
+    let className = isSelected
+        ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
+        : DecorationClassMap[DECORATION_MATCH];
+    if (output.markAsCorrect) {
+        className += ` ${DecorationClassMap[DECORATION_MATCH_IS_CORRECT]}`;
+    }
     const opacity = isSelected ? "30" : "07";
     const style = `background-color: #${output.category.colour}${opacity}; border-bottom: 2px solid #${output.category.colour}`;
     const decorationArray = [
@@ -18194,7 +18146,7 @@ const createDecorationForValidationRange = (output, isSelected = false, addHeigh
             style,
             [DECORATION_ATTRIBUTE_ID]: output.matchId
         }, {
-            type: DECORATION_VALIDATION,
+            type: DECORATION_MATCH,
             id: output.matchId,
             categoryId: output.category.id,
             inclusiveStart: true
@@ -18204,14 +18156,14 @@ const createDecorationForValidationRange = (output, isSelected = false, addHeigh
         ? [
             ...decorationArray,
             dist_2$3.widget(output.from, createHeightMarkerElement(output.matchId), {
-                type: DECORATION_VALIDATION_HEIGHT_MARKER,
+                type: DECORATION_MATCH_HEIGHT_MARKER,
                 id: output.matchId,
                 categoryId: output.category.id
             })
         ]
         : decorationArray;
 };
-const createDecorationsForValidationRanges = (ranges) => flatten_1(ranges.map(_ => createDecorationForValidationRange(_)));
+const createDecorationsForMatches = (ranges) => flatten_1(ranges.map(_ => createDecorationForMatch(_)));
 
 //# sourceMappingURL=decoration.js.map
 
@@ -18319,7 +18271,7 @@ function clamp(number, lower, upper) {
 
 var clamp_1 = clamp;
 
-var dist$11 = createCommonjsModule(function (module, exports) {
+var dist$7 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 
@@ -20449,47 +20401,47 @@ exports.deleteTable = deleteTable;
 //# sourceMappingURL=index.js.map
 });
 
-unwrapExports(dist$11);
-var dist_1$9 = dist$11.tableEditing;
-var dist_2$9 = dist$11.fixTables;
-var dist_3$8 = dist$11.handlePaste;
-var dist_4$8 = dist$11.cellAround;
-var dist_5$7 = dist$11.isInTable;
-var dist_6$6 = dist$11.selectionCell;
-var dist_7$6 = dist$11.moveCellForward;
-var dist_8$6 = dist$11.inSameTable;
-var dist_9$6 = dist$11.findCell;
-var dist_10$5 = dist$11.colCount;
-var dist_11$5 = dist$11.nextCell;
-var dist_12$5 = dist$11.tableNodes;
-var dist_13$4 = dist$11.CellSelection;
-var dist_14$2 = dist$11.TableMap;
-var dist_15$2 = dist$11.columnResizing;
-var dist_16$2 = dist$11.columnResizingPluginKey;
-var dist_17$2 = dist$11.updateColumnsOnResize;
-var dist_18$2 = dist$11.__pastedCells;
-var dist_19$2 = dist$11.__insertCells;
-var dist_20$1 = dist$11.__clipCells;
-var dist_21$1 = dist$11.addColumn;
-var dist_22$1 = dist$11.addColumnBefore;
-var dist_23$1 = dist$11.addColumnAfter;
-var dist_24$1 = dist$11.removeColumn;
-var dist_25$1 = dist$11.deleteColumn;
-var dist_26$1 = dist$11.addRow;
-var dist_27$1 = dist$11.addRowBefore;
-var dist_28$1 = dist$11.addRowAfter;
-var dist_29$1 = dist$11.removeRow;
-var dist_30$1 = dist$11.deleteRow;
-var dist_31$1 = dist$11.mergeCells;
-var dist_32$1 = dist$11.splitCell;
-var dist_33$1 = dist$11.setCellAttr;
-var dist_34$1 = dist$11.toggleHeaderRow;
-var dist_35$1 = dist$11.toggleHeaderColumn;
-var dist_36$1 = dist$11.toggleHeaderCell;
-var dist_37$1 = dist$11.goToNextCell;
-var dist_38$1 = dist$11.deleteTable;
+unwrapExports(dist$7);
+var dist_1$7 = dist$7.tableEditing;
+var dist_2$7 = dist$7.fixTables;
+var dist_3$7 = dist$7.handlePaste;
+var dist_4$7 = dist$7.cellAround;
+var dist_5$6 = dist$7.isInTable;
+var dist_6$5 = dist$7.selectionCell;
+var dist_7$5 = dist$7.moveCellForward;
+var dist_8$5 = dist$7.inSameTable;
+var dist_9$5 = dist$7.findCell;
+var dist_10$4 = dist$7.colCount;
+var dist_11$4 = dist$7.nextCell;
+var dist_12$4 = dist$7.tableNodes;
+var dist_13$4 = dist$7.CellSelection;
+var dist_14$2 = dist$7.TableMap;
+var dist_15$2 = dist$7.columnResizing;
+var dist_16$2 = dist$7.columnResizingPluginKey;
+var dist_17$2 = dist$7.updateColumnsOnResize;
+var dist_18$2 = dist$7.__pastedCells;
+var dist_19$2 = dist$7.__insertCells;
+var dist_20$1 = dist$7.__clipCells;
+var dist_21$1 = dist$7.addColumn;
+var dist_22$1 = dist$7.addColumnBefore;
+var dist_23$1 = dist$7.addColumnAfter;
+var dist_24$1 = dist$7.removeColumn;
+var dist_25$1 = dist$7.deleteColumn;
+var dist_26$1 = dist$7.addRow;
+var dist_27$1 = dist$7.addRowBefore;
+var dist_28$1 = dist$7.addRowAfter;
+var dist_29$1 = dist$7.removeRow;
+var dist_30$1 = dist$7.deleteRow;
+var dist_31$1 = dist$7.mergeCells;
+var dist_32$1 = dist$7.splitCell;
+var dist_33$1 = dist$7.setCellAttr;
+var dist_34$1 = dist$7.toggleHeaderRow;
+var dist_35$1 = dist$7.toggleHeaderColumn;
+var dist_36$1 = dist$7.toggleHeaderCell;
+var dist_37$1 = dist$7.goToNextCell;
+var dist_38$1 = dist$7.deleteTable;
 
-var dist$10 = createCommonjsModule(function (module, exports) {
+var dist$6 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, '__esModule', { value: true });
 
 
@@ -21165,7 +21117,7 @@ var findTable = function findTable(selection) {
 // }
 // ```
 var isCellSelection = function isCellSelection(selection) {
-  return selection instanceof dist$11.CellSelection;
+  return selection instanceof dist$7.CellSelection;
 };
 
 // :: (columnIndex: number) → (selection: Selection) → boolean
@@ -21181,7 +21133,7 @@ var isColumnSelected = function isColumnSelected(columnIndex) {
           $headCell = selection.$headCell;
 
       var start = $anchorCell.start(-1);
-      var map = dist$11.TableMap.get($anchorCell.node(-1));
+      var map = dist$7.TableMap.get($anchorCell.node(-1));
       var anchor = map.colCount($anchorCell.pos - start);
       var head = map.colCount($headCell.pos - start);
 
@@ -21238,7 +21190,7 @@ var getCellsInColumn = function getCellsInColumn(columnIndex) {
   return function (selection) {
     var table = findTable(selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       if (columnIndex >= 0 && columnIndex <= map.width - 1) {
         var cells = map.cellsInRect({
           left: columnIndex,
@@ -21266,7 +21218,7 @@ var getCellsInRow = function getCellsInRow(rowIndex) {
   return function (selection) {
     var table = findTable(selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       if (rowIndex >= 0 && rowIndex <= map.height - 1) {
         var cells = map.cellsInRect({
           left: 0,
@@ -21293,7 +21245,7 @@ var getCellsInRow = function getCellsInRow(rowIndex) {
 var getCellsInTable = function getCellsInTable(selection) {
   var table = findTable(selection);
   if (table) {
-    var map = dist$11.TableMap.get(table.node);
+    var map = dist$7.TableMap.get(table.node);
     var cells = map.cellsInRect({
       left: 0,
       right: map.width,
@@ -21322,7 +21274,7 @@ var selectColumn = function selectColumn(columnIndex) {
     if (cells) {
       var $anchor = tr.doc.resolve(cells[0].pos);
       var $head = tr.doc.resolve(cells[cells.length - 1].pos);
-      return cloneTr(tr.setSelection(new dist$11.CellSelection($anchor, $head)));
+      return cloneTr(tr.setSelection(new dist$7.CellSelection($anchor, $head)));
     }
     return tr;
   };
@@ -21342,7 +21294,7 @@ var selectRow = function selectRow(rowIndex) {
     if (cells) {
       var $anchor = tr.doc.resolve(cells[0].pos);
       var $head = tr.doc.resolve(cells[cells.length - 1].pos);
-      return cloneTr(tr.setSelection(new dist$11.CellSelection($anchor, $head)));
+      return cloneTr(tr.setSelection(new dist$7.CellSelection($anchor, $head)));
     }
     return tr;
   };
@@ -21361,7 +21313,7 @@ var selectTable = function selectTable(tr) {
   if (cells) {
     var $anchor = tr.doc.resolve(cells[0].pos);
     var $head = tr.doc.resolve(cells[cells.length - 1].pos);
-    return cloneTr(tr.setSelection(new dist$11.CellSelection($anchor, $head)));
+    return cloneTr(tr.setSelection(new dist$7.CellSelection($anchor, $head)));
   }
   return tr;
 };
@@ -21400,9 +21352,9 @@ var addColumnAt = function addColumnAt(columnIndex) {
   return function (tr) {
     var table = findTable(tr.selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       if (columnIndex >= 0 && columnIndex <= map.width) {
-        return cloneTr(dist$11.addColumn(tr, {
+        return cloneTr(dist$7.addColumn(tr, {
           map: map,
           tableStart: table.start,
           table: table.node
@@ -21431,7 +21383,7 @@ var addRowAt = function addRowAt(rowIndex, clonePreviousRow) {
   return function (tr) {
     var table = findTable(tr.selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       var cloneRowIndex = rowIndex - 1;
 
       if (clonePreviousRow && cloneRowIndex >= 0) {
@@ -21439,7 +21391,7 @@ var addRowAt = function addRowAt(rowIndex, clonePreviousRow) {
       }
 
       if (rowIndex >= 0 && rowIndex <= map.height) {
-        return cloneTr(dist$11.addRow(tr, {
+        return cloneTr(dist$7.addRow(tr, {
           map: map,
           tableStart: table.start,
           table: table.node
@@ -21462,7 +21414,7 @@ var cloneRowAt = function cloneRowAt(rowIndex) {
   return function (tr) {
     var table = findTable(tr.selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
 
       if (rowIndex >= 0 && rowIndex <= map.height) {
         var tableNode = table.node;
@@ -21531,11 +21483,11 @@ var removeColumnAt = function removeColumnAt(columnIndex) {
   return function (tr) {
     var table = findTable(tr.selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       if (columnIndex === 0 && map.width === 1) {
         return removeTable(tr);
       } else if (columnIndex >= 0 && columnIndex <= map.width) {
-        dist$11.removeColumn(tr, {
+        dist$7.removeColumn(tr, {
           map: map,
           tableStart: table.start,
           table: table.node
@@ -21559,11 +21511,11 @@ var removeRowAt = function removeRowAt(rowIndex) {
   return function (tr) {
     var table = findTable(tr.selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       if (rowIndex === 0 && map.height === 1) {
         return removeTable(tr);
       } else if (rowIndex >= 0 && rowIndex <= map.height) {
-        dist$11.removeRow(tr, {
+        dist$7.removeRow(tr, {
           map: map,
           tableStart: table.start,
           table: table.node
@@ -21613,7 +21565,7 @@ var removeSelectedColumns = function removeSelectedColumns(tr) {
   if (isCellSelection(selection)) {
     var table = findTable(selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       var rect = map.rectBetween(selection.$anchorCell.pos - table.start, selection.$headCell.pos - table.start);
       for (var i = rect.right - 1; i >= rect.left; i--) {
         tr = removeColumnAt(i)(tr);
@@ -21642,7 +21594,7 @@ var removeSelectedRows = function removeSelectedRows(tr) {
   if (isCellSelection(selection)) {
     var table = findTable(selection);
     if (table) {
-      var map = dist$11.TableMap.get(table.node);
+      var map = dist$7.TableMap.get(table.node);
       var rect = map.rectBetween(selection.$anchorCell.pos - table.start, selection.$headCell.pos - table.start);
       for (var i = rect.bottom - 1; i >= rect.top; i--) {
         tr = removeRowAt(i)(tr);
@@ -21824,7 +21776,7 @@ var findCellRectClosestToPos = function findCellRectClosestToPos($pos) {
   var cell = findCellClosestToPos($pos);
   if (cell) {
     var table = findTableClosestToPos($pos);
-    var map = dist$11.TableMap.get(table.node);
+    var map = dist$7.TableMap.get(table.node);
     var cellPos = cell.pos - table.start;
     return map.rectBetween(cellPos, cellPos);
   }
@@ -21908,66 +21860,66 @@ exports.removeNodeBefore = removeNodeBefore;
 //# sourceMappingURL=index.js.map
 });
 
-unwrapExports(dist$10);
-var dist_1$8 = dist$10.isNodeSelection;
-var dist_2$8 = dist$10.canInsert;
-var dist_3$7 = dist$10.findParentNode;
-var dist_4$7 = dist$10.findParentNodeClosestToPos;
-var dist_5$6 = dist$10.findParentDomRef;
-var dist_6$5 = dist$10.hasParentNode;
-var dist_7$5 = dist$10.findParentNodeOfType;
-var dist_8$5 = dist$10.findParentNodeOfTypeClosestToPos;
-var dist_9$5 = dist$10.hasParentNodeOfType;
-var dist_10$4 = dist$10.findParentDomRefOfType;
-var dist_11$4 = dist$10.findSelectedNodeOfType;
-var dist_12$4 = dist$10.findPositionOfNodeBefore;
-var dist_13$3 = dist$10.findDomRefAtPos;
-var dist_14$1 = dist$10.flatten;
-var dist_15$1 = dist$10.findChildren;
-var dist_16$1 = dist$10.findTextNodes;
-var dist_17$1 = dist$10.findInlineNodes;
-var dist_18$1 = dist$10.findBlockNodes;
-var dist_19$1 = dist$10.findChildrenByAttr;
-var dist_20 = dist$10.findChildrenByType;
-var dist_21 = dist$10.findChildrenByMark;
-var dist_22 = dist$10.contains;
-var dist_23 = dist$10.findTable;
-var dist_24 = dist$10.isCellSelection;
-var dist_25 = dist$10.isColumnSelected;
-var dist_26 = dist$10.isRowSelected;
-var dist_27 = dist$10.isTableSelected;
-var dist_28 = dist$10.getCellsInColumn;
-var dist_29 = dist$10.getCellsInRow;
-var dist_30 = dist$10.getCellsInTable;
-var dist_31 = dist$10.selectColumn;
-var dist_32 = dist$10.selectRow;
-var dist_33 = dist$10.selectTable;
-var dist_34 = dist$10.emptyCell;
-var dist_35 = dist$10.addColumnAt;
-var dist_36 = dist$10.addRowAt;
-var dist_37 = dist$10.cloneRowAt;
-var dist_38 = dist$10.removeColumnAt;
-var dist_39 = dist$10.removeRowAt;
-var dist_40 = dist$10.removeTable;
-var dist_41 = dist$10.removeSelectedColumns;
-var dist_42 = dist$10.removeSelectedRows;
-var dist_43 = dist$10.removeColumnClosestToPos;
-var dist_44 = dist$10.removeRowClosestToPos;
-var dist_45 = dist$10.forEachCellInColumn;
-var dist_46 = dist$10.forEachCellInRow;
-var dist_47 = dist$10.setCellAttrs;
-var dist_48 = dist$10.createTable;
-var dist_49 = dist$10.findCellClosestToPos;
-var dist_50 = dist$10.findCellRectClosestToPos;
-var dist_51 = dist$10.removeParentNodeOfType;
-var dist_52 = dist$10.replaceParentNodeOfType;
-var dist_53 = dist$10.removeSelectedNode;
-var dist_54 = dist$10.replaceSelectedNode;
-var dist_55 = dist$10.setTextSelection;
-var dist_56 = dist$10.safeInsert;
-var dist_57 = dist$10.setParentNodeMarkup;
-var dist_58 = dist$10.selectParentNodeOfType;
-var dist_59 = dist$10.removeNodeBefore;
+unwrapExports(dist$6);
+var dist_1$6 = dist$6.isNodeSelection;
+var dist_2$6 = dist$6.canInsert;
+var dist_3$6 = dist$6.findParentNode;
+var dist_4$6 = dist$6.findParentNodeClosestToPos;
+var dist_5$5 = dist$6.findParentDomRef;
+var dist_6$4 = dist$6.hasParentNode;
+var dist_7$4 = dist$6.findParentNodeOfType;
+var dist_8$4 = dist$6.findParentNodeOfTypeClosestToPos;
+var dist_9$4 = dist$6.hasParentNodeOfType;
+var dist_10$3 = dist$6.findParentDomRefOfType;
+var dist_11$3 = dist$6.findSelectedNodeOfType;
+var dist_12$3 = dist$6.findPositionOfNodeBefore;
+var dist_13$3 = dist$6.findDomRefAtPos;
+var dist_14$1 = dist$6.flatten;
+var dist_15$1 = dist$6.findChildren;
+var dist_16$1 = dist$6.findTextNodes;
+var dist_17$1 = dist$6.findInlineNodes;
+var dist_18$1 = dist$6.findBlockNodes;
+var dist_19$1 = dist$6.findChildrenByAttr;
+var dist_20 = dist$6.findChildrenByType;
+var dist_21 = dist$6.findChildrenByMark;
+var dist_22 = dist$6.contains;
+var dist_23 = dist$6.findTable;
+var dist_24 = dist$6.isCellSelection;
+var dist_25 = dist$6.isColumnSelected;
+var dist_26 = dist$6.isRowSelected;
+var dist_27 = dist$6.isTableSelected;
+var dist_28 = dist$6.getCellsInColumn;
+var dist_29 = dist$6.getCellsInRow;
+var dist_30 = dist$6.getCellsInTable;
+var dist_31 = dist$6.selectColumn;
+var dist_32 = dist$6.selectRow;
+var dist_33 = dist$6.selectTable;
+var dist_34 = dist$6.emptyCell;
+var dist_35 = dist$6.addColumnAt;
+var dist_36 = dist$6.addRowAt;
+var dist_37 = dist$6.cloneRowAt;
+var dist_38 = dist$6.removeColumnAt;
+var dist_39 = dist$6.removeRowAt;
+var dist_40 = dist$6.removeTable;
+var dist_41 = dist$6.removeSelectedColumns;
+var dist_42 = dist$6.removeSelectedRows;
+var dist_43 = dist$6.removeColumnClosestToPos;
+var dist_44 = dist$6.removeRowClosestToPos;
+var dist_45 = dist$6.forEachCellInColumn;
+var dist_46 = dist$6.forEachCellInRow;
+var dist_47 = dist$6.setCellAttrs;
+var dist_48 = dist$6.createTable;
+var dist_49 = dist$6.findCellClosestToPos;
+var dist_50 = dist$6.findCellRectClosestToPos;
+var dist_51 = dist$6.removeParentNodeOfType;
+var dist_52 = dist$6.replaceParentNodeOfType;
+var dist_53 = dist$6.removeSelectedNode;
+var dist_54 = dist$6.replaceSelectedNode;
+var dist_55 = dist$6.setTextSelection;
+var dist_56 = dist$6.safeInsert;
+var dist_57 = dist$6.setParentNodeMarkup;
+var dist_58 = dist$6.selectParentNodeOfType;
+var dist_59 = dist$6.removeNodeBefore;
 
 const findOverlappingRangeIndex = (range, ranges) => {
     return ranges.findIndex(localRange => (localRange.from <= range.from && localRange.to >= range.from) ||
@@ -21993,7 +21945,7 @@ const mergeRanges = (ranges) => ranges.reduce((acc, range) => {
     return newRange;
 }, []);
 
-const validationInputToRange = (input) => ({
+const blockToRange = (input) => ({
     from: input.from,
     to: input.to
 });
@@ -22001,7 +21953,7 @@ const expandRangeToParentBlockNode = (range, doc) => {
     try {
         const $fromPos = doc.resolve(range.from);
         const $toPos = doc.resolve(range.to);
-        const parentNode = dist_3$7(node => node.isBlock)(new dist_3($fromPos, $toPos));
+        const parentNode = dist_3$6(node => node.isBlock)(new dist_3($fromPos, $toPos));
         if (!parentNode) {
             return undefined;
         }
@@ -22015,7 +21967,7 @@ const expandRangeToParentBlockNode = (range, doc) => {
     }
 };
 const getRangesOfParentBlockNodes = (ranges, doc) => {
-    const validationRanges = ranges.reduce((acc, range) => {
+    const matchRanges = ranges.reduce((acc, range) => {
         const expandedRange = expandRangeToParentBlockNode({ from: range.from, to: range.to }, doc);
         return acc.concat(expandedRange
             ? [
@@ -22026,18 +21978,18 @@ const getRangesOfParentBlockNodes = (ranges, doc) => {
             ]
             : []);
     }, []);
-    return mergeRanges(validationRanges);
+    return mergeRanges(matchRanges);
 };
 const expandRangesToParentBlockNode = (ranges, doc) => getRangesOfParentBlockNodes(ranges, doc);
 //# sourceMappingURL=range.js.map
 
-const createValidationBlock = (tr, range) => {
+const createBlock = (tr, range) => {
     const text = tr.doc.textBetween(range.from, range.to);
-    return Object.assign({ text }, range, { id: createValidationId(tr.time, range.from, range.to) });
+    return Object.assign({ text }, range, { id: createBlockId(tr.time, range.from, range.to) });
 };
-const createValidationId = (time, from, to) => `${time}-from:${from}-to:${to}`;
+const createBlockId = (time, from, to) => `${time}-from:${from}-to:${to}`;
 
-//# sourceMappingURL=validation.js.map
+//# sourceMappingURL=block.js.map
 
 const flatten$3 = (node, descend = true) => {
     const result = [];
@@ -22052,11 +22004,11 @@ const flatten$3 = (node, descend = true) => {
 const findChildren = (node, predicate, descend) => {
     return flatten$3(node, descend).filter(child => predicate(child.node));
 };
-const createValidationBlocksForDocument = (tr) => {
+const createBlocksForDocument = (tr) => {
     const ranges = [];
     tr.doc.descendants((descNode, pos) => {
         if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
-            ranges.push(createValidationBlock(tr, {
+            ranges.push(createBlock(tr, {
                 from: pos + 1,
                 to: pos + descNode.nodeSize
             }));
@@ -22074,204 +22026,208 @@ const getReplaceStepRangesFromTransaction = (tr) => getReplaceTransactions(tr).m
 const getReplaceTransactions = (tr) => tr.steps.filter(step => step instanceof dist_17 || step instanceof dist_18);
 //# sourceMappingURL=prosemirror.js.map
 
-const selectBlockMatchesByMatchId = (state, matchId) => state.currentValidations.find(validation => validation.matchId === matchId);
-const selectBlockQueriesInFlightForSet = (state, validationSetId) => {
-    return state.blockQueriesInFlight[validationSetId];
+const selectMatchByMatchId = (state, matchId) => state.currentMatches.find(match => match.matchId === matchId);
+const selectBlockQueriesInFlightForSet = (state, requestId) => {
+    return state.requestsInFlight[requestId];
 };
-const selectSingleBlockQueryInFlightById = (state, validationSetId, blockQueryId) => {
-    const validationInFlightState = selectBlockQueriesInFlightForSet(state, validationSetId);
-    if (!validationInFlightState) {
+const selectSingleBlockInFlightById = (state, requestId, blockId) => {
+    const blocksInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+    if (!blocksInFlight) {
         return;
     }
-    return validationInFlightState.current.find(_ => _.blockQuery.id === blockQueryId);
+    return blocksInFlight.pendingBlocks.find(_ => _.block.id === blockId);
 };
-const selectBlockQueriesInFlightById = (state, validationSetId, blockQueryIds) => blockQueryIds
-    .map(blockQueryId => selectSingleBlockQueryInFlightById(state, validationSetId, blockQueryId))
+const selectBlockQueriesInFlightById = (state, requestId, blockIds) => blockIds
+    .map(blockId => selectSingleBlockInFlightById(state, requestId, blockId))
     .filter(_ => !!_);
-const selectAllBlockQueriesInFlight = (state) => Object.values(state.blockQueriesInFlight).reduce((acc, value) => acc.concat(value.current), []);
-const selectNewBlockQueryInFlight = (oldState, newState) => Object.keys(newState.blockQueriesInFlight).reduce((acc, validationSetId) => !oldState.blockQueriesInFlight[validationSetId]
-    ? acc.concat(Object.assign({ validationSetId }, selectBlockQueriesInFlightForSet(newState, validationSetId)))
+const selectAllBlockQueriesInFlight = (state) => Object.values(state.requestsInFlight).reduce((acc, value) => acc.concat(value.pendingBlocks), []);
+const selectNewBlockInFlight = (oldState, newState) => Object.keys(newState.requestsInFlight).reduce((acc, requestId) => !oldState.requestsInFlight[requestId]
+    ? acc.concat(Object.assign({ requestId }, selectBlockQueriesInFlightForSet(newState, requestId)))
     : acc, []);
 const selectPercentRemaining = (state) => {
-    const [sumOfTotals, sumOfValidations] = Object.values(state.blockQueriesInFlight).reduce(([totalsSum, currentSum], _) => [
-        totalsSum + _.total,
-        currentSum + _.current.length
-    ], [0, 0]);
-    return sumOfValidations ? (sumOfValidations / sumOfTotals) * 100 : 0;
+    const [totalWork, totalRemainingWork] = Object.values(state.requestsInFlight).reduce(([totalWorkAcc, remainingWorkAcc], queryState) => {
+        const allWork = queryState.totalBlocks * queryState.categoryIds.length;
+        const remainingWork = queryState.pendingBlocks.reduce((acc, block) => acc + block.pendingCategoryIds.length, 0);
+        return [totalWorkAcc + allWork, remainingWorkAcc + remainingWork];
+    }, [0, 0]);
+    return totalRemainingWork ? (totalRemainingWork / totalWork) * 100 : 0;
 };
 
-const VALIDATION_PLUGIN_ACTION = "VALIDATION_PLUGIN_ACTION";
+const selectAllAutoFixableMatches = (state) => state.currentMatches.filter(_ => _.replacement && _.replacement.text === _.annotation);
+//# sourceMappingURL=selectors.js.map
+
+const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 const createInitialState = (doc) => ({
     debug: false,
-    validateOnModify: false,
+    requestMatchesOnDocModified: false,
     decorations: dist_3$3.create(doc, []),
     dirtiedRanges: [],
-    currentValidations: [],
+    currentMatches: [],
     selectedMatch: undefined,
     hoverId: undefined,
     hoverInfo: undefined,
-    blockQueriesInFlight: {},
-    validationPending: false,
+    requestsInFlight: {},
+    requestPending: false,
     error: undefined
 });
-const createValidationPluginReducer = (expandRanges) => {
-    const handleValidationRequestForDirtyRanges = createHandleValidationRequestForDirtyRanges(expandRanges);
+const createTyperighterPluginReducer = (expandRanges) => {
+    const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(expandRanges);
     return (tr, incomingState, action) => {
-        const state = getNewStateFromTransaction(tr, incomingState);
+        const state = tr.docChanged
+            ? getNewStateFromTransaction(tr, incomingState)
+            : incomingState;
         if (!action) {
             return state;
         }
         switch (action.type) {
             case NEW_HOVER_ID:
                 return handleNewHoverId(tr, state, action);
-            case VALIDATION_REQUEST_FOR_DIRTY_RANGES:
-                return handleValidationRequestForDirtyRanges(tr, state, action);
-            case VALIDATION_REQUEST_FOR_DOCUMENT:
-                return handleValidationRequestForDocument(tr, state, action);
-            case VALIDATION_REQUEST_SUCCESS:
-                return handleValidationRequestSuccess(tr, state, action);
-            case VALIDATION_REQUEST_ERROR:
-                return handleValidationRequestError(tr, state, action);
-            case SELECT_VALIDATION:
-                return handleSelectValidation(tr, state, action);
+            case REQUEST_FOR_DIRTY_RANGES:
+                return handleMatchesRequestForDirtyRanges(tr, state, action);
+            case REQUEST_FOR_DOCUMENT:
+                return handleMatchesRequestForDocument(tr, state, action);
+            case REQUEST_SUCCESS:
+                return handleMatchesRequestSuccess(tr, state, action);
+            case REQUEST_ERROR:
+                return handleMatchesRequestError(tr, state, action);
+            case REQUEST_COMPLETE:
+                return handleRequestComplete(tr, state, action);
+            case SELECT_MATCH:
+                return handleSelectMatch(tr, state, action);
             case APPLY_NEW_DIRTY_RANGES:
                 return handleNewDirtyRanges(tr, state, action);
             case SET_DEBUG_STATE:
                 return handleSetDebugState(tr, state, action);
-            case SET_VALIDATE_ON_MODIFY_STATE:
-                return handleSetValidateOnModifyState(tr, state, action);
+            case SET_REQUEST_MATCHES_ON_DOC_MODIFIED:
+                return handleSetRequestOnDocModifiedState(tr, state, action);
             default:
                 return state;
         }
     };
 };
 const getNewStateFromTransaction = (tr, incomingState) => {
-    const mappedblockQueriesInFlight = Object.entries(incomingState.blockQueriesInFlight).reduce((acc, [validationSetId, blockQueriesInFlight]) => (Object.assign({}, acc, { [validationSetId]: {
-            total: blockQueriesInFlight.total,
-            current: blockQueriesInFlight.current.map(_ => {
-                const mapping = new dist_14();
-                mapping.appendMapping(_.mapping);
-                mapping.appendMapping(tr.mapping);
-                return Object.assign({}, _, { mapping });
-            })
-        } })), {});
-    return Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentValidations: mapRanges(incomingState.currentValidations, tr.mapping), blockQueriesInFlight: mappedblockQueriesInFlight });
+    const mappedrequestsInFlight = Object.entries(incomingState.requestsInFlight).reduce((acc, [requestId, requestsInFlight]) => {
+        const mapping = new dist_14();
+        mapping.appendMapping(requestsInFlight.mapping);
+        mapping.appendMapping(tr.mapping);
+        return Object.assign({}, acc, { [requestId]: Object.assign({}, requestsInFlight, { mapping }) });
+    }, {});
+    return Object.assign({}, incomingState, { decorations: incomingState.decorations.map(tr.mapping, tr.doc), dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping), currentMatches: mapRanges(incomingState.currentMatches, tr.mapping), requestsInFlight: mappedrequestsInFlight });
 };
-const handleSelectValidation = (_, state, action) => {
+const handleSelectMatch = (_, state, action) => {
     return Object.assign({}, state, { selectedMatch: action.payload.matchId });
 };
 const handleNewHoverId = (tr, state, action) => {
     let decorations = state.decorations;
-    const incomingHoverId = action.payload.hoverId;
+    const incomingHoverId = action.payload.matchId;
     const currentHoverId = state.hoverId;
     const currentHoverDecorations = decorations.find(undefined, undefined, spec => (spec.id === currentHoverId || spec.id === incomingHoverId) &&
-        spec.type === DECORATION_VALIDATION);
+        spec.type === DECORATION_MATCH);
     decorations = decorations.remove(currentHoverDecorations);
     const decorationData = [{ id: incomingHoverId, isSelected: true }];
     if (incomingHoverId !== currentHoverId) {
         decorationData.push({ id: currentHoverId, isSelected: false });
     }
     decorations = decorationData.reduce((acc, hoverData) => {
-        const output = selectBlockMatchesByMatchId(state, hoverData.id || "");
+        const output = selectMatchByMatchId(state, hoverData.id || "");
         if (!output) {
             return acc;
         }
-        return decorations.add(tr.doc, createDecorationForValidationRange(output, hoverData.isSelected, false));
+        return decorations.add(tr.doc, createDecorationForMatch(output, hoverData.isSelected, false));
     }, decorations);
-    return Object.assign({}, state, { decorations, hoverId: action.payload.hoverId, hoverInfo: action.payload.hoverInfo });
+    return Object.assign({}, state, { decorations, hoverId: action.payload.matchId, hoverInfo: action.payload.hoverInfo });
 };
 const handleNewDirtyRanges = (tr, state, { payload: { ranges: dirtiedRanges } }) => {
     let newDecorations = state.debug
         ? state.decorations.add(tr.doc, dirtiedRanges.map(range => createDebugDecorationFromRange(range)))
         : state.decorations;
     newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
-    const currentValidations = state.currentValidations.filter(output => findOverlappingRangeIndex(output, dirtiedRanges) === -1);
-    return Object.assign({}, state, { currentValidations, decorations: newDecorations, validationPending: state.validateOnModify ? true : false, dirtiedRanges: state.validateOnModify
+    const currentMatches = state.currentMatches.filter(output => findOverlappingRangeIndex(output, dirtiedRanges) === -1);
+    return Object.assign({}, state, { currentMatches, decorations: newDecorations, requestPending: state.requestMatchesOnDocModified ? true : false, dirtiedRanges: state.requestMatchesOnDocModified
             ? state.dirtiedRanges.concat(dirtiedRanges)
             : [] });
 };
-const createHandleValidationRequestForDirtyRanges = (expandRanges) => (tr, state, { payload: { validationSetId, categoryIds } }) => {
+const createHandleMatchesRequestForDirtyRanges = (expandRanges) => (tr, state, { payload: { requestId, categoryIds } }) => {
     const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-    const validationInputs = ranges.map(range => createValidationBlock(tr, range));
-    return handleValidationRequestStart(validationSetId, validationInputs, categoryIds)(tr, state);
+    const blocks = ranges.map(range => createBlock(tr, range));
+    return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
-const handleValidationRequestForDocument = (tr, state, { payload: { validationSetId, categoryIds } }) => {
-    return handleValidationRequestStart(validationSetId, createValidationBlocksForDocument(tr), categoryIds)(tr, state);
+const handleMatchesRequestForDocument = (tr, state, { payload: { requestId, categoryIds } }) => {
+    return handleRequestStart(requestId, createBlocksForDocument(tr), categoryIds)(tr, state);
 };
-const handleValidationRequestStart = (validationSetId, blockQueries, categoryIds) => (tr, state) => {
+const handleRequestStart = (requestId, blocks, categoryIds) => (tr, state) => {
     const decorations = state.debug
-        ? removeDecorationsFromRanges(state.decorations, blockQueries, [
+        ? removeDecorationsFromRanges(state.decorations, blocks, [
             DECORATION_DIRTY
-        ]).add(tr.doc, blockQueries.map(range => createDebugDecorationFromRange(range, false)))
+        ]).add(tr.doc, blocks.map(range => createDebugDecorationFromRange(range, false)))
         : state.decorations;
-    const newblockQueriesInFlight = blockQueries.map(blockQuery => ({
-        mapping: new dist_14(),
-        blockQuery,
-        allCategoryIds: categoryIds,
-        remainingCategoryIds: categoryIds
+    const newBlockQueriesInFlight = blocks.map(block => ({
+        block,
+        pendingCategoryIds: categoryIds
     }));
-    return Object.assign({}, state, { decorations, dirtiedRanges: [], validationPending: false, blockQueriesInFlight: Object.assign({}, state.blockQueriesInFlight, { [validationSetId]: {
-                total: newblockQueriesInFlight.length,
-                current: newblockQueriesInFlight
+    return Object.assign({}, state, { decorations, dirtiedRanges: [], requestPending: false, requestsInFlight: Object.assign({}, state.requestsInFlight, { [requestId]: {
+                totalBlocks: newBlockQueriesInFlight.length,
+                pendingBlocks: newBlockQueriesInFlight,
+                mapping: tr.mapping,
+                categoryIds
             } }) });
 };
-const amendBlockQueriesInFlight = (state, validationSetId, blockQueryId, categoryIds) => {
-    const currentBlockQueriesInFlight = selectBlockQueriesInFlightForSet(state, validationSetId);
+const amendBlockQueriesInFlight = (state, requestId, blockId, categoryIds) => {
+    const currentBlockQueriesInFlight = selectBlockQueriesInFlightForSet(state, requestId);
     if (!currentBlockQueriesInFlight) {
-        return state.blockQueriesInFlight;
+        return state.requestsInFlight;
     }
-    const newBlockQueriesInFlight = {
-        total: currentBlockQueriesInFlight.total,
-        current: currentBlockQueriesInFlight.current.reduce((acc, blockQueryInFlight) => {
-            if (blockQueryInFlight.blockQuery.id !== blockQueryId) {
-                return acc.concat(blockQueryInFlight);
+    const newBlockQueriesInFlight = Object.assign({}, currentBlockQueriesInFlight, { pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce((acc, blockInFlight) => {
+            if (blockInFlight.block.id !== blockId) {
+                return acc.concat(blockInFlight);
             }
-            const newBlockQueryInFlight = Object.assign({}, blockQueryInFlight, { remainingCategoryIds: blockQueryInFlight.remainingCategoryIds.filter(id => !categoryIds.includes(id)) });
-            return newBlockQueryInFlight.remainingCategoryIds.length
-                ? acc.concat(newBlockQueryInFlight)
+            const newBlockInFlight = Object.assign({}, blockInFlight, { pendingCategoryIds: blockInFlight.pendingCategoryIds.filter(id => !categoryIds.includes(id)) });
+            return newBlockInFlight.pendingCategoryIds.length
+                ? acc.concat(newBlockInFlight)
                 : acc;
-        }, [])
-    };
-    if (!newBlockQueriesInFlight.current.length) {
-        return omit_1(state.blockQueriesInFlight, validationSetId);
+        }, []) });
+    if (!newBlockQueriesInFlight.pendingBlocks.length) {
+        return omit_1(state.requestsInFlight, requestId);
     }
-    return Object.assign({}, state.blockQueriesInFlight, { [validationSetId]: newBlockQueriesInFlight });
+    return Object.assign({}, state.requestsInFlight, { [requestId]: newBlockQueriesInFlight });
 };
-const handleValidationRequestSuccess = (tr, state, { payload: { response } }) => {
+const handleMatchesRequestSuccess = (tr, state, { payload: { response } }) => {
     if (!response) {
         return state;
     }
-    const blockQueriesInFlight = selectBlockQueriesInFlightById(state, response.validationSetId, response.blocks.map(_ => _.id));
-    if (!blockQueriesInFlight.length) {
+    const requestsInFlight = selectBlockQueriesInFlightById(state, response.requestId, response.blocks.map(_ => _.id));
+    if (!requestsInFlight.length) {
         return state;
     }
-    let currentValidations = removeOverlappingRanges(state.currentValidations, blockQueriesInFlight.map(_ => _.blockQuery), validation => !response.categoryIds.includes(validation.category.id));
-    const decsToRemove = blockQueriesInFlight.reduce((acc, blockQueryInFlight) => acc.concat(state.decorations
-        .find(blockQueryInFlight.blockQuery.from, blockQueryInFlight.blockQuery.to, spec => response.categoryIds.includes(spec.categoryId))
+    let currentMatches = removeOverlappingRanges(state.currentMatches, requestsInFlight.map(_ => _.block), match => !response.categoryIds.includes(match.category.id));
+    const decsToRemove = requestsInFlight.reduce((acc, blockInFlight) => acc.concat(state.decorations
+        .find(blockInFlight.block.from, blockInFlight.block.to, spec => response.categoryIds.includes(spec.categoryId))
         .concat(state.debug
         ?
             state.decorations.find(undefined, undefined, _ => _.type === DECORATION_INFLIGHT)
         : [])), []);
-    const mapping = blockQueriesInFlight.reduce((acc, blockQuery) => {
-        acc.appendMapping(blockQuery.mapping);
-        return acc;
-    }, new dist_14());
-    currentValidations = currentValidations.concat(mapRanges(response.matches, mapping));
-    currentValidations = removeOverlappingRanges(currentValidations, state.dirtiedRanges);
-    const decorations = getNewDecorationsForCurrentValidations(currentValidations, state.decorations, tr.doc);
-    const newBlockQueriesInFlight = blockQueriesInFlight.reduce((acc, blockQueryInFlight) => amendBlockQueriesInFlight(Object.assign({}, state, { blockQueriesInFlight: acc }), response.validationSetId, blockQueryInFlight.blockQuery.id, response.categoryIds), state.blockQueriesInFlight);
-    return Object.assign({}, state, { blockQueriesInFlight: newBlockQueriesInFlight, currentValidations, decorations: decorations.remove(decsToRemove) });
+    currentMatches = currentMatches.concat(mapRanges(response.matches, selectBlockQueriesInFlightForSet(state, response.requestId).mapping));
+    currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
+    const newDecorations = createDecorationsForMatches(response.matches);
+    const newBlockQueriesInFlight = requestsInFlight.reduce((acc, blockInFlight) => amendBlockQueriesInFlight(Object.assign({}, state, { requestsInFlight: acc }), response.requestId, blockInFlight.block.id, response.categoryIds), state.requestsInFlight);
+    return Object.assign({}, state, { requestsInFlight: newBlockQueriesInFlight, currentMatches, decorations: state.decorations
+            .remove(decsToRemove)
+            .add(tr.doc, newDecorations) });
 };
-const handleValidationRequestError = (tr, state, { payload: { validationError: { validationSetId, validationId, message } } }) => {
-    if (!validationId) {
+const handleMatchesRequestError = (tr, state, { payload: { matchRequestError: { requestId, blockId, message } } }) => {
+    if (!blockId) {
         return Object.assign({}, state, { message });
     }
-    const validationInFlight = selectSingleBlockQueryInFlightById(state, validationSetId, validationId);
-    if (!validationInFlight) {
+    const requestsInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+    if (!requestsInFlight) {
+        return state;
+    }
+    const blockInFlight = selectSingleBlockInFlightById(state, requestId, blockId);
+    if (!blockInFlight) {
         return Object.assign({}, state, { message });
     }
-    const dirtiedRanges = validationInFlight
-        ? mapRanges([validationInputToRange(validationInFlight.blockQuery)], validationInFlight.mapping)
+    const dirtiedRanges = blockInFlight
+        ? mapRanges([blockToRange(blockInFlight.block)], requestsInFlight.mapping)
         : [];
     const decsToRemove = dirtiedRanges.reduce((acc, range) => acc.concat(state.decorations.find(range.from, range.to, _ => _.type === DECORATION_INFLIGHT)), []);
     let decorations = state.decorations.remove(decsToRemove);
@@ -22280,13 +22236,22 @@ const handleValidationRequestError = (tr, state, { payload: { validationError: {
     }
     return Object.assign({}, state, { dirtiedRanges: dirtiedRanges.length
             ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-            : state.dirtiedRanges, decorations, blockQueriesInFlight: amendBlockQueriesInFlight(state, validationSetId, validationId, []), error: message });
+            : state.dirtiedRanges, decorations, requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, []), error: message });
+};
+const handleRequestComplete = (_, state, { payload: { requestId } }) => {
+    const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+    const hasUnfinishedWork = requestInFlight &&
+        requestInFlight.pendingBlocks.some(block => block.pendingCategoryIds.length);
+    if (requestInFlight && hasUnfinishedWork) {
+        console.warn(`Request ${requestId} was marked as complete, but there is still work remaining.`, requestInFlight.pendingBlocks);
+    }
+    return Object.assign({}, state, { requestsInFlight: omit_1(state.requestsInFlight, requestId) });
 };
 const handleSetDebugState = (_, state, { payload: { debug } }) => {
     return Object.assign({}, state, { debug });
 };
-const handleSetValidateOnModifyState = (_, state, { payload: { validateOnModify } }) => {
-    return Object.assign({}, state, { validateOnModify });
+const handleSetRequestOnDocModifiedState = (_, state, { payload: { requestMatchesOnDocModified } }) => {
+    return Object.assign({}, state, { requestMatchesOnDocModified });
 };
 //# sourceMappingURL=reducer.js.map
 
@@ -22317,14 +22282,14 @@ function getStateHoverInfoFromEvent(event, containerElement, heightMarkerElement
 }
 //# sourceMappingURL=dom.js.map
 
-const STORE_EVENT_NEW_VALIDATION = "STORE_EVENT_NEW_VALIDATION";
+const STORE_EVENT_NEW_MATCHES = "STORE_EVENT_NEW_MATCHES";
 const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
 const STORE_EVENT_NEW_DIRTIED_RANGES = "STORE_EVENT_DOCUMENT_DIRTIED";
 class Store {
     constructor() {
         this.subscribers = {
             [STORE_EVENT_NEW_STATE]: [],
-            [STORE_EVENT_NEW_VALIDATION]: [],
+            [STORE_EVENT_NEW_MATCHES]: [],
             [STORE_EVENT_NEW_DIRTIED_RANGES]: []
         };
         this.on("STORE_EVENT_NEW_STATE", _ => this.updateState(_));
@@ -22350,84 +22315,103 @@ class Store {
     }
 }
 
-//# sourceMappingURL=store.js.map
-
 const compact = (value) => !!value;
 //# sourceMappingURL=array.js.map
 
-const validateDocumentCommand = (validationSetId, categoryIds) => (state, dispatch) => {
+const requestMatchesForDocumentCommand = (requestId, categoryIds) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDocument(validationSetId, categoryIds)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, requestMatchesForDocument(requestId, categoryIds)));
     }
     return true;
 };
-const validateDirtyRangesCommand = (validationSetId, categoryIds) => (state, dispatch) => {
+const requestMatchesForDirtyRangesCommand = (requestId, categoryIds) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestForDirtyRanges(validationSetId, categoryIds)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, requestMatchesForDirtyRanges(requestId, categoryIds)));
     }
     return true;
 };
-const indicateHoverCommand = (id, hoverInfo) => (state, dispatch) => {
+const indicateHoverCommand = (matchId, hoverInfo) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, newHoverIdReceived(id, hoverInfo)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, newHoverIdReceived(matchId, hoverInfo)));
     }
     return true;
 };
-const selectValidationCommand = (validationId, getState) => (state, dispatch) => {
+const selectMatchCommand = (matchId, getState) => (state, dispatch) => {
     const pluginState = getState(state);
-    const output = selectBlockMatchesByMatchId(pluginState, validationId);
+    const output = selectMatchByMatchId(pluginState, matchId);
     if (!output) {
         return false;
     }
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, selectMatch(validationId)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, selectMatch(matchId)));
     }
     return true;
 };
 const setDebugStateCommand = (debug) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setDebugState(debug)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, setDebugState(debug)));
     }
     return true;
 };
-const setValidateOnModifyStateCommand = (validateOnModify) => (state, dispatch) => {
+const setRequestOnDocModifiedState = (requestMatchesOnDocModified) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, setValidateOnModifyState(validateOnModify)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, setRequestMatchesOnDocModified(requestMatchesOnDocModified)));
     }
     return true;
 };
-const applyValidationResponseCommand = (validationResponse) => (state, dispatch) => {
+const applyMatcherResponseCommand = (matcherResponse) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestSuccess(validationResponse)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, requestMatchesSuccess(matcherResponse)));
     }
     return true;
 };
-const applyValidationErrorCommand = (validationError) => (state, dispatch) => {
+const applyRequestErrorCommand = (matchRequestError) => (state, dispatch) => {
     if (dispatch) {
-        dispatch(state.tr.setMeta(VALIDATION_PLUGIN_ACTION, validationRequestError(validationError)));
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, requestError(matchRequestError)));
+    }
+    return true;
+};
+const applyRequestCompleteCommand = (requestId) => (state, dispatch) => {
+    if (dispatch) {
+        dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, requestMatchesComplete(requestId)));
     }
     return true;
 };
 const applySuggestionsCommand = (suggestionOptions, getState) => (state, dispatch) => {
     const pluginState = getState(state);
-    const outputsAndSuggestions = suggestionOptions
+    const suggestionsToApply = suggestionOptions
         .map(opt => {
-        const validation = selectBlockMatchesByMatchId(pluginState, opt.matchId);
-        return validation
+        const maybeMatch = selectMatchByMatchId(pluginState, opt.matchId);
+        return maybeMatch
             ? {
-                from: validation.from,
-                to: validation.to,
+                from: maybeMatch.from,
+                to: maybeMatch.to,
                 text: opt.text
             }
             : undefined;
     })
         .filter(compact);
-    if (!outputsAndSuggestions.length) {
+    return maybeApplySuggestions(suggestionsToApply, state, dispatch);
+};
+const applyAutoFixableSuggestionsCommand = (getState) => (state, dispatch) => {
+    const pluginState = getState(state);
+    const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(output => ({
+        from: output.from,
+        to: output.to,
+        text: output.suggestions && output.suggestions.length
+            ? output.suggestions[0].text
+            : undefined
+    }));
+    return maybeApplySuggestions(suggestionsToApply, state, dispatch);
+};
+const maybeApplySuggestions = (suggestionsToApply, state, dispatch) => {
+    if (!suggestionsToApply.length) {
         return false;
     }
     if (dispatch) {
         const tr = state.tr;
-        outputsAndSuggestions.forEach(({ from, to, text }) => tr.replaceWith(from, to, state.schema.text(text)));
+        suggestionsToApply.forEach(({ from, to, text }) => text &&
+            tr.replaceWith(tr.mapping.map(from), tr.mapping.map(to), state.schema.text(text)));
         dispatch(tr);
     }
     return true;
@@ -22436,27 +22420,30 @@ const createBoundCommands = (view, getState) => {
     const bindCommand = (action) => (...args) => action(...args)(view.state, view.dispatch);
     return {
         applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(view.state, view.dispatch),
-        selectValidation: (validationId) => selectValidationCommand(validationId, getState)(view.state, view.dispatch),
-        validateDocument: bindCommand(validateDocumentCommand),
-        validateDirtyRanges: bindCommand(validateDirtyRangesCommand),
+        selectMatch: (blockId) => selectMatchCommand(blockId, getState)(view.state, view.dispatch),
+        applyAutoFixableSuggestions: () => applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
+        requestMatchesForDocument: bindCommand(requestMatchesForDocumentCommand),
+        requestMatchesForDirtyRanges: bindCommand(requestMatchesForDirtyRangesCommand),
         indicateHover: bindCommand(indicateHoverCommand),
         setDebugState: bindCommand(setDebugStateCommand),
-        setValidateOnModifyState: bindCommand(setValidateOnModifyStateCommand),
-        applyValidationResult: bindCommand(applyValidationResponseCommand),
-        applyValidationError: bindCommand(applyValidationErrorCommand)
+        setRequestOnDocModified: bindCommand(setRequestOnDocModifiedState),
+        applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
+        applyRequestError: bindCommand(applyRequestErrorCommand),
+        applyRequestComplete: bindCommand(applyRequestCompleteCommand)
     };
 };
 //# sourceMappingURL=commands.js.map
 
-const createValidatorPlugin = (options = {}) => {
+const createTyperighterPlugin = (options = {}) => {
     const { expandRanges = expandRangesToParentBlockNode } = options;
     const store = new Store();
-    const reducer = createValidationPluginReducer(expandRanges);
+    const reducer = createTyperighterPluginReducer(expandRanges);
     const plugin = new dist_8({
+        key: new dist_9('prosemirror-typerighter'),
         state: {
             init: (_, { doc }) => createInitialState(doc),
             apply(tr, state) {
-                return reducer(tr, state, tr.getMeta(VALIDATION_PLUGIN_ACTION));
+                return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));
             }
         },
         appendTransaction(trs, oldState, newState) {
@@ -22466,10 +22453,10 @@ const createValidatorPlugin = (options = {}) => {
             const newDirtiedRanges = trs.reduce((acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)), []);
             if (newDirtiedRanges.length) {
                 setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
-                return tr.setMeta(VALIDATION_PLUGIN_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
+                return tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, applyNewDirtiedRanges(newDirtiedRanges));
             }
-            const newValidationInputs = selectNewBlockQueryInFlight(oldPluginState, newPluginState);
-            newValidationInputs.forEach(({ validationSetId, current }) => store.emit(STORE_EVENT_NEW_VALIDATION, validationSetId, current.map(_ => _.blockQuery)));
+            const blockStates = selectNewBlockInFlight(oldPluginState, newPluginState);
+            blockStates.forEach(({ requestId, pendingBlocks }) => store.emit(STORE_EVENT_NEW_MATCHES, requestId, pendingBlocks.map(_ => _.block)));
         },
         props: {
             decorations: state => {
@@ -22482,17 +22469,17 @@ const createValidatorPlugin = (options = {}) => {
                     }
                     const target = event.target;
                     const targetAttr = target.getAttribute(DECORATION_ATTRIBUTE_ID);
-                    const newValidationId = targetAttr ? targetAttr : undefined;
-                    if (newValidationId === plugin.getState(view.state).hoverId) {
+                    const newMatchId = targetAttr ? targetAttr : undefined;
+                    if (newMatchId === plugin.getState(view.state).hoverId) {
                         return false;
                     }
-                    const heightMarker = document.querySelector(`[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newValidationId}"]`);
-                    if (newValidationId &&
+                    const heightMarker = document.querySelector(`[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newMatchId}"]`);
+                    if (newMatchId &&
                         (!heightMarker || !(heightMarker instanceof HTMLElement))) {
-                        console.warn(`No height marker found for id ${newValidationId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
+                        console.warn(`No height marker found for id ${newMatchId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`);
                         return false;
                     }
-                    indicateHoverCommand(newValidationId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(view.state, view.dispatch);
+                    indicateHoverCommand(newMatchId, getStateHoverInfoFromEvent(event, view.dom, heightMarker))(view.state, view.dispatch);
                     return false;
                 }
             }
@@ -22510,7 +22497,7 @@ const createValidatorPlugin = (options = {}) => {
     };
 };
 
-//# sourceMappingURL=createValidationPlugin.js.map
+//# sourceMappingURL=createTyperighterPlugin.js.map
 
 var n;
 var l;
@@ -22635,7 +22622,7 @@ const Suggestion = ({ matchId, suggestion, applySuggestions }) => {
         ]);
     switch (suggestion.type) {
         case "TEXT_SUGGESTION": {
-            return (c("div", { class: "ValidationWidget__suggestion", onClick: boundApplySuggestions }, suggestion.text));
+            return (c("div", { class: "MatchWidget__suggestion", onClick: boundApplySuggestions }, suggestion.text));
         }
         case "WIKI_SUGGESTION": {
             return (c(WikiSuggestion, Object.assign({}, suggestion, { applySuggestion: boundApplySuggestions })));
@@ -22649,33 +22636,33 @@ const SuggestionList = ({ suggestions, matchId, applySuggestions }) => {
     const [isOpen, setIsOpen] = e$1(false);
     const firstSuggestion = suggestions[0];
     const otherSuggestions = suggestions.slice(1);
-    return (c("div", { className: "ValidationSidebarOutput__suggestion-list" },
-        !suggestions.length ? (c("p", null, "No suggestions found.")) : (c(Suggestion, { matchId: matchId, suggestion: firstSuggestion, applySuggestions: applySuggestions })),
-        !!otherSuggestions.length && (c("div", { className: "Button SuggestionList__see-more", onClick: () => setIsOpen(!isOpen) },
+    return (c("div", { className: "SidebarMatch__suggestion-list" },
+        suggestions.length ? (c(Suggestion, { matchId: matchId, suggestion: firstSuggestion, applySuggestions: applySuggestions })) : null,
+        !!otherSuggestions.length ? (c("div", { className: "Button SuggestionList__see-more", onClick: () => setIsOpen(!isOpen) },
             "See ",
             !isOpen ? "more" : "fewer",
             " suggestions (",
             otherSuggestions.length,
-            ")")),
+            ")")) : null,
         isOpen && (c(h, null, otherSuggestions.map(suggestion => (c(Suggestion, { matchId: matchId, suggestion: suggestion, applySuggestions: applySuggestions })))))));
 };
 
 //# sourceMappingURL=SuggestionList.js.map
 
-class ValidationOutput extends p {
-    render({ validationOutput: { matchId: id, category, annotation, suggestions }, applySuggestions }) {
-        return (c("div", { className: "ValidationWidget__container" },
-            c("div", { className: "ValidationWidget", ref: _ => (this.ref = _) },
-                c("div", { className: "ValidationWidget__type", style: { color: `#${category.colour}` } }, category.name),
-                c("div", { className: "ValidationWidget__annotation" }, annotation),
-                suggestions && applySuggestions && (c("div", { className: "ValidationWidget__suggestion-list" },
-                    c(SuggestionList, { applySuggestions: applySuggestions, matchId: id, suggestions: suggestions }))))));
+class Match extends p {
+    render({ match: { matchId, category, annotation, suggestions }, applySuggestions }) {
+        return (c("div", { className: "MatchWidget__container" },
+            c("div", { className: "MatchWidget", ref: _ => (this.ref = _) },
+                c("div", { className: "MatchWidget__type", style: { color: `#${category.colour}` } }, category.name),
+                c("div", { className: "MatchWidget__annotation" }, annotation),
+                suggestions && applySuggestions && (c("div", { className: "MatchWidget__suggestion-list" },
+                    c(SuggestionList, { applySuggestions: applySuggestions, matchId: matchId, suggestions: suggestions }))))));
     }
 }
 
-//# sourceMappingURL=ValidationOutput.js.map
+//# sourceMappingURL=Match.js.map
 
-class ValidationOverlay extends p {
+class MatchOverlay extends p {
     constructor() {
         super(...arguments);
         this.state = {
@@ -22683,7 +22670,7 @@ class ValidationOverlay extends p {
             left: undefined,
             top: undefined,
             hoverInfo: undefined,
-            validationOutput: undefined
+            match: undefined
         };
         this.decorationRef = undefined;
         this.handleMouseOver = (e) => e.stopPropagation();
@@ -22694,10 +22681,10 @@ class ValidationOverlay extends p {
                 top: 0
             };
             if (state.hoverId && state.hoverInfo) {
-                const validationOutput = selectBlockMatchesByMatchId(state, state.hoverId);
-                return this.setState(Object.assign({ hoverInfo: state.hoverInfo, validationOutput }, newState));
+                const match = selectMatchByMatchId(state, state.hoverId);
+                return this.setState(Object.assign({ hoverInfo: state.hoverInfo, match: match }, newState));
             }
-            this.setState(Object.assign({ hoverInfo: undefined, validationOutput: undefined }, newState));
+            this.setState(Object.assign({ hoverInfo: undefined, match: undefined }, newState));
         };
         this.getCoordsFromHoverEvent = () => {
             if (!this.decorationRef || !this.state.hoverInfo) {
@@ -22720,7 +22707,7 @@ class ValidationOverlay extends p {
             };
         };
         this.getTooltipCoords = (hoverInfo) => {
-            const isHoveringOverFirstLine = hoverInfo.heightOfSingleLine >= Math.floor(hoverInfo.mouseOffsetY);
+            const isHoveringOverFirstLine = hoverInfo.heightOfSingleLine + 3 >= Math.floor(hoverInfo.mouseOffsetY);
             const left = isHoveringOverFirstLine
                 ? hoverInfo.offsetLeft
                 : hoverInfo.left;
@@ -22745,20 +22732,986 @@ class ValidationOverlay extends p {
         });
     }
     render() {
-        const { validationOutput, left, top } = this.state;
-        if (!validationOutput || left === undefined || top === undefined) {
+        const { match, left, top } = this.state;
+        if (!match || left === undefined || top === undefined) {
             return null;
         }
-        return (c("div", { class: "ValidationPlugin__overlay", onMouseOver: this.handleMouseOver },
-            c("div", { class: "ValidationPlugin__decoration-container", style: {
+        return (c("div", { class: "TyperighterPlugin__overlay", onMouseOver: this.handleMouseOver },
+            c("div", { class: "TyperighterPlugin__decoration-container", style: {
                     top: top - 1,
                     left
                 } },
-                c(ValidationOutput, { ref: _ => (this.decorationRef = _), validationOutput: validationOutput, applySuggestions: this.props.applySuggestions }))));
+                c(Match, { ref: _ => (this.decorationRef = _), match: match, applySuggestions: this.props.applySuggestions }))));
     }
 }
 
-//# sourceMappingURL=ValidationOverlay.js.map
+//# sourceMappingURL=MatchOverlay.js.map
+
+/** Used to stand-in for `undefined` hash values. */
+var HASH_UNDEFINED$2 = '__lodash_hash_undefined__';
+
+/**
+ * Adds `value` to the array cache.
+ *
+ * @private
+ * @name add
+ * @memberOf SetCache
+ * @alias push
+ * @param {*} value The value to cache.
+ * @returns {Object} Returns the cache instance.
+ */
+function setCacheAdd(value) {
+  this.__data__.set(value, HASH_UNDEFINED$2);
+  return this;
+}
+
+var _setCacheAdd = setCacheAdd;
+
+/**
+ * Checks if `value` is in the array cache.
+ *
+ * @private
+ * @name has
+ * @memberOf SetCache
+ * @param {*} value The value to search for.
+ * @returns {number} Returns `true` if `value` is found, else `false`.
+ */
+function setCacheHas(value) {
+  return this.__data__.has(value);
+}
+
+var _setCacheHas = setCacheHas;
+
+function SetCache(values) {
+  var index = -1,
+      length = values == null ? 0 : values.length;
+
+  this.__data__ = new _MapCache;
+  while (++index < length) {
+    this.add(values[index]);
+  }
+}
+
+// Add methods to `SetCache`.
+SetCache.prototype.add = SetCache.prototype.push = _setCacheAdd;
+SetCache.prototype.has = _setCacheHas;
+
+var _SetCache = SetCache;
+
+/**
+ * A specialized version of `_.some` for arrays without support for iteratee
+ * shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} predicate The function invoked per iteration.
+ * @returns {boolean} Returns `true` if any element passes the predicate check,
+ *  else `false`.
+ */
+function arraySome(array, predicate) {
+  var index = -1,
+      length = array == null ? 0 : array.length;
+
+  while (++index < length) {
+    if (predicate(array[index], index, array)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+var _arraySome = arraySome;
+
+/**
+ * Checks if a `cache` value for `key` exists.
+ *
+ * @private
+ * @param {Object} cache The cache to query.
+ * @param {string} key The key of the entry to check.
+ * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+ */
+function cacheHas(cache, key) {
+  return cache.has(key);
+}
+
+var _cacheHas = cacheHas;
+
+var COMPARE_PARTIAL_FLAG$2 = 1;
+var COMPARE_UNORDERED_FLAG$1 = 2;
+
+/**
+ * A specialized version of `baseIsEqualDeep` for arrays with support for
+ * partial deep comparisons.
+ *
+ * @private
+ * @param {Array} array The array to compare.
+ * @param {Array} other The other array to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} stack Tracks traversed `array` and `other` objects.
+ * @returns {boolean} Returns `true` if the arrays are equivalent, else `false`.
+ */
+function equalArrays(array, other, bitmask, customizer, equalFunc, stack) {
+  var isPartial = bitmask & COMPARE_PARTIAL_FLAG$2,
+      arrLength = array.length,
+      othLength = other.length;
+
+  if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
+    return false;
+  }
+  // Assume cyclic values are equal.
+  var stacked = stack.get(array);
+  if (stacked && stack.get(other)) {
+    return stacked == other;
+  }
+  var index = -1,
+      result = true,
+      seen = (bitmask & COMPARE_UNORDERED_FLAG$1) ? new _SetCache : undefined;
+
+  stack.set(array, other);
+  stack.set(other, array);
+
+  // Ignore non-index properties.
+  while (++index < arrLength) {
+    var arrValue = array[index],
+        othValue = other[index];
+
+    if (customizer) {
+      var compared = isPartial
+        ? customizer(othValue, arrValue, index, other, array, stack)
+        : customizer(arrValue, othValue, index, array, other, stack);
+    }
+    if (compared !== undefined) {
+      if (compared) {
+        continue;
+      }
+      result = false;
+      break;
+    }
+    // Recursively compare arrays (susceptible to call stack limits).
+    if (seen) {
+      if (!_arraySome(other, function(othValue, othIndex) {
+            if (!_cacheHas(seen, othIndex) &&
+                (arrValue === othValue || equalFunc(arrValue, othValue, bitmask, customizer, stack))) {
+              return seen.push(othIndex);
+            }
+          })) {
+        result = false;
+        break;
+      }
+    } else if (!(
+          arrValue === othValue ||
+            equalFunc(arrValue, othValue, bitmask, customizer, stack)
+        )) {
+      result = false;
+      break;
+    }
+  }
+  stack['delete'](array);
+  stack['delete'](other);
+  return result;
+}
+
+var _equalArrays = equalArrays;
+
+/**
+ * Converts `map` to its key-value pairs.
+ *
+ * @private
+ * @param {Object} map The map to convert.
+ * @returns {Array} Returns the key-value pairs.
+ */
+function mapToArray(map) {
+  var index = -1,
+      result = Array(map.size);
+
+  map.forEach(function(value, key) {
+    result[++index] = [key, value];
+  });
+  return result;
+}
+
+var _mapToArray = mapToArray;
+
+/**
+ * Converts `set` to an array of its values.
+ *
+ * @private
+ * @param {Object} set The set to convert.
+ * @returns {Array} Returns the values.
+ */
+function setToArray(set) {
+  var index = -1,
+      result = Array(set.size);
+
+  set.forEach(function(value) {
+    result[++index] = value;
+  });
+  return result;
+}
+
+var _setToArray = setToArray;
+
+var COMPARE_PARTIAL_FLAG$3 = 1;
+var COMPARE_UNORDERED_FLAG$2 = 2;
+
+/** `Object#toString` result references. */
+var boolTag$3 = '[object Boolean]';
+var dateTag$3 = '[object Date]';
+var errorTag$2 = '[object Error]';
+var mapTag$5 = '[object Map]';
+var numberTag$3 = '[object Number]';
+var regexpTag$3 = '[object RegExp]';
+var setTag$5 = '[object Set]';
+var stringTag$3 = '[object String]';
+var symbolTag$3 = '[object Symbol]';
+
+var arrayBufferTag$3 = '[object ArrayBuffer]';
+var dataViewTag$4 = '[object DataView]';
+
+/** Used to convert symbols to primitives and strings. */
+var symbolProto$2 = _Symbol ? _Symbol.prototype : undefined;
+var symbolValueOf$1 = symbolProto$2 ? symbolProto$2.valueOf : undefined;
+
+/**
+ * A specialized version of `baseIsEqualDeep` for comparing objects of
+ * the same `toStringTag`.
+ *
+ * **Note:** This function only supports comparing values with tags of
+ * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {string} tag The `toStringTag` of the objects to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} stack Tracks traversed `object` and `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function equalByTag(object, other, tag, bitmask, customizer, equalFunc, stack) {
+  switch (tag) {
+    case dataViewTag$4:
+      if ((object.byteLength != other.byteLength) ||
+          (object.byteOffset != other.byteOffset)) {
+        return false;
+      }
+      object = object.buffer;
+      other = other.buffer;
+
+    case arrayBufferTag$3:
+      if ((object.byteLength != other.byteLength) ||
+          !equalFunc(new _Uint8Array(object), new _Uint8Array(other))) {
+        return false;
+      }
+      return true;
+
+    case boolTag$3:
+    case dateTag$3:
+    case numberTag$3:
+      // Coerce booleans to `1` or `0` and dates to milliseconds.
+      // Invalid dates are coerced to `NaN`.
+      return eq_1(+object, +other);
+
+    case errorTag$2:
+      return object.name == other.name && object.message == other.message;
+
+    case regexpTag$3:
+    case stringTag$3:
+      // Coerce regexes to strings and treat strings, primitives and objects,
+      // as equal. See http://www.ecma-international.org/ecma-262/7.0/#sec-regexp.prototype.tostring
+      // for more details.
+      return object == (other + '');
+
+    case mapTag$5:
+      var convert = _mapToArray;
+
+    case setTag$5:
+      var isPartial = bitmask & COMPARE_PARTIAL_FLAG$3;
+      convert || (convert = _setToArray);
+
+      if (object.size != other.size && !isPartial) {
+        return false;
+      }
+      // Assume cyclic values are equal.
+      var stacked = stack.get(object);
+      if (stacked) {
+        return stacked == other;
+      }
+      bitmask |= COMPARE_UNORDERED_FLAG$2;
+
+      // Recursively compare objects (susceptible to call stack limits).
+      stack.set(object, other);
+      var result = _equalArrays(convert(object), convert(other), bitmask, customizer, equalFunc, stack);
+      stack['delete'](object);
+      return result;
+
+    case symbolTag$3:
+      if (symbolValueOf$1) {
+        return symbolValueOf$1.call(object) == symbolValueOf$1.call(other);
+      }
+  }
+  return false;
+}
+
+var _equalByTag = equalByTag;
+
+var COMPARE_PARTIAL_FLAG$4 = 1;
+
+/** Used for built-in method references. */
+var objectProto$15 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$12 = objectProto$15.hasOwnProperty;
+
+/**
+ * A specialized version of `baseIsEqualDeep` for objects with support for
+ * partial deep comparisons.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} stack Tracks traversed `object` and `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function equalObjects(object, other, bitmask, customizer, equalFunc, stack) {
+  var isPartial = bitmask & COMPARE_PARTIAL_FLAG$4,
+      objProps = _getAllKeys(object),
+      objLength = objProps.length,
+      othProps = _getAllKeys(other),
+      othLength = othProps.length;
+
+  if (objLength != othLength && !isPartial) {
+    return false;
+  }
+  var index = objLength;
+  while (index--) {
+    var key = objProps[index];
+    if (!(isPartial ? key in other : hasOwnProperty$12.call(other, key))) {
+      return false;
+    }
+  }
+  // Assume cyclic values are equal.
+  var stacked = stack.get(object);
+  if (stacked && stack.get(other)) {
+    return stacked == other;
+  }
+  var result = true;
+  stack.set(object, other);
+  stack.set(other, object);
+
+  var skipCtor = isPartial;
+  while (++index < objLength) {
+    key = objProps[index];
+    var objValue = object[key],
+        othValue = other[key];
+
+    if (customizer) {
+      var compared = isPartial
+        ? customizer(othValue, objValue, key, other, object, stack)
+        : customizer(objValue, othValue, key, object, other, stack);
+    }
+    // Recursively compare objects (susceptible to call stack limits).
+    if (!(compared === undefined
+          ? (objValue === othValue || equalFunc(objValue, othValue, bitmask, customizer, stack))
+          : compared
+        )) {
+      result = false;
+      break;
+    }
+    skipCtor || (skipCtor = key == 'constructor');
+  }
+  if (result && !skipCtor) {
+    var objCtor = object.constructor,
+        othCtor = other.constructor;
+
+    // Non `Object` object instances with different constructors are not equal.
+    if (objCtor != othCtor &&
+        ('constructor' in object && 'constructor' in other) &&
+        !(typeof objCtor == 'function' && objCtor instanceof objCtor &&
+          typeof othCtor == 'function' && othCtor instanceof othCtor)) {
+      result = false;
+    }
+  }
+  stack['delete'](object);
+  stack['delete'](other);
+  return result;
+}
+
+var _equalObjects = equalObjects;
+
+var COMPARE_PARTIAL_FLAG$1 = 1;
+
+/** `Object#toString` result references. */
+var argsTag$3 = '[object Arguments]';
+var arrayTag$2 = '[object Array]';
+var objectTag$4 = '[object Object]';
+
+/** Used for built-in method references. */
+var objectProto$14 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty$11 = objectProto$14.hasOwnProperty;
+
+/**
+ * A specialized version of `baseIsEqual` for arrays and objects which performs
+ * deep comparisons and tracks traversed objects enabling objects with circular
+ * references to be compared.
+ *
+ * @private
+ * @param {Object} object The object to compare.
+ * @param {Object} other The other object to compare.
+ * @param {number} bitmask The bitmask flags. See `baseIsEqual` for more details.
+ * @param {Function} customizer The function to customize comparisons.
+ * @param {Function} equalFunc The function to determine equivalents of values.
+ * @param {Object} [stack] Tracks traversed `object` and `other` objects.
+ * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+ */
+function baseIsEqualDeep(object, other, bitmask, customizer, equalFunc, stack) {
+  var objIsArr = isArray_1(object),
+      othIsArr = isArray_1(other),
+      objTag = objIsArr ? arrayTag$2 : _getTag(object),
+      othTag = othIsArr ? arrayTag$2 : _getTag(other);
+
+  objTag = objTag == argsTag$3 ? objectTag$4 : objTag;
+  othTag = othTag == argsTag$3 ? objectTag$4 : othTag;
+
+  var objIsObj = objTag == objectTag$4,
+      othIsObj = othTag == objectTag$4,
+      isSameTag = objTag == othTag;
+
+  if (isSameTag && isBuffer_1(object)) {
+    if (!isBuffer_1(other)) {
+      return false;
+    }
+    objIsArr = true;
+    objIsObj = false;
+  }
+  if (isSameTag && !objIsObj) {
+    stack || (stack = new _Stack);
+    return (objIsArr || isTypedArray_1(object))
+      ? _equalArrays(object, other, bitmask, customizer, equalFunc, stack)
+      : _equalByTag(object, other, objTag, bitmask, customizer, equalFunc, stack);
+  }
+  if (!(bitmask & COMPARE_PARTIAL_FLAG$1)) {
+    var objIsWrapped = objIsObj && hasOwnProperty$11.call(object, '__wrapped__'),
+        othIsWrapped = othIsObj && hasOwnProperty$11.call(other, '__wrapped__');
+
+    if (objIsWrapped || othIsWrapped) {
+      var objUnwrapped = objIsWrapped ? object.value() : object,
+          othUnwrapped = othIsWrapped ? other.value() : other;
+
+      stack || (stack = new _Stack);
+      return equalFunc(objUnwrapped, othUnwrapped, bitmask, customizer, stack);
+    }
+  }
+  if (!isSameTag) {
+    return false;
+  }
+  stack || (stack = new _Stack);
+  return _equalObjects(object, other, bitmask, customizer, equalFunc, stack);
+}
+
+var _baseIsEqualDeep = baseIsEqualDeep;
+
+function baseIsEqual(value, other, bitmask, customizer, stack) {
+  if (value === other) {
+    return true;
+  }
+  if (value == null || other == null || (!isObjectLike_1(value) && !isObjectLike_1(other))) {
+    return value !== value && other !== other;
+  }
+  return _baseIsEqualDeep(value, other, bitmask, customizer, baseIsEqual, stack);
+}
+
+var _baseIsEqual = baseIsEqual;
+
+var COMPARE_PARTIAL_FLAG = 1;
+var COMPARE_UNORDERED_FLAG = 2;
+
+/**
+ * The base implementation of `_.isMatch` without support for iteratee shorthands.
+ *
+ * @private
+ * @param {Object} object The object to inspect.
+ * @param {Object} source The object of property values to match.
+ * @param {Array} matchData The property names, values, and compare flags to match.
+ * @param {Function} [customizer] The function to customize comparisons.
+ * @returns {boolean} Returns `true` if `object` is a match, else `false`.
+ */
+function baseIsMatch(object, source, matchData, customizer) {
+  var index = matchData.length,
+      length = index,
+      noCustomizer = !customizer;
+
+  if (object == null) {
+    return !length;
+  }
+  object = Object(object);
+  while (index--) {
+    var data = matchData[index];
+    if ((noCustomizer && data[2])
+          ? data[1] !== object[data[0]]
+          : !(data[0] in object)
+        ) {
+      return false;
+    }
+  }
+  while (++index < length) {
+    data = matchData[index];
+    var key = data[0],
+        objValue = object[key],
+        srcValue = data[1];
+
+    if (noCustomizer && data[2]) {
+      if (objValue === undefined && !(key in object)) {
+        return false;
+      }
+    } else {
+      var stack = new _Stack;
+      if (customizer) {
+        var result = customizer(objValue, srcValue, key, object, source, stack);
+      }
+      if (!(result === undefined
+            ? _baseIsEqual(srcValue, objValue, COMPARE_PARTIAL_FLAG | COMPARE_UNORDERED_FLAG, customizer, stack)
+            : result
+          )) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+var _baseIsMatch = baseIsMatch;
+
+function isStrictComparable(value) {
+  return value === value && !isObject_1(value);
+}
+
+var _isStrictComparable = isStrictComparable;
+
+function getMatchData(object) {
+  var result = keys_1(object),
+      length = result.length;
+
+  while (length--) {
+    var key = result[length],
+        value = object[key];
+
+    result[length] = [key, value, _isStrictComparable(value)];
+  }
+  return result;
+}
+
+var _getMatchData = getMatchData;
+
+/**
+ * A specialized version of `matchesProperty` for source values suitable
+ * for strict equality comparisons, i.e. `===`.
+ *
+ * @private
+ * @param {string} key The key of the property to get.
+ * @param {*} srcValue The value to match.
+ * @returns {Function} Returns the new spec function.
+ */
+function matchesStrictComparable(key, srcValue) {
+  return function(object) {
+    if (object == null) {
+      return false;
+    }
+    return object[key] === srcValue &&
+      (srcValue !== undefined || (key in Object(object)));
+  };
+}
+
+var _matchesStrictComparable = matchesStrictComparable;
+
+function baseMatches(source) {
+  var matchData = _getMatchData(source);
+  if (matchData.length == 1 && matchData[0][2]) {
+    return _matchesStrictComparable(matchData[0][0], matchData[0][1]);
+  }
+  return function(object) {
+    return object === source || _baseIsMatch(object, source, matchData);
+  };
+}
+
+var _baseMatches = baseMatches;
+
+function get(object, path, defaultValue) {
+  var result = object == null ? undefined : _baseGet(object, path);
+  return result === undefined ? defaultValue : result;
+}
+
+var get_1 = get;
+
+/**
+ * The base implementation of `_.hasIn` without support for deep paths.
+ *
+ * @private
+ * @param {Object} [object] The object to query.
+ * @param {Array|string} key The key to check.
+ * @returns {boolean} Returns `true` if `key` exists, else `false`.
+ */
+function baseHasIn(object, key) {
+  return object != null && key in Object(object);
+}
+
+var _baseHasIn = baseHasIn;
+
+function hasPath(object, path, hasFunc) {
+  path = _castPath(path, object);
+
+  var index = -1,
+      length = path.length,
+      result = false;
+
+  while (++index < length) {
+    var key = _toKey(path[index]);
+    if (!(result = object != null && hasFunc(object, key))) {
+      break;
+    }
+    object = object[key];
+  }
+  if (result || ++index != length) {
+    return result;
+  }
+  length = object == null ? 0 : object.length;
+  return !!length && isLength_1(length) && _isIndex(key, length) &&
+    (isArray_1(object) || isArguments_1(object));
+}
+
+var _hasPath = hasPath;
+
+function hasIn(object, path) {
+  return object != null && _hasPath(object, path, _baseHasIn);
+}
+
+var hasIn_1 = hasIn;
+
+var COMPARE_PARTIAL_FLAG$5 = 1;
+var COMPARE_UNORDERED_FLAG$3 = 2;
+
+/**
+ * The base implementation of `_.matchesProperty` which doesn't clone `srcValue`.
+ *
+ * @private
+ * @param {string} path The path of the property to get.
+ * @param {*} srcValue The value to match.
+ * @returns {Function} Returns the new spec function.
+ */
+function baseMatchesProperty(path, srcValue) {
+  if (_isKey(path) && _isStrictComparable(srcValue)) {
+    return _matchesStrictComparable(_toKey(path), srcValue);
+  }
+  return function(object) {
+    var objValue = get_1(object, path);
+    return (objValue === undefined && objValue === srcValue)
+      ? hasIn_1(object, path)
+      : _baseIsEqual(srcValue, objValue, COMPARE_PARTIAL_FLAG$5 | COMPARE_UNORDERED_FLAG$3);
+  };
+}
+
+var _baseMatchesProperty = baseMatchesProperty;
+
+/**
+ * The base implementation of `_.property` without support for deep paths.
+ *
+ * @private
+ * @param {string} key The key of the property to get.
+ * @returns {Function} Returns the new accessor function.
+ */
+function baseProperty(key) {
+  return function(object) {
+    return object == null ? undefined : object[key];
+  };
+}
+
+var _baseProperty = baseProperty;
+
+function basePropertyDeep(path) {
+  return function(object) {
+    return _baseGet(object, path);
+  };
+}
+
+var _basePropertyDeep = basePropertyDeep;
+
+function property(path) {
+  return _isKey(path) ? _baseProperty(_toKey(path)) : _basePropertyDeep(path);
+}
+
+var property_1 = property;
+
+function baseIteratee(value) {
+  // Don't store the `typeof` result in a variable to avoid a JIT bug in Safari 9.
+  // See https://bugs.webkit.org/show_bug.cgi?id=156034 for more details.
+  if (typeof value == 'function') {
+    return value;
+  }
+  if (value == null) {
+    return identity_1;
+  }
+  if (typeof value == 'object') {
+    return isArray_1(value)
+      ? _baseMatchesProperty(value[0], value[1])
+      : _baseMatches(value);
+  }
+  return property_1(value);
+}
+
+var _baseIteratee = baseIteratee;
+
+/**
+ * Creates a base function for methods like `_.forIn` and `_.forOwn`.
+ *
+ * @private
+ * @param {boolean} [fromRight] Specify iterating from right to left.
+ * @returns {Function} Returns the new base function.
+ */
+function createBaseFor(fromRight) {
+  return function(object, iteratee, keysFunc) {
+    var index = -1,
+        iterable = Object(object),
+        props = keysFunc(object),
+        length = props.length;
+
+    while (length--) {
+      var key = props[fromRight ? length : ++index];
+      if (iteratee(iterable[key], key, iterable) === false) {
+        break;
+      }
+    }
+    return object;
+  };
+}
+
+var _createBaseFor = createBaseFor;
+
+var baseFor = _createBaseFor();
+
+var _baseFor = baseFor;
+
+function baseForOwn(object, iteratee) {
+  return object && _baseFor(object, iteratee, keys_1);
+}
+
+var _baseForOwn = baseForOwn;
+
+function createBaseEach(eachFunc, fromRight) {
+  return function(collection, iteratee) {
+    if (collection == null) {
+      return collection;
+    }
+    if (!isArrayLike_1(collection)) {
+      return eachFunc(collection, iteratee);
+    }
+    var length = collection.length,
+        index = fromRight ? length : -1,
+        iterable = Object(collection);
+
+    while ((fromRight ? index-- : ++index < length)) {
+      if (iteratee(iterable[index], index, iterable) === false) {
+        break;
+      }
+    }
+    return collection;
+  };
+}
+
+var _createBaseEach = createBaseEach;
+
+var baseEach = _createBaseEach(_baseForOwn);
+
+var _baseEach = baseEach;
+
+function baseMap(collection, iteratee) {
+  var index = -1,
+      result = isArrayLike_1(collection) ? Array(collection.length) : [];
+
+  _baseEach(collection, function(value, key, collection) {
+    result[++index] = iteratee(value, key, collection);
+  });
+  return result;
+}
+
+var _baseMap = baseMap;
+
+/**
+ * The base implementation of `_.sortBy` which uses `comparer` to define the
+ * sort order of `array` and replaces criteria objects with their corresponding
+ * values.
+ *
+ * @private
+ * @param {Array} array The array to sort.
+ * @param {Function} comparer The function to define sort order.
+ * @returns {Array} Returns `array`.
+ */
+function baseSortBy(array, comparer) {
+  var length = array.length;
+
+  array.sort(comparer);
+  while (length--) {
+    array[length] = array[length].value;
+  }
+  return array;
+}
+
+var _baseSortBy = baseSortBy;
+
+function compareAscending(value, other) {
+  if (value !== other) {
+    var valIsDefined = value !== undefined,
+        valIsNull = value === null,
+        valIsReflexive = value === value,
+        valIsSymbol = isSymbol_1(value);
+
+    var othIsDefined = other !== undefined,
+        othIsNull = other === null,
+        othIsReflexive = other === other,
+        othIsSymbol = isSymbol_1(other);
+
+    if ((!othIsNull && !othIsSymbol && !valIsSymbol && value > other) ||
+        (valIsSymbol && othIsDefined && othIsReflexive && !othIsNull && !othIsSymbol) ||
+        (valIsNull && othIsDefined && othIsReflexive) ||
+        (!valIsDefined && othIsReflexive) ||
+        !valIsReflexive) {
+      return 1;
+    }
+    if ((!valIsNull && !valIsSymbol && !othIsSymbol && value < other) ||
+        (othIsSymbol && valIsDefined && valIsReflexive && !valIsNull && !valIsSymbol) ||
+        (othIsNull && valIsDefined && valIsReflexive) ||
+        (!othIsDefined && valIsReflexive) ||
+        !othIsReflexive) {
+      return -1;
+    }
+  }
+  return 0;
+}
+
+var _compareAscending = compareAscending;
+
+function compareMultiple(object, other, orders) {
+  var index = -1,
+      objCriteria = object.criteria,
+      othCriteria = other.criteria,
+      length = objCriteria.length,
+      ordersLength = orders.length;
+
+  while (++index < length) {
+    var result = _compareAscending(objCriteria[index], othCriteria[index]);
+    if (result) {
+      if (index >= ordersLength) {
+        return result;
+      }
+      var order = orders[index];
+      return result * (order == 'desc' ? -1 : 1);
+    }
+  }
+  // Fixes an `Array#sort` bug in the JS engine embedded in Adobe applications
+  // that causes it, under certain circumstances, to provide the same value for
+  // `object` and `other`. See https://github.com/jashkenas/underscore/pull/1247
+  // for more details.
+  //
+  // This also ensures a stable sort in V8 and other engines.
+  // See https://bugs.chromium.org/p/v8/issues/detail?id=90 for more details.
+  return object.index - other.index;
+}
+
+var _compareMultiple = compareMultiple;
+
+function baseOrderBy(collection, iteratees, orders) {
+  var index = -1;
+  iteratees = _arrayMap(iteratees.length ? iteratees : [identity_1], _baseUnary(_baseIteratee));
+
+  var result = _baseMap(collection, function(value, key, collection) {
+    var criteria = _arrayMap(iteratees, function(iteratee) {
+      return iteratee(value);
+    });
+    return { 'criteria': criteria, 'index': ++index, 'value': value };
+  });
+
+  return _baseSortBy(result, function(object, other) {
+    return _compareMultiple(object, other, orders);
+  });
+}
+
+var _baseOrderBy = baseOrderBy;
+
+function baseRest(func, start) {
+  return _setToString(_overRest(func, start, identity_1), func + '');
+}
+
+var _baseRest = baseRest;
+
+function isIterateeCall(value, index, object) {
+  if (!isObject_1(object)) {
+    return false;
+  }
+  var type = typeof index;
+  if (type == 'number'
+        ? (isArrayLike_1(object) && _isIndex(index, object.length))
+        : (type == 'string' && index in object)
+      ) {
+    return eq_1(object[index], value);
+  }
+  return false;
+}
+
+var _isIterateeCall = isIterateeCall;
+
+var sortBy = _baseRest(function(collection, iteratees) {
+  if (collection == null) {
+    return [];
+  }
+  var length = iteratees.length;
+  if (length > 1 && _isIterateeCall(collection, iteratees[0], iteratees[1])) {
+    iteratees = [];
+  } else if (length > 2 && _isIterateeCall(iteratees[0], iteratees[1], iteratees[2])) {
+    iteratees = [iteratees[0]];
+  }
+  return _baseOrderBy(collection, _baseFlatten(iteratees, 1), []);
+});
+
+var sortBy_1 = sortBy;
+
+/**
+ * Creates an array with all falsey values removed. The values `false`, `null`,
+ * `0`, `""`, `undefined`, and `NaN` are falsey.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Array
+ * @param {Array} array The array to compact.
+ * @returns {Array} Returns the new array of filtered values.
+ * @example
+ *
+ * _.compact([0, 1, false, 2, '', 3]);
+ * // => [1, 2, 3]
+ */
+function compact$1(array) {
+  var index = -1,
+      length = array == null ? 0 : array.length,
+      resIndex = 0,
+      result = [];
+
+  while (++index < length) {
+    var value = array[index];
+    if (value) {
+      result[resIndex++] = value;
+    }
+  }
+  return result;
+}
+
+var compact_1 = compact$1;
 
 /**
  * A specialized version of `_.reduce` for arrays without support for
@@ -23176,7 +24129,7 @@ var startCase = _createCompounder(function(result, word, index) {
 
 var startCase_1 = startCase;
 
-class ValidationSidebarOutput extends p {
+class SidebarMatch extends p {
     constructor() {
         super(...arguments);
         this.state = {
@@ -23188,7 +24141,7 @@ class ValidationSidebarOutput extends p {
         this.scrollToRange = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            this.props.selectValidation(this.props.output.matchId);
+            this.props.selectMatch(this.props.output.matchId);
             const decorationElement = document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${this.props.output.matchId}"]`);
             if (decorationElement) {
                 decorationElement.scrollIntoView({
@@ -23196,7 +24149,7 @@ class ValidationSidebarOutput extends p {
                 });
             }
         };
-        this.handleMouseOver = () => {
+        this.handleMouseEnter = () => {
             this.props.indicateHover(this.props.output.matchId);
         };
         this.handleMouseLeave = () => {
@@ -23206,33 +24159,38 @@ class ValidationSidebarOutput extends p {
     render() {
         const { output, applySuggestions, selectedMatch } = this.props;
         const color = `#${output.category.colour}`;
-        const hasSuggestions = !!output.suggestions;
-        return (c("div", { className: `ValidationSidebarOutput__container ${selectedMatch === output.matchId
-                ? "ValidationSidebarOutput__container--is-selected"
-                : ""}`, style: { borderLeft: `2px solid ${color}` }, onMouseOver: this.handleMouseOver, onMouseLeave: this.handleMouseLeave },
-            c("div", { className: "ValidationSidebarOutput__header", onClick: hasSuggestions ? this.toggleOpen : undefined },
-                c("div", { className: "ValidationSidebarOutput__header-label" },
-                    c("div", { className: "ValidationSidebarOutput__header-description" }, output.annotation),
-                    c("div", { className: "ValidationSidebarOutput__header-meta" },
-                        c("div", { className: "Button ValidationSidebarOutput__header-range", onClick: this.scrollToRange },
-                            output.from,
-                            "-",
-                            output.to),
-                        c("div", { className: "ValidationSidebarOutput__header-category", style: { color } }, startCase_1(output.category.name)),
-                        hasSuggestions && (c("div", { className: "ValidationSidebarOutput__header-toggle-status" }, this.state.isOpen ? "-" : "+"))))),
-            this.state.isOpen && (c("div", { className: "ValidationSidebarOutput__content" }, output.suggestions && (c("div", { className: "ValidationSidebarOutput__suggestion-list" },
-                c(SuggestionList, { applySuggestions: applySuggestions, matchId: output.matchId, suggestions: output.suggestions })))))));
+        const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
+        const suggestions = compact_1([
+            output.replacement,
+            ...(output.suggestions || [])
+        ]);
+        return (c("div", { className: `SidebarMatch__container ${selectedMatch === output.matchId
+                ? "SidebarMatch__container--is-selected"
+                : ""}`, style: { borderLeft: `2px solid ${color}` }, onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave },
+            c("div", { className: "SidebarMatch__header", onClick: hasSuggestions ? this.toggleOpen : undefined },
+                c("div", { className: "SidebarMatch__header-label" },
+                    c("div", { className: "SidebarMatch__header-description" }, output.annotation),
+                    c("div", { className: "SidebarMatch__header-meta" },
+                        c("div", { className: "SidebarMatch__header-range", onClick: this.scrollToRange },
+                            c("span", { className: "Button" },
+                                output.from,
+                                "-",
+                                output.to)),
+                        c("div", { className: "SidebarMatch__header-category", style: { color } }, startCase_1(output.category.name)),
+                        hasSuggestions && (c("div", { className: "SidebarMatch__header-toggle-status" }, this.state.isOpen ? "-" : "+"))))),
+            this.state.isOpen && (c("div", { className: "SidebarMatch__content" }, suggestions.length && (c("div", { className: "SidebarMatch__suggestion-list" },
+                c(SuggestionList, { applySuggestions: applySuggestions, matchId: output.matchId, suggestions: suggestions })))))));
     }
 }
 
-//# sourceMappingURL=ValidationSidebarOutput.js.map
+//# sourceMappingURL=SidebarMatch.js.map
 
-class ValidationSidebar extends p {
+class Sidebar extends p {
     constructor() {
         super(...arguments);
         this.handleNewState = (pluginState) => {
             this.setState({
-                pluginState: Object.assign({}, pluginState, { currentValidations: pluginState.currentValidations.sort((a$$1, b) => a$$1.from > b.from ? 1 : -1) })
+                pluginState: Object.assign({}, pluginState, { currentMatches: sortBy_1(pluginState.currentMatches, "from") })
             });
         };
         this.getPercentRemaining = () => {
@@ -23242,37 +24200,52 @@ class ValidationSidebar extends p {
             }
             return selectPercentRemaining(state);
         };
+        this.getNoOfAutoFixableSuggestions = () => {
+            const state = this.state.pluginState;
+            if (!state) {
+                return 0;
+            }
+            return selectAllAutoFixableMatches(state).length;
+        };
     }
     componentWillMount() {
         this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
     }
     render() {
-        const { applySuggestions, selectValidation, indicateHover } = this.props;
-        const { currentValidations = [], blockQueriesInFlight = [], validationPending = false, selectedMatch } = this.state.pluginState || { selectedMatch: undefined };
-        const hasValidations = !!(currentValidations && currentValidations.length);
+        const { applySuggestions, applyAutoFixableSuggestions, selectMatch, indicateHover } = this.props;
+        const { currentMatches = [], requestsInFlight: requestsInFlight = [], requestPending: requestPending = false, selectedMatch } = this.state.pluginState || { selectedMatch: undefined };
+        const hasMatches = !!(currentMatches && currentMatches.length);
+        const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
         const percentRemaining = this.getPercentRemaining();
         return (c("div", { className: "Sidebar__section" },
-            c("div", { className: "Sidebar__header" },
-                c("span", null,
-                    "Validation results",
-                    " ",
-                    hasValidations && c("span", null,
-                        "(",
-                        currentValidations.length,
-                        ") "),
-                    (blockQueriesInFlight.length || validationPending) && (c("span", { className: "Sidebar__loading-spinner" }, "|")),
-                    c("div", { class: "LoadingBar", style: {
-                            opacity: percentRemaining === 0 ? 0 : 1,
-                            width: `${100 - percentRemaining}%`
-                        } }))),
+            c("div", { className: "Sidebar__header-container" },
+                c("div", { className: "Sidebar__header" },
+                    c("span", null,
+                        "Results",
+                        " ",
+                        hasMatches && c("span", null,
+                            "(",
+                            currentMatches.length,
+                            ") "),
+                        (requestsInFlight.length || requestPending) && (c("span", { className: "Sidebar__loading-spinner" }, "|"))),
+                    !!noOfAutoFixableSuggestions && (c("button", { class: "Button flex-align-right", onClick: applyAutoFixableSuggestions },
+                        "Fix all (",
+                        noOfAutoFixableSuggestions,
+                        ")"))),
+                c("div", { className: "Sidebar__header-contact" },
+                    c("a", { href: "mailto:tbc@example.co.uk" }, "Issue with a rule? Let us know!")),
+                c("div", { class: "LoadingBar", style: {
+                        opacity: percentRemaining === 0 ? 0 : 1,
+                        width: `${100 - percentRemaining}%`
+                    } })),
             c("div", { className: "Sidebar__content" },
-                hasValidations && (c("ul", { className: "Sidebar__list" }, currentValidations.map(output => (c("li", { className: "Sidebar__list-item" },
-                    c(ValidationSidebarOutput, { output: output, selectedMatch: selectedMatch, applySuggestions: applySuggestions, selectValidation: selectValidation, indicateHover: indicateHover })))))),
-                !hasValidations && (c("div", { className: "Sidebar__awaiting-validation" }, "No validations to report.")))));
+                hasMatches && (c("ul", { className: "Sidebar__list" }, currentMatches.map(output => (c("li", { className: "Sidebar__list-item", key: output.matchId },
+                    c(SidebarMatch, { output: output, selectedMatch: selectedMatch, applySuggestions: applySuggestions, selectMatch: selectMatch, indicateHover: indicateHover })))))),
+                !hasMatches && (c("div", { className: "Sidebar__awaiting-match" }, "No matches to report.")))));
     }
 }
 
-//# sourceMappingURL=ValidationSidebar.js.map
+//# sourceMappingURL=Sidebar.js.map
 
 var rngBrowser = createCommonjsModule(function (module) {
 // Unique ID creation requires a high quality random # generator.  In the
@@ -23363,7 +24336,7 @@ function v4(options, buf, offset) {
 
 var v4_1 = v4;
 
-class ValidationControls extends p {
+class Controls extends p {
     constructor() {
         super(...arguments);
         this.state = {
@@ -23410,8 +24383,8 @@ class ValidationControls extends p {
                 });
             }
         });
-        this.validateDocument = () => {
-            this.props.validateDocument(v4_1(), this.props.getCurrentCategories().map(_ => _.id));
+        this.requestMatchesForDocument = () => {
+            this.props.requestMatchesForDocument(v4_1(), this.props.getCurrentCategories().map(_ => _.id));
         };
     }
     componentWillMount() {
@@ -23419,58 +24392,59 @@ class ValidationControls extends p {
         this.initCategories();
     }
     render() {
-        const { setDebugState, setValidateOnModifyState } = this.props;
-        const { debug = false, validateOnModify = false } = this.state.pluginState || {};
+        const { setDebugState, setRequestOnDocModified } = this.props;
+        const { debug = false, requestMatchesOnDocModified = false } = this.state.pluginState || {};
         const { isOpen, isLoadingCategories } = this.state;
         return (c("div", { className: "Sidebar__section" },
-            c("div", { className: "Sidebar__header Sidebar__header-toggle", onClick: this.toggleOpenState },
-                "Controls",
-                c("div", { className: "Sidebar__toggle-label" }, "Show more"),
-                c("div", { className: "Sidebar__toggle", style: { transform: isOpen ? "" : "rotate(-90deg)" } }, "\u25BC")),
+            c("div", { className: "Sidebar__header-container" },
+                c("div", { className: "Sidebar__header Sidebar__header-toggle", onClick: this.toggleOpenState },
+                    "Controls",
+                    c("div", { className: "Sidebar__toggle-label" }, "Advanced"),
+                    c("div", { className: "Sidebar__toggle", style: { transform: isOpen ? "" : "rotate(-90deg)" } }, "\u25BC"))),
             c("div", { className: "Sidebar__content" },
                 isOpen && (c("div", null,
-                    c("div", { className: "ValidationControls__row" },
-                        c("label", { className: "ValidationControls__label", for: "ValidationControls__validate-on-modify" }, "Validate when the document is modified"),
-                        c("div", { class: "ValidationControls__input" },
-                            c("input", { type: "checkbox", id: "ValidationControls__validate-on-modify", checked: validateOnModify, className: "Input", onClick: () => setValidateOnModifyState(!validateOnModify) }))),
-                    c("div", { className: "ValidationControls__row" },
-                        c("label", { className: "ValidationControls__label", for: "ValidationControls__show-dirty-ranges" }, "Show dirty and pending ranges"),
-                        c("div", { class: "ValidationControls__input" },
-                            c("input", { id: "ValidationControls__show-dirty-ranges", type: "checkbox", checked: debug, className: "Input", onClick: () => setDebugState(!debug) }))),
-                    c("div", { className: "ValidationControls__row" },
+                    c("div", { className: "Controls__row" },
+                        c("label", { className: "Controls__label", for: "Controls__check-on-modify" }, "Run checks when the document is modified"),
+                        c("div", { class: "Controls__input" },
+                            c("input", { type: "checkbox", id: "Controls__check-on-modify", checked: requestMatchesOnDocModified, className: "Input", onClick: () => setRequestOnDocModified(!requestMatchesOnDocModified) }))),
+                    c("div", { className: "Controls__row" },
+                        c("label", { className: "Controls__label", for: "Controls__show-dirty-ranges" }, "Show dirty and pending ranges"),
+                        c("div", { class: "Controls__input" },
+                            c("input", { id: "Controls__show-dirty-ranges", type: "checkbox", checked: debug, className: "Input", onClick: () => setDebugState(!debug) }))),
+                    c("div", { className: "Controls__row" },
                         c("hr", null)),
-                    c("div", { className: "ValidationControls__row" },
+                    c("div", { className: "Controls__row" },
                         "Select categories\u00A0",
                         isLoadingCategories && (c("span", { className: "Sidebar__loading-spinner" }, "|")),
                         c("button", { class: "Button flex-align-right", onClick: this.fetchCategories }, "Refresh")),
-                    this.state.allCategories.map(category => (c("div", { className: "ValidationControls__row" },
-                        c("label", { className: "ValidationControls__label", for: "ValidationControls__show-dirty-ranges" }, category.name),
-                        c("div", { class: "ValidationControls__input" },
-                            c("input", { id: "ValidationControls__show-dirty-ranges", type: "checkbox", checked: !!this.state.currentCategories.find(_ => _.id === category.id), className: "Input", onInput: (e) => this.setCategoryState(category.id, e.target.checked) }))))),
-                    c("div", { className: "ValidationControls__row" },
+                    this.state.allCategories.map(category => (c("div", { className: "Controls__row" },
+                        c("label", { className: "Controls__label", for: "Controls__show-dirty-ranges" }, category.name),
+                        c("div", { class: "Controls__input" },
+                            c("input", { id: "Controls__show-dirty-ranges", type: "checkbox", checked: !!this.state.currentCategories.find(_ => _.id === category.id), className: "Input", onInput: (e) => this.setCategoryState(category.id, e.target.checked) }))))),
+                    c("div", { className: "Controls__row" },
                         c("hr", null)))),
-                c("div", { className: "ValidationControls__row" },
-                    c("button", { className: "Button", onClick: this.validateDocument }, "Validate whole document")))));
+                c("div", { className: "Controls__row" },
+                    c("button", { className: "Button", onClick: this.requestMatchesForDocument }, "Check whole document")))));
     }
 }
 
-//# sourceMappingURL=ValidationControls.js.map
+//# sourceMappingURL=Controls.js.map
 
-const createView = (view, store, validationService, commands, sidebarNode, controlsNode) => {
+const createView = (view, store, matcherService, commands, sidebarNode, controlsNode) => {
     const overlayNode = document.createElement("div");
     const wrapperElement = document.createElement("div");
-    wrapperElement.classList.add("ValidationPlugin__container");
+    wrapperElement.classList.add("TyperighterPlugin__container");
     view.dom.parentNode.replaceChild(wrapperElement, view.dom);
     wrapperElement.appendChild(view.dom);
     view.dom.insertAdjacentElement("afterend", overlayNode);
-    A(c(ValidationOverlay, { store: store, applySuggestions: commands.applySuggestions, containerElement: wrapperElement }), overlayNode);
-    A(c(ValidationSidebar, { store: store, applySuggestions: commands.applySuggestions, selectValidation: commands.selectValidation, indicateHover: commands.indicateHover }), sidebarNode);
-    A(c(ValidationControls, { store: store, setDebugState: commands.setDebugState, setValidateOnModifyState: commands.setValidateOnModifyState, validateDocument: commands.validateDocument, fetchCategories: validationService.fetchCategories, getCurrentCategories: validationService.getCurrentCategories, addCategory: validationService.addCategory, removeCategory: validationService.removeCategory }), controlsNode);
+    A(c(MatchOverlay, { store: store, applySuggestions: commands.applySuggestions, containerElement: wrapperElement }), overlayNode);
+    A(c(Sidebar, { store: store, applySuggestions: commands.applySuggestions, applyAutoFixableSuggestions: commands.applyAutoFixableSuggestions, selectMatch: commands.selectMatch, indicateHover: commands.indicateHover }), sidebarNode);
+    A(c(Controls, { store: store, setDebugState: commands.setDebugState, setRequestOnDocModified: commands.setRequestOnDocModified, requestMatchesForDocument: commands.requestMatchesForDocument, fetchCategories: matcherService.fetchCategories, getCurrentCategories: matcherService.getCurrentCategories, addCategory: matcherService.addCategory, removeCategory: matcherService.removeCategory }), controlsNode);
 };
 
 //# sourceMappingURL=createView.js.map
 
-class ValidationService {
+class MatcherService {
     constructor(store, commands, adapter, initialThrottle = 2000, maxThrottle = 16000) {
         this.store = store;
         this.commands = commands;
@@ -23479,7 +24453,7 @@ class ValidationService {
         this.maxThrottle = maxThrottle;
         this.currentCategories = [];
         this.allCategories = [];
-        this.validationPending = false;
+        this.requestPending = false;
         this.fetchCategories = () => __awaiter(this, void 0, void 0, function* () {
             this.allCategories = yield this.adapter.fetchCategories();
             return this.allCategories;
@@ -23495,41 +24469,41 @@ class ValidationService {
         this.removeCategory = (categoryId) => {
             this.currentCategories = this.currentCategories.filter(_ => _.id !== categoryId);
         };
-        this.scheduleValidation = () => {
-            if (this.validationPending) {
+        this.scheduleRequest = () => {
+            if (this.requestPending) {
                 return;
             }
-            this.validationPending = true;
-            setTimeout(() => this.requestValidation(), this.currentThrottle);
+            this.requestPending = true;
+            setTimeout(() => this.requestFetchMatches(), this.currentThrottle);
         };
         this.currentThrottle = initialThrottle;
-        this.store.on(STORE_EVENT_NEW_VALIDATION, (validationSetId, blockQueriesInFlight) => {
-            this.validate(validationSetId, blockQueriesInFlight);
+        this.store.on(STORE_EVENT_NEW_MATCHES, (requestId, requestsInFlight) => {
+            this.fetchMatches(requestId, requestsInFlight);
         });
         this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
-            this.scheduleValidation();
+            this.scheduleRequest();
         });
     }
-    validate(validationSetId, validationInputs) {
+    fetchMatches(requestId, blocks) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.adapter.fetchMatches(validationSetId, validationInputs, this.currentCategories.map(_ => _.id), this.commands.applyValidationResult, this.commands.applyValidationError);
+            this.adapter.fetchMatches(requestId, blocks, this.currentCategories.map(_ => _.id), this.commands.applyMatcherResponse, this.commands.applyRequestError, this.commands.applyRequestComplete);
         });
     }
-    requestValidation() {
-        this.validationPending = false;
+    requestFetchMatches() {
+        this.requestPending = false;
         const pluginState = this.store.getState();
         if (!pluginState || selectAllBlockQueriesInFlight(pluginState).length) {
-            return this.scheduleValidation();
+            return this.scheduleRequest();
         }
-        const validationSetId = v4_1();
-        this.commands.validateDirtyRanges(validationSetId, this.getCurrentCategories().map(_ => _.id));
+        const requestId = v4_1();
+        this.commands.requestMatchesForDirtyRanges(requestId, this.getCurrentCategories().map(_ => _.id));
     }
 }
 
-//# sourceMappingURL=ValidationAPIService.js.map
+//# sourceMappingURL=MatcherService.js.map
 
-const convertTyperighterResponse = (validationSetId, response) => ({
-    validationSetId,
+const convertTyperighterResponse = (requestId, response) => ({
+    requestId,
     categoryIds: response.categoryIds,
     blocks: response.blocks,
     matches: response.matches.map(match => ({
@@ -23538,18 +24512,20 @@ const convertTyperighterResponse = (validationSetId, response) => ({
         to: match.toPos,
         annotation: match.shortMessage,
         category: match.rule.category,
-        suggestions: match.suggestions
+        suggestions: match.suggestions,
+        replacement: match.rule.replacement,
+        markAsCorrect: match.markAsCorrect
     }))
 });
 class TyperighterAdapter {
     constructor(checkUrl, categoriesUrl) {
         this.checkUrl = checkUrl;
         this.categoriesUrl = categoriesUrl;
-        this.fetchMatches = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
+        this.fetchMatches = (requestId, inputs, categoryIds, onMatchesReceived, onRequestError, onRequestComplete) => __awaiter(this, void 0, void 0, function* () {
             inputs.map((input) => __awaiter(this, void 0, void 0, function* () {
                 const body = {
-                    id: input.id,
-                    text: input.text,
+                    requestId,
+                    blocks: [input],
                     categoryIds
                 };
                 try {
@@ -23561,16 +24537,16 @@ class TyperighterAdapter {
                         body: JSON.stringify(body)
                     });
                     if (response.status !== 200) {
-                        throw new Error(`Error fetching validations. The server responded with status code ${response.status}: ${response.statusText}`);
+                        throw new Error(`Error fetching matches. The server responded with status code ${response.status}: ${response.statusText}`);
                     }
                     const responseData = yield response.json();
-                    const validationResponse = convertTyperighterResponse(validationSetId, responseData);
-                    onValidationReceived(validationResponse);
+                    const matcherResponse = convertTyperighterResponse(requestId, responseData);
+                    onMatchesReceived(matcherResponse);
                 }
                 catch (e) {
-                    onValidationError({
-                        validationSetId,
-                        validationId: input.id,
+                    onRequestError({
+                        requestId,
+                        blockId: input.id,
                         message: e.message
                     });
                 }
@@ -23592,60 +24568,10 @@ class TyperighterAdapter {
 
 //# sourceMappingURL=TyperighterAdapter.js.map
 
-const VALIDATOR_RESPONSE = "VALIDATOR_RESPONSE";
-const VALIDATOR_ERROR = "VALIDATOR_ERROR";
-class TyperighterWsAdapter extends TyperighterAdapter {
-    constructor() {
-        super(...arguments);
-        this.fetchMatches = (validationSetId, inputs, categoryIds, onValidationReceived, onValidationError) => __awaiter(this, void 0, void 0, function* () {
-            const socket = new WebSocket(this.checkUrl);
-            const blocks = inputs.map(input => ({
-                id: input.id,
-                text: input.text,
-                from: input.from,
-                to: input.to,
-                categoryIds
-            }));
-            socket.addEventListener("open", () => {
-                socket.addEventListener("message", event => this.handleMessage(event, validationSetId, onValidationReceived, onValidationError));
-                socket.send(JSON.stringify({
-                    validationSetId,
-                    blocks
-                }));
-            });
-            socket.addEventListener("close", closeEvent => {
-                if (closeEvent.code !== 1000) {
-                    onValidationError({ validationSetId, message: closeEvent.reason });
-                }
-            });
-        });
-        this.handleMessage = (message, validationSetId, onValidationReceived, onValidationError) => {
-            try {
-                const socketMessage = JSON.parse(message.data);
-                switch (socketMessage.type) {
-                    case VALIDATOR_ERROR: {
-                        return onValidationError({
-                            validationSetId,
-                            validationId: socketMessage.id,
-                            message: socketMessage.message
-                        });
-                    }
-                    case VALIDATOR_RESPONSE: {
-                        return onValidationReceived(convertTyperighterResponse(validationSetId, socketMessage));
-                    }
-                }
-            }
-            catch (e) {
-                onValidationError({ validationSetId, message: e.message });
-            }
-        };
-    }
-}
-
-//# sourceMappingURL=TyperighterWsAdapter.js.map
+//# sourceMappingURL=index.js.map
 
 const mySchema = new dist_8$1({
-    nodes: schemaList_4(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
+    nodes: addListNodes(schemaBasic_3.spec.nodes, "paragraph block*", "block"),
     marks: schemaBasic_2
 });
 const contentElement = document.querySelector("#content") || document.createElement("content");
@@ -23657,7 +24583,7 @@ const historyPlugin = history_4();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector("#controls");
-const { plugin: validatorPlugin, store, getState } = createValidatorPlugin();
+const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin();
 if (editorElement && sidebarElement && controlsElement) {
     const view = new dist_1$3(editorElement, {
         state: dist_7.create({
@@ -23674,7 +24600,7 @@ if (editorElement && sidebarElement && controlsElement) {
         })
     });
     const commands = createBoundCommands(view, getState);
-    const validationService = new ValidationService(store, commands, new TyperighterWsAdapter("ws://localhost:9000/check-ws", "http://localhost:9000/categories"));
+    const validationService = new MatcherService(store, commands, new TyperighterAdapter("http://localhost:9000/check", "http://localhost:9000/categories"));
     window.editor = view;
     createView(view, store, validationService, commands, sidebarElement, controlsElement);
 }

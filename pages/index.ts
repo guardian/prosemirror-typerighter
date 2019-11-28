@@ -11,10 +11,10 @@ import "prosemirror-menu/style/menu.css";
 import "prosemirror-example-setup/style/style.css";
 import "prosemirror-example-setup/style/style.css";
 import "../src/css/index.scss";
-import createValidatorPlugin from "../src/ts/createValidationPlugin";
+import createTyperighterPlugin from "../src/ts/createTyperighterPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
-import ValidationService from "../src/ts/services/ValidationAPIService";
+import MatcherService from "../src/ts/services/MatcherService";
 import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
 import { TyperighterAdapter } from "../src/ts";
 
@@ -34,7 +34,7 @@ const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
 const controlsElement = document.querySelector("#controls");
-const { plugin: validatorPlugin, store, getState } = createValidatorPlugin();
+const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin();
 
 if (editorElement && sidebarElement && controlsElement) {
   const view = new EditorView(editorElement, {
@@ -53,7 +53,7 @@ if (editorElement && sidebarElement && controlsElement) {
   });
 
   const commands = createBoundCommands(view, getState);
-  const validationService = new ValidationService(
+  const validationService = new MatcherService(
     store,
     commands,
     new TyperighterAdapter("http://localhost:9000/check", "http://localhost:9000/categories")

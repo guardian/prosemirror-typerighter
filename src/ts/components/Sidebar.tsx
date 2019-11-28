@@ -4,25 +4,25 @@ import Store, { STORE_EVENT_NEW_STATE } from "../store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";
-import ValidationSidebarOutput from "./ValidationSidebarOutput";
+import SidebarMatch from "./SidebarMatch";
 import { selectAllAutoFixableMatches } from "../state/selectors";
-import { IMatches } from "../interfaces/IValidation";
+import { IMatch } from "../interfaces/IMatch";
 
 interface IProps {
-  store: Store<IMatches>;
+  store: Store<IMatch>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
-  selectValidation: (matchId: string) => void;
+  selectMatch: (matchId: string) => void;
   indicateHover: (matchId: string | undefined, _: any) => void;
 }
 
 /**
- * A sidebar to display current validations and allow users to apply suggestions.
+ * A sidebar to display current matches and allow users to apply suggestions.
  */
-class ValidationSidebar extends Component<
+class Sidebar extends Component<
   IProps,
   {
-    pluginState: IPluginState<IMatches> | undefined;
+    pluginState: IPluginState<IMatch> | undefined;
     groupResults: boolean;
   }
 > {
@@ -34,16 +34,16 @@ class ValidationSidebar extends Component<
     const {
       applySuggestions,
       applyAutoFixableSuggestions,
-      selectValidation,
+      selectMatch,
       indicateHover
     } = this.props;
     const {
-      currentValidations: currentValidations = [],
-      blockQueriesInFlight = [],
-      validationPending = false,
+      currentMatches = [],
+      requestsInFlight: requestsInFlight = [],
+      requestPending: requestPending = false,
       selectedMatch
     } = this.state.pluginState || { selectedMatch: undefined };
-    const hasValidations = !!(currentValidations && currentValidations.length);
+    const hasMatches = !!(currentMatches && currentMatches.length);
     const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
     const percentRemaining = this.getPercentRemaining();
     return (
@@ -51,9 +51,9 @@ class ValidationSidebar extends Component<
         <div className="Sidebar__header-container">
           <div className="Sidebar__header">
             <span>
-              Validation results{" "}
-              {hasValidations && <span>({currentValidations.length}) </span>}
-              {(blockQueriesInFlight.length || validationPending) && (
+              Results{" "}
+              {hasMatches && <span>({currentMatches.length}) </span>}
+              {(requestsInFlight.length || requestPending) && (
                 <span className="Sidebar__loading-spinner">|</span>
               )}
               
@@ -80,24 +80,24 @@ class ValidationSidebar extends Component<
         </div>
 
         <div className="Sidebar__content">
-          {hasValidations && (
+          {hasMatches && (
             <ul className="Sidebar__list">
-              {currentValidations.map(output => (
+              {currentMatches.map(output => (
                 <li className="Sidebar__list-item" key={output.matchId}>
-                  <ValidationSidebarOutput
+                  <SidebarMatch
                     output={output}
                     selectedMatch={selectedMatch}
                     applySuggestions={applySuggestions}
-                    selectValidation={selectValidation}
+                    selectMatch={selectMatch}
                     indicateHover={indicateHover}
                   />
                 </li>
               ))}
             </ul>
           )}
-          {!hasValidations && (
-            <div className="Sidebar__awaiting-validation">
-              No validations to report.
+          {!hasMatches && (
+            <div className="Sidebar__awaiting-match">
+              No matches to report.
             </div>
           )}
         </div>
@@ -105,11 +105,11 @@ class ValidationSidebar extends Component<
     );
   }
 
-  private handleNewState = (pluginState: IPluginState<IMatches>) => {
+  private handleNewState = (pluginState: IPluginState<IMatch>) => {
     this.setState({
       pluginState: {
         ...pluginState,
-        currentValidations: sortBy(pluginState.currentValidations, "from")
+        currentMatches: sortBy(pluginState.currentMatches, "from")
       }
     });
   };
@@ -131,4 +131,4 @@ class ValidationSidebar extends Component<
   };
 }
 
-export default ValidationSidebar;
+export default Sidebar;

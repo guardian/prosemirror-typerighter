@@ -1,6 +1,6 @@
 import { h, FunctionalComponent, Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { IWikiSuggestion } from "../interfaces/IValidation";
+import { IWikiSuggestion } from "../interfaces/IMatch";
 
 type IProps = IWikiSuggestion & {
   applySuggestion?: () => void;

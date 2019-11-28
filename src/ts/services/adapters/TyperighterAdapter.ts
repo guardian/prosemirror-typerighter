@@ -1,17 +1,17 @@
 import v4 from "uuid/v4";
-import { IBlock, IValidationResponse } from "../../interfaces/IValidation";
+import { IBlock, IMatcherResponse } from "../../interfaces/IMatch";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
-  IValidationAPIAdapter,
-  TValidationReceivedCallback,
-  TValidationErrorCallback,
-  TValidationWorkCompleteCallback
-} from "../../interfaces/IValidationAPIAdapter";
+  IMatcherAdapter,
+  TMatchesReceivedCallback,
+  TRequestErrorCallback,
+  TRequestCompleteCallback
+} from "../../interfaces/IMatcherAdapter";
 
 export const convertTyperighterResponse = (
   requestId: string,
   response: ITypeRighterResponse
-): IValidationResponse => ({
+): IMatcherResponse => ({
   requestId,
   categoryIds: response.categoryIds,
   blocks: response.blocks,
@@ -30,16 +30,16 @@ export const convertTyperighterResponse = (
 /**
  * An adapter for the Typerighter service.
  */
-class TyperighterAdapter implements IValidationAPIAdapter {
+class TyperighterAdapter implements IMatcherAdapter {
   constructor(protected checkUrl: string, protected categoriesUrl: string) {}
 
   public fetchMatches = async (
     requestId: string,
     inputs: IBlock[],
     categoryIds: string[],
-    onValidationReceived: TValidationReceivedCallback,
-    onValidationError: TValidationErrorCallback,
-    onValidationComplete: TValidationWorkCompleteCallback
+    onMatchesReceived: TMatchesReceivedCallback,
+    onRequestError: TRequestErrorCallback,
+    onRequestComplete: TRequestCompleteCallback
   ) => {
     inputs.map(async input => {
       const body = {
@@ -57,19 +57,19 @@ class TyperighterAdapter implements IValidationAPIAdapter {
         });
         if (response.status !== 200) {
           throw new Error(
-            `Error fetching validations. The server responded with status code ${
+            `Error fetching matches. The server responded with status code ${
               response.status
             }: ${response.statusText}`
           );
         }
         const responseData: ITypeRighterResponse = await response.json();
-        const validationResponse = convertTyperighterResponse(
+        const matcherResponse = convertTyperighterResponse(
           requestId,
           responseData
         );
-        onValidationReceived(validationResponse);
+        onMatchesReceived(matcherResponse);
       } catch (e) {
-        onValidationError({
+        onRequestError({
           requestId,
           blockId: input.id,
           message: e.message

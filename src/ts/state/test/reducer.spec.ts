@@ -4,25 +4,25 @@ import {
   selectMatch,
   setDebugState,
   applyNewDirtiedRanges,
-  validationRequestForDocument,
-  validationRequestError,
-  validationRequestForDirtyRanges,
-  validationRequestSuccess,
+  requestMatchesForDocument,
+  requestError,
+  requestMatchesForDirtyRanges,
+  requestMatchesSuccess,
   newHoverIdReceived,
-  validationRequestComplete
+  requestMatchesComplete as requestComplete
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
-import { createValidationPluginReducer, IPluginState } from "../reducer";
+import { createTyperighterPluginReducer, IPluginState } from "../reducer";
 import {
   createDebugDecorationFromRange,
-  getNewDecorationsForCurrentValidations,
-  createDecorationForValidationRange
+  getNewDecorationsForCurrentMatches,
+  createDecorationForMatch
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
-import { IMatches } from "../../interfaces/IValidation";
+import { IMatch } from "../../interfaces/IMatch";
 import {
-  createValidationResponse,
+  createMatcherResponse,
   createBlock,
   exampleCategoryIds,
   createBlockQueriesInFlight,
@@ -32,9 +32,9 @@ import {
   addOutputsToState,
   createBlockMatches
 } from "../../test/helpers/fixtures";
-import { createBlockId } from "../../utils/validation";
+import { createBlockId } from "../../utils/block";
 
-const reducer = createValidationPluginReducer(expandRangesToParentBlockNode);
+const reducer = createTyperighterPluginReducer(expandRangesToParentBlockNode);
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -49,29 +49,29 @@ describe("Action handlers", () => {
       state
     );
   });
-  describe("validationRequestForDocument", () => {
+  describe("requestMatchesForDocument", () => {
     it("should apply dirty ranges for the entire doc", () => {
       const { state, tr } = createInitialData();
       expect(
         reducer(
           tr,
           state,
-          validationRequestForDocument(exampleRequestId, exampleCategoryIds)
+          requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
         )
       ).toMatchObject({
-        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
           {
             from: 1,
-            text: "Example text to validate",
-            to: 26,
-            id: "0-from:1-to:26"
+            text: "Example text to check",
+            to: 23,
+            id: "0-from:1-to:23"
           }
         ])
       });
     });
   });
-  describe("validationRequestForDirtyRanges", () => {
-    it("should remove the pending status and any dirtied ranges, and mark the validation as in flight", () => {
+  describe("requestMatchesForDirtyRanges", () => {
+    it("should remove the pending status and any dirtied ranges, and mark the request as in flight", () => {
       const { state, tr } = createInitialData();
       expect(
         reducer(
@@ -80,24 +80,24 @@ describe("Action handlers", () => {
             ...state,
             debug: true,
             dirtiedRanges: [{ from: 5, to: 10 }],
-            validationPending: true
+            requestPending: true
           },
-          validationRequestForDirtyRanges(exampleRequestId, exampleCategoryIds)
+          requestMatchesForDirtyRanges(exampleRequestId, exampleCategoryIds)
         )
       ).toEqual({
         ...state,
         debug: true,
         dirtiedRanges: [],
         decorations: new DecorationSet().add(tr.doc, [
-          createDebugDecorationFromRange({ from: 1, to: 25 }, false)
+          createDebugDecorationFromRange({ from: 1, to: 22 }, false)
         ]),
-        validationPending: false,
-        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
+        requestPending: false,
+        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
           {
-            text: "Example text to validate",
+            text: "Example text to check",
             from: 1,
-            to: 25,
-            id: "0-from:1-to:25"
+            to: 22,
+            id: "0-from:1-to:22"
           }
         ])
       });
@@ -113,20 +113,20 @@ describe("Action handlers", () => {
           decorations: new DecorationSet().add(tr.doc, [
             createDebugDecorationFromRange({ from: 1, to: 3 })
           ]),
-          validationPending: true
+          requestPending: true
         },
-        validationRequestForDirtyRanges("id", exampleCategoryIds)
+        requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
       expect(newState.decorations).toEqual(
         new DecorationSet().add(tr.doc, [
-          createDebugDecorationFromRange({ from: 1, to: 25 }, false)
+          createDebugDecorationFromRange({ from: 1, to: 22 }, false)
         ])
       );
     });
-    it("should add a total to the validations in flight", () => {
+    it("should add a total to the requests in flight", () => {
       const doc = createDoc(
-        p("Example text to validate"),
-        p("More text to validate")
+        p("Example text to check"),
+        p("More text to check")
       );
       const { state, tr } = createInitialData(doc);
       const newState = reducer(
@@ -136,23 +136,23 @@ describe("Action handlers", () => {
           debug: true,
           dirtiedRanges: [{ from: 5, to: 10 }, { from: 28, to: 35 }],
           decorations: new DecorationSet(),
-          validationPending: true
+          requestPending: true
         },
-        validationRequestForDirtyRanges("id", exampleCategoryIds)
+        requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
       expect(
         selectBlockQueriesInFlightForSet(newState, "id")!.totalBlocks
       ).toEqual(2);
     });
   });
-  describe("validationRequestSuccess", () => {
+  describe("requestMatchesSuccess", () => {
     it("shouldn't do anything if there's nothing in the response and nothing to clean up", () => {
       const { state, tr } = createInitialData();
       expect(
         reducer(
           tr,
           state,
-          validationRequestSuccess({
+          requestMatchesSuccess({
             blocks: [{ from: 1, to: 1, text: "hai", id: "1" }],
             matches: [],
             categoryIds: ["some-cat"],
@@ -167,7 +167,7 @@ describe("Action handlers", () => {
         reducer(
           tr,
           state,
-          validationRequestSuccess({
+          requestMatchesSuccess({
             blocks: [{ from: 1, to: 1, text: "hai", id: "1" }],
             matches: [],
             categoryIds: [],
@@ -176,7 +176,7 @@ describe("Action handlers", () => {
         )
       ).toEqual(state);
     });
-    it("should add incoming validations to the state", () => {
+    it("should add incoming matches to the state", () => {
       const { state, tr } = createInitialData();
       let localState = reducer(
         tr,
@@ -186,29 +186,29 @@ describe("Action handlers", () => {
       localState = reducer(
         tr,
         localState,
-        validationRequestForDirtyRanges(exampleRequestId, exampleCategoryIds)
+        requestMatchesForDirtyRanges(exampleRequestId, exampleCategoryIds)
       );
       expect(
         reducer(
           tr,
           localState,
-          validationRequestSuccess(createValidationResponse(1, 25))
-        ).currentValidations
+          requestMatchesSuccess(createMatcherResponse(1, 22))
+        ).currentMatches
       ).toMatchObject([createBlockMatches(1, 4)]);
     });
-    it("should create decorations for the incoming validations", () => {
+    it("should create decorations for the incoming matches", () => {
       const { state, tr } = createInitialData();
       expect(
         reducer(
           tr,
           state,
-          validationRequestSuccess(createValidationResponse(5, 10))
+          requestMatchesSuccess(createMatcherResponse(5, 10))
         )
       ).toMatchSnapshot();
     });
     describe("superceded matches", () => {
       const { state: initialState, tr } = createInitialData();
-      const firstBlock = createBlock(0, 15, "Example text to validate");
+      const firstBlock = createBlock(0, 15, "Example text to check");
       const secondBlock = createBlock(16, 37, "Another block of text");
       const blocks = [firstBlock, secondBlock];
       const category = {
@@ -217,39 +217,33 @@ describe("Action handlers", () => {
         name:
           "This category should remain untouched -- it's not included in the categories for the incoming matches"
       };
-      const validationOutput1 = createValidationResponse(0, 15, 1, 7);
-      const validationOutput2 = createValidationResponse(
-        0,
-        15,
-        9,
-        13,
-        category
-      );
-      const validationOutput3 = createValidationResponse(16, 37, 17, 25); // Some other output for another block
-      const blockQueriesInFlight = createBlockQueriesInFlight(
+      const matcherResponse1 = createMatcherResponse(0, 15, 1, 7);
+      const matcherResponse2 = createMatcherResponse(0, 15, 9, 13, category);
+      const matcherResponse3 = createMatcherResponse(16, 37, 17, 25); // Some other output for another block
+      const requestsInFlight = createBlockQueriesInFlight(
         exampleRequestId,
         blocks,
-        [...validationOutput1.categoryIds, ...validationOutput2.categoryIds]
+        [...matcherResponse1.categoryIds, ...matcherResponse2.categoryIds]
       );
 
       const state: IPluginState = addOutputsToState(
         {
           ...initialState,
-          blockQueriesInFlight
+          requestsInFlight
         },
         tr.doc,
         [
-          validationOutput1.matches[0],
-          validationOutput2.matches[0],
-          validationOutput3.matches[0]
+          matcherResponse1.matches[0],
+          matcherResponse2.matches[0],
+          matcherResponse3.matches[0]
         ]
       );
 
-      it("should remove previous validations that match the block and category of the incoming match", () => {
+      it("should remove previous matches that match the block and category of the incoming match", () => {
         const newState = reducer(
           tr,
           state,
-          validationRequestSuccess({
+          requestMatchesSuccess({
             blocks: [firstBlock],
             categoryIds: ["1"],
             matches: [],
@@ -257,16 +251,16 @@ describe("Action handlers", () => {
           })
         );
 
-        expect(newState.currentValidations).toEqual([
-          validationOutput2.matches[0],
-          validationOutput3.matches[0]
+        expect(newState.currentMatches).toEqual([
+          matcherResponse2.matches[0],
+          matcherResponse3.matches[0]
         ]);
       });
       it("should remove previous decorations that match block and category of the incoming match", () => {
         const newState = reducer(
           tr,
           state,
-          validationRequestSuccess({
+          requestMatchesSuccess({
             blocks: [firstBlock],
             categoryIds: ["1"],
             matches: [],
@@ -276,17 +270,17 @@ describe("Action handlers", () => {
 
         expect(newState.decorations).toEqual(
           new DecorationSet().add(tr.doc, [
-            ...createDecorationForValidationRange(validationOutput2.matches[0]),
-            ...createDecorationForValidationRange(validationOutput3.matches[0])
+            ...createDecorationForMatch(matcherResponse2.matches[0]),
+            ...createDecorationForMatch(matcherResponse3.matches[0])
           ])
         );
       });
 
-      it("should remove validated categories from the remaining categories list for in-flight blocks", () => {
+      it("should remove checkd categories from the remaining categories list for in-flight blocks", () => {
         const newState = reducer(
           tr,
           state,
-          validationRequestSuccess({
+          requestMatchesSuccess({
             blocks: [firstBlock],
             categoryIds: ["1"],
             matches: [],
@@ -294,12 +288,12 @@ describe("Action handlers", () => {
           })
         );
 
-        expect(newState.blockQueriesInFlight["set-id"]!.pendingBlocks).toEqual([
+        expect(newState.requestsInFlight["set-id"]!.pendingBlocks).toEqual([
           {
             block: {
               from: 0,
               id: firstBlock.id,
-              text: "Example text to validate",
+              text: "Example text to check",
               to: 15
             },
             pendingCategoryIds: ["this-category-should-remain"]
@@ -315,11 +309,11 @@ describe("Action handlers", () => {
           }
         ]);
       });
-      it("should not regenerate decorations for validations that remain", () => {
+      it("should not regenerate decorations for matches that remain", () => {
         const newState = reducer(
           tr,
           state,
-          validationRequestSuccess({
+          requestMatchesSuccess({
             blocks: [firstBlock],
             categoryIds: ["another-category"],
             matches: [],
@@ -330,7 +324,7 @@ describe("Action handlers", () => {
         expect(newState.decorations).toBe(state.decorations);
       });
     });
-    it("should not apply validations if the ranges they apply to have since been dirtied", () => {
+    it("should not apply matches if the ranges they apply to have since been dirtied", () => {
       const { state, tr } = createInitialData(defaultDoc, 1337);
       let localState = reducer(
         tr,
@@ -340,7 +334,7 @@ describe("Action handlers", () => {
       localState = reducer(
         tr,
         localState,
-        validationRequestForDirtyRanges("id", exampleCategoryIds)
+        requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
       localState = reducer(
         tr,
@@ -351,36 +345,36 @@ describe("Action handlers", () => {
         reducer(
           tr,
           localState,
-          validationRequestSuccess(createValidationResponse(1, 3))
+          requestMatchesSuccess(createMatcherResponse(1, 3))
         )
       ).toEqual({
         ...localState,
         dirtiedRanges: [{ from: 1, to: 3 }],
-        currentValidations: [],
-        validationPending: true
+        currentMatches: [],
+        requestPending: true
       });
     });
   });
-  describe("validationRequestError", () => {
-    it("Should re-add the in-flight validation ranges as dirty ranges, and remove the inflight validation", () => {
+  describe("requestMatchesError", () => {
+    it("Should re-add the in-flight request ranges as dirty ranges, and remove the inflight request", () => {
       const { state: initialState, tr } = createInitialData();
       const state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
-          createBlock(1, 25, "Example text to validate")
+        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          createBlock(1, 25, "Example text to check")
         ])
       };
       const newState = reducer(
         tr,
         state,
-        validationRequestError({
+        requestError({
           requestId: exampleRequestId,
           blockId: createBlockId(0, 1, 25),
           message: "Too many requests"
         })
       );
       expect(newState).toMatchObject({
-        blockQueriesInFlight: {},
+        requestsInFlight: {},
         dirtiedRanges: [
           {
             from: 1,
@@ -392,44 +386,36 @@ describe("Action handlers", () => {
       });
     });
   });
-  describe("validationRequestComplete", () => {
+  describe("requestMatchesComplete", () => {
     const { state: initialState, tr } = createInitialData();
     it("should remove the inflight request from the state", () => {
       const state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
-          createBlock(1, 25, "Example text to validate")
+        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          createBlock(1, 25, "Example text to check")
         ])
       };
-      const newState = reducer(
-        tr,
-        state,
-        validationRequestComplete(exampleRequestId)
-      );
-      expect(newState.blockQueriesInFlight).toEqual({});
+      const newState = reducer(tr, state, requestComplete(exampleRequestId));
+      expect(newState.requestsInFlight).toEqual({});
     });
     it("should ignore other requests", () => {
       const state = {
         ...initialState,
-        blockQueriesInFlight: createBlockQueriesInFlight(exampleRequestId, [
-          createBlock(1, 25, "Example text to validate"),
-          createBlock(26, 47, "More text to validate")
+        requestsInFlight: createBlockQueriesInFlight(exampleRequestId, [
+          createBlock(1, 25, "Example text to check"),
+          createBlock(26, 47, "More text to check")
         ])
       };
-      const newState = reducer(
-        tr,
-        state,
-        validationRequestComplete(exampleRequestId)
-      );
-      expect(newState.blockQueriesInFlight).toEqual({});
+      const newState = reducer(tr, state, requestComplete(exampleRequestId));
+      expect(newState.requestsInFlight).toEqual({});
     });
     it("should do nothing if the request is not found", () => {
       const newState = reducer(
         tr,
         initialState,
-        validationRequestComplete(exampleRequestId)
+        requestComplete(exampleRequestId)
       );
-      expect(newState.blockQueriesInFlight).toEqual({});
+      expect(newState.requestsInFlight).toEqual({});
     });
   });
   describe("newHoverIdReceived", () => {
@@ -449,7 +435,7 @@ describe("Action handlers", () => {
     });
     it("should add hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IMatches = {
+      const output: IMatch = {
         matchId: "match-id",
         from: 0,
         to: 5,
@@ -462,17 +448,17 @@ describe("Action handlers", () => {
       };
       const localState = {
         ...state,
-        currentValidations: [output],
+        currentMatches: [output],
         decorations: new DecorationSet().add(
           tr.doc,
-          createDecorationForValidationRange(output, false, true)
+          createDecorationForMatch(output, false, true)
         )
       };
       expect(reducer(tr, localState, newHoverIdReceived("match-id"))).toEqual({
         ...localState,
         decorations: new DecorationSet().add(
           tr.doc,
-          createDecorationForValidationRange(output, true, true)
+          createDecorationForMatch(output, true, true)
         ),
         hoverId: "match-id",
         hoverInfo: undefined
@@ -480,7 +466,7 @@ describe("Action handlers", () => {
     });
     it("should remove hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IMatches = {
+      const output: IMatch = {
         matchId: "match-id",
         from: 0,
         to: 5,
@@ -494,9 +480,9 @@ describe("Action handlers", () => {
       const localState = {
         ...state,
         decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationForValidationRange(output, true, true)
+          ...createDecorationForMatch(output, true, true)
         ]),
-        currentValidations: [output],
+        currentMatches: [output],
         hoverId: "match-id",
         hoverInfo: undefined
       };
@@ -505,7 +491,7 @@ describe("Action handlers", () => {
       ).toEqual({
         ...localState,
         decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationForValidationRange(output, false, true)
+          ...createDecorationForMatch(output, false, true)
         ]),
         hoverId: undefined,
         hoverInfo: undefined
@@ -513,9 +499,9 @@ describe("Action handlers", () => {
     });
   });
   describe("handleNewDirtyRanges", () => {
-    it("should remove any decorations and validations that touch the passed ranges", () => {
+    it("should remove any decorations and matches that touch the passed ranges", () => {
       const { state } = createInitialData();
-      const currentValidations: IMatches[] = [
+      const currentMatches: IMatch[] = [
         {
           matchId: "match-id",
           from: 1,
@@ -528,11 +514,11 @@ describe("Action handlers", () => {
           }
         }
       ];
-      const stateWithCurrentValidationsAndDecorations = {
+      const stateWithCurrentMatchesAndDecorations = {
         ...state,
-        currentValidations,
-        decorations: getNewDecorationsForCurrentValidations(
-          currentValidations,
+        currentMatches,
+        decorations: getNewDecorationsForCurrentMatches(
+          currentMatches,
           state.decorations,
           defaultDoc
         )
@@ -540,22 +526,22 @@ describe("Action handlers", () => {
       expect(
         reducer(
           new Transaction(defaultDoc),
-          stateWithCurrentValidationsAndDecorations,
+          stateWithCurrentMatchesAndDecorations,
           applyNewDirtiedRanges([{ from: 1, to: 2 }])
         )
       ).toEqual({
         ...state,
-        validationPending: true,
+        requestPending: true,
         dirtiedRanges: [{ from: 1, to: 2 }]
       });
     });
   });
-  describe("selectValidation", () => {
-    it("should apply the selected validation id", () => {
+  describe("selectMatch", () => {
+    it("should apply the selected match id", () => {
       const { state } = createInitialData();
       const otherState = {
         ...state,
-        currentValidations: [
+        currentMatches: [
           {
             matchId: "match-id",
             text: "example",

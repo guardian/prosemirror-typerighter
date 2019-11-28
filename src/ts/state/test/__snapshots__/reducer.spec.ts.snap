@@ -1,10 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Action handlers validationRequestSuccess should create decorations for the incoming validations 1`] = `
+exports[`Action handlers requestMatchesSuccess should create decorations for the incoming matches 1`] = `
 Object {
-  "blockQueriesInFlight": Object {},
+  "currentMatches": Array [],
   "currentThrottle": 100,
-  "currentValidations": Array [],
   "debug": false,
   "decorations": DecorationSet {
     "children": Array [],
@@ -16,6 +15,9 @@ Object {
   "hoverInfo": undefined,
   "initialThrottle": 100,
   "maxThrottle": 1000,
+  "requestMatchesOnDocModified": true,
+  "requestPending": false,
+  "requestsInFlight": Object {},
   "selectedMatch": undefined,
   "trHistory": Array [
     Transaction {
@@ -26,7 +28,7 @@ Object {
           Object {
             "content": Array [
               Object {
-                "text": "Example text to validate",
+                "text": "Example text to check",
                 "type": "text",
               },
             ],
@@ -49,7 +51,5 @@ Object {
       "updated": 0,
     },
   ],
-  "validateOnModify": true,
-  "validationPending": false,
 }
 `;
