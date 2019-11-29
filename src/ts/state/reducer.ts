@@ -72,13 +72,13 @@ export interface IStateHoverInfo {
   // The height of the element.
   height: number;
   // The x coordinate of the mouse position relative to the element
-  mouseOffsetX: number;
+  mouseClientX: number;
   // The y coordinate of the mouse position relative to the element
-  mouseOffsetY: number;
+  mouseClientY: number;
   // The height the element would have if it occupied a single line.
   // Useful when determining where to put a tooltip if the user
   // is hovering over a span that covers several lines.
-  heightOfSingleLine: number;
+  markerClientRects: DOMRectList | ClientRectList;
 }
 
 export interface IBlockInFlight {

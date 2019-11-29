@@ -1,4 +1,4 @@
-import { IStateHoverInfo } from "../state/actions";
+import { IStateHoverInfo } from "../state/reducer";
 
 /**
  * Find the first ancestor node of the given node that matches the selector.
@@ -45,8 +45,8 @@ export function getStateHoverInfoFromEvent(
     left: containerLeft,
     top: containerTop
   } = containerElement.getBoundingClientRect();
-  const mouseOffsetX = event.clientX - elementLeft;
-  const mouseOffsetY = event.clientY - elementTop;
+  const mouseOffsetX = event.clientX;
+  const mouseOffsetY = event.clientY;
   const { offsetLeft, offsetTop, offsetHeight: height } = event.target;
   return {
     left: elementLeft - containerLeft,
@@ -54,8 +54,8 @@ export function getStateHoverInfoFromEvent(
     offsetLeft,
     offsetTop,
     height,
-    mouseOffsetX,
-    mouseOffsetY,
-    heightOfSingleLine: heightMarkerElement.offsetHeight
+    mouseClientX: mouseOffsetX,
+    mouseClientY: mouseOffsetY,
+    markerClientRects: event.target.getClientRects()
   };
 }

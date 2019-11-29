@@ -24,9 +24,10 @@ interface IProps<TMatch extends IMatch> {
 /**
  * An overlay to display match tooltips. Subscribes to hover events.
  */
-class MatchOverlay<
-  TMatch extends IMatch = IMatch
-> extends Component<IProps<TMatch>, IState> {
+class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
+  IProps<TMatch>,
+  IState
+> {
   public state: IState = {
     isVisible: false,
     left: undefined,
@@ -34,9 +35,7 @@ class MatchOverlay<
     hoverInfo: undefined,
     match: undefined
   };
-  private decorationRef:
-    | Match<TMatch>
-    | undefined = undefined;
+  private matchRef: Match<TMatch> | undefined = undefined;
 
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -60,7 +59,10 @@ class MatchOverlay<
       return null;
     }
     return (
-      <div class="TyperighterPlugin__overlay" onMouseOver={this.handleMouseOver}>
+      <div
+        class="TyperighterPlugin__overlay"
+        onMouseOver={this.handleMouseOver}
+      >
         <div
           class="TyperighterPlugin__decoration-container"
           style={{
@@ -72,7 +74,7 @@ class MatchOverlay<
           }}
         >
           <Match
-            ref={_ => (this.decorationRef = _)}
+            ref={_ => (this.matchRef = _)}
             match={match}
             applySuggestions={this.props.applySuggestions}
           />
@@ -93,7 +95,7 @@ class MatchOverlay<
       const match = selectMatchByMatchId(state, state.hoverId);
       return this.setState({
         hoverInfo: state.hoverInfo,
-        match: match,
+        match,
         ...newState
       });
     }
@@ -105,47 +107,66 @@ class MatchOverlay<
   };
 
   private getCoordsFromHoverEvent = () => {
-    if (!this.decorationRef || !this.state.hoverInfo) {
+    if (!this.matchRef || !this.state.hoverInfo) {
       return { left: 0, top: 0 };
     }
 
-    // Get the ideal tooltip position.
-    const { left: tooltipLeft, top: tooltipTop } = this.getTooltipCoords(
-      this.state.hoverInfo
-    );
+    const {
+      left: tooltipLeft,
+      top: tooltipTop,
+      maxLeft: toolTipMaxLeft
+    } = this.getIdealTooltipCoords(this.state.hoverInfo);
 
-    const maxLeft = this.props.containerElement
-      ? this.props.containerElement.clientWidth -
-        this.decorationRef.ref!.offsetWidth
-      : Infinity;
-
-    const maxTop = this.props.containerElement
-      ? this.props.containerElement.clientHeight -
-        this.decorationRef.ref!.offsetHeight
-      : Infinity;
+    const maxLeft =
+      this.props.containerElement
+        ? (toolTipMaxLeft || this.props.containerElement.clientWidth) -
+          this.matchRef.ref!.offsetWidth
+        : Infinity;
 
     return {
       left: tooltipLeft < maxLeft ? tooltipLeft : maxLeft,
-      top:
-        tooltipTop < maxTop
-          ? tooltipTop
-          : maxTop - this.state.hoverInfo.height * 2
+      top: tooltipTop
     };
   };
 
-  private getTooltipCoords = (hoverInfo: IStateHoverInfo) => {
-    // The mouse offset isn't an integer, so we round it here to avoid oddness.
-    // @todo -- the plus three is a bit of a hack based on manual testing, but
-    // we should figure out why this is necessary and remove if possible.
-    const isHoveringOverFirstLine =
-      hoverInfo.heightOfSingleLine + 3 >= Math.floor(hoverInfo.mouseOffsetY);
-    const left = isHoveringOverFirstLine
-      ? hoverInfo.offsetLeft
-      : hoverInfo.left;
-    const top = isHoveringOverFirstLine
-      ? hoverInfo.offsetTop + hoverInfo.heightOfSingleLine
-      : hoverInfo.offsetTop + hoverInfo.height;
-    return { left, top };
+  private getIdealTooltipCoords = (hoverInfo: IStateHoverInfo) => {
+    const spanRects = Array.from(hoverInfo.markerClientRects);
+    const hoveredRect = spanRects.find(rect =>
+      this.areCoordsWithinClientRect(
+        hoverInfo.mouseClientX,
+        hoverInfo.mouseClientY,
+        rect
+      )
+    );
+    const maxLeft =
+      spanRects.length > 1
+        ? Math.max(...spanRects.map(_ => _.right))
+        : undefined;
+    return hoveredRect
+      ? {
+          left: hoveredRect.left,
+          top: hoveredRect.top + hoveredRect.height,
+          maxLeft
+        }
+      : // If we don't have a rect, just display it at the mouse co-ords.
+        { left: hoverInfo.mouseClientX, top: hoverInfo.mouseClientX, maxLeft };
+  };
+
+  private areCoordsWithinClientRect = (
+    x: number,
+    y: number,
+    rect: DOMRect | ClientRect
+  ): boolean => {
+    // We seem to need some padding here to account for small discrepancies between
+    // the mouse coords and the bounding box of the span rect.
+    const padding = 2;
+    const isInRect = !!(
+      x >= rect.left - padding &&
+      x <= rect.left + rect.width + padding &&
+      y >= rect.top - padding &&
+      y <= rect.top + rect.height + padding
+    );
+    return isInRect;
   };
 }
 

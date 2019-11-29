@@ -123,12 +123,12 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
           // Get our height marker, which tells us the height of a single line
           // for the given match.
-          const heightMarker = document.querySelector(
-            `[${DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID}="${newMatchId}"]`
+          const matchDecoration = document.querySelector(
+            `[${DECORATION_ATTRIBUTE_ID}="${newMatchId}"]`
           );
           if (
             newMatchId &&
-            (!heightMarker || !(heightMarker instanceof HTMLElement))
+            (!matchDecoration || !(matchDecoration instanceof HTMLElement))
           ) {
             // tslint:disable-next-line no-console
             console.warn(
@@ -143,7 +143,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
               // We're very sure that this is a mouseevent, but Typescript isn't.
               event as MouseEvent,
               view.dom,
-              heightMarker
+              matchDecoration
             )
           )(view.state, view.dispatch);
 
