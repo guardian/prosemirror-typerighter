@@ -158,9 +158,17 @@ hr {
   margin-top: 3px;
 }
 
-.MatchDecoration,
-.MatchDecoration__height-marker {
+.MatchDecoration {
   border-bottom: 2px solid $match-color;
+}
+
+.MatchDecoration__height-marker {
+  &:before {
+    // We insert a unicode zero width space character here to ensure the
+    // height marker has content. As a result, it grows to match the line-height.
+    // See https://stackoverflow.com/questions/14217902/how-to-set-empty-span-height-equal-to-default-line-height
+    content: "\200b";
+  }
 }
 
 .MatchDecoration--is-correct {
@@ -196,5 +204,4 @@ hr {
 }
 
 .TyperighterPlugin__container {
-  position: relative;
 }
