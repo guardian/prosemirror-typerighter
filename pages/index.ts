@@ -57,7 +57,6 @@ if (editorElement && sidebarElement && controlsElement) {
     commands,
     new TyperighterAdapter("http://localhost:9000/check", "http://localhost:9000/categories")
   );
-  (window as any).editor = view;
   createView(
     view,
     store,
@@ -67,4 +66,8 @@ if (editorElement && sidebarElement && controlsElement) {
     controlsElement,
     'mailto:example@typerighter.co.uk'
   );
+
+  // Handy debugging tools
+  (window as any).editor = view;
+  (window as any).ProseMirrorDevTools.applyDevTools(view, { EditorState: EditorState });
 }
