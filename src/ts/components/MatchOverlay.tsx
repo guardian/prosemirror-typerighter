@@ -117,11 +117,10 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
       maxLeft: toolTipMaxLeft
     } = this.getIdealTooltipCoords(this.state.hoverInfo);
 
-    const maxLeft =
-      this.props.containerElement
-        ? (toolTipMaxLeft || this.props.containerElement.clientWidth) -
-          this.matchRef.ref!.offsetWidth
-        : Infinity;
+    const maxLeft = this.props.containerElement
+      ? (toolTipMaxLeft || this.props.containerElement.clientWidth) -
+        this.matchRef.ref!.offsetWidth
+      : Infinity;
 
     return {
       left: tooltipLeft < maxLeft ? tooltipLeft : maxLeft,
@@ -142,14 +141,15 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
       spanRects.length > 1
         ? Math.max(...spanRects.map(_ => _.right))
         : undefined;
-    return hoveredRect
-      ? {
-          left: hoveredRect.left,
-          top: hoveredRect.top + hoveredRect.height,
-          maxLeft
-        }
-      : // If we don't have a rect, just display it at the mouse co-ords.
-        { left: hoverInfo.mouseClientX, top: hoverInfo.mouseClientX, maxLeft };
+    const absoluteLeft = hoveredRect ? hoveredRect.left : hoverInfo.mouseClientX;
+    const absoluteTop = hoveredRect
+      ? hoveredRect.top + hoveredRect.height
+      : hoverInfo.mouseClientX;
+
+    const left = absoluteLeft - hoverInfo.containerLeft;
+    const top = absoluteTop - hoverInfo.containerTop;
+  
+    return { left, top, maxLeft };
   };
 
   private areCoordsWithinClientRect = (
