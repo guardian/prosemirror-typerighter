@@ -39,9 +39,9 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
-    const { setDebugState, setRequestOnDocModified } = this.props;
-    const { debug = false, requestMatchesOnDocModified = false } =
-      this.state.pluginState || {};
+    // const { setDebugState, setRequestOnDocModified } = this.props;
+    // const { debug = false, requestMatchesOnDocModified = false } =
+    //   this.state.pluginState || {};
     const { isOpen, isLoadingCategories } = this.state;
     return (
       <div className="Sidebar__section">
@@ -63,7 +63,7 @@ class Controls extends Component<IProps, IState> {
         <div className="Sidebar__content">
           {isOpen && (
             <div>
-              <div className="Controls__row">
+              {/* <div className="Controls__row">
                 <label
                   className="Controls__label"
                   for="Controls__check-on-modify"
@@ -103,7 +103,7 @@ class Controls extends Component<IProps, IState> {
               </div>
               <div className="Controls__row">
                 <hr />
-              </div>
+              </div> */}
               <div className="Controls__row">
                 Select categories&nbsp;
                 {isLoadingCategories && (
@@ -151,7 +151,11 @@ class Controls extends Component<IProps, IState> {
             </div>
           )}
           <div className="Controls__row">
-            <button className="Button" onClick={this.requestMatchesForDocument}>
+            <button
+              type="button"
+              className="Button"
+              onClick={this.requestMatchesForDocument}
+            >
               Check whole document
             </button>
           </div>
