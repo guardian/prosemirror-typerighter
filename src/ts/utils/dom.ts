@@ -38,10 +38,6 @@ export function getStateHoverInfoFromEvent(
     return;
   }
   const {
-    left: elementLeft,
-    top: elementTop
-  } = event.target.getBoundingClientRect();
-  const {
     left: containerLeft,
     top: containerTop
   } = containerElement.getBoundingClientRect();
@@ -49,8 +45,8 @@ export function getStateHoverInfoFromEvent(
   const mouseOffsetY = event.clientY;
   const { offsetLeft, offsetTop, offsetHeight: height } = event.target;
   return {
-    left: elementLeft - containerLeft,
-    top: elementTop - containerTop,
+    containerLeft,
+    containerTop,
     offsetLeft,
     offsetTop,
     height,

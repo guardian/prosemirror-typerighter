@@ -66,9 +66,9 @@ export interface IStateHoverInfo {
   // The offsetTop property of the element relative to the document container.
   offsetTop: number;
   // The left property from the element's bounding rectangle.
-  left: number;
+  containerLeft: number;
   // The top property from the element's bounding rectangle.
-  top: number;
+  containerTop: number;
   // The height of the element.
   height: number;
   // The x coordinate of the mouse position relative to the element

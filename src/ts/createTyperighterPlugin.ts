@@ -1,9 +1,6 @@
 import { applyNewDirtiedRanges } from "./state/actions";
 import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
-import {
-  createInitialState,
-  createReducer
-} from "./state/reducer";
+import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
   DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
@@ -59,7 +56,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const reducer = createReducer(expandRanges);
 
   const plugin: Plugin = new Plugin({
-    key: new PluginKey('prosemirror-typerighter'),
+    key: new PluginKey("prosemirror-typerighter"),
     state: {
       init: (_, { doc }) => createInitialState(doc),
       apply(tr: Transaction, state: TPluginState): TPluginState {
@@ -78,20 +75,23 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
       const tr = newState.tr;
 
-      const newDirtiedRanges = trs.reduce(
-        (acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)),
-        [] as IRange[]
-      );
-      if (newDirtiedRanges.length) {
-        // We wait a tick here, as applyNewDirtiedRanges must run
-        // before the newly dirtied range is available in the state.
-        // @todo -- this is a bit of a hack, it can be done better.
-        setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
-
-        return tr.setMeta(
-          PROSEMIRROR_TYPERIGHTER_ACTION,
-          applyNewDirtiedRanges(newDirtiedRanges)
+      if (newPluginState.requestMatchesOnDocModified) {
+        const newDirtiedRanges = trs.reduce(
+          (acc, range) =>
+            acc.concat(getReplaceStepRangesFromTransaction(range)),
+          [] as IRange[]
         );
+        if (newDirtiedRanges.length) {
+          // We wait a tick here, as applyNewDirtiedRanges must run
+          // before the newly dirtied range is available in the state.
+          // @todo -- this is a bit of a hack, it can be done better.
+          setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
+
+          return tr.setMeta(
+            PROSEMIRROR_TYPERIGHTER_ACTION,
+            applyNewDirtiedRanges(newDirtiedRanges)
+          );
+        }
       }
       const blockStates = selectNewBlockInFlight(
         oldPluginState,
