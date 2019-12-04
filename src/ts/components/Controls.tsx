@@ -110,6 +110,7 @@ class Controls extends Component<IProps, IState> {
                   <span className="Sidebar__loading-spinner">|</span>
                 )}
                 <button
+                  type="button"
                   class="Button flex-align-right"
                   onClick={this.fetchCategories}
                 >
