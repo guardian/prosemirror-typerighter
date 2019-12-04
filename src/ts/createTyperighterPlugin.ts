@@ -75,7 +75,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
       const tr = newState.tr;
 
-      if (newState.requestMatchesOnDocModified) {
+      if (newPluginState.requestMatchesOnDocModified) {
         const newDirtiedRanges = trs.reduce(
           (acc, range) =>
             acc.concat(getReplaceStepRangesFromTransaction(range)),
