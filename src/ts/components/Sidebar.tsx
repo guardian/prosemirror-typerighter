@@ -25,6 +25,7 @@ class Sidebar extends Component<
   {
     pluginState: IPluginState<IMatch> | undefined;
     groupResults: boolean;
+    loadingBarVisible: boolean;
   }
 > {
   public componentWillMount() {
@@ -39,24 +40,19 @@ class Sidebar extends Component<
       indicateHover,
       contactHref
     } = this.props;
-    const {
-      currentMatches = [],
-      requestsInFlight: requestsInFlight = [],
-      requestPending: requestPending = false,
-      selectedMatch
-    } = this.state.pluginState || { selectedMatch: undefined };
+    const { currentMatches = [], requestsInFlight, selectedMatch } = this.state
+      .pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
     const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
     const percentRemaining = this.getPercentRemaining();
+    const isLoading =
+      !!requestsInFlight && !!Object.keys(requestsInFlight).length;
     return (
       <div className="Sidebar__section">
         <div className="Sidebar__header-container">
           <div className="Sidebar__header">
             <span>
               Results {hasMatches && <span>({currentMatches.length}) </span>}
-              {(requestsInFlight.length || requestPending) && (
-                <span className="Sidebar__loading-spinner">|</span>
-              )}
             </span>
             {!!noOfAutoFixableSuggestions && (
               <button
@@ -68,15 +64,19 @@ class Sidebar extends Component<
             )}
           </div>
           <div className="Sidebar__header-contact">
-            <a href={contactHref} target="_blank">Issue with a rule? Let us know!</a>
+            <a href={contactHref} target="_blank">
+              Issue with a rule? Let us know!
+            </a>
           </div>
-          <div
-            class="LoadingBar"
-            style={{
-              opacity: percentRemaining === 0 ? 0 : 1,
-              width: `${100 - percentRemaining}%`
-            }}
-          />
+          {this.state.loadingBarVisible && (
+            <div
+              class="LoadingBar"
+              style={{
+                opacity: isLoading ? 1 : 0,
+                width: `${100 - percentRemaining}%`
+              }}
+            />
+          )}
         </div>
 
         <div className="Sidebar__content">
@@ -110,6 +110,25 @@ class Sidebar extends Component<
         currentMatches: sortBy(pluginState.currentMatches, "from")
       }
     });
+    const oldKeys = this.state.pluginState
+      ? Object.keys(this.state.pluginState.requestsInFlight)
+      : [];
+    const newKeys = Object.keys(pluginState.requestsInFlight);
+    if (oldKeys.length && !newKeys.length) {
+      setTimeout(this.maybeResetLoadingBar, 300);
+    }
+    if (!oldKeys.length && newKeys.length) {
+      this.setState({ loadingBarVisible: true });
+    }
+  };
+
+  private maybeResetLoadingBar = () => {
+    if (
+      !this.state.pluginState ||
+      !!Object.keys(this.state.pluginState.requestsInFlight)
+    ) {
+      this.setState({ loadingBarVisible: false });
+    }
   };
 
   private getPercentRemaining = () => {
