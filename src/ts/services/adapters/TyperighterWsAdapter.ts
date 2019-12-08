@@ -1,8 +1,7 @@
+
 import { IBlock } from "../../interfaces/IMatch";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
-import TyperighterAdapter, {
-  convertTyperighterResponse
-} from "./TyperighterAdapter";
+import TyperighterAdapter from "./TyperighterAdapter";
 import {
   TMatchesReceivedCallback,
   TRequestErrorCallback,
@@ -28,10 +27,7 @@ interface ISocketWorkComplete {
   type: typeof REQUEST_COMPLETE;
 }
 
-type TSocketMessage =
-  | ISocketResponse
-  | ISocketError
-  | ISocketWorkComplete;
+type TSocketMessage = ISocketResponse | ISocketError | ISocketWorkComplete;
 
 /**
  * An adapter for the Typerighter service that uses WebSockets.
@@ -47,7 +43,8 @@ class TyperighterWsAdapter extends TyperighterAdapter
     onRequestError: TRequestErrorCallback,
     onRequestComplete: TRequestCompleteCallback
   ) => {
-    const socket = new WebSocket(this.checkUrl);
+    const url = new URL(this.url)
+    const socket = new WebSocket(`ws://${url.host}/checkStream`);
     const blocks = inputs.map(input => ({
       id: input.id,
       text: input.text,
@@ -55,6 +52,10 @@ class TyperighterWsAdapter extends TyperighterAdapter
       to: input.to,
       categoryIds
     }));
+    const handleRequestComplete = (id: string) => {
+      socket.close();
+      onRequestComplete(id)
+    }
 
     socket.addEventListener("open", () => {
       socket.addEventListener("message", event =>
@@ -63,7 +64,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
           requestId,
           onMatchesReceived,
           onRequestError,
-          onRequestComplete
+          handleRequestComplete
         )
       );
       socket.send(
@@ -99,19 +100,20 @@ class TyperighterWsAdapter extends TyperighterAdapter
           });
         }
         case MATCHER_RESPONSE: {
-          return onMatchesReceived(
-            convertTyperighterResponse(requestId, socketMessage)
-          );
+          this.responseBuffer.push(socketMessage);
+          return this.throttledHandleResponse(requestId, onMatchesReceived);
         }
         case REQUEST_COMPLETE: {
+          this.flushResponseBuffer(requestId, onMatchesReceived);
           return onRequestComplete(requestId);
         }
         default: {
+          const errorMessage = `Received unknown message type: ${JSON.stringify(
+            socketMessage
+          )}`;
           return onRequestError({
             requestId,
-            message: `Received unknown message type: ${JSON.stringify(
-              socketMessage
-            )}`
+            message: errorMessage
           });
         }
       }
@@ -119,6 +121,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
       onRequestError({ requestId, message: e.message });
     }
   };
+
 }
 
 export default TyperighterWsAdapter;
