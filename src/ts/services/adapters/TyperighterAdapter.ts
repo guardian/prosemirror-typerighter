@@ -22,7 +22,8 @@ export const convertTyperighterResponse = (
     matchId: v4(),
     from: match.fromPos,
     to: match.toPos,
-    annotation: match.shortMessage,
+    matchedText: match.matchedText,
+    message: match.shortMessage,
     category: match.rule.category,
     suggestions: match.suggestions,
     replacement: match.rule.replacement,
@@ -43,8 +44,7 @@ class TyperighterAdapter implements IMatcherAdapter {
     inputs: IBlock[],
     categoryIds: string[],
     onMatchesReceived: TMatchesReceivedCallback,
-    onRequestError: TRequestErrorCallback,
-    onRequestComplete: TRequestCompleteCallback
+    onRequestError: TRequestErrorCallback
   ) => {
     inputs.map(async input => {
       const body = {

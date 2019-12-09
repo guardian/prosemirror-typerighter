@@ -38,12 +38,12 @@ export interface IMatchRequestError {
   message: string;
 }
 
-
 export interface IMatch<TSuggestion = ISuggestion> {
   matchId: string;
   from: number;
   to: number;
-  annotation: string;
+  matchedText: string;
+  message: string;
   category: ICategory;
   suggestions?: TSuggestion[];
   replacement?: TSuggestion;
@@ -55,9 +55,7 @@ export interface IBlockResult {
   id: string;
 }
 
-export interface IMatcherResponse<
-  TBlockMatch extends IMatch = IMatch
-> {
+export interface IMatcherResponse<TBlockMatch extends IMatch = IMatch> {
   blocks: IBlock[];
   categoryIds: string[];
   matches: TBlockMatch[];
@@ -73,9 +71,3 @@ export type IMatchLibrary = Array<
   }>
 >;
 
-export const Operations: {
-  [key: string]: "ANNOTATE" | "REPLACE";
-} = {
-  ANNOTATE: "ANNOTATE",
-  REPLACE: "REPLACE"
-};

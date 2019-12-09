@@ -134,7 +134,10 @@ describe("Action handlers", () => {
         {
           ...state,
           debug: true,
-          dirtiedRanges: [{ from: 5, to: 10 }, { from: 28, to: 35 }],
+          dirtiedRanges: [
+            { from: 5, to: 10 },
+            { from: 28, to: 35 }
+          ],
           decorations: new DecorationSet(),
           requestPending: true
         },
@@ -432,7 +435,8 @@ describe("Action handlers", () => {
         matchId: "match-id",
         from: 0,
         to: 5,
-        annotation: "Annotation",
+        matchedText: "block text",
+        message: "Annotation",
         category: {
           id: "1",
           name: "cat",
@@ -463,7 +467,8 @@ describe("Action handlers", () => {
         matchId: "match-id",
         from: 0,
         to: 5,
-        annotation: "Annotation",
+        matchedText: "block text",
+        message: "Annotation",
         category: {
           id: "1",
           name: "cat",
@@ -499,7 +504,8 @@ describe("Action handlers", () => {
           matchId: "match-id",
           from: 1,
           to: 7,
-          annotation: "Annotation",
+          matchedText: "block text",
+          message: "Annotation",
           category: {
             id: "1",
             name: "cat",
@@ -541,7 +547,8 @@ describe("Action handlers", () => {
             text: "example",
             from: 1,
             to: 1,
-            annotation: "example",
+            matchedText: "block text",
+            message: "example",
             suggestions: [],
             category: {
               id: "1",

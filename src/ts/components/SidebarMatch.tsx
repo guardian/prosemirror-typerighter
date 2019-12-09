@@ -51,7 +51,8 @@ class SidebarMatch extends Component<IProps, IState> {
         >
           <div className="SidebarMatch__header-label">
             <div className="SidebarMatch__header-description">
-              {output.annotation}
+              <strong>{output.matchedText}</strong>&nbsp;
+              {output.message}
             </div>
             <div className="SidebarMatch__header-meta">
               <div

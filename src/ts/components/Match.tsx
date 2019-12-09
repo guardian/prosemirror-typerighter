@@ -8,12 +8,10 @@ interface IMatchProps<TMatch extends IMatch> {
   match: TMatch;
 }
 
-class Match<TMatch extends IMatch> extends Component<
-  IMatchProps<TMatch>
-> {
-  public ref: HTMLDivElement | undefined;
+class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
+  public ref: HTMLDivElement | null = null;
   public render({
-    match: { matchId, category, annotation, suggestions },
+    match: { matchId, category, message, suggestions },
     applySuggestions
   }: IMatchProps<TMatch>) {
     return (
@@ -25,7 +23,7 @@ class Match<TMatch extends IMatch> extends Component<
           >
             {category.name}
           </div>
-          <div className="MatchWidget__annotation">{annotation}</div>
+          <div className="MatchWidget__annotation">{message}</div>
           {suggestions && applySuggestions && (
             <div className="MatchWidget__suggestion-list">
               <SuggestionList

@@ -76,7 +76,8 @@ export const createMatcherResponse = (
   matches: [
     {
       category,
-      annotation: "annotation",
+      matchedText: "block text",
+      message: "annotation",
       from: wordFrom,
       to: wordTo,
       matchId: createMatchId(0, wordFrom, wordTo, 0),
@@ -96,7 +97,8 @@ export const createMatch = (
   }
 ): IMatch => ({
   category,
-  annotation: "annotation",
+  matchedText: "block text",
+  message: "annotation",
   from,
   to,
   matchId: createMatchId(0, from, to, 0),

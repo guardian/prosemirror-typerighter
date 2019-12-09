@@ -120,5 +120,5 @@ export const selectAllAutoFixableMatches = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): TMatch[] =>
   state.currentMatches.filter(
-    _ => _.replacement && _.replacement.text === _.annotation
+    _ => _.replacement && _.replacement.text === _.message
   );

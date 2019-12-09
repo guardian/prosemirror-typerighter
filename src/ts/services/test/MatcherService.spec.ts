@@ -22,6 +22,7 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
     fromPos: 0,
     toPos: str.length,
     id: createBlockId(0, 0, 5),
+    matchedText: str,
     message: "It's just a bunch of numbers, mate",
     shortMessage: "It's just a bunch of numbers, mate",
     rule: {
