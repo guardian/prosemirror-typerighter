@@ -68,10 +68,7 @@ describe("MatcherService", () => {
     const service = new MatcherService(
       store,
       commands as any,
-      new TyperighterAdapter(
-        "http://endpoint/check",
-        "http://endpoint/categories"
-      )
+      new TyperighterAdapter("http://endpoint")
     );
     const response = createResponse(["1234567890"]);
     fetchMock.post("http://endpoint/check", response);
@@ -79,9 +76,7 @@ describe("MatcherService", () => {
     expect.assertions(1);
 
     service.requestFetchMatches();
-    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [
-      block
-    ]);
+    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [block]);
 
     setTimeout(() => {
       expect(commands.applyMatcherResponse.mock.calls[0]).toEqual([
@@ -94,17 +89,12 @@ describe("MatcherService", () => {
     const service = new MatcherService(
       store,
       commands as any,
-      new TyperighterAdapter(
-        "http://endpoint/check",
-        "http://endpoint/categories"
-      )
+      new TyperighterAdapter("http://endpoint")
     );
     fetchMock.post("http://endpoint/check", 400);
 
     service.requestFetchMatches();
-    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [
-      block
-    ]);
+    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [block]);
     setTimeout(() => {
       expect(commands.applyRequestError.mock.calls[0][0]).toEqual({
         message:
