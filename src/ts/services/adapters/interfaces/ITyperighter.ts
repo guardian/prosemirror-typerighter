@@ -17,6 +17,7 @@ export interface ITypeRighterBlockResponse {
 export interface ITypeRighterMatch {
   fromPos: number;
   toPos: number;
+  matchedText: string;
   message: string;
   shortMessage: string;
   rule: ITypeRighterRule;

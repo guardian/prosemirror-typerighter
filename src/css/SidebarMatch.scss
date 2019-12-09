@@ -1,5 +1,8 @@
 .SidebarMatch__container {
   padding: ($gutter-width / 2) ;
+  &:hover {
+    background-color: #f6f6f6;
+  }
 }
 
 .SidebarMatch__list-item:last-child {
@@ -15,6 +18,15 @@
 .SidebarMatch__header-label {
   display: flex;
   width: 100%;
+}
+
+.SidebarMatch__header-match-text {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.SidebarMatch__header-description {
+  font-size: 14px;
 }
 
 .SidebarMatch__header-meta {

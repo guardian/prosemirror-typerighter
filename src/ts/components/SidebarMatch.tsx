@@ -44,27 +44,24 @@ class SidebarMatch extends Component<IProps, IState> {
         style={{ borderLeft: `2px solid ${color}` }}
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
+        onClick={this.scrollToRange}
+        title="Click to scroll to this match"
       >
         <div
           className={"SidebarMatch__header"}
           onClick={hasSuggestions ? this.toggleOpen : undefined}
         >
           <div className="SidebarMatch__header-label">
-            <div className="SidebarMatch__header-description">
-              {output.annotation}
+            <div>
+              <div className="SidebarMatch__header-match-text">
+                {output.matchedText}
+              </div>
+              <div className="SidebarMatch__header-description">
+                {output.message}
+              </div>
             </div>
             <div className="SidebarMatch__header-meta">
-              <div
-                className="SidebarMatch__header-range"
-                onClick={this.scrollToRange}
-              >
-                <span className="Button">{output.from}-{output.to}</span>
-                
-              </div>
-              <div
-                className="SidebarMatch__header-category"
-                style={{ color }}
-              >
+              <div className="SidebarMatch__header-category" style={{ color }}>
                 {titleCase(output.category.name)}
               </div>
               {hasSuggestions && (

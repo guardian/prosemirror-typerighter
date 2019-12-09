@@ -22,7 +22,7 @@ const regexAdapter = async (
       from: input.from + result.index,
       to: input.from + result.index + result[0].length,
       text: result[0],
-      annotation:
+      message:
         "This word has three letters. Consider a larger, grander word.",
       id: v4(),
       category: {
@@ -44,7 +44,7 @@ const regexAdapter = async (
       from: input.from + result.index,
       to: input.from + result.index + result[0].length,
       text: result[0],
-      annotation:
+      message:
         "This word has six letters. Consider a smaller, less fancy word.",
       id: input.id,
       category: {
