@@ -16,7 +16,7 @@ interface IProps {
 }
 
 interface IState {
-  pluginState?: IPluginState<IMatch>;
+  pluginState: IPluginState<IMatch> | undefined;
   isOpen: boolean;
   allCategories: ICategory[];
   currentCategories: ICategory[];
@@ -31,7 +31,8 @@ class Controls extends Component<IProps, IState> {
     isOpen: false,
     allCategories: [],
     currentCategories: [],
-    isLoadingCategories: false
+    isLoadingCategories: false,
+    pluginState: undefined
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -155,6 +156,10 @@ class Controls extends Component<IProps, IState> {
               type="button"
               className="Button"
               onClick={this.requestMatchesForDocument}
+              disabled={
+                this.state.pluginState &&
+                !!Object.keys(this.state.pluginState.requestsInFlight).length
+              }
             >
               Check whole document
             </button>
