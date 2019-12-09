@@ -1,3 +1,6 @@
+import throttle from "lodash/throttle";
+import uniqBy from "lodash/uniqBy";
+import uniq from "lodash/uniq";
 import v4 from "uuid/v4";
 import { IBlock, IMatcherResponse } from "../../interfaces/IMatch";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
@@ -31,7 +34,9 @@ export const convertTyperighterResponse = (
  * An adapter for the Typerighter service.
  */
 class TyperighterAdapter implements IMatcherAdapter {
-  constructor(protected checkUrl: string, protected categoriesUrl: string) {}
+  constructor(protected url: string, protected responseThrottleMs = 250) {}
+
+  protected responseBuffer: ITypeRighterResponse[] = [];
 
   public fetchMatches = async (
     requestId: string,
@@ -48,7 +53,7 @@ class TyperighterAdapter implements IMatcherAdapter {
         categoryIds
       };
       try {
-        const response = await fetch(this.checkUrl, {
+        const response = await fetch(`${this.url}/check`, {
           method: "POST",
           headers: new Headers({
             "Content-Type": "application/json"
@@ -57,17 +62,12 @@ class TyperighterAdapter implements IMatcherAdapter {
         });
         if (response.status !== 200) {
           throw new Error(
-            `Error fetching matches. The server responded with status code ${
-              response.status
-            }: ${response.statusText}`
+            `Error fetching matches. The server responded with status code ${response.status}: ${response.statusText}`
           );
         }
         const responseData: ITypeRighterResponse = await response.json();
-        const matcherResponse = convertTyperighterResponse(
-          requestId,
-          responseData
-        );
-        onMatchesReceived(matcherResponse);
+        this.responseBuffer.push(responseData);
+        this.throttledHandleResponse(requestId, onMatchesReceived);
       } catch (e) {
         onRequestError({
           requestId,
@@ -78,20 +78,49 @@ class TyperighterAdapter implements IMatcherAdapter {
     });
   };
   public fetchCategories = async () => {
-    const response = await fetch(this.categoriesUrl, {
+    const response = await fetch(`${this.url}/categories`, {
       headers: new Headers({
         "Content-Type": "application/json"
       })
     });
     if (response.status !== 200) {
       throw new Error(
-        `Error fetching categories. The server responded with status code ${
-          response.status
-        }: ${response.statusText}`
+        `Error fetching categories. The server responded with status code ${response.status}: ${response.statusText}`
       );
     }
     return await response.json();
   };
+
+  protected flushResponseBuffer = (
+    requestId: string,
+    onMatchesReceived: TMatchesReceivedCallback
+  ) => {
+    if (!this.responseBuffer.length) {
+      return;
+    }
+    const blocks = uniqBy(
+      this.responseBuffer.flatMap(_ => _.blocks),
+      "id"
+    );
+    const categoryIds = uniq(this.responseBuffer.flatMap(_ => _.categoryIds));
+    const matches = this.responseBuffer.flatMap(_ => _.matches);
+    const socketMessage = {
+      blocks,
+      categoryIds,
+      matches,
+      requestId
+    };
+
+    onMatchesReceived(convertTyperighterResponse(requestId, socketMessage));
+
+    // Clear the buffer
+    this.responseBuffer = [];
+  };
+
+  protected throttledHandleResponse = throttle(
+    this.flushResponseBuffer,
+    this.responseThrottleMs
+  );
 }
 
 export default TyperighterAdapter;

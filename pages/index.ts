@@ -16,6 +16,7 @@ import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
+import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -55,7 +56,7 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new MatcherService(
     store,
     commands,
-    new TyperighterAdapter("http://localhost:9000/check", "http://localhost:9000/categories")
+    new TyperighterWsAdapter("http://localhost:9000")
   );
   createView(
     view,

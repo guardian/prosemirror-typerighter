@@ -6,6 +6,7 @@
     "rules": {
         "max-classes-per-file": false,
         "object-literal-sort-keys": false,
-        "ordered-imports": false
+        "ordered-imports": false,
+        "member-ordering": false
     }
 }
