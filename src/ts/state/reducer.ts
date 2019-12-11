@@ -96,6 +96,8 @@ export interface IBlocksInFlightState {
 }
 
 export interface IPluginState<TBlockMatches extends IMatch = IMatch> {
+  // The document ID. This is sent with match request events.
+  documentId: string;
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
@@ -133,8 +135,10 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
  * Initial state.
  */
 export const createInitialState = <TMatch extends IMatch>(
-  doc: Node
+  doc: Node,
+  documentId?: string
 ): IPluginState<TMatch> => ({
+  documentId: documentId || 'document-id-not-defined',
   debug: false,
   requestMatchesOnDocModified: false,
   decorations: DecorationSet.create(doc, []),
@@ -334,11 +338,17 @@ const createHandleMatchesRequestForDirtyRanges = (
 ) => <TMatch extends IMatch>(
   tr: Transaction,
   state: IPluginState<TMatch>,
-  { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
+  {
+    payload: { requestId, categoryIds }
+  }: ActionRequestMatchesForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const blocks: IBlock[] = ranges.map(range => createBlock(tr, range));
-  return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
+  return handleRequestStart(
+    requestId,
+    blocks,
+    categoryIds
+  )(tr, state);
 };
 
 /**
@@ -347,7 +357,9 @@ const createHandleMatchesRequestForDirtyRanges = (
 const handleMatchesRequestForDocument = <TMatch extends IMatch>(
   tr: Transaction,
   state: IPluginState<TMatch>,
-  { payload: { requestId, categoryIds } }: ActionRequestMatchesForDocument
+  {
+    payload: { requestId, categoryIds }
+  }: ActionRequestMatchesForDocument
 ) => {
   return handleRequestStart(
     requestId,
@@ -504,7 +516,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
-     
+
   // Create our decorations for the newly current matches.
   const newDecorations = createDecorationsForMatches(response.matches);
 
@@ -639,7 +651,9 @@ const handleSetDebugState = <TMatch extends IMatch>(
 const handleSetRequestOnDocModifiedState = <TMatch extends IMatch>(
   _: Transaction,
   state: IPluginState<TMatch>,
-  { payload: { requestMatchesOnDocModified } }: ActionSetRequestMatchesOnDocModified
+  {
+    payload: { requestMatchesOnDocModified }
+  }: ActionSetRequestMatchesOnDocModified
 ) => {
   return {
     ...state,

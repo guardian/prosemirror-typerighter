@@ -15,8 +15,8 @@ describe("store", () => {
     expect(newStateSub.mock.calls[0]).toEqual([state]);
 
     const notABlockInFlight = { exampleBlockInFlight: "" } as any;
-    store.emit("STORE_EVENT_NEW_MATCHES", notABlockInFlight, []);
-    expect(newSub.mock.calls[0]).toEqual([notABlockInFlight, []]);
+    store.emit("STORE_EVENT_NEW_MATCHES", "request-id", "document-id", notABlockInFlight);
+    expect(newSub.mock.calls[0]).toEqual(["request-id", "document-id", notABlockInFlight]);
   });
   it("should allow consumers to remove subscriptions", () => {
     const store = new Store();

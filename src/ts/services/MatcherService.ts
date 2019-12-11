@@ -29,12 +29,8 @@ class MatcherService<TMatch extends IMatch> {
     private maxThrottle = 16000
   ) {
     this.currentThrottle = initialThrottle;
-    this.store.on(STORE_EVENT_NEW_MATCHES, (requestId, requestsInFlight) => {
-      this.fetchMatches(requestId, requestsInFlight);
-    });
-    this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {
-      this.scheduleRequest();
-    });
+    this.store.on(STORE_EVENT_NEW_MATCHES, this.fetchMatches);
+    this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => this.scheduleRequest());
   }
 
   /**
@@ -64,9 +60,14 @@ class MatcherService<TMatch extends IMatch> {
   /**
    * Fetch matches for a set of blocks.
    */
-  public async fetchMatches(requestId: string, blocks: IBlock[]) {
+  public fetchMatches = async (
+    requestId: string,
+    documentId: string,
+    blocks: IBlock[]
+  ) => {
     this.adapter.fetchMatches(
       requestId,
+      documentId,
       blocks,
       this.currentCategories.map(_ => _.id),
       this.commands.applyMatcherResponse,
@@ -95,7 +96,7 @@ class MatcherService<TMatch extends IMatch> {
   /**
    * Schedule a request for the next throttle tick.
    */
-  private scheduleRequest = (): unknown => {
+  private scheduleRequest = () => {
     if (this.requestPending) {
       return;
     }

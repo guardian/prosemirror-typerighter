@@ -37,6 +37,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
 
   public fetchMatches = async (
     requestId: string,
+    documentId: string,
     inputs: IBlock[],
     categoryIds: string[],
     onMatchesReceived: TMatchesReceivedCallback,
@@ -70,6 +71,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
       socket.send(
         JSON.stringify({
           requestId,
+          documentId,
           blocks
         })
       );

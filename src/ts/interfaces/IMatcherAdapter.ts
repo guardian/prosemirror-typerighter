@@ -21,6 +21,7 @@ export declare class IMatcherAdapter<
    */
   public fetchMatches: (
     requestId: string,
+    documentId: string,
     input: IBlock[],
     categoryIds: string[],
     onMatchesReceived: TMatchesReceivedCallback<TMatch>,

@@ -2,10 +2,7 @@ import { applyNewDirtiedRanges } from "./state/actions";
 import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
-import {
-  DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
-  DECORATION_ATTRIBUTE_ID
-} from "./utils/decoration";
+import { DECORATION_ATTRIBUTE_ID } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
@@ -101,6 +98,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
         store.emit(
           STORE_EVENT_NEW_MATCHES,
           requestId,
+          newPluginState.documentId || 'no-document-id',
           pendingBlocks.map(_ => _.block)
         )
       );

@@ -13,6 +13,7 @@ type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 export interface IStoreEvents<TMatch extends IMatch> {
   [STORE_EVENT_NEW_MATCHES]: (
     requestId: string,
+    documentId: string,
     blocks: IBlock[]
   ) => void;
   [STORE_EVENT_NEW_STATE]: (state: IPluginState<TMatch>) => void;

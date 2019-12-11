@@ -55,6 +55,7 @@ const commands = {
 };
 
 const requestId = "set-id";
+const documentId = "doc-id";
 
 const store = new Store();
 
@@ -77,7 +78,7 @@ describe("MatcherService", () => {
     expect.assertions(1);
 
     service.requestFetchMatches();
-    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [block]);
+    store.emit("STORE_EVENT_NEW_MATCHES", requestId, documentId, [block]);
 
     setTimeout(() => {
       expect(commands.applyMatcherResponse.mock.calls[0]).toEqual([
@@ -95,7 +96,7 @@ describe("MatcherService", () => {
     fetchMock.post("http://endpoint/check", 400);
 
     service.requestFetchMatches();
-    store.emit("STORE_EVENT_NEW_MATCHES", requestId, [block]);
+    store.emit("STORE_EVENT_NEW_MATCHES", requestId, documentId, [block]);
     setTimeout(() => {
       expect(commands.applyRequestError.mock.calls[0][0]).toEqual({
         message:
