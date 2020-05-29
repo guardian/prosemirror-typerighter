@@ -44,7 +44,8 @@ class TyperighterAdapter implements IMatcherAdapter {
     inputs: IBlock[],
     categoryIds: string[],
     onMatchesReceived: TMatchesReceivedCallback,
-    onRequestError: TRequestErrorCallback
+    onRequestError: TRequestErrorCallback,
+    _: TRequestCompleteCallback
   ) => {
     inputs.map(async input => {
       const body = {

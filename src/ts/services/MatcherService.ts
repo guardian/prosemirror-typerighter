@@ -25,10 +25,8 @@ class MatcherService<TMatch extends IMatch> {
     private adapter: IMatcherAdapter<TMatch>,
     // The initial throttle duration for pending requests.
     private initialThrottle = 2000,
-    // The maximum possible throttle duration on backoff.
-    private maxThrottle = 16000
   ) {
-    this.currentThrottle = initialThrottle;
+    this.currentThrottle = this.initialThrottle;
     this.store.on(STORE_EVENT_NEW_MATCHES, (requestId, requestsInFlight) => {
       this.fetchMatches(requestId, requestsInFlight);
     });

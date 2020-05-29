@@ -3,7 +3,6 @@ import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
-  DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
   DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";

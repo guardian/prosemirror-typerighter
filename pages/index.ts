@@ -16,7 +16,6 @@ import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
-import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -65,10 +64,10 @@ if (editorElement && sidebarElement && controlsElement) {
     commands,
     sidebarElement,
     controlsElement,
-    'mailto:example@typerighter.co.uk'
+    "mailto:example@typerighter.co.uk"
   );
 
   // Handy debugging tools
   (window as any).editor = view;
-  (window as any).ProseMirrorDevTools.applyDevTools(view, { EditorState: EditorState });
+  (window as any).ProseMirrorDevTools.applyDevTools(view, { EditorState });
 }
