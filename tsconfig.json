@@ -13,5 +13,7 @@
     "jsx": "react",
     "jsxFactory": "h",
     "lib": ["dom", "esnext"],
+    "declaration": true,
+    "declarationDir": "dist"
   }
 }
