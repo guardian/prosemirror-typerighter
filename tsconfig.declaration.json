@@ -3,6 +3,6 @@
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outFile": "dist/index.d.ts"
+    "outDir": "dist",
   }
 }

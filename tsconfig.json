@@ -2,7 +2,6 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "module": "ES2015",
-    "rootDirs": ["src/ts", "pages"],
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
