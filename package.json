@@ -14,12 +14,12 @@
     "coverage": "jest --env=jsdom --coverage",
     "report-coverage": "jest --env=jsdom --coverage --coverageReporters=text-lcov | coveralls",
     "pages": "npm run build && http-server ./pages/dist",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "tsc -p tsconfig.declaration.json",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "format": "prettier --write './src/**/*.ts'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
-    "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/createValidationPlugin.ts"
+    "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
