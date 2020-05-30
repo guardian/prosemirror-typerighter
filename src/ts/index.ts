@@ -1,6 +1,6 @@
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
-import TyperighterAdapter from "./services/adapters/TyperighterAdapter";
+import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
 import { createBoundCommands } from "./commands";
 import { getBlocksFromDocument } from './utils/prosemirror';
 import createView from "./createView";
@@ -10,6 +10,7 @@ export {
   MatcherService,
   TyperighterAdapter,
   getBlocksFromDocument,
+  convertTyperighterResponse,
   createBoundCommands,
   createView,
   createTyperighterPlugin
