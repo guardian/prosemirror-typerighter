@@ -62,7 +62,11 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const plugin: Plugin = new Plugin({
     key: new PluginKey("prosemirror-typerighter"),
     state: {
-      init: (_, { doc }) => createInitialState(doc, matches),
+      init: (_, { doc }) => {
+        const state = createInitialState(doc, matches);
+        store.emit(STORE_EVENT_NEW_STATE, state)
+        return state;
+      },
       apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
         return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));

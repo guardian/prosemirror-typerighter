@@ -35,6 +35,7 @@ class Controls extends Component<IProps, IState> {
     pluginState: undefined
   } as IState;
   public componentWillMount() {
+    this.handleNotify(this.props.store.getState());
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
     this.initCategories();
   }
@@ -168,7 +169,7 @@ class Controls extends Component<IProps, IState> {
       </div>
     );
   }
-  private handleNotify = (state: IPluginState<IMatch>) => {
+  private handleNotify = (state: IPluginState<IMatch> | undefined) => {
     this.setState({ pluginState: state });
   };
   private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });

@@ -29,6 +29,7 @@ class Sidebar extends Component<
   }
 > {
   public componentWillMount() {
+    this.handleNewState(this.props.store.getState());
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
   }
 
@@ -103,7 +104,10 @@ class Sidebar extends Component<
     );
   }
 
-  private handleNewState = (pluginState: IPluginState<IMatch>) => {
+  private handleNewState = (pluginState: IPluginState<IMatch> | undefined) => {
+    if (!pluginState) {
+      return;
+    }
     this.setState({
       pluginState: {
         ...pluginState,

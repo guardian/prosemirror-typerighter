@@ -138,7 +138,7 @@ export const createInitialState = <TMatch extends IMatch>(
 ): IPluginState<TMatch> => ({
   debug: false,
   requestMatchesOnDocModified: false,
-  decorations: DecorationSet.create(doc, []),
+  decorations: DecorationSet.create(doc, createDecorationsForMatches(matches)),
   dirtiedRanges: [],
   currentMatches: matches,
   selectedMatch: undefined,

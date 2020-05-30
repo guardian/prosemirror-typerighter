@@ -38,6 +38,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
   private matchRef: Match<TMatch> | undefined = undefined;
 
   public componentWillMount() {
+    this.handleNotify(this.props.store.getState());
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
   }
 
@@ -85,7 +86,10 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
 
   private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
 
-  private handleNotify = (state: IPluginState<IMatch>) => {
+  private handleNotify = (state: IPluginState<IMatch> | undefined) => {
+    if (!state) {
+      return;
+    }
     const newState = {
       isVisible: false,
       left: 0,
@@ -148,7 +152,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
 
     const left = absoluteLeft - hoverInfo.containerLeft;
     const top = absoluteTop - hoverInfo.containerTop;
-  
+
     return { left, top, maxLeft };
   };
 
