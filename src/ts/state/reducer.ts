@@ -43,7 +43,7 @@ import {
   removeOverlappingRanges
 } from "../utils/range";
 import { ExpandRanges } from "../createTyperighterPlugin";
-import { createBlocksForDocument } from "../utils/prosemirror";
+import { getBlocksFromDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
   selectSingleBlockInFlightById,
@@ -337,7 +337,7 @@ const createHandleMatchesRequestForDirtyRanges = (
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const blocks: IBlock[] = ranges.map(range => createBlock(tr, range));
+  const blocks: IBlock[] = ranges.map(range => createBlock(tr.doc, range, tr.time));
   return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
 
@@ -351,7 +351,7 @@ const handleMatchesRequestForDocument = <TMatch extends IMatch>(
 ) => {
   return handleRequestStart(
     requestId,
-    createBlocksForDocument(tr),
+    getBlocksFromDocument(tr.doc, tr.time),
     categoryIds
   )(tr, state);
 };
@@ -504,7 +504,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
-     
+
   // Create our decorations for the newly current matches.
   const newDecorations = createDecorationsForMatches(response.matches);
 
