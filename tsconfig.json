@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "moduleResolution": "node",
+    "module": "ES2015",
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -12,6 +13,6 @@
     "esModuleInterop": true,
     "jsx": "react",
     "jsxFactory": "h",
-    "lib": ["dom", "esnext"],
+    "lib": ["dom", "esnext"]
   }
 }

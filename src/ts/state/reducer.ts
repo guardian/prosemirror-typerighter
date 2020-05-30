@@ -43,7 +43,7 @@ import {
   removeOverlappingRanges
 } from "../utils/range";
 import { ExpandRanges } from "../createTyperighterPlugin";
-import { createBlocksForDocument } from "../utils/prosemirror";
+import { getBlocksFromDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
   selectSingleBlockInFlightById,
@@ -95,7 +95,7 @@ export interface IBlocksInFlightState {
   mapping: Mapping;
 }
 
-export interface IPluginState<TBlockMatches extends IMatch = IMatch> {
+export interface IPluginState<TMatches extends IMatch = IMatch> {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
@@ -104,7 +104,7 @@ export interface IPluginState<TBlockMatches extends IMatch = IMatch> {
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current matches for the document.
-  currentMatches: TBlockMatches[];
+  currentMatches: TMatches[];
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last request.
   dirtiedRanges: IRange[];
@@ -133,13 +133,14 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
  * Initial state.
  */
 export const createInitialState = <TMatch extends IMatch>(
-  doc: Node
+  doc: Node,
+  matches: TMatch[] = []
 ): IPluginState<TMatch> => ({
   debug: false,
   requestMatchesOnDocModified: false,
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
-  currentMatches: [],
+  currentMatches: matches,
   selectedMatch: undefined,
   hoverId: undefined,
   hoverInfo: undefined,
@@ -337,7 +338,9 @@ const createHandleMatchesRequestForDirtyRanges = (
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const blocks: IBlock[] = ranges.map(range => createBlock(tr, range));
+  const blocks: IBlock[] = ranges.map(range =>
+    createBlock(tr.doc, range, tr.time)
+  );
   return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
 
@@ -351,7 +354,7 @@ const handleMatchesRequestForDocument = <TMatch extends IMatch>(
 ) => {
   return handleRequestStart(
     requestId,
-    createBlocksForDocument(tr),
+    getBlocksFromDocument(tr.doc, tr.time),
     categoryIds
   )(tr, state);
 };
@@ -504,7 +507,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
-     
+
   // Create our decorations for the newly current matches.
   const newDecorations = createDecorationsForMatches(response.matches);
 
@@ -639,7 +642,9 @@ const handleSetDebugState = <TMatch extends IMatch>(
 const handleSetRequestOnDocModifiedState = <TMatch extends IMatch>(
   _: Transaction,
   state: IPluginState<TMatch>,
-  { payload: { requestMatchesOnDocModified } }: ActionSetRequestMatchesOnDocModified
+  {
+    payload: { requestMatchesOnDocModified }
+  }: ActionSetRequestMatchesOnDocModified
 ) => {
   return {
     ...state,

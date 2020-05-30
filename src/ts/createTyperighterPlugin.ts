@@ -3,7 +3,6 @@ import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
-  DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID,
   DECORATION_ATTRIBUTE_ID
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
@@ -26,7 +25,7 @@ import { indicateHoverCommand } from "./commands";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-interface IPluginOptions {
+interface IPluginOptions<TMatch extends IMatch> {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -34,6 +33,11 @@ interface IPluginOptions {
    * block node.
    */
   expandRanges?: ExpandRanges;
+
+  /**
+   * The initial set of matches to apply to the document, if any.
+   */
+  matches?: TMatch[]
 }
 
 /**
@@ -45,9 +49,9 @@ interface IPluginOptions {
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
 const createTyperighterPlugin = <TMatch extends IMatch>(
-  options: IPluginOptions = {}
+  options: IPluginOptions<TMatch> = {}
 ) => {
-  const { expandRanges = expandRangesToParentBlockNode } = options;
+  const { expandRanges = expandRangesToParentBlockNode, matches = [] } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
 
@@ -58,7 +62,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const plugin: Plugin = new Plugin({
     key: new PluginKey("prosemirror-typerighter"),
     state: {
-      init: (_, { doc }) => createInitialState(doc),
+      init: (_, { doc }) => createInitialState(doc, matches),
       apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
         return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));

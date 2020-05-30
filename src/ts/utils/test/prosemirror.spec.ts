@@ -1,6 +1,6 @@
 import builder from "prosemirror-test-builder";
 import {
-  createBlocksForDocument,
+  getBlocksFromDocument,
   getReplaceStepRangesFromTransaction
 } from "../prosemirror";
 import { Transaction } from "prosemirror-state";
@@ -10,17 +10,14 @@ import { flatten } from "prosemirror-utils";
 const { doc, p, ul, li } = builder;
 
 describe("Prosemirror utils", () => {
-  describe("createBlocksForDocument", () => {
+  describe("getBlocksFromDocument", () => {
     it("should get the ranges of all the leaf block nodes in a given node", () => {
       const node = doc(
         p("Paragraph 1"),
         p("Paragraph 2"),
         p(ul(li("List item 1"), li("List item 2")))
       );
-      const tr = new Transaction(node);
-      tr.doc = node;
-      tr.time = 0;
-      expect(createBlocksForDocument(tr)).toEqual([
+      expect(getBlocksFromDocument(node, 0)).toEqual([
         { from: 1, to: 13, text: "Paragraph 1", id: "0-from:1-to:13" },
         { from: 14, to: 26, text: "Paragraph 2", id: "0-from:14-to:26" },
         {

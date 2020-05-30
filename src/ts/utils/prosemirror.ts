@@ -35,17 +35,18 @@ export const findChildren = (
   return flatten(node, descend).filter(child => predicate(child.node));
 };
 
-export const createBlocksForDocument = (
-  tr: Transaction
+export const getBlocksFromDocument = (
+  doc: Node,
+  time = 0
 ): IBlock[] => {
   const ranges = [] as IBlock[];
-  tr.doc.descendants((descNode, pos) => {
+  doc.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push(
-        createBlock(tr, {
+        createBlock(doc, {
           from: pos + 1,
           to: pos + descNode.nodeSize
-        })
+        }, time)
       );
       return false;
     }

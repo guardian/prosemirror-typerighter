@@ -12,6 +12,7 @@ import {
   createInitialData,
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
+import { IMatch } from '../../interfaces/IMatch';
 
 describe("selectors", () => {
   describe("selectMatchById", () => {
@@ -126,10 +127,9 @@ describe("selectors", () => {
     });
     it("should handle unknown suggestions for found outputs", () => {
       const { state } = createInitialData();
-      const currentMatches = [
+      const currentMatches: IMatch[] = [
         {
           matchId: "match-id",
-          id: "id",
           from: 0,
           to: 5,
           suggestions: [
@@ -139,13 +139,13 @@ describe("selectors", () => {
               text: "suggestion"
             }
           ],
-          annotation: "Annotation",
+          message: "Annotation",
           category: {
             id: "1",
             name: "cat",
             colour: "eeeeee"
           },
-          text: "hai"
+          matchedText: "hai"
         }
       ];
       expect(
@@ -161,10 +161,9 @@ describe("selectors", () => {
     });
     it("should select a suggestion and the range it should be applied to, given a match id and suggestion index", () => {
       const { state } = createInitialData();
-      const currentMatches = [
+      const currentMatches: IMatch[] = [
         {
           matchId: "match-id",
-          id: "id",
           from: 0,
           to: 5,
           suggestions: [
@@ -174,13 +173,13 @@ describe("selectors", () => {
               text: "suggestion"
             }
           ],
-          annotation: "Annotation",
+          message: "Annotation",
           category: {
             id: "1",
             name: "cat",
             colour: "eeeeee"
           },
-          text: "hai"
+          matchedText: "hai"
         }
       ];
       expect(
