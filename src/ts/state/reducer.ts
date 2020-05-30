@@ -134,7 +134,7 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
  */
 export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
-  matches: TMatch[]
+  matches: TMatch[] = []
 ): IPluginState<TMatch> => ({
   debug: false,
   requestMatchesOnDocModified: false,

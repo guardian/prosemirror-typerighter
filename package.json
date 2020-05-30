@@ -10,6 +10,7 @@
     "name": "Jonathon Herbert",
     "email": "jonathon.herbert@guardian.co.uk"
   },
+  "repository": "https://github.com/guardian/prosemirror-typerighter",
   "scripts": {
     "test": "jest --env=jsdom",
     "coverage": "jest --env=jsdom --coverage",
