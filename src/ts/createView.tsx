@@ -49,6 +49,7 @@ const createView = (
       applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
       selectMatch={commands.selectMatch}
       indicateHover={commands.indicateHover}
+      stopHover={commands.stopHover}
       contactHref={contactHref}
     />,
     sidebarNode

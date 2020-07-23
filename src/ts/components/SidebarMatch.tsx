@@ -10,7 +10,8 @@ interface IProps {
   output: IMatch;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
-  indicateHover: (blockId: string | undefined, _?: any) => void;
+  indicateHover: (blockId: string, _?: any) => void;
+  stopHover: ()  =>  void;
   selectedMatch: string | undefined;
 }
 
@@ -111,7 +112,7 @@ class SidebarMatch extends Component<IProps, IState> {
   };
 
   private handleMouseLeave = () => {
-    this.props.indicateHover(undefined);
+    this.props.stopHover();
   };
 }
 
