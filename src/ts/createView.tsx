@@ -36,7 +36,10 @@ const createView = (
   render(
     <MatchOverlay
       store={store}
-      applySuggestions={commands.applySuggestions}
+      applySuggestions={(suggestionOpts) => {
+        commands.applySuggestions(suggestionOpts)
+        commands.stopHover();
+      }}
       containerElement={wrapperElement}
     />,
     overlayNode
