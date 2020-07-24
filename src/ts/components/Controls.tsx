@@ -78,9 +78,7 @@ class Controls extends Component<IProps, IState> {
                     checked={requestMatchesOnDocModified}
                     className="Input"
                     onClick={() =>
-                      setRequestOnDocModified(
-                        !requestMatchesOnDocModified
-                      )
+                      setRequestOnDocModified(!requestMatchesOnDocModified)
                     }
                   />
                 </div>

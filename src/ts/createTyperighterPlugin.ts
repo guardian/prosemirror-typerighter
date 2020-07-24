@@ -79,24 +79,23 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
       const tr = newState.tr;
 
-      if (newPluginState.requestMatchesOnDocModified) {
-        const newDirtiedRanges = trs.reduce(
-          (acc, range) =>
-            acc.concat(getReplaceStepRangesFromTransaction(range)),
-          [] as IRange[]
-        );
-        if (newDirtiedRanges.length) {
+      const newDirtiedRanges = trs.reduce(
+        (acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)),
+        [] as IRange[]
+      );
+      if (newDirtiedRanges.length) {
+        if (newPluginState.requestMatchesOnDocModified) {
           // We wait a tick here, as applyNewDirtiedRanges must run
           // before the newly dirtied range is available in the state.
           // @todo -- this is a bit of a hack, it can be done better.
           setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
-
-          return tr.setMeta(
-            PROSEMIRROR_TYPERIGHTER_ACTION,
-            applyNewDirtiedRanges(newDirtiedRanges)
-          );
         }
+        return tr.setMeta(
+          PROSEMIRROR_TYPERIGHTER_ACTION,
+          applyNewDirtiedRanges(newDirtiedRanges)
+        );
       }
+
       const blockStates = selectNewBlockInFlight(
         oldPluginState,
         newPluginState
