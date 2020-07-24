@@ -79,14 +79,30 @@ export const requestMatchesForDirtyRangesCommand = (
  * over a match decoration) to allow the positioning of e.g. tooltips.
  */
 export const indicateHoverCommand = (
-  matchId: string | undefined,
-  hoverInfo: IStateHoverInfo | undefined
+  matchId: string,
+  hoverInfo?: IStateHoverInfo
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
         newHoverIdReceived(matchId, hoverInfo)
+      )
+    );
+  }
+  return true;
+};
+
+/**
+ * Indicate that the user is no longer hovering over a
+ * prosemirror-typerighter tooltip.
+ */
+export const stopHoverCommand = (): Command => (state, dispatch) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        newHoverIdReceived(undefined, undefined)
       )
     );
   }
@@ -301,6 +317,7 @@ export const createBoundCommands = <TMatch extends IMatch>(
       requestMatchesForDirtyRangesCommand
     ),
     indicateHover: bindCommand(indicateHoverCommand),
+    stopHover: bindCommand(stopHoverCommand),
     setDebugState: bindCommand(setDebugStateCommand),
     setRequestOnDocModified: bindCommand(setRequestOnDocModifiedState),
     applyMatcherResponse: bindCommand(applyMatcherResponseCommand),

@@ -13,7 +13,8 @@ interface IProps {
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
   selectMatch: (matchId: string) => void;
-  indicateHover: (matchId: string | undefined, _: any) => void;
+  indicateHover: (matchId: string, _?: any) => void;
+  stopHover: () => void;
   contactHref: string;
 }
 
@@ -38,6 +39,7 @@ class Sidebar extends Component<
       applyAutoFixableSuggestions,
       selectMatch,
       indicateHover,
+      stopHover,
       contactHref
     } = this.props;
     const { currentMatches = [], requestsInFlight, selectedMatch } = this.state
@@ -90,6 +92,7 @@ class Sidebar extends Component<
                     applySuggestions={applySuggestions}
                     selectMatch={selectMatch}
                     indicateHover={indicateHover}
+                    stopHover={stopHover}
                   />
                 </li>
               ))}

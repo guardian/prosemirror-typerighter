@@ -17,7 +17,7 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
-import { indicateHoverCommand } from "./commands";
+import { indicateHoverCommand, stopHoverCommand } from "./commands";
 
 /**
  * @module createTyperighterPlugin
@@ -37,7 +37,7 @@ interface IPluginOptions<TMatch extends IMatch> {
   /**
    * The initial set of matches to apply to the document, if any.
    */
-  matches?: TMatch[]
+  matches?: TMatch[];
 }
 
 /**
@@ -79,24 +79,23 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
       const tr = newState.tr;
 
-      if (newPluginState.requestMatchesOnDocModified) {
-        const newDirtiedRanges = trs.reduce(
-          (acc, range) =>
-            acc.concat(getReplaceStepRangesFromTransaction(range)),
-          [] as IRange[]
-        );
-        if (newDirtiedRanges.length) {
+      const newDirtiedRanges = trs.reduce(
+        (acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)),
+        [] as IRange[]
+      );
+      if (newDirtiedRanges.length) {
+        if (newPluginState.requestMatchesOnDocModified) {
           // We wait a tick here, as applyNewDirtiedRanges must run
           // before the newly dirtied range is available in the state.
           // @todo -- this is a bit of a hack, it can be done better.
           setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
-
-          return tr.setMeta(
-            PROSEMIRROR_TYPERIGHTER_ACTION,
-            applyNewDirtiedRanges(newDirtiedRanges)
-          );
         }
+        return tr.setMeta(
+          PROSEMIRROR_TYPERIGHTER_ACTION,
+          applyNewDirtiedRanges(newDirtiedRanges)
+        );
       }
+
       const blockStates = selectNewBlockInFlight(
         oldPluginState,
         newPluginState
@@ -141,15 +140,21 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
             return false;
           }
 
-          indicateHoverCommand(
-            newMatchId,
-            getStateHoverInfoFromEvent(
-              // We're very sure that this is a mouseevent, but Typescript isn't.
-              event as MouseEvent,
-              view.dom,
-              matchDecoration
-            )
-          )(view.state, view.dispatch);
+          const hoverInfo = getStateHoverInfoFromEvent(
+            // We're very sure that this is a mouseevent, but Typescript isn't.
+            event as MouseEvent,
+            view.dom,
+            matchDecoration
+          );
+
+          if (newMatchId && hoverInfo) {
+            indicateHoverCommand(newMatchId, hoverInfo)(
+              view.state,
+              view.dispatch
+            );
+          } else {
+            stopHoverCommand()(view.state, view.dispatch);
+          }
 
           return false;
         }

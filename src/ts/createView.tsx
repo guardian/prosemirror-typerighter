@@ -36,7 +36,10 @@ const createView = (
   render(
     <MatchOverlay
       store={store}
-      applySuggestions={commands.applySuggestions}
+      applySuggestions={(suggestionOpts) => {
+        commands.applySuggestions(suggestionOpts)
+        commands.stopHover();
+      }}
       containerElement={wrapperElement}
     />,
     overlayNode
@@ -49,6 +52,7 @@ const createView = (
       applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
       selectMatch={commands.selectMatch}
       indicateHover={commands.indicateHover}
+      stopHover={commands.stopHover}
       contactHref={contactHref}
     />,
     sidebarNode
