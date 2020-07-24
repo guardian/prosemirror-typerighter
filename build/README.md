@@ -9,7 +9,7 @@ It's still in its early stages! [There's a demo here.](https://guardian.github.i
 
 ## Development
 
-`npm run watch` builds the project locally, watches for file changes, and serves the project locally at localhost:5000.
+`npm run watch` builds the project locally, watches for file changes, and serves the project locally at http://localhost:5000.
 
 The plugin must be pointed to the address of a running Typerighter service to submit a document and receive matches. To modify, change the address passed to the `TyperighterAdapter` in `pages/index.ts`.
 
