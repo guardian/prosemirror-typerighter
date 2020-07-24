@@ -56,6 +56,7 @@ class TyperighterAdapter implements IMatcherAdapter {
       try {
         const response = await fetch(`${this.url}/check`, {
           method: "POST",
+          credentials: 'include',
           headers: new Headers({
             "Content-Type": "application/json"
           }),
@@ -80,6 +81,7 @@ class TyperighterAdapter implements IMatcherAdapter {
   };
   public fetchCategories = async () => {
     const response = await fetch(`${this.url}/categories`, {
+      credentials: 'include',
       headers: new Headers({
         "Content-Type": "application/json"
       })
