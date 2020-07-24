@@ -16,9 +16,9 @@
     "coverage": "jest --env=jsdom --coverage",
     "report-coverage": "jest --env=jsdom --coverage --coverageReporters=text-lcov | coveralls",
     "pages": "npm run build && http-server ./pages/dist",
-    "prepublishOnly": "tsc -p tsconfig.declaration.json",
+    "prepublishOnly": "npm run build && tsc -p tsconfig.declaration.json",
     "build": "rollup -c",
-    "watch": "rollup -c -w",
+    "watch": "rollup -c -w & http-server -p 5000 ./pages/dist",
     "format": "prettier --write './src/**/*.ts'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
