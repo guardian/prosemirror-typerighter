@@ -162,6 +162,9 @@ class Controls extends Component<IProps, IState> {
               Check whole document
             </button>
           </div>
+          <div className="Controls__row" style="color:Red">
+            {this.state.pluginState?.error}
+          </div>
         </div>
       </div>
     );
