@@ -15,7 +15,8 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     applySuggestions
   }: IMatchProps<TMatch>) {
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
-    const feedbackInfo = { matchId, category, message, suggestions, replacement };
+    const url = document.URL;
+    const feedbackInfo = { matchId, category, message, suggestions, replacement, url };
     return (
       <div className="MatchWidget__container">
         <div className="MatchWidget" ref={_ => (this.ref = _)}>
@@ -52,7 +53,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2))
     return "https://docs.google.com/forms/d/e/1FAIpQLSfMOgvJtCchnW0_2zB7Afz_WtYJ5lnPqQI-dgFZ-p0B4h6uKw/viewform?usp=pp_url&entry.110962249=" + data
   }
-  
+
 }
 
 
