@@ -599,7 +599,8 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, []),
+    //requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, []),
+    requestsInFlight: omit(state.requestsInFlight, requestId),
     error: message
   };
 };

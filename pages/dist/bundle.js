@@ -22216,7 +22216,7 @@
       }
       return Object.assign(Object.assign({}, state), { dirtiedRanges: dirtiedRanges.length
               ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-              : state.dirtiedRanges, decorations, requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, []), error: message });
+              : state.dirtiedRanges, decorations, requestsInFlight: omit_1(state.requestsInFlight, requestId), error: message });
   };
   const handleRequestComplete = (_, state, { payload: { requestId } }) => {
       const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -24541,10 +24541,11 @@
           this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
       }
       render() {
+          var _a;
           const { applySuggestions, applyAutoFixableSuggestions, selectMatch, indicateHover, stopHover, contactHref } = this.props;
           const { currentMatches = [], requestsInFlight, selectedMatch } = this.state
               .pluginState || { selectedMatch: undefined };
-          const hasMatches = !!(currentMatches && currentMatches.length);
+          const hasMatches = !!(currentMatches && currentMatches.length && !((_a = this.state.pluginState) === null || _a === void 0 ? void 0 : _a.error));
           const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
           const percentRemaining = this.getPercentRemaining();
           const isLoading = !!requestsInFlight && !!Object.keys(requestsInFlight).length;
