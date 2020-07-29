@@ -8,11 +8,6 @@ interface IMatchProps<TMatch extends IMatch> {
   match: TMatch;
 }
 
-const getFeedbackLink = (feedbackInfo: any) => {
-  const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2))
-  return "https://docs.google.com/forms/d/e/1FAIpQLSfMOgvJtCchnW0_2zB7Afz_WtYJ5lnPqQI-dgFZ-p0B4h6uKw/viewform?usp=pp_url&entry.110962249=" + data
-}
-
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   public ref: HTMLDivElement | null = null;
   public render({
@@ -41,9 +36,9 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
             </div>
           )}
           <div className="MatchWidget__feedbackLink">
-            <a 
+            <a
               target="_blank"
-              href={getFeedbackLink(feedbackInfo)}
+              href={this.getFeedbackLink(feedbackInfo)}
             >
               Something's not right? Tell us!
             </a>
@@ -52,6 +47,13 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       </div>
     );
   }
+
+  private getFeedbackLink = (feedbackInfo: any) => {
+    const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2))
+    return "https://docs.google.com/forms/d/e/1FAIpQLSfMOgvJtCchnW0_2zB7Afz_WtYJ5lnPqQI-dgFZ-p0B4h6uKw/viewform?usp=pp_url&entry.110962249=" + data
+  }
+  
 }
+
 
 export default Match;
