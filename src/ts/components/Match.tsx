@@ -38,16 +38,16 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
                 matchId={matchId}
                 suggestions={suggestionsToRender}
               />
-              <div className="MatchWidget__feedbackLink">
-                <a 
-                  target="_blank"
-                  href={getFeedbackLink(feedbackInfo)}
-                >
-                  Something's not right? Tell us!
-                </a>
-              </div>
             </div>
           )}
+          <div className="MatchWidget__feedbackLink">
+            <a 
+              target="_blank"
+              href={getFeedbackLink(feedbackInfo)}
+            >
+              Something's not right? Tell us!
+            </a>
+            </div>
         </div>
       </div>
     );
