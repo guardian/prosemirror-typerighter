@@ -15,7 +15,7 @@ interface IProps {
   selectMatch: (matchId: string) => void;
   indicateHover: (matchId: string, _?: any) => void;
   stopHover: () => void;
-  contactHref: string;
+  contactHref?: string;
 }
 
 /**
@@ -65,11 +65,13 @@ class Sidebar extends Component<
               </button>
             )}
           </div>
-          <div className="Sidebar__header-contact">
-            <a href={contactHref} target="_blank">
-              Issue with a rule? Let us know!
-            </a>
-          </div>
+          {contactHref && (
+            <div className="Sidebar__header-contact">
+              <a href={contactHref} target="_blank">
+                Issue with a rule? Let us know!
+              </a>
+            </div>
+          )}
           {this.state.loadingBarVisible && (
             <div
               class="LoadingBar"
