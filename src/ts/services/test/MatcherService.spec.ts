@@ -6,6 +6,7 @@ import TyperighterAdapter, {
 } from "../adapters/TyperighterAdapter";
 import { ITypeRighterResponse } from "../adapters/interfaces/ITyperighter";
 import { createBlockId } from "../../utils/block";
+import { IMatchRequestError } from "../../interfaces/IMatch";
 
 const createResponse = (strs: string[]): ITypeRighterResponse => ({
   requestId: "set-id",
@@ -101,8 +102,9 @@ describe("MatcherService", () => {
         message:
           "Error fetching matches. The server responded with status code 400: Bad Request",
         blockId: "0-from:0-to:10",
-        requestId: "set-id"
-      });
+        requestId: "set-id",
+        categoryIds: []
+      } as IMatchRequestError);
       done();
     });
   });
