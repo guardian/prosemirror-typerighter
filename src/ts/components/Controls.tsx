@@ -163,7 +163,7 @@ class Controls extends Component<IProps, IState> {
             </button>
           </div>
           <div className="Controls__row" style="color:Red">
-            {this.state.pluginState?.error}
+            {this.state.pluginState?.errorMessage}
           </div>
         </div>
       </div>
