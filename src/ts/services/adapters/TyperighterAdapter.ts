@@ -78,7 +78,8 @@ class TyperighterAdapter implements IMatcherAdapter {
         onRequestError({
           requestId,
           blockId: input.id,
-          message: e.message
+          message: e.message,
+          categoryIds
         });
       }
     });

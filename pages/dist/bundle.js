@@ -22194,7 +22194,7 @@
               .remove(decsToRemove)
               .add(tr.doc, newDecorations) });
   };
-  const handleMatchesRequestError = (tr, state, { payload: { matchRequestError: { requestId, blockId, message } } }) => {
+  const handleMatchesRequestError = (tr, state, { payload: { matchRequestError: { requestId, blockId, message, categoryIds } } }) => {
       if (!blockId) {
           return Object.assign(Object.assign({}, state), { message });
       }
@@ -22216,7 +22216,7 @@
       }
       return Object.assign(Object.assign({}, state), { dirtiedRanges: dirtiedRanges.length
               ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-              : state.dirtiedRanges, decorations, requestsInFlight: omit_1(state.requestsInFlight, requestId), error: message });
+              : state.dirtiedRanges, decorations, requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, categoryIds), error: message });
   };
   const handleRequestComplete = (_, state, { payload: { requestId } }) => {
       const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -25413,7 +25413,8 @@
                       onRequestError({
                           requestId,
                           blockId: input.id,
-                          message: e.message
+                          message: e.message,
+                          categoryIds
                       });
                   }
               }));

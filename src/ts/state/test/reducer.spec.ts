@@ -366,7 +366,8 @@ describe("Action handlers", () => {
         requestError({
           requestId: exampleRequestId,
           blockId: createBlockId(0, 1, 25),
-          message: "Too many requests"
+          message: "Too many requests",
+          categoryIds: []
         })
       );
       expect(newState).toMatchObject({

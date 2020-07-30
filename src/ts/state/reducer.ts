@@ -541,7 +541,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>,
   {
     payload: {
-      matchRequestError: { requestId, blockId, message }
+      matchRequestError: { requestId, blockId, message, categoryIds }
     }
   }: ActionRequestError
 ) => {
@@ -599,8 +599,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    //requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, []),
-    requestsInFlight: omit(state.requestsInFlight, requestId),
+    requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, categoryIds),
     error: message
   };
 };
