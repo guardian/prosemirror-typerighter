@@ -19,6 +19,7 @@ interface IProps<TMatch extends IMatch> {
   // The element that contains the tooltips. Tooltips will be positioned
   // within this element.
   containerElement?: HTMLElement;
+  feedbackHref?: string;
 }
 
 /**
@@ -77,6 +78,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
             ref={_ => (this.matchRef = _)}
             match={match}
             applySuggestions={this.props.applySuggestions}
+            feedbackHref={this.props.feedbackHref}
           />
         </div>
       </div>

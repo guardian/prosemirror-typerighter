@@ -6,6 +6,7 @@ import SuggestionList from "./SuggestionList";
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
+  feedbackHref?: string;
 }
 
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
@@ -36,14 +37,16 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
               />
             </div>
           )}
-          <div className="MatchWidget__feedbackLink">
-            <a
-              target="_blank"
-              href={this.getFeedbackLink(feedbackInfo)}
-            >
-              Something's not right? Tell us!
-            </a>
+          {this.props.feedbackHref && (
+            <div className="MatchWidget__feedbackLink">
+              <a
+                target="_blank"
+                href={this.getFeedbackLink(feedbackInfo)}
+              >
+                Something's not right? Tell us!
+              </a>
             </div>
+          )}
         </div>
       </div>
     );
@@ -51,10 +54,9 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
 
   private getFeedbackLink = (feedbackInfo: any) => {
     const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2))
-    return "https://docs.google.com/forms/d/e/1FAIpQLSfMOgvJtCchnW0_2zB7Afz_WtYJ5lnPqQI-dgFZ-p0B4h6uKw/viewform?usp=pp_url&entry.110962249=" + data
+    return this.props.feedbackHref! + data
   }
 
 }
-
 
 export default Match;
