@@ -18,7 +18,8 @@ const createView = (
   commands: Commands,
   sidebarNode: Element,
   controlsNode: Element,
-  contactHref: string
+  contactHref?: string,
+  feedbackHref?: string
 ) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
@@ -41,6 +42,7 @@ const createView = (
         commands.stopHover();
       }}
       containerElement={wrapperElement}
+      feedbackHref={feedbackHref}
     />,
     overlayNode
   );
