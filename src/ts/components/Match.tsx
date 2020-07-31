@@ -41,7 +41,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
             <div className="MatchWidget__feedbackLink">
               <a
                 target="_blank"
-                href={this.getFeedbackLink(feedbackInfo)}
+                href={this.getFeedbackLink(this.props.feedbackHref!, feedbackInfo)}
               >
                 Something's not right? Tell us!
               </a>
@@ -52,9 +52,9 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     );
   }
 
-  private getFeedbackLink = (feedbackInfo: any) => {
+  private getFeedbackLink = (feedbackHref: string, feedbackInfo: any) => {
     const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2))
-    return this.props.feedbackHref! + data
+    return feedbackHref + data
   }
 
 }
