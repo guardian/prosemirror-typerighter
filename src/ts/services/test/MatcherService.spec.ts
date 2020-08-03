@@ -100,7 +100,7 @@ describe("MatcherService", () => {
     setTimeout(() => {
       expect(commands.applyRequestError.mock.calls[0][0]).toEqual({
         message:
-          "Error fetching matches. The server responded with status code 400: Bad Request",
+          "400: Bad Request",
         blockId: "0-from:0-to:10",
         requestId: "set-id",
         categoryIds: []

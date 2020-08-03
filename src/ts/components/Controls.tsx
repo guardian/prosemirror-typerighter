@@ -13,6 +13,7 @@ interface IProps {
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
+  contactHref: string;
 }
 
 interface IState {
@@ -32,7 +33,7 @@ class Controls extends Component<IProps, IState> {
     allCategories: [],
     currentCategories: [],
     isLoadingCategories: false,
-    pluginState: undefined
+    pluginState: undefined,
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -162,9 +163,9 @@ class Controls extends Component<IProps, IState> {
               Check whole document
             </button>
           </div>
-          <div className="Controls__row" style="color:Red">
-            {this.state.pluginState?.errorMessage}
-          </div>
+          {this.state.pluginState?.hasError && <div className="Controls__error-message">
+            Error fetching matches. Please try checking the document again. If the error persists, please <a href={this.props.contactHref} target="_blank">contact us</a>. 
+          </div>}
         </div>
       </div>
     );

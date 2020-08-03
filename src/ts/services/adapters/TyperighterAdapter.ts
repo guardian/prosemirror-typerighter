@@ -68,7 +68,7 @@ class TyperighterAdapter implements IMatcherAdapter {
         });
         if (response.status !== 200) {
           throw new Error(
-            `Error fetching matches. The server responded with status code ${response.status}: ${response.statusText}`
+            `${response.status}: ${response.statusText}`
           );
         }
         const responseData: ITypeRighterResponse = await response.json();

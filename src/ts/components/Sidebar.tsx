@@ -44,7 +44,7 @@ class Sidebar extends Component<
     } = this.props;
     const { currentMatches = [], requestsInFlight, selectedMatch } = this.state
       .pluginState || { selectedMatch: undefined };
-    const hasMatches = !!(currentMatches && currentMatches.length && !this.state.pluginState?.hasError);
+    const hasMatches = !!(currentMatches && currentMatches.length);
     const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
     const percentRemaining = this.getPercentRemaining();
     const isLoading =
