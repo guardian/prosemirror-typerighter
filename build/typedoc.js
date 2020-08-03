@@ -3,7 +3,8 @@ module.exports = {
 	excludeProtected: true,
 	excludeExternals: false,
 	hideGenerator: true,
-	out: 'docs',
+  out: 'docs',
+  mode: 'library',
 	theme: 'markdown',
 	ignoreCompilerErrors: false,
   readme: 'build/README.md'
