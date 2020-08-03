@@ -1,10 +1,10 @@
 module.exports = {
 	excludePrivate: true,
 	excludeProtected: true,
-	excludeExternals: true,
+	excludeExternals: false,
 	hideGenerator: true,
 	out: 'docs',
 	theme: 'markdown',
-	ignoreCompilerErrors: true,
-	readme: 'build/README.md'
+	ignoreCompilerErrors: false,
+  readme: 'build/README.md'
 };

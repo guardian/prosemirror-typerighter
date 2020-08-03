@@ -21,7 +21,7 @@
     "watch": "rollup -c -w & http-server -p 5000 ./pages/dist",
     "format": "prettier --write './src/**/*.ts'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
-    "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
+    "build:doc": "typedoc --internal-aliases internal,publicapi --options ./build/typedoc.js ./src/ts/index.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
@@ -65,10 +65,10 @@
     "tslib": "^1.9.3",
     "tslint": "5.10",
     "tslint-config-prettier": "^1.17.0",
-    "typedoc": "^0.17.7",
-    "typedoc-plugin-external-module-name": "^3.1.0",
-    "typedoc-plugin-internal-external": "^2.1.1",
-    "typedoc-plugin-markdown": "^1.2.1",
+    "typedoc": "^0.17.8",
+    "typedoc-plugin-external-module-name": "^4.0.3",
+    "typedoc-plugin-internal-external": "^2.2.0",
+    "typedoc-plugin-markdown": "^2.4.0",
     "typescript": "^3.9.3",
     "whatwg-fetch": "^3.0.0"
   },

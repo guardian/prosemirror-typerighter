@@ -10,6 +10,7 @@ import { MatcherService } from ".";
 
 /**
  * Scaffolding for an example view.
+ * @publicapi
  */
 const createView = (
   view: EditorView,

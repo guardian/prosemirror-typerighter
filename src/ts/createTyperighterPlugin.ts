@@ -19,10 +19,6 @@ import Store, {
 } from "./state/store";
 import { indicateHoverCommand, stopHoverCommand } from "./commands";
 
-/**
- * @module createTyperighterPlugin
- */
-
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
 interface IPluginOptions<TMatch extends IMatch> {
