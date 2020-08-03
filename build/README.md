@@ -1,4 +1,5 @@
-# prosemirror-typerighter ![](https://travis-ci.org/guardian/prosemirror-typerighter.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/guardian/prosemirror-typerighter/badge.svg?branch=master)](https://coveralls.io/github/guardian/prosemirror-typerighter?branch=master)
+![](https://travis-ci.org/guardian/prosemirror-typerighter.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/guardian/prosemirror-typerighter/badge.svg?branch=master)](https://coveralls.io/github/guardian/prosemirror-typerighter?branch=master)
+
 This Prosemirror plugin adds the ability to validate a document by sending it, or some parts of it, to an external service for validation. Once instantiated, it provides a store object that allows consumer code to subscribe to state updates for UI updates etc.
 
 It's still in its early stages! [There's a demo here.](https://guardian.github.io/prosemirror-typerighter/) See the 'pages' directory for an example implementation.
@@ -18,6 +19,10 @@ The plugin must be pointed to the address of a running Typerighter service to su
 To test this plugin in applications that use it before publishing a release, use [`npm link`](https://docs.npmjs.com/cli/link) –
 - Run `npm link` in the root of this project
 - Run `npm link @guardian/prosemirror-typerighter` in the root of the project that's consuming this package.
+
+## Updating documentation
+
+To update the project readme, edit the README.md in ./build and run `build:doc`. This runs Typedoc and appends the generated type information to the readme file, which is then published to the ./docs folder.
 
 ## Publishing new versions
 

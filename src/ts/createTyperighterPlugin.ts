@@ -19,10 +19,6 @@ import Store, {
 } from "./state/store";
 import { indicateHoverCommand, stopHoverCommand } from "./commands";
 
-/**
- * @module createTyperighterPlugin
- */
-
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
 interface IPluginOptions<TMatch extends IMatch> {
@@ -41,7 +37,7 @@ interface IPluginOptions<TMatch extends IMatch> {
 }
 
 /**
- * Creates the plugin. The plugin is responsible for issuing requests when the
+ * Creates the prosemirror-typerighter plugin. Responsible for issuing requests when the
  * document is changed via the supplied servier, decorating the document with matches
  * when they are are returned, and applying suggestions to the document.
  *

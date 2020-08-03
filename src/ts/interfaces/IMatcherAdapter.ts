@@ -1,7 +1,3 @@
-/**
- * @module createTyperighterPlugin
- */
-
 import {
   IBlock,
   IMatch,

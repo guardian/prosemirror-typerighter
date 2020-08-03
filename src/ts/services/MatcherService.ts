@@ -9,9 +9,8 @@ import { selectAllBlockQueriesInFlight } from "../state/selectors";
 import v4 from "uuid/v4";
 
 /**
- * An example matcher service. Calls to fetchMatches() submit blocks
- * for processing via the supplied adapter. Matches and errors dispatch
- * the appropriate Prosemirror commands.
+ * A matcher service to manage the interaction between the prosemirror-typerighter plugin
+ * and the remote matching service.
  */
 class MatcherService<TMatch extends IMatch> {
   // The current throttle duration, which increases during backoff.

@@ -65,10 +65,8 @@
     "tslib": "^1.9.3",
     "tslint": "5.10",
     "tslint-config-prettier": "^1.17.0",
-    "typedoc": "^0.17.7",
-    "typedoc-plugin-external-module-name": "^3.1.0",
-    "typedoc-plugin-internal-external": "^2.1.1",
-    "typedoc-plugin-markdown": "^1.2.1",
+    "typedoc": "^0.17.0-3",
+    "typedoc-plugin-markdown": "^2.4.0",
     "typescript": "^3.9.3",
     "whatwg-fetch": "^3.0.0"
   },
