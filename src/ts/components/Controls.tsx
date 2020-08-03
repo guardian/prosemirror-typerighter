@@ -13,7 +13,7 @@ interface IProps {
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
-  contactHref: string;
+  contactHref?: string;
 }
 
 interface IState {
@@ -164,7 +164,7 @@ class Controls extends Component<IProps, IState> {
             </button>
           </div>
           {this.state.pluginState?.hasError && <div className="Controls__error-message">
-            Error fetching matches. Please try checking the document again. If the error persists, please <a href={this.props.contactHref} target="_blank">contact us</a>. 
+            Error fetching matches. Please try checking the document again. {this.props.contactHref && <span>If the error persists, please <a href={this.props.contactHref} target="_blank">contact us</a>.</span>} 
           </div>}
         </div>
       </div>
