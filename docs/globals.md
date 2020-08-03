@@ -23,7 +23,10 @@
 
 ▸ **convertTyperighterResponse**(`requestId`: string, `response`: ITypeRighterResponse): *IMatcherResponse*
 
-*Defined in [services/adapters/TyperighterAdapter.ts:14](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/adapters/TyperighterAdapter.ts#L14)*
+*Defined in [services/adapters/TyperighterAdapter.ts:18](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/adapters/TyperighterAdapter.ts#L18)*
+
+Convert an incoming response from a Typerighter service into
+the IMatcherResponse that the plugin expects.
 
 **Parameters:**
 
@@ -40,7 +43,9 @@ ___
 
 ▸ **createBoundCommands**‹**TMatch**›(`view`: EditorView, `getState`: GetState‹TMatch›): *object*
 
-*Defined in [commands.ts:298](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/commands.ts#L298)*
+*Defined in [commands.ts:301](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/commands.ts#L301)*
+
+Create a palette of prosemirror-typerighter commands bound to the given EditorView.
 
 **Type parameters:**
 
@@ -87,9 +92,9 @@ ___
 
 ▸ **createTyperighterPlugin**‹**TMatch**›(`options`: IPluginOptions‹TMatch›): *object*
 
-*Defined in [createTyperighterPlugin.ts:47](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/createTyperighterPlugin.ts#L47)*
+*Defined in [createTyperighterPlugin.ts:47](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/createTyperighterPlugin.ts#L47)*
 
-Creates the plugin. The plugin is responsible for issuing requests when the
+Creates the prosemirror-typerighter plugin. Responsible for issuing requests when the
 document is changed via the supplied servier, decorating the document with matches
 when they are are returned, and applying suggestions to the document.
 
@@ -119,9 +124,13 @@ ___
 
 ▸ **createView**(`view`: EditorView, `store`: Store‹IMatch›, `matcherService`: [MatcherService](classes/matcherservice.md)‹IMatch›, `commands`: Commands, `sidebarNode`: Element, `controlsNode`: Element, `contactHref?`: undefined | string, `feedbackHref?`: undefined | string): *void*
 
-*Defined in [createView.tsx:15](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/createView.tsx#L15)*
+*Defined in [createView.tsx:18](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/createView.tsx#L18)*
 
-Scaffolding for an example view.
+Instantiate a UI for the given EditorView, commands, and configuration,
+appending it to the given HTML elements. This includes:
+ - The overlay responsible for displaying tooltips
+ - The plugin configuration pane
+ - The plugin results pane
 
 **Parameters:**
 
@@ -144,7 +153,9 @@ ___
 
 ▸ **getBlocksFromDocument**(`doc`: Node, `time`: number): *IBlock[]*
 
-*Defined in [utils/prosemirror.ts:38](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/utils/prosemirror.ts#L38)*
+*Defined in [utils/prosemirror.ts:41](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/utils/prosemirror.ts#L41)*
+
+Create IBlock objects from the block leaf nodes of a given document.
 
 **Parameters:**
 

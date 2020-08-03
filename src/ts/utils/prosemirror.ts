@@ -35,6 +35,9 @@ export const findChildren = (
   return flatten(node, descend).filter(child => predicate(child.node));
 };
 
+/**
+ * Create IBlock objects from the block leaf nodes of a given document.
+ */
 export const getBlocksFromDocument = (
   doc: Node,
   time = 0

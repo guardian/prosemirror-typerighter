@@ -2,7 +2,7 @@
 
 # Class: TyperighterAdapter
 
-An adapter for the Typerighter service.
+A MatcherAdapter for the Typerighter remote service.
 
 ## Hierarchy
 
@@ -29,7 +29,7 @@ An adapter for the Typerighter service.
 
 \+ **new TyperighterAdapter**(`url`: string, `responseThrottleMs`: number): *[TyperighterAdapter](typerighteradapter.md)*
 
-*Defined in [services/adapters/TyperighterAdapter.ts:37](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/adapters/TyperighterAdapter.ts#L37)*
+*Defined in [services/adapters/TyperighterAdapter.ts:41](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/adapters/TyperighterAdapter.ts#L41)*
 
 **Parameters:**
 
@@ -46,7 +46,7 @@ Name | Type | Default |
 
 ▸ **fetchCategories**(): *Promise‹any›*
 
-*Defined in [services/adapters/TyperighterAdapter.ts:82](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/adapters/TyperighterAdapter.ts#L82)*
+*Defined in [services/adapters/TyperighterAdapter.ts:86](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/adapters/TyperighterAdapter.ts#L86)*
 
 **Returns:** *Promise‹any›*
 
@@ -56,7 +56,7 @@ ___
 
 ▸ **fetchMatches**(`requestId`: string, `inputs`: IBlock[], `categoryIds`: string[], `onMatchesReceived`: TMatchesReceivedCallback, `onRequestError`: TRequestErrorCallback, `_`: TRequestCompleteCallback): *Promise‹void›*
 
-*Defined in [services/adapters/TyperighterAdapter.ts:42](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/adapters/TyperighterAdapter.ts#L42)*
+*Defined in [services/adapters/TyperighterAdapter.ts:46](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/adapters/TyperighterAdapter.ts#L46)*
 
 **Parameters:**
 

@@ -2,9 +2,8 @@
 
 # Class: MatcherService ‹**TMatch**›
 
-An example matcher service. Calls to fetchMatches() submit blocks
-for processing via the supplied adapter. Matches and errors dispatch
-the appropriate Prosemirror commands.
+A matcher service to manage the interaction between the prosemirror-typerighter plugin
+and the remote matching service.
 
 ## Type parameters
 
@@ -35,7 +34,7 @@ the appropriate Prosemirror commands.
 
 \+ **new MatcherService**(`store`: Store‹TMatch›, `commands`: Commands, `adapter`: IMatcherAdapter‹TMatch›, `initialThrottle`: number): *[MatcherService](matcherservice.md)*
 
-*Defined in [services/MatcherService.ts:21](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L21)*
+*Defined in [services/MatcherService.ts:20](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L20)*
 
 **Parameters:**
 
@@ -54,7 +53,7 @@ Name | Type | Default |
 
 ▸ **addCategory**(`categoryId`: string): *void*
 
-*Defined in [services/MatcherService.ts:48](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L48)*
+*Defined in [services/MatcherService.ts:47](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L47)*
 
 **Parameters:**
 
@@ -70,7 +69,7 @@ ___
 
 ▸ **fetchCategories**(): *Promise‹ICategory[]›*
 
-*Defined in [services/MatcherService.ts:41](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L41)*
+*Defined in [services/MatcherService.ts:40](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L40)*
 
 Get all of the available categories from the matcher service.
 
@@ -82,7 +81,7 @@ ___
 
 ▸ **fetchMatches**(`requestId`: string, `blocks`: IBlock[]): *Promise‹void›*
 
-*Defined in [services/MatcherService.ts:65](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L65)*
+*Defined in [services/MatcherService.ts:64](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L64)*
 
 Fetch matches for a set of blocks.
 
@@ -101,7 +100,7 @@ ___
 
 ▸ **getCurrentCategories**(): *ICategory[]*
 
-*Defined in [services/MatcherService.ts:46](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L46)*
+*Defined in [services/MatcherService.ts:45](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L45)*
 
 **Returns:** *ICategory[]*
 
@@ -111,7 +110,7 @@ ___
 
 ▸ **removeCategory**(`categoryId`: string): *void*
 
-*Defined in [services/MatcherService.ts:56](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L56)*
+*Defined in [services/MatcherService.ts:55](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L55)*
 
 **Parameters:**
 
@@ -127,7 +126,7 @@ ___
 
 ▸ **requestFetchMatches**(): *unknown*
 
-*Defined in [services/MatcherService.ts:80](https://github.com/guardian/prosemirror-typerighter/blob/6b0a3bc/src/ts/services/MatcherService.ts#L80)*
+*Defined in [services/MatcherService.ts:79](https://github.com/guardian/prosemirror-typerighter/blob/a7df8ef/src/ts/services/MatcherService.ts#L79)*
 
 Request a fetch for matches. If we already have a request in flight,
 defer it until the next throttle window.
