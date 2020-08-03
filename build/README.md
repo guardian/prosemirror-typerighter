@@ -5,13 +5,19 @@ It's still in its early stages! [There's a demo here.](https://guardian.github.i
 
 ## Installation
 
-`npm i` will install dependencies.
+Install dependencies with `./scripts/setup.sh`.
 
 ## Development
 
-`npm run watch` builds the project locally, watches for file changes, and serves the project locally at http://localhost:5000.
+`npm run watch` builds the project locally, watches for file changes, and serves the project locally at https://typerighter-client.local.dev-gutools.co.uk/ – or http://localhost:5000, if your Typerighter service doesn't require [pan-domain authentication](https://github.com/guardian/pan-domain-authentication).
 
-The plugin must be pointed to the address of a running Typerighter service to submit a document and receive matches. To modify, change the address passed to the `TyperighterAdapter` in `pages/index.ts`.
+If your Typerighter service does require pan-domain authentication, you will need to run and visit another .local.dev-gutools application alongside this service to supply an authenticated cookie for that domain.
+
+The plugin must be pointed to the address of a running Typerighter service to submit a document and receive matches. To modify this address, change the address passed to the `TyperighterAdapter` in `pages/index.ts`.
+
+To test this plugin in applications that use it before publishing a release, use [`npm link`](https://docs.npmjs.com/cli/link) –
+- Run `npm link` in the root of this project
+- Run `npm link @guardian/prosemirror-typerighter` in the root of the project that's consuming this package.
 
 ## Publishing new versions
 

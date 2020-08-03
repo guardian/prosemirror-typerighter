@@ -55,7 +55,7 @@ if (editorElement && sidebarElement && controlsElement) {
   const validationService = new MatcherService(
     store,
     commands,
-    new TyperighterAdapter("http://localhost:9000")
+    new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
   createView(
     view,
