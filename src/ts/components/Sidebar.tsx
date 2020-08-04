@@ -49,6 +49,7 @@ class Sidebar extends Component<
     const percentRemaining = this.getPercentRemaining();
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
+
     return (
       <div className="Sidebar__section">
         <div className="Sidebar__header-container">

@@ -15,6 +15,11 @@
   width: 100%;
 }
 
+.Controls__error-message {
+  color: red;
+  padding: $gutter-width / 2;
+}
+
 .LoadingBar {
   position: absolute;
   height: 3px;

@@ -74,6 +74,7 @@ const createView = (
       getCurrentCategories={matcherService.getCurrentCategories}
       addCategory={matcherService.addCategory}
       removeCategory={matcherService.removeCategory}
+      contactHref={contactHref}
     />,
     controlsNode
   );

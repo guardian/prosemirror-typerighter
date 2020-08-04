@@ -122,3 +122,8 @@ export const selectAllAutoFixableMatches = <TMatch extends IMatch>(
   state.currentMatches.filter(
     _ => _.replacement && _.replacement.text === _.message
   );
+
+export const selectHasError = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): Boolean =>
+  !!state.errorMessage && state.errorMessage.length > 0;
