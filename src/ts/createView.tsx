@@ -2,7 +2,7 @@ import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
 import MatchOverlay from "./components/MatchOverlay";
 import Store from "./state/store";
-import Sidebar from "./components/Sidebar";
+import Results from "./components/Results";
 import Controls from "./components/Controls";
 import { Commands } from "./commands";
 import { IMatch } from "./interfaces/IMatch";
@@ -21,7 +21,6 @@ const createView = (
   matcherService: MatcherService<IMatch>,
   commands: Commands,
   sidebarNode: Element,
-  controlsNode: Element,
   contactHref?: string,
   feedbackHref?: string
 ) => {
@@ -41,8 +40,8 @@ const createView = (
   render(
     <MatchOverlay
       store={store}
-      applySuggestions={(suggestionOpts) => {
-        commands.applySuggestions(suggestionOpts)
+      applySuggestions={suggestionOpts => {
+        commands.applySuggestions(suggestionOpts);
         commands.stopHover();
       }}
       containerElement={wrapperElement}
@@ -52,31 +51,29 @@ const createView = (
   );
 
   render(
-    <Sidebar
-      store={store}
-      applySuggestions={commands.applySuggestions}
-      applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-      selectMatch={commands.selectMatch}
-      indicateHover={commands.indicateHover}
-      stopHover={commands.stopHover}
-      contactHref={contactHref}
-    />,
+    <div className="Sidebar__section">
+      <Controls
+        store={store}
+        setDebugState={commands.setDebugState}
+        setRequestOnDocModified={commands.setRequestOnDocModified}
+        requestMatchesForDocument={commands.requestMatchesForDocument}
+        fetchCategories={matcherService.fetchCategories}
+        getCurrentCategories={matcherService.getCurrentCategories}
+        addCategory={matcherService.addCategory}
+        removeCategory={matcherService.removeCategory}
+        contactHref={contactHref}
+      />
+      <Results
+        store={store}
+        applySuggestions={commands.applySuggestions}
+        applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
+        selectMatch={commands.selectMatch}
+        indicateHover={commands.indicateHover}
+        stopHover={commands.stopHover}
+        contactHref={contactHref}
+      />
+    </div>,
     sidebarNode
-  );
-
-  render(
-    <Controls
-      store={store}
-      setDebugState={commands.setDebugState}
-      setRequestOnDocModified={commands.setRequestOnDocModified}
-      requestMatchesForDocument={commands.requestMatchesForDocument}
-      fetchCategories={matcherService.fetchCategories}
-      getCurrentCategories={matcherService.getCurrentCategories}
-      addCategory={matcherService.addCategory}
-      removeCategory={matcherService.removeCategory}
-      contactHref={contactHref}
-    />,
-    controlsNode
   );
 };
 
