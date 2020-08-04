@@ -27,7 +27,9 @@
 
 .Controls__error-message {
   color: red;
-  padding: $gutter-width / 2;
+  padding: $gutter-width;
+  padding-bottom: 0;
+  font-size: $font-size-small;
 }
 
 .LoadingBar {
