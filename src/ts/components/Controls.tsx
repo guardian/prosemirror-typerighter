@@ -3,6 +3,7 @@ import v4 from "uuid/v4";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
+import { selectHasError } from '../state/selectors';
 
 interface IProps {
   store: Store<IMatch>;
@@ -163,7 +164,7 @@ class Controls extends Component<IProps, IState> {
               Check whole document
             </button>
           </div>
-          {this.state.pluginState?.hasError && <div className="Controls__error-message">
+          {this.state.pluginState && selectHasError(this.state.pluginState) && <div className="Controls__error-message">
             Error fetching matches. Please try checking the document again. {this.props.contactHref && <span>If the error persists, please <a href={this.props.contactHref} target="_blank">contact us</a>.</span>} 
           </div>}
         </div>

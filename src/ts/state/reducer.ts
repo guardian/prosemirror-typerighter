@@ -124,8 +124,6 @@ export interface IPluginState<TMatches extends IMatch = IMatch> {
   };
   // The current error message.
   errorMessage: string | undefined;
-  // The current error state.
-  hasError: boolean;
 }
 
 // The transaction meta key that namespaces our actions.
@@ -148,8 +146,7 @@ export const createInitialState = <TMatch extends IMatch>(
   hoverInfo: undefined,
   requestsInFlight: {},
   requestPending: false,
-  errorMessage: undefined,
-  hasError: false
+  errorMessage: undefined
 });
 
 export const createReducer = (expandRanges: ExpandRanges) => {
@@ -390,7 +387,6 @@ const handleRequestStart = (
 
   return {
     ...state,
-    hasError: false,
     errorMessage: undefined,
     decorations,
     // We reset the dirty ranges, as they've been expanded and sent in a request.
@@ -605,7 +601,6 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
       : state.dirtiedRanges,
     decorations,
     requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, categoryIds),
-    hasError: true,
     errorMessage: message
   };
 };
