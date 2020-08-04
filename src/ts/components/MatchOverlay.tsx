@@ -70,7 +70,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
             // We hoist top slightly to ensure that the rendered element overlaps the
             // span that triggered the overlay -- if the mouse falls through a gap it
             // will trigger a mouseleave event that will close the overlay.
-            top: top - 1,
+            top: top - 5,
             left
           }}
         >
@@ -150,7 +150,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
 
     const left = absoluteLeft - hoverInfo.containerLeft;
     const top = absoluteTop - hoverInfo.containerTop;
-  
+
     return { left, top, maxLeft };
   };
 

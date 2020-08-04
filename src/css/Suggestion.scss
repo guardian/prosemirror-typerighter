@@ -12,8 +12,8 @@
 
 .WikiSuggestion__suggestion {
   padding: $gutter-width $gutter-width $gutter-width 0;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: bold;
+  font-size: $font-size-large;
   color: $match-suggestion-color;
   cursor: pointer;
   &:hover {
@@ -37,7 +37,7 @@
   position: relative;
   height: $match-suggestion-wiki-extract-height;
   overflow: hidden;
-  font-size: 12px;
+  font-size: $font-size-x-small;
 }
 
 .WikiSuggestion__link {

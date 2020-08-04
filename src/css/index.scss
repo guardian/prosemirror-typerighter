@@ -1,6 +1,6 @@
 // Variables
 $gutter-width: 10px;
-$sidebar-border-color: #ccc;
+$sidebar-border-color: #ddd;
 $match-color: #3dcde6;
 $match-color-hover: #3dcde624;
 $match-gray: #a0a0a0;
@@ -10,6 +10,10 @@ $match-suggestion-background-color: #fff;
 $match-suggestion-color: #999;
 $match-suggestion-color-hover: #f1f1f1;
 $match-suggestion-wiki-extract-height: 85px;
+$font-size-base: 14px;
+$font-size-large: 1.1em;
+$font-size-small: 0.85em;
+$font-size-x-small: 0.7em;
 
 // Mixins
 @mixin placeholderAnimation {
@@ -66,7 +70,7 @@ hr {
   padding: 1px 4px;
   border: 1px solid lightgrey;
   border-radius: 3px;
-  font-size: 1em;
+  font-size: $font-size-base;
   cursor: pointer;
 }
 
@@ -87,7 +91,7 @@ hr {
   display: block;
   position: relative;
   font-family: sans-serif;
-  font-size: 14px;
+  font-size: $font-size-small;
   font-style: normal;
   font-weight: normal;
   background-color: white;
@@ -101,7 +105,7 @@ hr {
 }
 
 .MatchWidget__container {
-  margin-top: 8px;
+  margin-top: 13px;
   position: relative;
 }
 
@@ -142,8 +146,8 @@ hr {
 .MatchWidget__suggestion {
   display: block;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: bold;
+  font-size: $font-size-large;
   color: $match-suggestion-color;
 }
 
@@ -160,8 +164,7 @@ hr {
 
 .MatchWidget__feedbackLink {
   text-align: right;
-  font-size: 12px;
-  padding: $gutter-width;
+  font-size: $font-size-x-small;
 }
 
 .MatchDecoration {

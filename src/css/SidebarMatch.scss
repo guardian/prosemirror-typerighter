@@ -21,12 +21,12 @@
 }
 
 .SidebarMatch__header-match-text {
-  font-weight: 500;
+  margin-bottom: $gutter-width / 2;
   cursor: pointer;
 }
 
 .SidebarMatch__header-description {
-  font-size: 14px;
+  font-size: $font-size-small;
 }
 
 .SidebarMatch__header-meta {
@@ -36,7 +36,7 @@
 .SidebarMatch__header-range,
 .SidebarMatch__header-category {
   text-align: right;
-  font-size: 12px;
+  font-size: $font-size-x-small;
 }
 
 .SidebarMatch__header-category {
@@ -59,7 +59,7 @@
 
 .SidebarMatch__content {
   margin-top: ($gutter-width / 2) ;
-  font-size: 14px;
+  font-size: $font-size-small;
 }
 
 .SidebarMatch__suggestion-list {
