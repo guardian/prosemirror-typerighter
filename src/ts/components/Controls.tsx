@@ -52,7 +52,7 @@ class Controls extends Component<IProps, IState> {
             className="Sidebar__header Sidebar__header-toggle"
             onClick={this.toggleOpenState}
           >
-            Controls
+            Typerighter
             <div className="Sidebar__toggle-label">Advanced</div>
             <div
               className="Sidebar__toggle"
