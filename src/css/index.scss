@@ -1,18 +1,20 @@
 // Variables
-$gutter-width: 10px;
+$gutter-width: 8px;
 $sidebar-border-color: #ddd;
+$text-color-secondary: #5f5e5e;
 $match-color: #3dcde6;
 $match-color-hover: #3dcde624;
-$match-gray: #a0a0a0;
+$match-gray: #999999;
 $match-debug-color-dirty: #f7a85e66;
 $match-debug-color-inflight: #31a72085;
-$match-suggestion-background-color: #fff;
+$match-suggestion-background-color: #f3f3f3;
+$match-suggestion-background-color-hover: #eee;
 $match-suggestion-color: #999;
-$match-suggestion-color-hover: #f1f1f1;
+$match-suggestion-color-hover: #888;
 $match-suggestion-wiki-extract-height: 85px;
 $font-size-base: 14px;
 $font-size-large: 1.1em;
-$font-size-small: 0.85em;
+$font-size-small: 0.8em;
 $font-size-x-small: 0.7em;
 
 // Mixins
@@ -71,6 +73,7 @@ hr {
   border: 1px solid lightgrey;
   border-radius: 3px;
   font-size: $font-size-base;
+  font-weight: normal;
   cursor: pointer;
 }
 
@@ -88,14 +91,14 @@ hr {
 }
 
 .MatchWidget {
+  background-color: white;
   display: block;
   position: relative;
+  padding: $gutter-width * 1.5;
   font-family: sans-serif;
-  font-size: $font-size-small;
   font-style: normal;
   font-weight: normal;
-  background-color: white;
-  box-shadow: #4e56643b 0px 0px 1px 0px, #3f48573a 0px 2px 7px 0px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
   border-radius: 3px;
   width: 300px;
   transition: opacity 0.1s, transform 0.1s;
@@ -107,6 +110,7 @@ hr {
 .MatchWidget__container {
   margin-top: 13px;
   position: relative;
+  font-size: $font-size-base;
 }
 
 .MatchWidget__container--is-hovering .MatchWidget {
@@ -117,18 +121,29 @@ hr {
 .MatchWidget__type {
   color: $match-gray;
   font-variant: small-caps;
+  // normalise line height, as the small-caps take up less space
+  line-height: 0.7;
   text-transform: lowercase;
   letter-spacing: 0.3px;
 }
-
-.MatchWidget__annotation,
-.MatchWidget__suggestion,
-.MatchWidget__type {
+.MatchWidget__suggestion {
   padding: $gutter-width;
 }
 
+.MatchWidget__type {
+  padding-bottom: $gutter-width;
+}
+
 .MatchWidget__annotation {
-  padding-top: 0;
+  padding-top: $gutter-width;
+}
+
+.MatchWidget__color-swatch {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 8px;
 }
 
 .MatchWidget__label {
@@ -140,7 +155,6 @@ hr {
 .MatchWidget__suggestion-list {
   display: block;
   margin-top: 3px;
-  padding: 0 $gutter-width $gutter-width $gutter-width;
 }
 
 .MatchWidget__suggestion {
@@ -149,6 +163,7 @@ hr {
   font-weight: bold;
   font-size: $font-size-large;
   color: $match-suggestion-color;
+  background-color: $match-suggestion-background-color;
 }
 
 .MatchWidget__suggestion:nth-child(even) {
@@ -156,15 +171,19 @@ hr {
 }
 
 .MatchWidget__suggestion:hover {
-  background-color: $match-suggestion-color-hover;
+  color: $match-suggestion-color-hover;
+  background-color: $match-suggestion-background-color-hover;
 }
 .MatchWidget__suggestion + .MatchWidget__suggestion {
   margin-top: 3px;
 }
 
 .MatchWidget__feedbackLink {
-  text-align: right;
+  margin-top: $gutter-width;
   font-size: $font-size-x-small;
+  a {
+    color: $match-gray;
+  }
 }
 
 .MatchDecoration {

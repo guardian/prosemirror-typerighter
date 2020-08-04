@@ -15,6 +15,7 @@
   margin: 0 $gutter-width / 2;
   max-height: 100%;
   overflow: hidden;
+  font-size: $font-size-base;
 }
 
 .Sidebar__container + .Sidebar__container {
@@ -23,7 +24,7 @@
 
 .Sidebar__header-container {
   position: relative;
-  padding: $gutter-width $gutter-width/2;
+  padding: $gutter-width;
   border-bottom: 1px solid $sidebar-border-color;
 }
 
@@ -34,13 +35,14 @@
 
 .Sidebar__header {
   display: flex;
+  align-items: baseline;
   position: relative;
   flex-shrink: 0;
   font-weight: bold;
-  justify-content: space-between;
 }
 
 .Sidebar__header-toggle {
+  margin-top: $gutter-width;
   cursor: pointer;
 }
 
@@ -49,18 +51,15 @@
   font-size: $font-size-small;
 }
 
-.Sidebar__awaiting-match {
-  padding: $gutter-width/2;
-  color: #aaa;
-}
-
 .Sidebar__toggle,
 .Sidebar__toggle-label {
   align-self: baseline;
   font-size: $font-size-small;
+  font-weight: normal;
 }
 
 .Sidebar__toggle {
+  display: inline-block;
   transition: transform 0.15s;
   color: #aaa;
 }
@@ -78,7 +77,7 @@
 }
 
 .Sidebar__awaiting-match {
-  padding: $gutter-width/2;
+  padding: $gutter-width ;
   color: gray;
 }
 

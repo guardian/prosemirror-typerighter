@@ -1,9 +1,9 @@
-import { Component, h } from "preact";
+import { Component, h, Fragment } from "preact";
 import v4 from "uuid/v4";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
-import { selectHasError } from '../state/selectors';
+import { selectHasError } from "../state/selectors";
 
 interface IProps {
   store: Store<IMatch>;
@@ -34,7 +34,7 @@ class Controls extends Component<IProps, IState> {
     allCategories: [],
     currentCategories: [],
     isLoadingCategories: false,
-    pluginState: undefined,
+    pluginState: undefined
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -47,26 +47,39 @@ class Controls extends Component<IProps, IState> {
     //   this.state.pluginState || {};
     const { isOpen, isLoadingCategories } = this.state;
     return (
-      <div className="Sidebar__section">
+      <Fragment>
         <div className="Sidebar__header-container">
-          <div
-            className="Sidebar__header Sidebar__header-toggle"
-            onClick={this.toggleOpenState}
-          >
-            Typerighter
-            <div className="Sidebar__toggle-label">Advanced</div>
-            <div
-              className="Sidebar__toggle"
-              style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+          <div class="Sidebar__header">Typerighter</div>
+          <div className="Sidebar__header Sidebar__header-toggle">
+            <button
+              type="button"
+              className="Button"
+              onClick={this.requestMatchesForDocument}
+              disabled={
+                this.state.pluginState &&
+                !!Object.keys(this.state.pluginState.requestsInFlight).length
+              }
             >
-              ▼
+              Check document
+            </button>
+
+            <div
+              onClick={this.toggleOpenState}
+              className="Sidebar__toggle-label"
+            >
+              Advanced&nbsp;
+              <span
+                className="Sidebar__toggle"
+                style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
+              >
+                ▼
+              </span>
             </div>
           </div>
         </div>
-        <div className="Sidebar__content">
-          {isOpen && (
-            <div>
-              {/* <div className="Controls__row">
+        {isOpen && (
+          <div>
+            {/* <div className="Controls__row">
                 <label
                   className="Controls__label"
                   for="Controls__check-on-modify"
@@ -105,70 +118,67 @@ class Controls extends Component<IProps, IState> {
               <div className="Controls__row">
                 <hr />
               </div> */}
-              <div className="Controls__row">
+            <div className="Controls__row">
+              <div className="Controls__header">
                 Select categories&nbsp;
                 {isLoadingCategories && (
                   <span className="Sidebar__loading-spinner">|</span>
                 )}
-                <button
-                  type="button"
-                  class="Button flex-align-right"
-                  onClick={this.fetchCategories}
-                >
-                  Refresh
-                </button>
               </div>
-              {this.state.allCategories.map(category => (
-                <div className="Controls__row">
-                  <label
-                    className="Controls__label"
-                    for="Controls__show-dirty-ranges"
-                  >
-                    {category.name}
-                  </label>
-                  <div class="Controls__input">
-                    <input
-                      id="Controls__show-dirty-ranges"
-                      type="checkbox"
-                      checked={
-                        !!this.state.currentCategories.find(
-                          _ => _.id === category.id
-                        )
-                      }
-                      className="Input"
-                      onInput={(e: Event) =>
-                        this.setCategoryState(
-                          category.id,
-                          (e.target! as HTMLInputElement).checked
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              ))}
-              <div className="Controls__row">
-                <hr />
-              </div>
+              <button
+                type="button"
+                class="Button flex-align-right"
+                onClick={this.fetchCategories}
+              >
+                Refresh
+              </button>
             </div>
-          )}
-          <div className="Controls__row">
-            <button
-              type="button"
-              className="Button"
-              onClick={this.requestMatchesForDocument}
-              disabled={
-                this.state.pluginState &&
-                !!Object.keys(this.state.pluginState.requestsInFlight).length
-              }
-            >
-              Check whole document
-            </button>
+            {this.state.allCategories.map(category => (
+              <div className="Controls__row">
+                <label
+                  className="Controls__label"
+                  for="Controls__show-dirty-ranges"
+                >
+                  {category.name}
+                </label>
+                <div class="Controls__input">
+                  <input
+                    id="Controls__show-dirty-ranges"
+                    type="checkbox"
+                    checked={
+                      !!this.state.currentCategories.find(
+                        _ => _.id === category.id
+                      )
+                    }
+                    className="Input"
+                    onInput={(e: Event) =>
+                      this.setCategoryState(
+                        category.id,
+                        (e.target! as HTMLInputElement).checked
+                      )
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+            <hr />
           </div>
-          {this.state.pluginState && selectHasError(this.state.pluginState) && <div className="Controls__error-message">
-            Error fetching matches. Please try checking the document again. {this.props.contactHref && <span>If the error persists, please <a href={this.props.contactHref} target="_blank">contact us</a>.</span>} 
-          </div>}
-        </div>
-      </div>
+        )}
+        {this.state.pluginState && selectHasError(this.state.pluginState) && (
+          <div className="Controls__error-message">
+            Error fetching matches. Please try checking the document again.{" "}
+            {this.props.contactHref && (
+              <span>
+                If the error persists, please{" "}
+                <a href={this.props.contactHref} target="_blank">
+                  contact us
+                </a>
+                .
+              </span>
+            )}
+          </div>
+        )}
+      </Fragment>
     );
   }
   private handleNotify = (state: IPluginState<IMatch>) => {

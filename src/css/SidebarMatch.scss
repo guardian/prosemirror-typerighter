@@ -1,5 +1,5 @@
 .SidebarMatch__container {
-  padding: ($gutter-width / 2) ;
+  padding: $gutter-width;
   &:hover {
     background-color: #f6f6f6;
   }
@@ -27,6 +27,7 @@
 
 .SidebarMatch__header-description {
   font-size: $font-size-small;
+  color: $text-color-secondary
 }
 
 .SidebarMatch__header-meta {
@@ -36,7 +37,7 @@
 .SidebarMatch__header-range,
 .SidebarMatch__header-category {
   text-align: right;
-  font-size: $font-size-x-small;
+  font-size: $font-size-small;
 }
 
 .SidebarMatch__header-category {
@@ -44,6 +45,7 @@
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.3px;
+  color: $match-gray;
 }
 
 .SidebarMatch__header-range {

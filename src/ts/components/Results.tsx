@@ -1,4 +1,4 @@
-import { Component, h } from "preact";
+import { Component, h, Fragment } from "preact";
 import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
@@ -19,9 +19,9 @@ interface IProps {
 }
 
 /**
- * A sidebar to display current matches and allow users to apply suggestions.
+ * Displays current matches and allows users to apply suggestions.
  */
-class Sidebar extends Component<
+class Results extends Component<
   IProps,
   {
     pluginState: IPluginState<IMatch> | undefined;
@@ -51,7 +51,7 @@ class Sidebar extends Component<
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
     return (
-      <div className="Sidebar__section">
+      <Fragment>
         <div className="Sidebar__header-container">
           <div className="Sidebar__header">
             <span>
@@ -105,7 +105,7 @@ class Sidebar extends Component<
             <div className="Sidebar__awaiting-match">No matches to report.</div>
           )}
         </div>
-      </div>
+      </Fragment>
     );
   }
 
@@ -154,4 +154,4 @@ class Sidebar extends Component<
   };
 }
 
-export default Sidebar;
+export default Results;
