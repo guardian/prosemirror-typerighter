@@ -6,7 +6,7 @@ import Store, {
 } from "../state/store";
 import { Commands } from "../commands";
 import { selectAllBlockQueriesInFlight } from "../state/selectors";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 
 /**
  * A matcher service to manage the interaction between the prosemirror-typerighter plugin

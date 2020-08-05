@@ -1,5 +1,5 @@
 import { Component, h, Fragment } from "preact";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";

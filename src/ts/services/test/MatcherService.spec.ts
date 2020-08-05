@@ -60,7 +60,7 @@ const requestId = "set-id";
 
 const store = new Store();
 
-jest.mock("uuid/v4", () => () => "id");
+jest.mock("uuid", () => { v4: () => "id" });
 
 describe("MatcherService", () => {
   afterEach(() => {
