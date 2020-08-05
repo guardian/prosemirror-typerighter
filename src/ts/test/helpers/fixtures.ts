@@ -81,7 +81,8 @@ export const createMatcherResponse = (
       from: wordFrom,
       to: wordTo,
       matchId: createMatchId(0, wordFrom, wordTo, 0),
-      suggestions
+      suggestions,
+      matchContext: "here is a [block text] match",
     }
   ]
 });
@@ -102,7 +103,8 @@ export const createMatch = (
   from,
   to,
   matchId: createMatchId(0, from, to, 0),
-  suggestions
+  suggestions,
+  matchContext: "here is a [block text] match",
 });
 
 export const exampleCategoryIds = ["example-category"];

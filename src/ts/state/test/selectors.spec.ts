@@ -145,7 +145,8 @@ describe("selectors", () => {
             name: "cat",
             colour: "eeeeee"
           },
-          matchedText: "hai"
+          matchedText: "hai",
+          matchContext: "oh [hai]"
         }
       ];
       expect(
@@ -179,7 +180,8 @@ describe("selectors", () => {
             name: "cat",
             colour: "eeeeee"
           },
-          matchedText: "hai"
+          matchedText: "hai",
+          matchContext: "Oh [hai]"
         }
       ];
       expect(

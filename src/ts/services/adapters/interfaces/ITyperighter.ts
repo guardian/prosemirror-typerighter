@@ -23,6 +23,7 @@ export interface ITypeRighterMatch {
   rule: ITypeRighterRule;
   suggestions: ISuggestion[];
   markAsCorrect: boolean;
+  matchContext: string;
 }
 
 export interface ITypeRighterReplacement {

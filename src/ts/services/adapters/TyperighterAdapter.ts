@@ -31,7 +31,8 @@ export const convertTyperighterResponse = (
     category: match.rule.category,
     suggestions: match.suggestions,
     replacement: match.rule.replacement,
-    markAsCorrect: match.markAsCorrect
+    markAsCorrect: match.markAsCorrect,
+    matchContext: match.matchContext
   }))
 });
 
