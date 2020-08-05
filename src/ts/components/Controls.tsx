@@ -49,7 +49,6 @@ class Controls extends Component<IProps, IState> {
     return (
       <Fragment>
         <div className="Sidebar__header-container">
-          <div class="Sidebar__header">Typerighter</div>
           <div className="Sidebar__header Sidebar__header-toggle">
             <button
               type="button"
