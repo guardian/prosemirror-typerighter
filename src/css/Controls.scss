@@ -1,12 +1,22 @@
 .Controls__row {
   position: relative;
   display: flex;
-  padding: $gutter-width / 2;
+  align-items: center;
+  padding: $gutter-width;
+}
+
+.Controls__row + .Controls__row {
+  padding-top: 0;
+  padding-bottom: $gutter-width / 2;
 }
 
 .Controls__input {
   min-width: 30px;
   margin-left: auto;
+}
+
+.Controls__header {
+  font-weight: bold;
 }
 
 .Controls__label {
@@ -17,7 +27,9 @@
 
 .Controls__error-message {
   color: red;
-  padding: $gutter-width / 2;
+  padding: $gutter-width;
+  padding-bottom: 0;
+  font-size: $font-size-small;
 }
 
 .LoadingBar {
