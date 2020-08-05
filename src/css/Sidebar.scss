@@ -30,14 +30,14 @@
 
 .Sidebar__header-contact {
   margin-top: 5px;
-  font-size: $font-size-x-small;
+  font-size: $font-size-small;
 }
 
 .Sidebar__header {
   display: flex;
   align-items: baseline;
   position: relative;
-  flex-shrink: 0;
+  flex-shrink: 0.2;
   font-weight: bold;
 }
 
