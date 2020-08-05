@@ -12,12 +12,12 @@ interface IMatchProps<TMatch extends IMatch> {
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   public ref: HTMLDivElement | null = null;
   public render({
-    match: { matchId, category, message, suggestions, replacement },
+    match: { matchId, category, message, suggestions, replacement, matchContext },
     applySuggestions
   }: IMatchProps<TMatch>) {
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
     const url = document.URL;
-    const feedbackInfo = { matchId, category, message, suggestions, replacement, url };
+    const feedbackInfo = { matchId, category, message, suggestions, replacement, matchContext, url };
     return (
       <div className="MatchWidget__container">
         <div className="MatchWidget" ref={_ => (this.ref = _)}>
