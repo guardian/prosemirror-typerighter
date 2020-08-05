@@ -12,36 +12,49 @@ interface IMatchProps<TMatch extends IMatch> {
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   public ref: HTMLDivElement | null = null;
   public render({
-    match: { matchId, category, message, suggestions, replacement, matchContext },
+    match: { matchId, category, message, suggestions, replacement, markAsCorrect, matchContext },
     applySuggestions
   }: IMatchProps<TMatch>) {
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
+    const suggestionContent = suggestionsToRender && applySuggestions && !markAsCorrect && (
+      <div className="MatchWidget__suggestion-list">
+        <SuggestionList
+          applySuggestions={applySuggestions}
+          matchId={matchId}
+          suggestions={suggestionsToRender}
+        />
+      </div>
+    )
     const url = document.URL;
-    const feedbackInfo = { matchId, category, message, suggestions, replacement, matchContext, url };
+    const feedbackInfo = {
+      matchId,
+      category,
+      message,
+      suggestions,
+      replacement,
+      url,
+      markAsCorrect
+    };
     return (
       <div className="MatchWidget__container">
         <div className="MatchWidget" ref={_ => (this.ref = _)}>
-          <div
-            className="MatchWidget__type"
-            style={{ color: `#${category.colour}` }}
-          >
+          <div className="MatchWidget__type">
+            <span
+              className="MatchWidget__color-swatch"
+              style={{ backgroundColor: `#${category.colour}` }}
+            ></span>
             {category.name}
           </div>
+          {suggestionContent}
           <div className="MatchWidget__annotation">{message}</div>
-          {suggestions && applySuggestions && (
-            <div className="MatchWidget__suggestion-list">
-              <SuggestionList
-                applySuggestions={applySuggestions}
-                matchId={matchId}
-                suggestions={suggestionsToRender}
-              />
-            </div>
-          )}
           {this.props.feedbackHref && (
             <div className="MatchWidget__feedbackLink">
               <a
                 target="_blank"
-                href={this.getFeedbackLink(this.props.feedbackHref!, feedbackInfo)}
+                href={this.getFeedbackLink(
+                  this.props.feedbackHref!,
+                  feedbackInfo
+                )}
               >
                 Issue with this result? Tell us!
               </a>
@@ -53,10 +66,9 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   }
 
   private getFeedbackLink = (feedbackHref: string, feedbackInfo: any) => {
-    const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2))
-    return feedbackHref + data
-  }
-
+    const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2));
+    return feedbackHref + data;
+  };
 }
 
 export default Match;

@@ -62,7 +62,7 @@ class SidebarMatch extends Component<IProps, IState> {
               </div>
             </div>
             <div className="SidebarMatch__header-meta">
-              <div className="SidebarMatch__header-category" style={{ color }}>
+              <div className="SidebarMatch__header-category">
                 {titleCase(output.category.name)}
               </div>
               {hasSuggestions && (

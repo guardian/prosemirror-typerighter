@@ -32,10 +32,9 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarElement = document.querySelector("#sidebar");
-const controlsElement = document.querySelector("#controls");
 const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin();
 
-if (editorElement && sidebarElement && controlsElement) {
+if (editorElement && sidebarElement) {
   const view = new EditorView(editorElement, {
     state: EditorState.create({
       doc,
@@ -63,8 +62,8 @@ if (editorElement && sidebarElement && controlsElement) {
     validationService,
     commands,
     sidebarElement,
-    controlsElement,
-    "mailto:example@typerighter.co.uk"
+    "mailto:example@typerighter.co.uk",
+    "http://a-form-for-example.com"
   );
 
   // Handy debugging tools

@@ -1,5 +1,5 @@
 .Sidebar__container {
-  font-size: 16px;
+  font-size: $font-size-small;
 }
 
 .Sidebar__content {
@@ -15,6 +15,7 @@
   margin: 0 $gutter-width / 2;
   max-height: 100%;
   overflow: hidden;
+  font-size: $font-size-base;
 }
 
 .Sidebar__container + .Sidebar__container {
@@ -23,21 +24,21 @@
 
 .Sidebar__header-container {
   position: relative;
-  padding: $gutter-width $gutter-width/2;
+  padding: $gutter-width;
   border-bottom: 1px solid $sidebar-border-color;
 }
 
 .Sidebar__header-contact {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: $font-size-small;
 }
 
 .Sidebar__header {
   display: flex;
+  align-items: baseline;
   position: relative;
-  flex-shrink: 0;
-  font-weight: 500;
-  justify-content: space-between;
+  flex-shrink: 0.2;
+  font-weight: bold;
 }
 
 .Sidebar__header-toggle {
@@ -45,22 +46,19 @@
 }
 
 .Sidebar__header-option {
-  font-weight: 400;
-  font-size: 14px;
-}
-
-.Sidebar__awaiting-match {
-  padding: $gutter-width/2;
-  color: #aaa;
+  font-weight: regular;
+  font-size: $font-size-small;
 }
 
 .Sidebar__toggle,
 .Sidebar__toggle-label {
   align-self: baseline;
-  font-size: 0.8em;
+  font-size: $font-size-small;
+  font-weight: normal;
 }
 
 .Sidebar__toggle {
+  display: inline-block;
   transition: transform 0.15s;
   color: #aaa;
 }
@@ -78,7 +76,7 @@
 }
 
 .Sidebar__awaiting-match {
-  padding: $gutter-width/2;
+  padding: $gutter-width ;
   color: gray;
 }
 
