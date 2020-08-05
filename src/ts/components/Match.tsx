@@ -33,6 +33,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       suggestions,
       replacement,
       url,
+      matchContext,
       markAsCorrect
     };
     return (
