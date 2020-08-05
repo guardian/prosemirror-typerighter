@@ -1,8 +1,7 @@
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
-import scss from "rollup-plugin-scss";
-import typescript from "@rollup/plugin-typescript";
 import serve from "rollup-plugin-serve";
+import { defaultPlugins } from "./rollup.common.js";
 
 export default [
   {
@@ -15,11 +14,8 @@ export default [
       sourcemap: true
     },
     plugins: [
+      ...defaultPlugins,
       resolve({ browser: true }),
-      typescript({ noEmitOnError: false }),
-      scss({
-        output: "pages/dist/styles.css"
-      }),
       commonjs(),
       serve({ port: 5000, contentBase: "pages/dist" })
     ]

@@ -1,12 +1,8 @@
-import scss from "rollup-plugin-scss";
 import babel from "@rollup/plugin-babel";
-import typescript from "@rollup/plugin-typescript";
+import { defaultPlugins } from "./rollup.common.js";
 
 const plugins = [
-  typescript({ noEmitOnError: false }),
-  scss({
-    output: "dist/index.css"
-  }),
+  ...defaultPlugins,
   babel()
 ];
 
