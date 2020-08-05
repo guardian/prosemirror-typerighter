@@ -11,6 +11,10 @@ import {
   TRequestCompleteCallback
 } from "../../interfaces/IMatcherAdapter";
 
+/**
+ * Convert an incoming response from a Typerighter service into
+ * the IMatcherResponse that the plugin expects.
+ */
 export const convertTyperighterResponse = (
   requestId: string,
   response: ITypeRighterResponse
@@ -33,7 +37,7 @@ export const convertTyperighterResponse = (
 });
 
 /**
- * An adapter for the Typerighter service.
+ * A MatcherAdapter for the Typerighter remote service.
  */
 class TyperighterAdapter implements IMatcherAdapter {
   constructor(protected url: string, protected responseThrottleMs = 250) {}
@@ -57,6 +61,7 @@ class TyperighterAdapter implements IMatcherAdapter {
       try {
         const response = await fetch(`${this.url}/check`, {
           method: "POST",
+          credentials: 'include',
           headers: new Headers({
             "Content-Type": "application/json"
           }),
@@ -64,7 +69,7 @@ class TyperighterAdapter implements IMatcherAdapter {
         });
         if (response.status !== 200) {
           throw new Error(
-            `Error fetching matches. The server responded with status code ${response.status}: ${response.statusText}`
+            `${response.status}: ${response.statusText}`
           );
         }
         const responseData: ITypeRighterResponse = await response.json();
@@ -74,13 +79,15 @@ class TyperighterAdapter implements IMatcherAdapter {
         onRequestError({
           requestId,
           blockId: input.id,
-          message: e.message
+          message: e.message,
+          categoryIds
         });
       }
     });
   };
   public fetchCategories = async () => {
     const response = await fetch(`${this.url}/categories`, {
+      credentials: 'include',
       headers: new Headers({
         "Content-Type": "application/json"
       })

@@ -1,0 +1,5 @@
+name: typerighter-client
+mappings:
+  - prefix: typerighter-client
+    port: 5000
+    path: /

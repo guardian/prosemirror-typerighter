@@ -9,7 +9,11 @@ import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
 
 /**
- * Scaffolding for an example view.
+ * Instantiate a UI for the given EditorView, commands, and configuration,
+ * appending it to the given HTML elements. This includes:
+ *  - The overlay responsible for displaying tooltips
+ *  - The plugin configuration pane
+ *  - The plugin results pane
  */
 const createView = (
   view: EditorView,
@@ -70,6 +74,7 @@ const createView = (
       getCurrentCategories={matcherService.getCurrentCategories}
       addCategory={matcherService.addCategory}
       removeCategory={matcherService.removeCategory}
+      contactHref={contactHref}
     />,
     controlsNode
   );

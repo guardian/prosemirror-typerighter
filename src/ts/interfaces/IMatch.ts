@@ -36,6 +36,7 @@ export interface IMatchRequestError {
   // If not, we treat the error as nonspecific.
   blockId?: string;
   message: string;
+  categoryIds: string[]
 }
 
 export interface IMatch<TSuggestion = ISuggestion> {

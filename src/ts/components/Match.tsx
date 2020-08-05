@@ -43,7 +43,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
                 target="_blank"
                 href={this.getFeedbackLink(this.props.feedbackHref!, feedbackInfo)}
               >
-                Something's not right? Tell us!
+                Issue with this result? Tell us!
               </a>
             </div>
           )}

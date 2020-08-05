@@ -49,6 +49,7 @@ class Sidebar extends Component<
     const percentRemaining = this.getPercentRemaining();
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
+
     return (
       <div className="Sidebar__section">
         <div className="Sidebar__header-container">
@@ -68,7 +69,7 @@ class Sidebar extends Component<
           {contactHref && (
             <div className="Sidebar__header-contact">
               <a href={contactHref} target="_blank">
-                Issue with a rule? Let us know!
+                Issue with Typerighter? Let us know!
               </a>
             </div>
           )}

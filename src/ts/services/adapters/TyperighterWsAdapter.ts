@@ -77,7 +77,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
 
     socket.addEventListener("close", closeEvent => {
       if (closeEvent.code !== 1000) {
-        onRequestError({ requestId, message: closeEvent.reason });
+        onRequestError({ requestId, message: closeEvent.reason, categoryIds });
       }
     });
   };
@@ -96,7 +96,8 @@ class TyperighterWsAdapter extends TyperighterAdapter
           return onRequestError({
             requestId,
             blockId: socketMessage.id,
-            message: socketMessage.message
+            message: socketMessage.message,
+            categoryIds: []
           });
         }
         case MATCHER_RESPONSE: {
@@ -113,12 +114,13 @@ class TyperighterWsAdapter extends TyperighterAdapter
           )}`;
           return onRequestError({
             requestId,
-            message: errorMessage
+            message: errorMessage,
+            categoryIds: []
           });
         }
       }
     } catch (e) {
-      onRequestError({ requestId, message: e.message });
+      onRequestError({ requestId, message: e.message, categoryIds: [] });
     }
   };
 

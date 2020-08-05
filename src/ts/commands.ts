@@ -295,6 +295,9 @@ const maybeApplySuggestions = (
   return true;
 };
 
+/**
+ * Create a palette of prosemirror-typerighter commands bound to the given EditorView.
+ */
 export const createBoundCommands = <TMatch extends IMatch>(
   view: EditorView,
   getState: GetState<TMatch>
@@ -326,7 +329,4 @@ export const createBoundCommands = <TMatch extends IMatch>(
   };
 };
 
-/**
- * The commands available to the plugin consumer.
- */
 export type Commands = ReturnType<typeof createBoundCommands>;

@@ -366,7 +366,8 @@ describe("Action handlers", () => {
         requestError({
           requestId: exampleRequestId,
           blockId: createBlockId(0, 1, 25),
-          message: "Too many requests"
+          message: "Too many requests",
+          categoryIds: ['example-category']
         })
       );
       expect(newState).toMatchObject({
@@ -378,7 +379,7 @@ describe("Action handlers", () => {
           }
         ],
         decorations: new DecorationSet(),
-        error: "Too many requests"
+        errorMessage: "Too many requests"
       });
     });
   });
