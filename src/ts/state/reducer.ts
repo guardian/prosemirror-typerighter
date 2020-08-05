@@ -24,7 +24,7 @@ import {
   ActionRequestComplete,
   ActionRemoveMatch
 } from "./actions";
-import { IMatch, IBlock, IRange } from "../interfaces/IMatch";
+import { IMatch, IBlock, IRange, IMatchRequestError } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
 import {
@@ -125,7 +125,7 @@ export interface IPluginState<TMatches extends IMatch = IMatch> {
     [requestId: string]: IBlocksInFlightState;
   };
   // The current error message.
-  errorMessage: string | undefined;
+  errorMessage: IMatchRequestError[];
 }
 
 // The transaction meta key that namespaces our actions.
@@ -148,7 +148,7 @@ export const createInitialState = <TMatch extends IMatch>(
   hoverInfo: undefined,
   requestsInFlight: {},
   requestPending: false,
-  errorMessage: undefined
+  errorMessage: []
 });
 
 export const createReducer = (expandRanges: ExpandRanges) => {
@@ -417,7 +417,7 @@ const handleRequestStart = (
 
   return {
     ...state,
-    errorMessage: undefined,
+    errorMessage: [],
     decorations,
     // We reset the dirty ranges, as they've been expanded and sent in a request.
     dirtiedRanges: [],
@@ -572,12 +572,15 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>,
   {
     payload: {
-      matchRequestError: { requestId, blockId, message, categoryIds }
+      matchRequestError
     }
   }: ActionRequestError
 ) => {
+
+  const { requestId, blockId, categoryIds } = matchRequestError;
+
   if (!blockId) {
-    return { ...state, message };
+    return { ...state, errorMessage: state.errorMessage.concat(matchRequestError) };
   }
 
   const requestsInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -593,7 +596,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   );
 
   if (!blockInFlight) {
-    return { ...state, message };
+    return { ...state, errorMessage: state.errorMessage.concat(matchRequestError) };
   }
 
   const dirtiedRanges = blockInFlight
@@ -636,7 +639,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
       blockId,
       categoryIds
     ),
-    errorMessage: message
+    errorMessage: state.errorMessage.concat(matchRequestError)
   };
 };
 
