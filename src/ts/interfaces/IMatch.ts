@@ -48,6 +48,7 @@ export interface IMatch<TSuggestion = ISuggestion> {
   suggestions?: TSuggestion[];
   replacement?: TSuggestion;
   markAsCorrect?: boolean;
+  matchContext: string;
 }
 
 export interface IBlockResult {

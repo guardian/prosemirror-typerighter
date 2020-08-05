@@ -50,7 +50,8 @@ describe("createTyperighterPlugin", () => {
             id: "cat1",
             name: "Category 1",
             colour: "puce"
-          }
+          },
+          matchContext: "bigger block of text"
         }
       ],
       requestId: "reqId"
