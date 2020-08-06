@@ -45,11 +45,14 @@ class Controls extends Component<IProps, IState> {
     // const { setDebugState, setRequestOnDocModified } = this.props;
     // const { debug = false, requestMatchesOnDocModified = false } =
     //   this.state.pluginState || {};
-    const { isOpen, isLoadingCategories } = this.state;
+    // const { isOpen, isLoadingCategories } = this.state;
     return (
       <Fragment>
         <div className="Sidebar__header-container">
-          <div className="Sidebar__header Sidebar__header-toggle">
+          <div className="
+          Sidebar__header 
+          // Sidebar__header-toggle
+          ">
             <button
               type="button"
               className="Button"
@@ -62,7 +65,7 @@ class Controls extends Component<IProps, IState> {
               Check document
             </button>
 
-            <div
+            {/* <div
               onClick={this.toggleOpenState}
               className="Sidebar__toggle-label"
             >
@@ -73,11 +76,11 @@ class Controls extends Component<IProps, IState> {
               >
                 ▼
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
-        {isOpen && (
-          <div>
+        {/* {isOpen && (
+          <div> */}
             {/* <div className="Controls__row">
                 <label
                   className="Controls__label"
@@ -117,7 +120,7 @@ class Controls extends Component<IProps, IState> {
               <div className="Controls__row">
                 <hr />
               </div> */}
-            <div className="Controls__row">
+            {/* <div className="Controls__row">
               <div className="Controls__header">
                 Select categories&nbsp;
                 {isLoadingCategories && (
@@ -162,7 +165,7 @@ class Controls extends Component<IProps, IState> {
             ))}
             <hr />
           </div>
-        )}
+        )} */}
         {this.state.pluginState && selectHasError(this.state.pluginState) && (
           <div className="Controls__error-message">
             Error fetching matches. Please try checking the document again.{" "}
@@ -183,15 +186,15 @@ class Controls extends Component<IProps, IState> {
   private handleNotify = (state: IPluginState<IMatch>) => {
     this.setState({ pluginState: state });
   };
-  private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
-  private setCategoryState = (categoryId: string, enabled: boolean) => {
-    enabled
-      ? this.props.addCategory(categoryId)
-      : this.props.removeCategory(categoryId);
-    this.setState({
-      currentCategories: this.props.getCurrentCategories()
-    });
-  };
+  // private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
+  // private setCategoryState = (categoryId: string, enabled: boolean) => {
+  //   enabled
+  //     ? this.props.addCategory(categoryId)
+  //     : this.props.removeCategory(categoryId);
+  //   this.setState({
+  //     currentCategories: this.props.getCurrentCategories()
+  //   });
+  // };
 
   private initCategories = async () => {
     const allCategories = await this.fetchCategories();

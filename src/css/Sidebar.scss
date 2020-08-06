@@ -41,33 +41,28 @@
   font-weight: bold;
 }
 
-.Sidebar__header-toggle {
-  cursor: pointer;
-}
+// .Sidebar__header-toggle {
+//   cursor: pointer;
+// }
 
-.Sidebar__header-option {
-  font-weight: regular;
-  font-size: $font-size-small;
-}
+// .Sidebar__toggle,
+// .Sidebar__toggle-label {
+//   align-self: baseline;
+//   font-size: $font-size-small;
+//   font-weight: normal;
+// }
 
-.Sidebar__toggle,
-.Sidebar__toggle-label {
-  align-self: baseline;
-  font-size: $font-size-small;
-  font-weight: normal;
-}
+// .Sidebar__toggle {
+//   display: inline-block;
+//   transition: transform 0.15s;
+//   color: #aaa;
+// }
 
-.Sidebar__toggle {
-  display: inline-block;
-  transition: transform 0.15s;
-  color: #aaa;
-}
-
-.Sidebar__toggle-label {
-  color: #888;
-  margin-left: auto;
-  padding-right: 5px;
-}
+// .Sidebar__toggle-label {
+//   color: #888;
+//   margin-left: auto;
+//   padding-right: 5px;
+// }
 
 .Sidebar__list {
   margin: 0;
@@ -90,15 +85,15 @@
   border-top: 1px solid $sidebar-border-color;
 }
 
-.Sidebar__loading-spinner {
-  display: inline-block;
-  margin-top: 1px;
-  margin-left: $gutter-width/2;
-  line-height: 1;
-  animation-duration: 0.5s;
-  animation-name: spin;
-  animation-iteration-count: infinite;
-}
+// .Sidebar__loading-spinner {
+//   display: inline-block;
+//   margin-top: 1px;
+//   margin-left: $gutter-width/2;
+//   line-height: 1;
+//   animation-duration: 0.5s;
+//   animation-name: spin;
+//   animation-iteration-count: infinite;
+// }
 
 @keyframes spin {
   from {
