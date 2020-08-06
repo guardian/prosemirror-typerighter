@@ -18,6 +18,7 @@ interface IViewOptions {
   contactHref?: string;
   feedbackHref?: string;
   logger: ILogger;
+  onIgnoreMatch?: (match: IMatch) => void;
 }
 
 /**
@@ -35,7 +36,8 @@ const createView = ({
   sidebarNode,
   contactHref,
   feedbackHref,
-  logger = consoleLogger
+  logger = consoleLogger,
+  onIgnoreMatch
 }: IViewOptions) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
@@ -58,6 +60,13 @@ const createView = ({
         commands.applySuggestions(suggestionOpts);
         commands.stopHover();
       }}
+      onIgnoreMatch={
+        onIgnoreMatch &&
+        (match => {
+          // @todo – remove match from doc
+          onIgnoreMatch(match);
+        })
+      }
       containerElement={wrapperElement}
       feedbackHref={feedbackHref}
     />,

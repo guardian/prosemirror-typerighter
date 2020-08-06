@@ -7,6 +7,7 @@ interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
   feedbackHref?: string;
+  onIgnoreMatch?: (match: IMatch) => void;
 }
 
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {

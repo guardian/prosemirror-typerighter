@@ -20,6 +20,7 @@ interface IProps<TMatch extends IMatch> {
   // within this element.
   containerElement?: HTMLElement;
   feedbackHref?: string;
+  onIgnoreMatch?: (match: IMatch) => void;
 }
 
 /**
@@ -55,6 +56,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
   }
 
   public render() {
+    const { applySuggestions, feedbackHref, onIgnoreMatch } = this.props;
     const { match, left, top } = this.state;
     if (!match || left === undefined || top === undefined) {
       return null;
@@ -77,8 +79,9 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
           <Match
             ref={_ => (this.matchRef = _)}
             match={match}
-            applySuggestions={this.props.applySuggestions}
-            feedbackHref={this.props.feedbackHref}
+            applySuggestions={applySuggestions}
+            feedbackHref={feedbackHref}
+            onIgnoreMatch={onIgnoreMatch}
           />
         </div>
       </div>
