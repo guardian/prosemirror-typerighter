@@ -1,5 +1,5 @@
-import resolve from "rollup-plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import serve from "rollup-plugin-serve";
 import { defaultPlugins } from "./rollup.common.js";
 
@@ -15,7 +15,7 @@ export default [
     },
     plugins: [
       ...defaultPlugins,
-      resolve({ browser: true }),
+      nodeResolve({ browser: true }),
       commonjs(),
       serve({ port: 5000, contentBase: "pages/dist" })
     ]
