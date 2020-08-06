@@ -63,7 +63,7 @@ const createView = ({
       onIgnoreMatch={
         onIgnoreMatch &&
         (match => {
-          // @todo – remove match from doc
+          commands.ignoreMatch(match.matchId);
           onIgnoreMatch(match);
         })
       }

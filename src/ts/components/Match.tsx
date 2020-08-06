@@ -13,19 +13,19 @@ interface IMatchProps<TMatch extends IMatch> {
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   public ref: HTMLDivElement | null = null;
   public render({
-    match: { matchId, category, message, suggestions, replacement, markAsCorrect, matchContext },
-    applySuggestions
+    match,
+    applySuggestions,
+    onIgnoreMatch
   }: IMatchProps<TMatch>) {
-    const suggestionsToRender = replacement ? [replacement] : suggestions || [];
-    const suggestionContent = suggestionsToRender && applySuggestions && !markAsCorrect && (
-      <div className="MatchWidget__suggestion-list">
-        <SuggestionList
-          applySuggestions={applySuggestions}
-          matchId={matchId}
-          suggestions={suggestionsToRender}
-        />
-      </div>
-    )
+    const {
+      matchId,
+      category,
+      message,
+      suggestions,
+      replacement,
+      markAsCorrect,
+      matchContext
+    } = match;
     const url = document.URL;
     const feedbackInfo = {
       matchId,
@@ -37,6 +37,20 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       matchContext,
       markAsCorrect
     };
+
+    const suggestionsToRender = replacement ? [replacement] : suggestions || [];
+    const suggestionContent = suggestionsToRender &&
+      applySuggestions &&
+      !markAsCorrect && (
+        <div className="MatchWidget__suggestion-list">
+          <SuggestionList
+            applySuggestions={applySuggestions}
+            matchId={matchId}
+            suggestions={suggestionsToRender}
+          />
+        </div>
+      );
+
     return (
       <div className="MatchWidget__container">
         <div className="MatchWidget" ref={_ => (this.ref = _)}>
@@ -62,6 +76,9 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
               </a>
             </div>
           )}
+          <button onClick={onIgnoreMatch && (() => onIgnoreMatch(match))}>
+            Ignore!
+          </button>
         </div>
       </div>
     );
