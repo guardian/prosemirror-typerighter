@@ -21,7 +21,7 @@ import {
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
-import { IMatch } from "../../interfaces/IMatch";
+import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
 import {
   createMatcherResponse,
   createBlock,
@@ -380,7 +380,12 @@ describe("Action handlers", () => {
           }
         ],
         decorations: new DecorationSet(),
-        errorMessage: "Too many requests"
+        requestErrors: [{
+          requestId: exampleRequestId,
+          blockId: createBlockId(0, 1, 25),
+          message: "Too many requests",
+          categoryIds: ['example-category']
+        } as IMatchRequestError]
       });
     });
   });
