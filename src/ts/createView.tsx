@@ -7,7 +7,18 @@ import Controls from "./components/Controls";
 import { Commands } from "./commands";
 import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
-import { ILogger, consoleLogger } from "./utils/logger"
+import { ILogger, consoleLogger } from "./utils/logger";
+
+interface IViewOptions {
+  view: EditorView;
+  store: Store<IMatch>;
+  matcherService: MatcherService<IMatch>;
+  commands: Commands;
+  sidebarNode: Element;
+  contactHref?: string;
+  feedbackHref?: string;
+  logger: ILogger;
+}
 
 /**
  * Instantiate a UI for the given EditorView, commands, and configuration,
@@ -16,17 +27,16 @@ import { ILogger, consoleLogger } from "./utils/logger"
  *  - The plugin configuration pane
  *  - The plugin results pane
  */
-const createView = (
-  view: EditorView,
-  store: Store<IMatch>,
-  matcherService: MatcherService<IMatch>,
-  commands: Commands,
-  sidebarNode: Element,
-  contactHref?: string,
-  feedbackHref?: string,
-  logger: ILogger = consoleLogger
-) => {
-
+const createView = ({
+  view,
+  store,
+  matcherService,
+  commands,
+  sidebarNode,
+  contactHref,
+  feedbackHref,
+  logger = consoleLogger
+}: IViewOptions) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
   const overlayNode = document.createElement("div");

@@ -31,10 +31,10 @@ if (contentElement && contentElement.parentElement) {
 
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
-const sidebarElement = document.querySelector("#sidebar");
+const sidebarNode = document.querySelector("#sidebar");
 const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin();
 
-if (editorElement && sidebarElement) {
+if (editorElement && sidebarNode) {
   const view = new EditorView(editorElement, {
     state: EditorState.create({
       doc,
@@ -51,20 +51,20 @@ if (editorElement && sidebarElement) {
   });
 
   const commands = createBoundCommands(view, getState);
-  const validationService = new MatcherService(
+  const matcherService = new MatcherService(
     store,
     commands,
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
-  createView(
+  createView({
     view,
     store,
-    validationService,
+    matcherService,
     commands,
-    sidebarElement,
-    "mailto:example@typerighter.co.uk",
-    "http://a-form-for-example.com"
-  );
+    sidebarNode,
+    contactHref: "mailto:example@typerighter.co.uk",
+    feedbackHref: "http://a-form-for-example.com"
+  });
 
   // Handy debugging tools
   (window as any).editor = view;
