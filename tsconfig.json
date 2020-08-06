@@ -14,5 +14,6 @@
     "jsx": "react",
     "jsxFactory": "h",
     "lib": ["dom", "esnext"]
-  }
+  },
+  "exclude": ["dist"]
 }
