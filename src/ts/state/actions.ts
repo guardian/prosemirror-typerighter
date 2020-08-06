@@ -17,6 +17,7 @@ export const REQUEST_ERROR = "REQUEST_ERROR" as const;
 export const REQUEST_COMPLETE = "REQUEST_COMPLETE" as const;
 export const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
 export const SELECT_MATCH = "SELECT_MATCH" as const;
+export const REMOVE_MATCH = "REMOVE_MATCH" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
 export const SET_DEBUG_STATE = "SET_DEBUG_STATE" as const;
 export const SET_REQUEST_MATCHES_ON_DOC_MODIFIED = "SET_REQUEST_MATCHES_ON_DOC_MODIFIED" as const;
@@ -110,6 +111,14 @@ export type ActionSetRequestMatchesOnDocModified = ReturnType<
   typeof setRequestMatchesOnDocModified
 >;
 
+export const removeMatch = (id: string) => ({
+  type: REMOVE_MATCH,
+  payload: { id }
+})
+export type ActionRemoveMatch = ReturnType<
+  typeof removeMatch
+>;
+
 export type Action<TMatch extends IMatch> =
   | ActionNewHoverIdReceived
   | ActionRequestMatchesSuccess<TMatch>
@@ -120,4 +129,5 @@ export type Action<TMatch extends IMatch> =
   | ActionSelectMatch
   | ActionHandleNewDirtyRanges
   | ActionSetDebugState
-  | ActionSetRequestMatchesOnDocModified;
+  | ActionSetRequestMatchesOnDocModified
+  | ActionRemoveMatch

@@ -8,7 +8,8 @@ import {
   requestMatchesSuccess,
   requestError,
   requestMatchesForDirtyRanges,
-  requestMatchesComplete
+  requestMatchesComplete,
+  removeMatch
 } from "./state/actions";
 import {
   selectMatchByMatchId,
@@ -265,6 +266,23 @@ export const applyAutoFixableSuggestionsCommand = <TMatch extends IMatch>(
   return maybeApplySuggestions(suggestionsToApply, state, dispatch);
 };
 
+/**
+ * Ignore a match, removing it from the plugin state.
+ * Returns true if the match was found, false if not.
+ */
+export const ignoreMatchCommand = (id: string) => <TMatch extends IMatch>(
+  getState: GetState<TMatch>
+) => (
+  state: EditorState,
+  dispatch?: (tr: Transaction<any>) => void
+): boolean => {
+  const match = selectMatchByMatchId(getState(state), id);
+  if (match && dispatch) {
+    dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, removeMatch(id)));
+  }
+  return !!match;
+};
+
 const maybeApplySuggestions = (
   suggestionsToApply: Array<{
     from: number;
@@ -306,6 +324,8 @@ export const createBoundCommands = <TMatch extends IMatch>(
     action: (...args: CommandArgs) => Command
   ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
   return {
+    ignoreMatch: (id: string) =>
+      ignoreMatchCommand(id)(getState)(view.state, view.dispatch),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
       applySuggestionsCommand(suggestionOpts, getState)(
         view.state,

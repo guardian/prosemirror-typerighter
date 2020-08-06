@@ -9,7 +9,8 @@ import {
   requestMatchesForDirtyRanges,
   requestMatchesSuccess,
   newHoverIdReceived,
-  requestMatchesComplete as requestComplete
+  requestMatchesComplete as requestComplete,
+  removeMatch
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
 import { createReducer, IPluginState } from "../reducer";
@@ -576,6 +577,21 @@ describe("Action handlers", () => {
       });
     });
   });
+  describe("removeMatch", () => {
+    const { state, tr } = createInitialData();
+    const matcherResponse = createMatcherResponse(5, 10)
+    let newState = reducer(
+      tr,
+      {
+        ...state,
+        requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+      },
+      requestMatchesSuccess(matcherResponse)
+    );
+    newState = reducer(tr, newState, removeMatch(matcherResponse.matches[0].matchId))
+    expect(newState.currentMatches).toEqual([])
+    expect(newState.decorations).toEqual(state.decorations)
+  })
   describe("setDebug", () => {
     it("should set the debug state", () => {
       const { state } = createInitialData();
