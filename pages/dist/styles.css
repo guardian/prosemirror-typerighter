@@ -2,11 +2,19 @@
 .Controls__row {
   position: relative;
   display: flex;
-  padding: 5px; }
+  align-items: center;
+  padding: 8px; }
+
+.Controls__row + .Controls__row {
+  padding-top: 0;
+  padding-bottom: 4px; }
 
 .Controls__input {
   min-width: 30px;
   margin-left: auto; }
+
+.Controls__header {
+  font-weight: bold; }
 
 .Controls__label {
   font-weight: normal;
@@ -15,7 +23,9 @@
 
 .Controls__error-message {
   color: red;
-  padding: 5px; }
+  padding: 8px;
+  padding-bottom: 0;
+  font-size: 0.8em; }
 
 .LoadingBar {
   position: absolute;
@@ -27,7 +37,7 @@
   transition: width 0.3s, opacity 0.3s; }
 
 .Sidebar__container {
-  font-size: 16px; }
+  font-size: 0.8em; }
 
 .Sidebar__content {
   overflow-y: scroll; }
@@ -37,47 +47,46 @@
   flex-direction: column;
   background-color: white;
   border-radius: 4px;
-  border: 1px solid #ccc;
-  margin: 0 5px;
+  border: 1px solid #ddd;
+  margin: 0 4px;
   max-height: 100%;
-  overflow: hidden; }
+  overflow: hidden;
+  font-size: 15px; }
 
 .Sidebar__container + .Sidebar__container {
-  margin-top: 10px; }
+  margin-top: 8px; }
 
 .Sidebar__header-container {
   position: relative;
-  padding: 10px 5px;
-  border-bottom: 1px solid #ccc; }
+  padding: 8px;
+  border-bottom: 1px solid #ddd; }
 
 .Sidebar__header-contact {
   margin-top: 5px;
-  font-size: 11px; }
+  font-size: 0.8em; }
 
 .Sidebar__header {
   display: flex;
+  align-items: baseline;
   position: relative;
-  flex-shrink: 0;
-  font-weight: 500;
-  justify-content: space-between; }
+  flex-shrink: 0.2;
+  font-weight: bold; }
 
 .Sidebar__header-toggle {
   cursor: pointer; }
 
 .Sidebar__header-option {
-  font-weight: 400;
-  font-size: 14px; }
-
-.Sidebar__awaiting-match {
-  padding: 5px;
-  color: #aaa; }
+  font-weight: regular;
+  font-size: 0.8em; }
 
 .Sidebar__toggle,
 .Sidebar__toggle-label {
   align-self: baseline;
-  font-size: 0.8em; }
+  font-size: 0.8em;
+  font-weight: normal; }
 
 .Sidebar__toggle {
+  display: inline-block;
   transition: transform 0.15s;
   color: #aaa; }
 
@@ -92,7 +101,7 @@
   list-style: none; }
 
 .Sidebar__awaiting-match {
-  padding: 5px;
+  padding: 8px;
   color: gray; }
 
 .Sidebar__list {
@@ -101,12 +110,12 @@
   list-style: none; }
 
 .Sidebar__list-item + .Sidebar__list-item {
-  border-top: 1px solid #ccc; }
+  border-top: 1px solid #ddd; }
 
 .Sidebar__loading-spinner {
   display: inline-block;
   margin-top: 1px;
-  margin-left: 5px;
+  margin-left: 4px;
   line-height: 1;
   animation-duration: 0.5s;
   animation-name: spin;
@@ -119,7 +128,7 @@
     transform: rotate(360deg); } }
 
 .SidebarMatch__container {
-  padding: 5px; }
+  padding: 8px; }
   .SidebarMatch__container:hover {
     background-color: #f6f6f6; }
 
@@ -136,11 +145,12 @@
   width: 100%; }
 
 .SidebarMatch__header-match-text {
-  font-weight: 500;
+  margin-bottom: 4px;
   cursor: pointer; }
 
 .SidebarMatch__header-description {
-  font-size: 14px; }
+  font-size: 0.8em;
+  color: #5f5e5e; }
 
 .SidebarMatch__header-meta {
   margin-left: auto; }
@@ -148,13 +158,14 @@
 .SidebarMatch__header-range,
 .SidebarMatch__header-category {
   text-align: right;
-  font-size: 12px; }
+  font-size: 0.8em; }
 
 .SidebarMatch__header-category {
   margin-top: 2px;
   font-variant: small-caps;
   text-transform: lowercase;
-  letter-spacing: 0.3px; }
+  letter-spacing: 0.3px;
+  color: #999999; }
 
 .SidebarMatch__header-range {
   color: grey;
@@ -166,15 +177,15 @@
   text-align: right; }
 
 .SidebarMatch__content {
-  margin-top: 5px;
-  font-size: 14px; }
+  margin-top: 4px;
+  font-size: 0.8em; }
 
 .SidebarMatch__suggestion-list {
-  margin-top: 5px; }
+  margin-top: 4px; }
 
 .SidebarMatch__list-title {
   font-style: italic;
-  margin-bottom: 5px; }
+  margin-bottom: 4px; }
 
 .WikiSuggestion__container {
   display: flex; }
@@ -186,9 +197,9 @@
   padding-right: 5px; }
 
 .WikiSuggestion__suggestion {
-  padding: 10px 10px 10px 0;
-  font-weight: 700;
-  font-size: 16px;
+  padding: 8px 8px 8px 0;
+  font-weight: bold;
+  font-size: 1.1em;
   color: #999;
   cursor: pointer; }
   .WikiSuggestion__suggestion:hover {
@@ -200,7 +211,7 @@
   height: 123px;
   width: 95px;
   background-size: cover;
-  background-color: #f1f1f1; }
+  background-color: #888; }
   .WikiSuggestion__thumbnail.WikiSuggestion__thumbnail--placeholder {
     overflow: hidden; }
     .WikiSuggestion__thumbnail.WikiSuggestion__thumbnail--placeholder::before {
@@ -220,7 +231,7 @@
   position: relative;
   height: 85px;
   overflow: hidden;
-  font-size: 12px; }
+  font-size: 0.8em; }
 
 .WikiSuggestion__link {
   position: absolute;
@@ -234,7 +245,7 @@
   background-image: linear-gradient(transparent, transparent), url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22%3E %3Cpath fill=%22%23fff%22 stroke=%22%2336c%22 d=%22M1.5 4.518h5.982V10.5H1.5z%22/%3E %3Cpath fill=%22%2336c%22 d=%22M5.765 1H11v5.39L9.427 7.937l-1.31-1.31L5.393 9.35l-2.69-2.688 2.81-2.808L4.2 2.544z%22/%3E %3Cpath fill=%22%23fff%22 d=%22M9.995 2.004l.022 4.885L8.2 5.07 5.32 7.95 4.09 6.723l2.882-2.88-1.85-1.852z%22/%3E %3C/svg%3E"); }
 
 .WikiSuggestion__extract--placeholder {
-  background: repeating-linear-gradient(180deg, #f1f1f1, #f1f1f1 11px, #fff 11px, #fff 18px);
+  background: repeating-linear-gradient(180deg, #888, #888 11px, #fff 11px, #fff 18px);
   position: relative;
   height: 85px;
   overflow: hidden; }
@@ -264,7 +275,7 @@
 hr {
   height: 1px;
   border: initial;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #ddd;
   width: 100%;
   margin: 5px 0; }
 
@@ -278,28 +289,29 @@ hr {
   padding: 1px 4px;
   border: 1px solid lightgrey;
   border-radius: 3px;
-  font-size: 1em;
+  font-size: 15px;
+  font-weight: normal;
   cursor: pointer; }
 
 .Button:hover {
   background-color: #eee; }
 
 .Input[type="checkbox"] {
-  margin-left: 10px; }
+  margin-left: 8px; }
 
 .Button:active,
 .Button:focus {
   outline: none; }
 
 .MatchWidget {
+  background-color: white;
   display: block;
   position: relative;
+  padding: 12px;
   font-family: sans-serif;
-  font-size: 14px;
   font-style: normal;
   font-weight: normal;
-  background-color: white;
-  box-shadow: #4e56643b 0px 0px 1px 0px, #3f48573a 0px 2px 7px 0px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
   border-radius: 3px;
   width: 300px;
   transition: opacity 0.1s, transform 0.1s;
@@ -308,26 +320,36 @@ hr {
   overflow: hidden; }
 
 .MatchWidget__container {
-  margin-top: 8px;
-  position: relative; }
+  margin-top: 13px;
+  position: relative;
+  font-size: 15px; }
 
 .MatchWidget__container--is-hovering .MatchWidget {
   opacity: 1;
   transform: translate3d(0, 0, 0); }
 
 .MatchWidget__type {
-  color: #a0a0a0;
+  color: #999999;
   font-variant: small-caps;
+  line-height: 0.7;
   text-transform: lowercase;
   letter-spacing: 0.3px; }
 
-.MatchWidget__annotation,
-.MatchWidget__suggestion,
+.MatchWidget__suggestion {
+  padding: 8px; }
+
 .MatchWidget__type {
-  padding: 10px; }
+  padding-bottom: 8px; }
 
 .MatchWidget__annotation {
-  padding-top: 0; }
+  padding-top: 8px; }
+
+.MatchWidget__color-swatch {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 8px; }
 
 .MatchWidget__label {
   display: block;
@@ -336,24 +358,31 @@ hr {
 
 .MatchWidget__suggestion-list {
   display: block;
-  margin-top: 3px;
-  padding: 0 10px 10px 10px; }
+  margin-top: 3px; }
 
 .MatchWidget__suggestion {
   display: block;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 16px;
-  color: #999; }
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #999;
+  background-color: #f3f3f3; }
 
 .MatchWidget__suggestion:nth-child(even) {
-  background-color: #fafafa; }
+  background-color: #eeeeee; }
 
 .MatchWidget__suggestion:hover {
-  background-color: #f1f1f1; }
+  color: #888;
+  background-color: #eee; }
 
 .MatchWidget__suggestion + .MatchWidget__suggestion {
   margin-top: 3px; }
+
+.MatchWidget__feedbackLink {
+  margin-top: 8px;
+  font-size: 0.8em; }
+  .MatchWidget__feedbackLink a {
+    color: #999999; }
 
 .MatchDecoration {
   border-bottom: 2px solid #3dcde6; }

@@ -1,9 +1,14 @@
 import babel from "@rollup/plugin-babel";
+import replace from '@rollup/plugin-replace';
+
 import { defaultPlugins } from "./rollup.common.js";
 
 const plugins = [
   ...defaultPlugins,
-  babel()
+  babel(),
+  replace({
+    "process.env.NODE_ENV": JSON.stringify("production")
+  }),
 ];
 
 export default [

@@ -18,7 +18,7 @@
     "pages": "npm run build && http-server ./pages/dist",
     "prepublishOnly": "npm run build && tsc -p tsconfig.declaration.json",
     "build": "rollup -c build/rollup.config.build.js",
-    "watch": "rollup -w -c build/rollup.config.dev.js",
+    "watch": "rollup -w -m -c build/rollup.config.dev.js",
     "format": "prettier --write './src/**/*.ts'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
@@ -27,8 +27,10 @@
     "@babel/core": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "@csstools/postcss-sass": "^4.0.0",
+    "@rollup/plugin-alias": "^3.1.1",
     "@rollup/plugin-commonjs": "^14.0.0",
     "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-replace": "^2.3.3",
     "@types/fetch-mock": "^6.0.4",
     "@types/jest": "^23.3.2",
     "@types/lodash": "^4.14.116",
@@ -73,9 +75,11 @@
     "whatwg-fetch": "^3.0.0"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
     "@rollup/plugin-babel": "^5.0.2",
     "lodash": "^4.17.11",
-    "preact": "^10.0.0-rc.0",
+    "preact": "^10.4.7",
     "prosemirror-tables": "^0.7.8",
     "prosemirror-utils": "^0.6.7",
     "uuid": "^8.3.0"

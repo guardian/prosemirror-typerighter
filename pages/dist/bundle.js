@@ -1,5 +1,8 @@
-(function () {
+(function (react, SvgIcon) {
   'use strict';
+
+  react = react && Object.prototype.hasOwnProperty.call(react, 'default') ? react['default'] : react;
+  SvgIcon = SvgIcon && Object.prototype.hasOwnProperty.call(SvgIcon, 'default') ? SvgIcon['default'] : SvgIcon;
 
   // ::- Persistent data structure representing an ordered mapping from
   // strings to values, with some convenient update methods.
@@ -14745,6 +14748,7 @@
   const REQUEST_COMPLETE = "REQUEST_COMPLETE";
   const NEW_HOVER_ID = "NEW_HOVER_ID";
   const SELECT_MATCH = "SELECT_MATCH";
+  const REMOVE_MATCH = "REMOVE_MATCH";
   const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES";
   const SET_DEBUG_STATE = "SET_DEBUG_STATE";
   const SET_REQUEST_MATCHES_ON_DOC_MODIFIED = "SET_REQUEST_MATCHES_ON_DOC_MODIFIED";
@@ -14787,6 +14791,10 @@
   const setRequestMatchesOnDocModified = (requestMatchesOnDocModified) => ({
       type: SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
       payload: { requestMatchesOnDocModified }
+  });
+  const removeMatch = (id) => ({
+      type: REMOVE_MATCH,
+      payload: { id }
   });
 
   /**
@@ -23169,6 +23177,7 @@
       return totalRemainingWork ? (totalRemainingWork / totalWork) * 100 : 0;
   };
   const selectAllAutoFixableMatches = (state) => state.currentMatches.filter(_ => _.replacement && _.replacement.text === _.message);
+  const selectHasError = (state) => !!state.errorMessage && state.errorMessage.length > 0;
 
   const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
   const createInitialState = (doc, matches = []) => ({
@@ -23182,8 +23191,7 @@
       hoverInfo: undefined,
       requestsInFlight: {},
       requestPending: false,
-      errorMessage: undefined,
-      hasError: false
+      errorMessage: undefined
   });
   const createReducer = (expandRanges) => {
       const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(expandRanges);
@@ -23209,6 +23217,8 @@
                   return handleRequestComplete(tr, state, action);
               case SELECT_MATCH:
                   return handleSelectMatch(tr, state, action);
+              case REMOVE_MATCH:
+                  return handleRemoveMatch(tr, state, action);
               case APPLY_NEW_DIRTY_RANGES:
                   return handleNewDirtyRanges(tr, state, action);
               case SET_DEBUG_STATE:
@@ -23231,6 +23241,15 @@
   };
   const handleSelectMatch = (_, state, action) => {
       return Object.assign(Object.assign({}, state), { selectedMatch: action.payload.matchId });
+  };
+  const handleRemoveMatch = (_, state, { payload: { id } }) => {
+      const decorationToRemove = state.decorations.find(undefined, undefined, spec => spec.id === id);
+      const decorations = decorationToRemove
+          ? state.decorations.remove(decorationToRemove)
+          : state.decorations;
+      const currentMatches = state.currentMatches.filter(match => match.matchId !== id);
+      return Object.assign(Object.assign({}, state), { decorations,
+          currentMatches });
   };
   const handleNewHoverId = (tr, state, action) => {
       let decorations = state.decorations;
@@ -23280,7 +23299,7 @@
           block,
           pendingCategoryIds: categoryIds
       }));
-      return Object.assign(Object.assign({}, state), { hasError: false, errorMessage: undefined, decorations, dirtiedRanges: [], requestPending: false, requestsInFlight: Object.assign(Object.assign({}, state.requestsInFlight), { [requestId]: {
+      return Object.assign(Object.assign({}, state), { errorMessage: undefined, decorations, dirtiedRanges: [], requestPending: false, requestsInFlight: Object.assign(Object.assign({}, state.requestsInFlight), { [requestId]: {
                   totalBlocks: newBlockQueriesInFlight.length,
                   pendingBlocks: newBlockQueriesInFlight,
                   mapping: tr.mapping,
@@ -23351,7 +23370,7 @@
       }
       return Object.assign(Object.assign({}, state), { dirtiedRanges: dirtiedRanges.length
               ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
-              : state.dirtiedRanges, decorations, requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, categoryIds), hasError: true, errorMessage: message });
+              : state.dirtiedRanges, decorations, requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, categoryIds), errorMessage: message });
   };
   const handleRequestComplete = (_, state, { payload: { requestId } }) => {
       const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -23521,6 +23540,13 @@
       }));
       return maybeApplySuggestions(suggestionsToApply, state, dispatch);
   };
+  const ignoreMatchCommand = (id) => (getState) => (state, dispatch) => {
+      const match = selectMatchByMatchId(getState(state), id);
+      if (match && dispatch) {
+          dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, removeMatch(id)));
+      }
+      return !!match;
+  };
   const maybeApplySuggestions = (suggestionsToApply, state, dispatch) => {
       if (!suggestionsToApply.length) {
           return false;
@@ -23536,6 +23562,7 @@
   const createBoundCommands = (view, getState) => {
       const bindCommand = (action) => (...args) => action(...args)(view.state, view.dispatch);
       return {
+          ignoreMatch: (id) => ignoreMatchCommand(id)(getState)(view.state, view.dispatch),
           applySuggestions: (suggestionOpts) => applySuggestionsCommand(suggestionOpts, getState)(view.state, view.dispatch),
           selectMatch: (blockId) => selectMatchCommand(blockId, getState)(view.state, view.dispatch),
           applyAutoFixableSuggestions: () => applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
@@ -23622,9 +23649,122 @@
       };
   };
 
-  var n,u,t,i$1,o,r,f={},e=[],c=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord/i;function s(n,l){for(var u in l)n[u]=l[u];return n}function a(n){var l=n.parentNode;l&&l.removeChild(n);}function h(n,l,u){var t,i,o,r,f=arguments;if(l=s({},l),arguments.length>3)for(u=[u],t=3;t<arguments.length;t++)u.push(f[t]);if(null!=u&&(l.children=u),null!=n&&null!=n.defaultProps)for(i in n.defaultProps)void 0===l[i]&&(l[i]=n.defaultProps[i]);return r=l.key,null!=(o=l.ref)&&delete l.ref,null!=r&&delete l.key,v(n,l,r,o)}function v(l,u,t,i){var o={type:l,props:u,key:t,ref:i,__k:null,__:null,__b:0,__e:null,__d:null,__c:null,constructor:void 0};return n.vnode&&n.vnode(o),o}function d(n){return n.children}function y(n,l){this.props=n,this.context=l;}function m(n,l){if(null==l)return n.__?m(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return "function"==typeof n.type?m(n):null}function w(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return w(n)}}function g(l){(!l.__d&&(l.__d=!0)&&1===u.push(l)||i$1!==n.debounceRendering)&&((i$1=n.debounceRendering)||t)(k);}function k(){var n,l,t,i,o,r,f;for(u.sort(function(n,l){return l.__v.__b-n.__v.__b});n=u.pop();)n.__d&&(t=void 0,i=void 0,r=(o=(l=n).__v).__e,(f=l.__P)&&(t=[],i=T(f,o,s({},o),l.__n,void 0!==f.ownerSVGElement,null,t,null==r?m(o):r),$(t,o),i!=r&&w(o)));}function _(n,l,u,t,i,o,r,c,s){var h,v,p,d,y,w,g,k=u&&u.__k||e,_=k.length;if(c==f&&(c=null!=o?o[0]:_?m(u,0):null),h=0,l.__k=b(l.__k,function(u){if(null!=u){if(u.__=l,u.__b=l.__b+1,null===(p=k[h])||p&&u.key==p.key&&u.type===p.type)k[h]=void 0;else for(v=0;v<_;v++){if((p=k[v])&&u.key==p.key&&u.type===p.type){k[v]=void 0;break}p=null;}if(d=T(n,u,p=p||f,t,i,o,r,c,s),(v=u.ref)&&p.ref!=v&&(g||(g=[]),p.ref&&g.push(p.ref,null,u),g.push(v,u.__c||d,u)),null!=d){if(null==w&&(w=d),null!=u.__d)d=u.__d,u.__d=null;else if(o==p||d!=c||null==d.parentNode){n:if(null==c||c.parentNode!==n)n.appendChild(d);else {for(y=c,v=0;(y=y.nextSibling)&&v<_;v+=2)if(y==d)break n;n.insertBefore(d,c);}"option"==l.type&&(n.value="");}c=d.nextSibling,"function"==typeof l.type&&(l.__d=d);}}return h++,u}),l.__e=w,null!=o&&"function"!=typeof l.type)for(h=o.length;h--;)null!=o[h]&&a(o[h]);for(h=_;h--;)null!=k[h]&&A(k[h],k[h]);if(g)for(h=0;h<g.length;h++)z(g[h],g[++h],g[++h]);}function b(n,l,u){if(null==u&&(u=[]),null==n||"boolean"==typeof n)l&&u.push(l(null));else if(Array.isArray(n))for(var t=0;t<n.length;t++)b(n[t],l,u);else u.push(l?l("string"==typeof n||"number"==typeof n?v(null,n,null,null):null!=n.__e||null!=n.__c?v(n.type,n.props,n.key,null):n):n);return u}function x(n,l,u,t,i){var o;for(o in u)o in l||P(n,o,null,u[o],t);for(o in l)i&&"function"!=typeof l[o]||"value"===o||"checked"===o||u[o]===l[o]||P(n,o,l[o],u[o],t);}function C(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]="number"==typeof u&&!1===c.test(l)?u+"px":null==u?"":u;}function P(n,l,u,t,i){var o,r,f,e,c;if(i?"className"===l&&(l="class"):"class"===l&&(l="className"),"key"===l||"children"===l);else if("style"===l)if(o=n.style,"string"==typeof u)o.cssText=u;else {if("string"==typeof t&&(o.cssText="",t=null),t)for(r in t)u&&r in u||C(o,r,"");if(u)for(f in u)t&&u[f]===t[f]||C(o,f,u[f]);}else "o"===l[0]&&"n"===l[1]?(e=l!==(l=l.replace(/Capture$/,"")),c=l.toLowerCase(),l=(c in n?c:l).slice(2),u?(t||n.addEventListener(l,N,e),(n.l||(n.l={}))[l]=u):n.removeEventListener(l,N,e)):"list"!==l&&"tagName"!==l&&"form"!==l&&!i&&l in n?n[l]=null==u?"":u:"function"!=typeof u&&"dangerouslySetInnerHTML"!==l&&(l!==(l=l.replace(/^xlink:?/,""))?null==u||!1===u?n.removeAttributeNS("http://www.w3.org/1999/xlink",l.toLowerCase()):n.setAttributeNS("http://www.w3.org/1999/xlink",l.toLowerCase(),u):null==u||!1===u?n.removeAttribute(l):n.setAttribute(l,u));}function N(l){this.l[l.type](n.event?n.event(l):l);}function T(l,u,t,i,o,r,f,e,c){var a,h,v,p,m,w,g,k,x,C,P=u.type;if(void 0!==u.constructor)return null;(a=n.__b)&&a(u);try{n:if("function"==typeof P){if(k=u.props,x=(a=P.contextType)&&i[a.__c],C=a?x?x.props.value:a.__:i,t.__c?g=(h=u.__c=t.__c).__=h.__E:("prototype"in P&&P.prototype.render?u.__c=h=new P(k,C):(u.__c=h=new y(k,C),h.constructor=P,h.render=D),x&&x.sub(h),h.props=k,h.state||(h.state={}),h.context=C,h.__n=i,v=h.__d=!0,h.__h=[]),null==h.__s&&(h.__s=h.state),null!=P.getDerivedStateFromProps&&(h.__s==h.state&&(h.__s=s({},h.__s)),s(h.__s,P.getDerivedStateFromProps(k,h.__s))),p=h.props,m=h.state,v)null==P.getDerivedStateFromProps&&null!=h.componentWillMount&&h.componentWillMount(),null!=h.componentDidMount&&h.__h.push(h.componentDidMount);else {if(null==P.getDerivedStateFromProps&&null==h.__e&&null!=h.componentWillReceiveProps&&h.componentWillReceiveProps(k,C),!h.__e&&null!=h.shouldComponentUpdate&&!1===h.shouldComponentUpdate(k,h.__s,C)){for(h.props=k,h.state=h.__s,h.__d=!1,h.__v=u,u.__e=t.__e,u.__k=t.__k,h.__h.length&&f.push(h),a=0;a<u.__k.length;a++)u.__k[a]&&(u.__k[a].__=u);break n}null!=h.componentWillUpdate&&h.componentWillUpdate(k,h.__s,C),null!=h.componentDidUpdate&&h.__h.push(function(){h.componentDidUpdate(p,m,w);});}h.context=C,h.props=k,h.state=h.__s,(a=n.__r)&&a(u),h.__d=!1,h.__v=u,h.__P=l,a=h.render(h.props,h.state,h.context),u.__k=b(null!=a&&a.type==d&&null==a.key?a.props.children:a),null!=h.getChildContext&&(i=s(s({},i),h.getChildContext())),v||null==h.getSnapshotBeforeUpdate||(w=h.getSnapshotBeforeUpdate(p,m)),_(l,u,t,i,o,r,f,e,c),h.base=u.__e,h.__h.length&&f.push(h),g&&(h.__E=h.__=null),h.__e=null;}else u.__e=j(t.__e,u,t,i,o,r,f,c);(a=n.diffed)&&a(u);}catch(l){n.__e(l,u,t);}return u.__e}function $(l,u){n.__c&&n.__c(u,l),l.some(function(u){try{l=u.__h,u.__h=[],l.some(function(n){n.call(u);});}catch(l){n.__e(l,u.__v);}});}function j(n,l,u,t,i,o,r,c){var s,a,h,v,p,d=u.props,y=l.props;if(i="svg"===l.type||i,null==n&&null!=o)for(s=0;s<o.length;s++)if(null!=(a=o[s])&&(null===l.type?3===a.nodeType:a.localName===l.type)){n=a,o[s]=null;break}if(null==n){if(null===l.type)return document.createTextNode(y);n=i?document.createElementNS("http://www.w3.org/2000/svg",l.type):document.createElement(l.type),o=null;}if(null===l.type)null!=o&&(o[o.indexOf(n)]=null),d!==y&&(n.data=y);else if(l!==u){if(null!=o&&(o=e.slice.call(n.childNodes)),h=(d=u.props||f).dangerouslySetInnerHTML,v=y.dangerouslySetInnerHTML,!c){if(d===f)for(d={},p=0;p<n.attributes.length;p++)d[n.attributes[p].name]=n.attributes[p].value;(v||h)&&(v&&h&&v.__html==h.__html||(n.innerHTML=v&&v.__html||""));}x(n,y,d,i,c),l.__k=l.props.children,v||_(n,l,u,t,"foreignObject"!==l.type&&i,o,r,f,c),c||("value"in y&&void 0!==y.value&&y.value!==n.value&&(n.value=null==y.value?"":y.value),"checked"in y&&void 0!==y.checked&&y.checked!==n.checked&&(n.checked=y.checked));}return n}function z(l,u,t){try{"function"==typeof l?l(u):l.current=u;}catch(l){n.__e(l,t);}}function A(l,u,t){var i,o,r;if(n.unmount&&n.unmount(l),(i=l.ref)&&z(i,null,u),t||"function"==typeof l.type||(t=null!=(o=l.__e)),l.__e=l.__d=null,null!=(i=l.__c)){if(i.componentWillUnmount)try{i.componentWillUnmount();}catch(l){n.__e(l,u);}i.base=i.__P=null;}if(i=l.__k)for(r=0;r<i.length;r++)i[r]&&A(i[r],u,t);null!=o&&a(o);}function D(n,l,u){return this.constructor(n,u)}function E(l,u,t){var i,r,c;n.__&&n.__(l,u),r=(i=t===o)?null:t&&t.__k||u.__k,l=h(d,null,[l]),c=[],T(u,(i?u:t||u).__k=l,r||f,f,void 0!==u.ownerSVGElement,t&&!i?[t]:r?null:e.slice.call(u.childNodes),c,t||f,i),$(c,l);}n={__e:function(n,l){for(var u;l=l.__;)if((u=l.__c)&&!u.__)try{if(u.constructor&&null!=u.constructor.getDerivedStateFromError)u.setState(u.constructor.getDerivedStateFromError(n));else {if(null==u.componentDidCatch)continue;u.componentDidCatch(n);}return g(u.__E=u)}catch(l){n=l;}throw n}},y.prototype.setState=function(n,l){var u;u=this.__s!==this.state?this.__s:this.__s=s({},this.state),"function"==typeof n&&(n=n(u,this.props)),n&&s(u,n),null!=n&&this.__v&&(this.__e=!1,l&&this.__h.push(l),g(this));},y.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),g(this));},y.prototype.render=d,u=[],t="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,o=f,r=0;
+  var n,u,i$1,t,o,r,f={},e=[],c=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;function s(n,l){for(var u in l)n[u]=l[u];return n}function a(n){var l=n.parentNode;l&&l.removeChild(n);}function v(n,l,u){var i,t=arguments,o={};for(i in l)"key"!==i&&"ref"!==i&&(o[i]=l[i]);if(arguments.length>3)for(u=[u],i=3;i<arguments.length;i++)u.push(t[i]);if(null!=u&&(o.children=u),"function"==typeof n&&null!=n.defaultProps)for(i in n.defaultProps)void 0===o[i]&&(o[i]=n.defaultProps[i]);return h(n,o,l&&l.key,l&&l.ref,null)}function h(l,u,i,t,o){var r={type:l,props:u,key:i,ref:t,__k:null,__:null,__b:0,__e:null,__d:void 0,__c:null,constructor:void 0,__v:o};return null==o&&(r.__v=r),n.vnode&&n.vnode(r),r}function p(n){return n.children}function d(n,l){this.props=n,this.context=l;}function _(n,l){if(null==l)return n.__?_(n.__,n.__.__k.indexOf(n)+1):null;for(var u;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e)return u.__e;return "function"==typeof n.type?_(n):null}function w(n){var l,u;if(null!=(n=n.__)&&null!=n.__c){for(n.__e=n.__c.base=null,l=0;l<n.__k.length;l++)if(null!=(u=n.__k[l])&&null!=u.__e){n.__e=n.__c.base=u.__e;break}return w(n)}}function k(l){(!l.__d&&(l.__d=!0)&&u.push(l)&&!m.__r++||t!==n.debounceRendering)&&((t=n.debounceRendering)||i$1)(m);}function m(){for(var n;m.__r=u.length;)n=u.sort(function(n,l){return n.__v.__b-l.__v.__b}),u=[],n.some(function(n){var l,u,i,t,o,r,f;n.__d&&(r=(o=(l=n).__v).__e,(f=l.__P)&&(u=[],(i=s({},o)).__v=i,t=T(f,o,i,l.__n,void 0!==f.ownerSVGElement,null,u,null==r?_(o):r),$(u,o),t!=r&&w(o)));});}function g(n,l,u,i,t,o,r,c,s,v){var y,d,w,k,m,g,b,A=i&&i.__k||e,P=A.length;for(s==f&&(s=null!=r?r[0]:P?_(i,0):null),u.__k=[],y=0;y<l.length;y++)if(null!=(k=u.__k[y]=null==(k=l[y])||"boolean"==typeof k?null:"string"==typeof k||"number"==typeof k?h(null,k,null,null,k):Array.isArray(k)?h(p,{children:k},null,null,null):null!=k.__e||null!=k.__c?h(k.type,k.props,k.key,null,k.__v):k)){if(k.__=u,k.__b=u.__b+1,null===(w=A[y])||w&&k.key==w.key&&k.type===w.type)A[y]=void 0;else for(d=0;d<P;d++){if((w=A[d])&&k.key==w.key&&k.type===w.type){A[d]=void 0;break}w=null;}m=T(n,k,w=w||f,t,o,r,c,s,v),(d=k.ref)&&w.ref!=d&&(b||(b=[]),w.ref&&b.push(w.ref,null,k),b.push(d,k.__c||m,k)),null!=m?(null==g&&(g=m),s=x(n,k,w,A,r,m,s),v||"option"!=u.type?"function"==typeof u.type&&(u.__d=s):n.value=""):s&&w.__e==s&&s.parentNode!=n&&(s=_(w));}if(u.__e=g,null!=r&&"function"!=typeof u.type)for(y=r.length;y--;)null!=r[y]&&a(r[y]);for(y=P;y--;)null!=A[y]&&I(A[y],A[y]);if(b)for(y=0;y<b.length;y++)H(b[y],b[++y],b[++y]);}function x(n,l,u,i,t,o,r){var f,e,c;if(void 0!==l.__d)f=l.__d,l.__d=void 0;else if(t==u||o!=r||null==o.parentNode)n:if(null==r||r.parentNode!==n)n.appendChild(o),f=null;else {for(e=r,c=0;(e=e.nextSibling)&&c<i.length;c+=2)if(e==o)break n;n.insertBefore(o,r),f=r;}return void 0!==f?f:o.nextSibling}function A(n,l,u,i,t){var o;for(o in u)"children"===o||"key"===o||o in l||C(n,o,null,u[o],i);for(o in l)t&&"function"!=typeof l[o]||"children"===o||"key"===o||"value"===o||"checked"===o||u[o]===l[o]||C(n,o,l[o],u[o],i);}function P(n,l,u){"-"===l[0]?n.setProperty(l,u):n[l]="number"==typeof u&&!1===c.test(l)?u+"px":null==u?"":u;}function C(n,l,u,i,t){var o,r,f,e,c;if(t?"className"===l&&(l="class"):"class"===l&&(l="className"),"style"===l)if(o=n.style,"string"==typeof u)o.cssText=u;else {if("string"==typeof i&&(o.cssText="",i=null),i)for(e in i)u&&e in u||P(o,e,"");if(u)for(c in u)i&&u[c]===i[c]||P(o,c,u[c]);}else "o"===l[0]&&"n"===l[1]?(r=l!==(l=l.replace(/Capture$/,"")),f=l.toLowerCase(),l=(f in n?f:l).slice(2),u?(i||n.addEventListener(l,N,r),(n.l||(n.l={}))[l]=u):n.removeEventListener(l,N,r)):"list"!==l&&"tagName"!==l&&"form"!==l&&"type"!==l&&"size"!==l&&"download"!==l&&!t&&l in n?n[l]=null==u?"":u:"function"!=typeof u&&"dangerouslySetInnerHTML"!==l&&(l!==(l=l.replace(/^xlink:?/,""))?null==u||!1===u?n.removeAttributeNS("http://www.w3.org/1999/xlink",l.toLowerCase()):n.setAttributeNS("http://www.w3.org/1999/xlink",l.toLowerCase(),u):null==u||!1===u&&!/^ar/.test(l)?n.removeAttribute(l):n.setAttribute(l,u));}function N(l){this.l[l.type](n.event?n.event(l):l);}function z(n,l,u){var i,t;for(i=0;i<n.__k.length;i++)(t=n.__k[i])&&(t.__=n,t.__e&&("function"==typeof t.type&&t.__k.length>1&&z(t,l,u),l=x(u,t,t,n.__k,null,t.__e,l),"function"==typeof n.type&&(n.__d=l)));}function T(l,u,i,t,o,r,f,e,c){var a,v,h,y,_,w,k,m,b,x,A,P=u.type;if(void 0!==u.constructor)return null;(a=n.__b)&&a(u);try{n:if("function"==typeof P){if(m=u.props,b=(a=P.contextType)&&t[a.__c],x=a?b?b.props.value:a.__:t,i.__c?k=(v=u.__c=i.__c).__=v.__E:("prototype"in P&&P.prototype.render?u.__c=v=new P(m,x):(u.__c=v=new d(m,x),v.constructor=P,v.render=L),b&&b.sub(v),v.props=m,v.state||(v.state={}),v.context=x,v.__n=t,h=v.__d=!0,v.__h=[]),null==v.__s&&(v.__s=v.state),null!=P.getDerivedStateFromProps&&(v.__s==v.state&&(v.__s=s({},v.__s)),s(v.__s,P.getDerivedStateFromProps(m,v.__s))),y=v.props,_=v.state,h)null==P.getDerivedStateFromProps&&null!=v.componentWillMount&&v.componentWillMount(),null!=v.componentDidMount&&v.__h.push(v.componentDidMount);else {if(null==P.getDerivedStateFromProps&&m!==y&&null!=v.componentWillReceiveProps&&v.componentWillReceiveProps(m,x),!v.__e&&null!=v.shouldComponentUpdate&&!1===v.shouldComponentUpdate(m,v.__s,x)||u.__v===i.__v){v.props=m,v.state=v.__s,u.__v!==i.__v&&(v.__d=!1),v.__v=u,u.__e=i.__e,u.__k=i.__k,v.__h.length&&f.push(v),z(u,e,l);break n}null!=v.componentWillUpdate&&v.componentWillUpdate(m,v.__s,x),null!=v.componentDidUpdate&&v.__h.push(function(){v.componentDidUpdate(y,_,w);});}v.context=x,v.props=m,v.state=v.__s,(a=n.__r)&&a(u),v.__d=!1,v.__v=u,v.__P=l,a=v.render(v.props,v.state,v.context),v.state=v.__s,null!=v.getChildContext&&(t=s(s({},t),v.getChildContext())),h||null==v.getSnapshotBeforeUpdate||(w=v.getSnapshotBeforeUpdate(y,_)),A=null!=a&&a.type==p&&null==a.key?a.props.children:a,g(l,Array.isArray(A)?A:[A],u,i,t,o,r,f,e,c),v.base=u.__e,v.__h.length&&f.push(v),k&&(v.__E=v.__=null),v.__e=!1;}else null==r&&u.__v===i.__v?(u.__k=i.__k,u.__e=i.__e):u.__e=j(i.__e,u,i,t,o,r,f,c);(a=n.diffed)&&a(u);}catch(l){u.__v=null,n.__e(l,u,i);}return u.__e}function $(l,u){n.__c&&n.__c(u,l),l.some(function(u){try{l=u.__h,u.__h=[],l.some(function(n){n.call(u);});}catch(l){n.__e(l,u.__v);}});}function j(n,l,u,i,t,o,r,c){var s,a,v,h,y,p=u.props,d=l.props;if(t="svg"===l.type||t,null!=o)for(s=0;s<o.length;s++)if(null!=(a=o[s])&&((null===l.type?3===a.nodeType:a.localName===l.type)||n==a)){n=a,o[s]=null;break}if(null==n){if(null===l.type)return document.createTextNode(d);n=t?document.createElementNS("http://www.w3.org/2000/svg",l.type):document.createElement(l.type,d.is&&{is:d.is}),o=null,c=!1;}if(null===l.type)p!==d&&n.data!==d&&(n.data=d);else {if(null!=o&&(o=e.slice.call(n.childNodes)),v=(p=u.props||f).dangerouslySetInnerHTML,h=d.dangerouslySetInnerHTML,!c){if(null!=o)for(p={},y=0;y<n.attributes.length;y++)p[n.attributes[y].name]=n.attributes[y].value;(h||v)&&(h&&v&&h.__html==v.__html||(n.innerHTML=h&&h.__html||""));}A(n,d,p,t,c),h?l.__k=[]:(s=l.props.children,g(n,Array.isArray(s)?s:[s],l,u,i,"foreignObject"!==l.type&&t,o,r,f,c)),c||("value"in d&&void 0!==(s=d.value)&&s!==n.value&&C(n,"value",s,p.value,!1),"checked"in d&&void 0!==(s=d.checked)&&s!==n.checked&&C(n,"checked",s,p.checked,!1));}return n}function H(l,u,i){try{"function"==typeof l?l(u):l.current=u;}catch(l){n.__e(l,i);}}function I(l,u,i){var t,o,r;if(n.unmount&&n.unmount(l),(t=l.ref)&&(t.current&&t.current!==l.__e||H(t,null,u)),i||"function"==typeof l.type||(i=null!=(o=l.__e)),l.__e=l.__d=void 0,null!=(t=l.__c)){if(t.componentWillUnmount)try{t.componentWillUnmount();}catch(l){n.__e(l,u);}t.base=t.__P=null;}if(t=l.__k)for(r=0;r<t.length;r++)t[r]&&I(t[r],u,i);null!=o&&a(o);}function L(n,l,u){return this.constructor(n,u)}function M(l,u,i){var t,r,c;n.__&&n.__(l,u),r=(t=i===o)?null:i&&i.__k||u.__k,l=v(p,null,[l]),c=[],T(u,(t?u:i||u).__k=l,r||f,f,void 0!==u.ownerSVGElement,i&&!t?[i]:r?null:u.childNodes.length?e.slice.call(u.childNodes):null,c,i||f,t),$(c,l);}n={__e:function(n,l){for(var u,i;l=l.__;)if((u=l.__c)&&!u.__)try{if(u.constructor&&null!=u.constructor.getDerivedStateFromError&&(i=!0,u.setState(u.constructor.getDerivedStateFromError(n))),null!=u.componentDidCatch&&(i=!0,u.componentDidCatch(n)),i)return k(u.__E=u)}catch(l){n=l;}throw n}},d.prototype.setState=function(n,l){var u;u=null!=this.__s&&this.__s!==this.state?this.__s:this.__s=s({},this.state),"function"==typeof n&&(n=n(u,this.props)),n&&s(u,n),null!=n&&this.__v&&(l&&this.__h.push(l),k(this));},d.prototype.forceUpdate=function(n){this.__v&&(this.__e=!0,n&&this.__h.push(n),k(this));},d.prototype.render=p,u=[],i$1="function"==typeof Promise?Promise.prototype.then.bind(Promise.resolve()):setTimeout,m.__r=0,o=f,r=0;
 
-  var t$1,u$1,r$1,i$2=[],o$1=n.__r,f$1=n.diffed,c$1=n.__c,e$1=n.unmount;function a$1(t){n.__h&&n.__h(u$1);var r=u$1.__H||(u$1.__H={t:[],u:[]});return t>=r.t.length&&r.t.push({}),r.t[t]}function v$1(n){return m$1(x$1,n)}function m$1(n,r,i){var o=a$1(t$1++);return o.__c||(o.__c=u$1,o.i=[i?i(r):x$1(void 0,r),function(t){var u=n(o.i[0],t);o.i[0]!==u&&(o.i[0]=u,o.__c.setState({}));}]),o.i}function p(n,r){var i=a$1(t$1++);q(i.o,r)&&(i.i=n,i.o=r,u$1.__H.u.push(i));}function F(){i$2.some(function(n){n.__P&&(n.__H.u.forEach(_$1),n.__H.u.forEach(g$1),n.__H.u=[]);}),i$2=[];}function _$1(n){n.m&&n.m();}function g$1(n){var t=n.i();"function"==typeof t&&(n.m=t);}function q(n,t){return !n||t.some(function(t,u){return t!==n[u]})}function x$1(n,t){return "function"==typeof t?t(n):t}n.__r=function(n){o$1&&o$1(n),t$1=0,(u$1=n.__c).__H&&(u$1.__H.u.forEach(_$1),u$1.__H.u.forEach(g$1),u$1.__H.u=[]);},n.diffed=function(t){f$1&&f$1(t);var u=t.__c;if(u){var o=u.__H;o&&o.u.length&&(1!==i$2.push(u)&&r$1===n.requestAnimationFrame||((r$1=n.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),cancelAnimationFrame(t),setTimeout(n);},r=setTimeout(u,100);"undefined"!=typeof window&&(t=requestAnimationFrame(u));})(F));}},n.__c=function(n,t){t.some(function(n){n.__h.forEach(_$1),n.__h=n.__h.filter(function(n){return !n.i||g$1(n)});}),c$1&&c$1(n,t);},n.unmount=function(n){e$1&&e$1(n);var t=n.__c;if(t){var u=t.__H;u&&u.t.forEach(function(n){return n.m&&n.m()});}};
+  var interopRequireDefault = createCommonjsModule$1(function (module) {
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      "default": obj
+    };
+  }
+
+  module.exports = _interopRequireDefault;
+  });
+
+  var interopRequireDefault$1 = unwrapExports(interopRequireDefault);
+
+  var interopRequireDefault$2 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': interopRequireDefault$1,
+    __moduleExports: interopRequireDefault
+  });
+
+  var _extends_1 = createCommonjsModule$1(function (module) {
+  function _extends() {
+    module.exports = _extends = Object.assign || function (target) {
+      for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i];
+
+        for (var key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+          }
+        }
+      }
+
+      return target;
+    };
+
+    return _extends.apply(this, arguments);
+  }
+
+  module.exports = _extends;
+  });
+
+  var _extends = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': _extends_1,
+    __moduleExports: _extends_1
+  });
+
+  var _interopRequireDefault = ( interopRequireDefault$2 && interopRequireDefault$1 ) || interopRequireDefault$2;
+
+  var require$$0 = ( _extends && _extends_1 ) || _extends;
+
+  var createSvgIcon_1 = createCommonjsModule$1(function (module, exports) {
+
+
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = createSvgIcon;
+
+  var _extends2 = _interopRequireDefault(require$$0);
+
+  var _react = _interopRequireDefault(react);
+
+  var _SvgIcon = _interopRequireDefault(SvgIcon);
+
+  function createSvgIcon(path, displayName) {
+    var Component = _react.default.memo(_react.default.forwardRef(function (props, ref) {
+      return _react.default.createElement(_SvgIcon.default, (0, _extends2.default)({
+        ref: ref
+      }, props), path);
+    }));
+
+    if (process.env.NODE_ENV !== 'production') {
+      Component.displayName = "".concat(displayName, "Icon");
+    }
+
+    Component.muiName = _SvgIcon.default.muiName;
+    return Component;
+  }
+  });
+
+  var createSvgIcon = unwrapExports(createSvgIcon_1);
+
+  var createSvgIcon$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': createSvgIcon,
+    __moduleExports: createSvgIcon_1
+  });
+
+  var require$$1 = ( createSvgIcon$1 && createSvgIcon ) || createSvgIcon$1;
+
+  var Block = createCommonjsModule$1(function (module, exports) {
+
+
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+
+  var _react = _interopRequireDefault(react);
+
+  var _createSvgIcon = _interopRequireDefault(require$$1);
+
+  var _default = (0, _createSvgIcon.default)(_react.default.createElement("path", {
+    d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"
+  }), 'Block');
+
+  exports.default = _default;
+  });
+
+  var BlockIcon = unwrapExports(Block);
+
+  var t$1,u$1,r$1,o$1=0,i$2=[],c$1=n.__r,f$1=n.diffed,e$1=n.__c,a$1=n.unmount;function v$1(t,r){n.__h&&n.__h(u$1,t,o$1||r),o$1=0;var i=u$1.__H||(u$1.__H={__:[],__h:[]});return t>=i.__.length&&i.__.push({}),i.__[t]}function m$1(n){return o$1=1,l(k$1,n)}function l(n,r,o){var i=v$1(t$1++,2);return i.t=n,i.__c||(i.__c=u$1,i.__=[o?o(r):k$1(void 0,r),function(n){var t=i.t(i.__[0],n);i.__[0]!==t&&(i.__=[t,i.__[1]],i.__c.setState({}));}]),i.__}function p$1(r,o){var i=v$1(t$1++,3);!n.__s&&j$1(i.__H,o)&&(i.__=r,i.__H=o,u$1.__H.__h.push(i));}function q(){i$2.some(function(t){if(t.__P)try{t.__H.__h.forEach(b),t.__H.__h.forEach(g$1),t.__H.__h=[];}catch(u){return t.__H.__h=[],n.__e(u,t.__v),!0}}),i$2=[];}n.__r=function(n){c$1&&c$1(n),t$1=0;var r=(u$1=n.__c).__H;r&&(r.__h.forEach(b),r.__h.forEach(g$1),r.__h=[]);},n.diffed=function(t){f$1&&f$1(t);var u=t.__c;u&&u.__H&&u.__H.__h.length&&(1!==i$2.push(u)&&r$1===n.requestAnimationFrame||((r$1=n.requestAnimationFrame)||function(n){var t,u=function(){clearTimeout(r),x$1&&cancelAnimationFrame(t),setTimeout(n);},r=setTimeout(u,100);x$1&&(t=requestAnimationFrame(u));})(q));},n.__c=function(t,u){u.some(function(t){try{t.__h.forEach(b),t.__h=t.__h.filter(function(n){return !n.__||g$1(n)});}catch(r){u.some(function(n){n.__h&&(n.__h=[]);}),u=[],n.__e(r,t.__v);}}),e$1&&e$1(t,u);},n.unmount=function(t){a$1&&a$1(t);var u=t.__c;if(u&&u.__H)try{u.__H.__.forEach(b);}catch(t){n.__e(t,u.__v);}};var x$1="function"==typeof requestAnimationFrame;function b(n){"function"==typeof n.u&&n.u();}function g$1(n){n.u=n.__();}function j$1(n,t){return !n||t.some(function(t,u){return t!==n[u]})}function k$1(n,t){return "function"==typeof t?t(n):t}
 
   /*! *****************************************************************************
   Copyright (c) Microsoft Corporation. All rights reserved.
@@ -23651,10 +23791,10 @@
   }
 
   const WikiSuggestion = ({ text, title, applySuggestion }) => {
-      const [article, setArticle] = v$1(undefined);
-      const [isLoading, setLoading] = v$1(false);
-      const [error, setError] = v$1(undefined);
-      p(() => {
+      const [article, setArticle] = m$1(undefined);
+      const [isLoading, setLoading] = m$1(false);
+      const [error, setError] = m$1(undefined);
+      p$1(() => {
           (() => __awaiter(void 0, void 0, void 0, function* () {
               setLoading(true);
               try {
@@ -23668,22 +23808,22 @@
               }
           }))();
       }, [text]);
-      return (h("div", { class: "WikiSuggestion__container" },
-          h("div", { class: "WikiSuggestion__text" },
-              h("div", { class: "WikiSuggestion__suggestion", onClick: applySuggestion }, text),
-              article && (h(d, null,
-                  h("div", { class: "WikiSuggestion__extract" },
+      return (v("div", { class: "WikiSuggestion__container" },
+          v("div", { class: "WikiSuggestion__text" },
+              v("div", { class: "WikiSuggestion__suggestion", onClick: applySuggestion }, text),
+              article && (v(p, null,
+                  v("div", { class: "WikiSuggestion__extract" },
                       article.extract.slice(0, 220),
                       "...",
-                      h("a", { class: "WikiSuggestion__link", href: getWikiUrl(title), target: "_blank" })))),
-              !article && isLoading && (h("div", { class: "WikiSuggestion__extract--placeholder" }))),
-          h("div", { class: `WikiSuggestion__thumbnail ${isLoading &&
+                      v("a", { class: "WikiSuggestion__link", href: getWikiUrl(title), target: "_blank" })))),
+              !article && isLoading && (v("div", { class: "WikiSuggestion__extract--placeholder" }))),
+          v("div", { class: `WikiSuggestion__thumbnail ${isLoading &&
                 "WikiSuggestion__thumbnail--placeholder"}`, style: {
                   backgroundImage: article && article.thumbnail
                       ? `url(${article.thumbnail.source})`
                       : ""
               } }),
-          error ? h("p", null,
+          error ? v("p", null,
               "Error: ",
               error) : null));
   };
@@ -23722,46 +23862,70 @@
           ]);
       switch (suggestion.type) {
           case "TEXT_SUGGESTION": {
-              return (h("div", { class: "MatchWidget__suggestion", onClick: boundApplySuggestions }, suggestion.text));
+              return (v("div", { class: "MatchWidget__suggestion", onClick: boundApplySuggestions }, suggestion.text));
           }
           case "WIKI_SUGGESTION": {
-              return (h(WikiSuggestion, Object.assign({}, suggestion, { applySuggestion: boundApplySuggestions })));
+              return (v(WikiSuggestion, Object.assign({}, suggestion, { applySuggestion: boundApplySuggestions })));
           }
       }
   };
 
   const SuggestionList = ({ suggestions, matchId, applySuggestions }) => {
-      const [isOpen, setIsOpen] = v$1(false);
+      const [isOpen, setIsOpen] = m$1(false);
       const firstSuggestion = suggestions[0];
       const otherSuggestions = suggestions.slice(1);
-      return (h("div", { className: "SidebarMatch__suggestion-list" },
-          suggestions.length ? (h(Suggestion, { matchId: matchId, suggestion: firstSuggestion, applySuggestions: applySuggestions })) : null,
-          !!otherSuggestions.length ? (h("div", { className: "Button SuggestionList__see-more", onClick: () => setIsOpen(!isOpen) },
+      return (v("div", { className: "SidebarMatch__suggestion-list" },
+          suggestions.length ? (v(Suggestion, { matchId: matchId, suggestion: firstSuggestion, applySuggestions: applySuggestions })) : null,
+          !!otherSuggestions.length ? (v("div", { className: "Button SuggestionList__see-more", onClick: () => setIsOpen(!isOpen) },
               "See ",
               !isOpen ? "more" : "fewer",
               " suggestions (",
               otherSuggestions.length,
               ")")) : null,
-          isOpen && (h(d, null, otherSuggestions.map(suggestion => (h(Suggestion, { matchId: matchId, suggestion: suggestion, applySuggestions: applySuggestions })))))));
+          isOpen && (v(p, null, otherSuggestions.map(suggestion => (v(Suggestion, { matchId: matchId, suggestion: suggestion, applySuggestions: applySuggestions })))))));
   };
 
-  class Match extends y {
+  class Match extends d {
       constructor() {
           super(...arguments);
           this.ref = null;
+          this.getFeedbackLink = (feedbackHref, feedbackInfo) => {
+              const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2));
+              return feedbackHref + data;
+          };
       }
-      render({ match: { matchId, category, message, suggestions, replacement }, applySuggestions }) {
+      render({ match, applySuggestions, onIgnoreMatch }) {
+          const { matchId, category, message, suggestions, replacement, markAsCorrect, matchContext } = match;
+          const url = document.URL;
+          const feedbackInfo = {
+              matchId,
+              category,
+              message,
+              suggestions,
+              replacement,
+              url,
+              matchContext,
+              markAsCorrect
+          };
           const suggestionsToRender = replacement ? [replacement] : suggestions || [];
-          return (h("div", { className: "MatchWidget__container" },
-              h("div", { className: "MatchWidget", ref: _ => (this.ref = _) },
-                  h("div", { className: "MatchWidget__type", style: { color: `#${category.colour}` } }, category.name),
-                  h("div", { className: "MatchWidget__annotation" }, message),
-                  suggestions && applySuggestions && (h("div", { className: "MatchWidget__suggestion-list" },
-                      h(SuggestionList, { applySuggestions: applySuggestions, matchId: matchId, suggestions: suggestionsToRender }))))));
+          const suggestionContent = suggestionsToRender &&
+              applySuggestions &&
+              !markAsCorrect && (v("div", { className: "MatchWidget__suggestion-list" },
+              v(SuggestionList, { applySuggestions: applySuggestions, matchId: matchId, suggestions: suggestionsToRender })));
+          return (v("div", { className: "MatchWidget__container" },
+              v("div", { className: "MatchWidget", ref: _ => (this.ref = _) },
+                  v("div", { className: "MatchWidget__type" },
+                      v("span", { className: "MatchWidget__color-swatch", style: { backgroundColor: `#${category.colour}` } }),
+                      category.name),
+                  suggestionContent,
+                  v("div", { className: "MatchWidget__annotation" }, message),
+                  this.props.feedbackHref && (v("div", { className: "MatchWidget__feedbackLink" },
+                      v("a", { target: "_blank", href: this.getFeedbackLink(this.props.feedbackHref, feedbackInfo) }, "Issue with this result? Tell us!"))),
+                  v(BlockIcon, { component: "button", onClick: onIgnoreMatch && (() => onIgnoreMatch(match)) }))));
       }
   }
 
-  class MatchOverlay extends y {
+  class MatchOverlay extends d {
       constructor() {
           super(...arguments);
           this.state = {
@@ -23837,16 +24001,17 @@
           });
       }
       render() {
+          const { applySuggestions, feedbackHref, onIgnoreMatch } = this.props;
           const { match, left, top } = this.state;
           if (!match || left === undefined || top === undefined) {
               return null;
           }
-          return (h("div", { class: "TyperighterPlugin__overlay", onMouseOver: this.handleMouseOver },
-              h("div", { class: "TyperighterPlugin__decoration-container", style: {
-                      top: top - 1,
+          return (v("div", { class: "TyperighterPlugin__overlay", onMouseOver: this.handleMouseOver },
+              v("div", { class: "TyperighterPlugin__decoration-container", style: {
+                      top: top - 5,
                       left
                   } },
-                  h(Match, { ref: _ => (this.matchRef = _), match: match, applySuggestions: this.props.applySuggestions }))));
+                  v(Match, { ref: _ => (this.matchRef = _), match: match, applySuggestions: applySuggestions, feedbackHref: feedbackHref, onIgnoreMatch: onIgnoreMatch }))));
       }
   }
 
@@ -26014,7 +26179,7 @@
 
   var startCase_1 = startCase;
 
-  class SidebarMatch extends y {
+  class SidebarMatch extends d {
       constructor() {
           super(...arguments);
           this.state = {
@@ -26049,23 +26214,23 @@
               output.replacement,
               ...(output.suggestions || [])
           ]);
-          return (h("div", { className: `SidebarMatch__container ${selectedMatch === output.matchId
+          return (v("div", { className: `SidebarMatch__container ${selectedMatch === output.matchId
                 ? "SidebarMatch__container--is-selected"
                 : ""}`, style: { borderLeft: `2px solid ${color}` }, onMouseEnter: this.handleMouseEnter, onMouseLeave: this.handleMouseLeave, onClick: this.scrollToRange, title: "Click to scroll to this match" },
-              h("div", { className: "SidebarMatch__header", onClick: hasSuggestions ? this.toggleOpen : undefined },
-                  h("div", { className: "SidebarMatch__header-label" },
-                      h("div", null,
-                          h("div", { className: "SidebarMatch__header-match-text" }, output.matchedText),
-                          h("div", { className: "SidebarMatch__header-description" }, output.message)),
-                      h("div", { className: "SidebarMatch__header-meta" },
-                          h("div", { className: "SidebarMatch__header-category", style: { color } }, startCase_1(output.category.name)),
-                          hasSuggestions && (h("div", { className: "SidebarMatch__header-toggle-status" }, this.state.isOpen ? "-" : "+"))))),
-              this.state.isOpen && (h("div", { className: "SidebarMatch__content" }, suggestions.length && (h("div", { className: "SidebarMatch__suggestion-list" },
-                  h(SuggestionList, { applySuggestions: applySuggestions, matchId: output.matchId, suggestions: suggestions })))))));
+              v("div", { className: "SidebarMatch__header", onClick: hasSuggestions ? this.toggleOpen : undefined },
+                  v("div", { className: "SidebarMatch__header-label" },
+                      v("div", null,
+                          v("div", { className: "SidebarMatch__header-match-text" }, output.matchedText),
+                          v("div", { className: "SidebarMatch__header-description" }, output.message)),
+                      v("div", { className: "SidebarMatch__header-meta" },
+                          v("div", { className: "SidebarMatch__header-category" }, startCase_1(output.category.name)),
+                          hasSuggestions && (v("div", { className: "SidebarMatch__header-toggle-status" }, this.state.isOpen ? "-" : "+"))))),
+              this.state.isOpen && (v("div", { className: "SidebarMatch__content" }, suggestions.length && (v("div", { className: "SidebarMatch__suggestion-list" },
+                  v(SuggestionList, { applySuggestions: applySuggestions, matchId: output.matchId, suggestions: suggestions })))))));
       }
   }
 
-  class Sidebar extends y {
+  class Results extends d {
       constructor() {
           super(...arguments);
           this.handleNewState = (pluginState) => {
@@ -26115,29 +26280,29 @@
           const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
           const percentRemaining = this.getPercentRemaining();
           const isLoading = !!requestsInFlight && !!Object.keys(requestsInFlight).length;
-          return (h("div", { className: "Sidebar__section" },
-              h("div", { className: "Sidebar__header-container" },
-                  h("div", { className: "Sidebar__header" },
-                      h("span", null,
+          return (v(p, null,
+              v("div", { className: "Sidebar__header-container" },
+                  v("div", { className: "Sidebar__header" },
+                      v("span", null,
                           "Results ",
-                          hasMatches && h("span", null,
+                          hasMatches && v("span", null,
                               "(",
                               currentMatches.length,
                               ") ")),
-                      !!noOfAutoFixableSuggestions && (h("button", { class: "Button flex-align-right", onClick: applyAutoFixableSuggestions },
+                      !!noOfAutoFixableSuggestions && (v("button", { class: "Button flex-align-right", onClick: applyAutoFixableSuggestions },
                           "Fix all (",
                           noOfAutoFixableSuggestions,
                           ")"))),
-                  h("div", { className: "Sidebar__header-contact" },
-                      h("a", { href: contactHref, target: "_blank" }, "Issue with a rule? Let us know!")),
-                  this.state.loadingBarVisible && (h("div", { class: "LoadingBar", style: {
+                  contactHref && (v("div", { className: "Sidebar__header-contact" },
+                      v("a", { href: contactHref, target: "_blank" }, "Issue with Typerighter? Let us know!"))),
+                  this.state.loadingBarVisible && (v("div", { class: "LoadingBar", style: {
                           opacity: isLoading ? 1 : 0,
                           width: `${100 - percentRemaining}%`
                       } }))),
-              h("div", { className: "Sidebar__content" },
-                  hasMatches && (h("ul", { className: "Sidebar__list" }, currentMatches.map(output => (h("li", { className: "Sidebar__list-item", key: output.matchId },
-                      h(SidebarMatch, { output: output, selectedMatch: selectedMatch, applySuggestions: applySuggestions, selectMatch: selectMatch, indicateHover: indicateHover, stopHover: stopHover })))))),
-                  !hasMatches && (h("div", { className: "Sidebar__awaiting-match" }, "No matches to report.")))));
+              v("div", { className: "Sidebar__content" },
+                  hasMatches && (v("ul", { className: "Sidebar__list" }, currentMatches.map(output => (v("li", { className: "Sidebar__list-item", key: output.matchId },
+                      v(SidebarMatch, { output: output, selectedMatch: selectedMatch, applySuggestions: applySuggestions, selectMatch: selectMatch, indicateHover: indicateHover, stopHover: stopHover })))))),
+                  !hasMatches && (v("div", { className: "Sidebar__awaiting-match" }, "No matches to report.")))));
       }
   }
 
@@ -26246,7 +26411,7 @@
 
   var v4_1 = v4;
 
-  class Controls extends y {
+  class Controls extends d {
       constructor() {
           super(...arguments);
           this.state = {
@@ -26254,7 +26419,7 @@
               allCategories: [],
               currentCategories: [],
               isLoadingCategories: false,
-              pluginState: undefined,
+              pluginState: undefined
           };
           this.handleNotify = (state) => {
               this.setState({ pluginState: state });
@@ -26303,49 +26468,55 @@
           this.initCategories();
       }
       render() {
-          var _a;
           const { isOpen, isLoadingCategories } = this.state;
-          return (h("div", { className: "Sidebar__section" },
-              h("div", { className: "Sidebar__header-container" },
-                  h("div", { className: "Sidebar__header Sidebar__header-toggle", onClick: this.toggleOpenState },
-                      "Controls",
-                      h("div", { className: "Sidebar__toggle-label" }, "Advanced"),
-                      h("div", { className: "Sidebar__toggle", style: { transform: isOpen ? "" : "rotate(-90deg)" } }, "\u25BC"))),
-              h("div", { className: "Sidebar__content" },
-                  isOpen && (h("div", null,
-                      h("div", { className: "Controls__row" },
+          return (v(p, null,
+              v("div", { className: "Sidebar__header-container" },
+                  v("div", { className: "Sidebar__header Sidebar__header-toggle" },
+                      v("button", { type: "button", className: "Button", onClick: this.requestMatchesForDocument, disabled: this.state.pluginState &&
+                              !!Object.keys(this.state.pluginState.requestsInFlight).length }, "Check document"),
+                      v("div", { onClick: this.toggleOpenState, className: "Sidebar__toggle-label" },
+                          "Advanced\u00A0",
+                          v("span", { className: "Sidebar__toggle", style: { transform: isOpen ? "" : "rotate(-90deg)" } }, "\u25BC")))),
+              isOpen && (v("div", null,
+                  v("div", { className: "Controls__row" },
+                      v("div", { className: "Controls__header" },
                           "Select categories\u00A0",
-                          isLoadingCategories && (h("span", { className: "Sidebar__loading-spinner" }, "|")),
-                          h("button", { type: "button", class: "Button flex-align-right", onClick: this.fetchCategories }, "Refresh")),
-                      this.state.allCategories.map(category => (h("div", { className: "Controls__row" },
-                          h("label", { className: "Controls__label", for: "Controls__show-dirty-ranges" }, category.name),
-                          h("div", { class: "Controls__input" },
-                              h("input", { id: "Controls__show-dirty-ranges", type: "checkbox", checked: !!this.state.currentCategories.find(_ => _.id === category.id), className: "Input", onInput: (e) => this.setCategoryState(category.id, e.target.checked) }))))),
-                      h("div", { className: "Controls__row" },
-                          h("hr", null)))),
-                  h("div", { className: "Controls__row" },
-                      h("button", { type: "button", className: "Button", onClick: this.requestMatchesForDocument, disabled: this.state.pluginState &&
-                              !!Object.keys(this.state.pluginState.requestsInFlight).length }, "Check whole document")),
-                  ((_a = this.state.pluginState) === null || _a === void 0 ? void 0 : _a.hasError) && h("div", { className: "Controls__error-message" },
-                      "Error fetching matches. Please try checking the document again. If the error persists, please ",
-                      h("a", { href: this.props.contactHref, target: "_blank" }, "contact us"),
-                      "."))));
+                          isLoadingCategories && (v("span", { className: "Sidebar__loading-spinner" }, "|"))),
+                      v("button", { type: "button", class: "Button flex-align-right", onClick: this.fetchCategories }, "Refresh")),
+                  this.state.allCategories.map(category => (v("div", { className: "Controls__row" },
+                      v("label", { className: "Controls__label", for: "Controls__show-dirty-ranges" }, category.name),
+                      v("div", { class: "Controls__input" },
+                          v("input", { id: "Controls__show-dirty-ranges", type: "checkbox", checked: !!this.state.currentCategories.find(_ => _.id === category.id), className: "Input", onInput: (e) => this.setCategoryState(category.id, e.target.checked) }))))),
+                  v("hr", null))),
+              this.state.pluginState && selectHasError(this.state.pluginState) && (v("div", { className: "Controls__error-message" },
+                  "Error fetching matches. Please try checking the document again.",
+                  " ",
+                  this.props.contactHref && (v("span", null,
+                      "If the error persists, please",
+                      " ",
+                      v("a", { href: this.props.contactHref, target: "_blank" }, "contact us"),
+                      "."))))));
       }
   }
 
-  const createView = (view, store, matcherService, commands, sidebarNode, controlsNode, contactHref) => {
+  const createView = ({ view, store, matcherService, commands, sidebarNode, contactHref, feedbackHref, onIgnoreMatch }) => {
       const overlayNode = document.createElement("div");
       const wrapperElement = document.createElement("div");
       wrapperElement.classList.add("TyperighterPlugin__container");
       view.dom.parentNode.replaceChild(wrapperElement, view.dom);
       wrapperElement.appendChild(view.dom);
       view.dom.insertAdjacentElement("afterend", overlayNode);
-      E(h(MatchOverlay, { store: store, applySuggestions: (suggestionOpts) => {
+      M(v(MatchOverlay, { store: store, applySuggestions: suggestionOpts => {
               commands.applySuggestions(suggestionOpts);
               commands.stopHover();
-          }, containerElement: wrapperElement }), overlayNode);
-      E(h(Sidebar, { store: store, applySuggestions: commands.applySuggestions, applyAutoFixableSuggestions: commands.applyAutoFixableSuggestions, selectMatch: commands.selectMatch, indicateHover: commands.indicateHover, stopHover: commands.stopHover, contactHref: contactHref }), sidebarNode);
-      E(h(Controls, { store: store, setDebugState: commands.setDebugState, setRequestOnDocModified: commands.setRequestOnDocModified, requestMatchesForDocument: commands.requestMatchesForDocument, fetchCategories: matcherService.fetchCategories, getCurrentCategories: matcherService.getCurrentCategories, addCategory: matcherService.addCategory, removeCategory: matcherService.removeCategory, contactHref: contactHref }), controlsNode);
+          }, onIgnoreMatch: onIgnoreMatch &&
+              (match => {
+                  commands.ignoreMatch(match.matchId);
+                  onIgnoreMatch(match);
+              }), containerElement: wrapperElement, feedbackHref: feedbackHref }), overlayNode);
+      M(v("div", { className: "Sidebar__section" },
+          v(Controls, { store: store, setDebugState: commands.setDebugState, setRequestOnDocModified: commands.setRequestOnDocModified, requestMatchesForDocument: commands.requestMatchesForDocument, fetchCategories: matcherService.fetchCategories, getCurrentCategories: matcherService.getCurrentCategories, addCategory: matcherService.addCategory, removeCategory: matcherService.removeCategory, contactHref: contactHref }),
+          v(Results, { store: store, applySuggestions: commands.applySuggestions, applyAutoFixableSuggestions: commands.applyAutoFixableSuggestions, selectMatch: commands.selectMatch, indicateHover: commands.indicateHover, stopHover: commands.stopHover, contactHref: contactHref })), sidebarNode);
   };
 
   class MatcherService {
@@ -27052,7 +27223,8 @@
           category: match.rule.category,
           suggestions: match.suggestions,
           replacement: match.rule.replacement,
-          markAsCorrect: match.markAsCorrect
+          markAsCorrect: match.markAsCorrect,
+          matchContext: match.matchContext
       }))
   });
   class TyperighterAdapter {
@@ -27070,6 +27242,7 @@
                   try {
                       const response = yield fetch(`${this.url}/check`, {
                           method: "POST",
+                          credentials: 'include',
                           headers: new Headers({
                               "Content-Type": "application/json"
                           }),
@@ -27094,6 +27267,7 @@
           });
           this.fetchCategories = () => __awaiter(this, void 0, void 0, function* () {
               const response = yield fetch(`${this.url}/categories`, {
+                  credentials: 'include',
                   headers: new Headers({
                       "Content-Type": "application/json"
                   })
@@ -27134,10 +27308,9 @@
   }
   const historyPlugin = history();
   const editorElement = document.querySelector("#editor");
-  const sidebarElement = document.querySelector("#sidebar");
-  const controlsElement = document.querySelector("#controls");
+  const sidebarNode = document.querySelector("#sidebar");
   const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin();
-  if (editorElement && sidebarElement && controlsElement) {
+  if (editorElement && sidebarNode) {
       const view = new EditorView(editorElement, {
           state: EditorState.create({
               doc: doc$1,
@@ -27153,11 +27326,20 @@
           })
       });
       const commands = createBoundCommands(view, getState);
-      const validationService = new MatcherService(store, commands, new TyperighterAdapter("http://localhost:9000"));
-      createView(view, store, validationService, commands, sidebarElement, controlsElement, "mailto:example@typerighter.co.uk");
+      const matcherService = new MatcherService(store, commands, new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk"));
+      createView({
+          view,
+          store,
+          matcherService,
+          commands,
+          sidebarNode,
+          contactHref: "mailto:example@typerighter.co.uk",
+          feedbackHref: "http://a-form-for-example.com",
+          onIgnoreMatch: match => console.info('Match ignored!', match)
+      });
       window.editor = view;
       window.ProseMirrorDevTools.applyDevTools(view, { EditorState });
   }
 
-}());
+}(react, SvgIcon));
 //# sourceMappingURL=bundle.js.map

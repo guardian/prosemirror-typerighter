@@ -12,6 +12,7 @@ $match-suggestion-background-color-hover: #eee;
 $match-suggestion-color: #999;
 $match-suggestion-color-hover: #888;
 $match-suggestion-wiki-extract-height: 85px;
+$icon-fill-color-default: #999999;
 $font-size-base: 15px;
 $font-size-large: 1.1em;
 $font-size-small: 0.8em;
@@ -46,6 +47,7 @@ $font-size-small: 0.8em;
 @import "./SidebarMatch.scss";
 @import "./Suggestion.scss";
 @import "./SuggestionList.scss";
+@import "./Icon.scss";
 
 // Elements
 
@@ -177,8 +179,20 @@ hr {
   margin-top: 3px;
 }
 
-.MatchWidget__feedbackLink {
+.MatchWidget__footer {
   margin-top: $gutter-width;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.MatchWidget__ignore-match {
+  display: flex;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.MatchWidget__feedbackLink {
   font-size: $font-size-small;
   a {
     color: $match-gray;
