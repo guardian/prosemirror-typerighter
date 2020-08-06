@@ -125,7 +125,7 @@ export interface IPluginState<TMatches extends IMatch = IMatch> {
     [requestId: string]: IBlocksInFlightState;
   };
   // The current error message.
-  errorMessage: IMatchRequestError[];
+  requestErrors: IMatchRequestError[];
 }
 
 // The transaction meta key that namespaces our actions.
@@ -148,7 +148,7 @@ export const createInitialState = <TMatch extends IMatch>(
   hoverInfo: undefined,
   requestsInFlight: {},
   requestPending: false,
-  errorMessage: []
+  requestErrors: []
 });
 
 export const createReducer = (expandRanges: ExpandRanges) => {
@@ -417,7 +417,7 @@ const handleRequestStart = (
 
   return {
     ...state,
-    errorMessage: [],
+    requestErrors: [],
     decorations,
     // We reset the dirty ranges, as they've been expanded and sent in a request.
     dirtiedRanges: [],
@@ -580,7 +580,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   const { requestId, blockId, categoryIds } = matchRequestError;
 
   if (!blockId) {
-    return { ...state, errorMessage: state.errorMessage.concat(matchRequestError) };
+    return { ...state, requestErrors: state.requestErrors.concat(matchRequestError) };
   }
 
   const requestsInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -596,7 +596,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   );
 
   if (!blockInFlight) {
-    return { ...state, errorMessage: state.errorMessage.concat(matchRequestError) };
+    return { ...state, requestErrors: state.requestErrors.concat(matchRequestError) };
   }
 
   const dirtiedRanges = blockInFlight
@@ -639,7 +639,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
       blockId,
       categoryIds
     ),
-    errorMessage: state.errorMessage.concat(matchRequestError)
+    requestErrors: state.requestErrors.concat(matchRequestError)
   };
 };
 
