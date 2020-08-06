@@ -7,6 +7,7 @@ import Controls from "./components/Controls";
 import { Commands } from "./commands";
 import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
+import { ILogger, consoleLogger } from "./utils/logger"
 
 /**
  * Instantiate a UI for the given EditorView, commands, and configuration,
@@ -22,8 +23,10 @@ const createView = (
   commands: Commands,
   sidebarNode: Element,
   contactHref?: string,
-  feedbackHref?: string
+  feedbackHref?: string,
+  logger: ILogger = consoleLogger
 ) => {
+
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
   const overlayNode = document.createElement("div");
@@ -35,6 +38,7 @@ const createView = (
   view.dom.parentNode!.replaceChild(wrapperElement, view.dom);
   wrapperElement.appendChild(view.dom);
   view.dom.insertAdjacentElement("afterend", overlayNode);
+  logger.info("Typerighter plugin starting");
 
   // Finally, render our components.
   render(
