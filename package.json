@@ -17,8 +17,8 @@
     "report-coverage": "jest --env=jsdom --coverage --coverageReporters=text-lcov | coveralls",
     "pages": "npm run build && http-server ./pages/dist",
     "prepublishOnly": "npm run build && tsc -p tsconfig.declaration.json",
-    "build": "rollup -c",
-    "watch": "rollup -c -w & http-server -p 5000 ./pages/dist",
+    "build": "rollup -c build/rollup.config.build.js",
+    "watch": "rollup -w -c build/rollup.config.dev.js",
     "format": "prettier --write './src/**/*.ts'",
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
@@ -26,7 +26,9 @@
   "devDependencies": {
     "@babel/core": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
-    "@rollup/plugin-typescript": "^4.1.2",
+    "@csstools/postcss-sass": "^4.0.0",
+    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
     "@types/fetch-mock": "^6.0.4",
     "@types/jest": "^23.3.2",
     "@types/lodash": "^4.14.116",
@@ -43,7 +45,6 @@
     "coveralls": "^3.0.2",
     "eslint": "^4.13.1",
     "fetch-mock": "^7.2.5",
-    "http-server": "^0.10.0",
     "jest": "^23.6.0",
     "node-fetch": "^2.2.1",
     "prettier": "^1.9.2",
@@ -57,10 +58,11 @@
     "prosemirror-test-builder": "^1.0.1",
     "prosemirror-view": "^1.13.4",
     "rollup": "^2.11.2",
-    "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-postcss": "^3.1.4",
     "rollup-plugin-scss": "^2.5.0",
+    "rollup-plugin-serve": "^1.0.3",
     "rollup-plugin-tslint": "^0.1.38",
+    "rollup-plugin-typescript2": "^0.27.1",
     "ts-jest": "^23.10.3",
     "tslib": "^1.9.3",
     "tslint": "5.10",
@@ -76,6 +78,6 @@
     "preact": "^10.0.0-rc.0",
     "prosemirror-tables": "^0.7.8",
     "prosemirror-utils": "^0.6.7",
-    "uuid": "^3.3.2"
+    "uuid": "^8.3.0"
   }
 }

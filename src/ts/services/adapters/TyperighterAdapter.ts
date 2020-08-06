@@ -1,7 +1,7 @@
 import throttle from "lodash/throttle";
 import uniqBy from "lodash/uniqBy";
 import uniq from "lodash/uniq";
-import v4 from "uuid/v4";
+import { v4 } from "uuid";
 import { IBlock, IMatcherResponse } from "../../interfaces/IMatch";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
