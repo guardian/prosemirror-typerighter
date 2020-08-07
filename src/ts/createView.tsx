@@ -77,8 +77,8 @@ const createView = ({
     <div className="Sidebar__section">
       <Controls
         store={store}
-        setDebugState={commands.setDebugState}
-        setRequestOnDocModified={commands.setRequestOnDocModified}
+        setDebugState={commands.setConfigValue}
+        setRequestOnDocModified={commands.setConfigValue}
         requestMatchesForDocument={commands.requestMatchesForDocument}
         fetchCategories={matcherService.fetchCategories}
         getCurrentCategories={matcherService.getCurrentCategories}

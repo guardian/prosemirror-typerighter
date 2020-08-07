@@ -1,7 +1,6 @@
 import { Transaction } from "prosemirror-state";
 import {
-  ActionSetRequestMatchesOnDocModified,
-  ActionSetDebugState,
+  ActionSetConfigValue,
   ActionRequestError,
   ActionRequestMatchesSuccess,
   ActionRequestMatchesForDocument,
@@ -18,13 +17,17 @@ import {
   SELECT_MATCH,
   REMOVE_MATCH,
   APPLY_NEW_DIRTY_RANGES,
-  SET_DEBUG_STATE,
-  SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
+  SET_CONFIG_VALUE,
   Action,
   ActionRequestComplete,
   ActionRemoveMatch
 } from "./actions";
-import { IMatch, IBlock, IRange, IMatchRequestError } from "../interfaces/IMatch";
+import {
+  IMatch,
+  IBlock,
+  IRange,
+  IMatchRequestError
+} from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
 import {
@@ -97,12 +100,18 @@ export interface IBlocksInFlightState {
   mapping: Mapping;
 }
 
-export interface IPluginState<TMatches extends IMatch = IMatch> {
+export interface IPluginConfig {
+  // Is the plugin enabled – e.g. should it display matches and respond to commands?
+  enabled: boolean;
+  // Should we trigger a request when the document is modified?
+  requestMatchesOnDocModified: boolean;
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
-  // Should we trigger a request when the document is modified?
-  requestMatchesOnDocModified: boolean;
+}
+
+export interface IPluginState<TMatches extends IMatch = IMatch> {
+  config: IPluginConfig;
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current matches for the document.
@@ -138,8 +147,11 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = []
 ): IPluginState<TMatch> => ({
-  debug: false,
-  requestMatchesOnDocModified: false,
+  config: {
+    enabled: true,
+    debug: false,
+    requestMatchesOnDocModified: false
+  },
   decorations: DecorationSet.create(doc, []),
   dirtiedRanges: [],
   currentMatches: matches,
@@ -188,10 +200,8 @@ export const createReducer = (expandRanges: ExpandRanges) => {
         return handleRemoveMatch(tr, state, action);
       case APPLY_NEW_DIRTY_RANGES:
         return handleNewDirtyRanges(tr, state, action);
-      case SET_DEBUG_STATE:
-        return handleSetDebugState(tr, state, action);
-      case SET_REQUEST_MATCHES_ON_DOC_MODIFIED:
-        return handleSetRequestOnDocModifiedState(tr, state, action);
+      case SET_CONFIG_VALUE:
+        return handleSetConfigValue(tr, state, action);
       default:
         return state;
     }
@@ -330,7 +340,7 @@ const handleNewDirtyRanges = <TMatch extends IMatch>(
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
 ) => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
-  let newDecorations = state.debug
+  let newDecorations = state.config.debug
     ? state.decorations.add(
         tr.doc,
         dirtiedRanges.map(range => createDebugDecorationFromRange(range))
@@ -350,8 +360,8 @@ const handleNewDirtyRanges = <TMatch extends IMatch>(
     decorations: newDecorations,
     // We only care about storing dirtied ranges if we're validating
     // in response to user edits.
-    requestPending: state.requestMatchesOnDocModified ? true : false,
-    dirtiedRanges: state.requestMatchesOnDocModified
+    requestPending: state.config.requestMatchesOnDocModified ? true : false,
+    dirtiedRanges: state.config.requestMatchesOnDocModified
       ? state.dirtiedRanges.concat(dirtiedRanges)
       : []
   };
@@ -401,7 +411,7 @@ const handleRequestStart = (
   state: IPluginState<TMatch>
 ): IPluginState<TMatch> => {
   // Replace any debug decorations, if they exist.
-  const decorations = state.debug
+  const decorations = state.config.debug
     ? removeDecorationsFromRanges(state.decorations, blocks, [
         DECORATION_DIRTY
       ]).add(
@@ -514,7 +524,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
             response.categoryIds.includes(spec.categoryId)
           )
           .concat(
-            state.debug
+            state.config.debug
               ? // Ditch any decorations marking inflight matches.
                 state.decorations.find(
                   undefined,
@@ -570,17 +580,15 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
 const handleMatchesRequestError = <TMatch extends IMatch>(
   tr: Transaction,
   state: IPluginState<TMatch>,
-  {
-    payload: {
-      matchRequestError
-    }
-  }: ActionRequestError
+  { payload: { matchRequestError } }: ActionRequestError
 ) => {
-
   const { requestId, blockId, categoryIds } = matchRequestError;
 
   if (!blockId) {
-    return { ...state, requestErrors: state.requestErrors.concat(matchRequestError) };
+    return {
+      ...state,
+      requestErrors: state.requestErrors.concat(matchRequestError)
+    };
   }
 
   const requestsInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -596,7 +604,10 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   );
 
   if (!blockInFlight) {
-    return { ...state, requestErrors: state.requestErrors.concat(matchRequestError) };
+    return {
+      ...state,
+      requestErrors: state.requestErrors.concat(matchRequestError)
+    };
   }
 
   const dirtiedRanges = blockInFlight
@@ -620,7 +631,7 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   // checked on the next pass.
   let decorations = state.decorations.remove(decsToRemove);
 
-  if (dirtiedRanges.length && state.debug) {
+  if (dirtiedRanges.length && state.config.debug) {
     decorations = decorations.add(
       tr.doc,
       dirtiedRanges.map(range => createDebugDecorationFromRange(range))
@@ -667,26 +678,16 @@ const handleRequestComplete = <TMatch extends IMatch>(
   };
 };
 
-const handleSetDebugState = <TMatch extends IMatch>(
+const handleSetConfigValue = <TMatch extends IMatch>(
   _: Transaction,
   state: IPluginState<TMatch>,
-  { payload: { debug } }: ActionSetDebugState
+  { payload: { key, value } }: ActionSetConfigValue
 ) => {
   return {
     ...state,
-    debug
-  };
-};
-
-const handleSetRequestOnDocModifiedState = <TMatch extends IMatch>(
-  _: Transaction,
-  state: IPluginState<TMatch>,
-  {
-    payload: { requestMatchesOnDocModified }
-  }: ActionSetRequestMatchesOnDocModified
-) => {
-  return {
-    ...state,
-    requestMatchesOnDocModified
+    config: {
+      ...state.config,
+      [key]: value
+    }
   };
 };

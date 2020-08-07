@@ -2,7 +2,7 @@ import { Transaction } from "prosemirror-state";
 import { DecorationSet } from "prosemirror-view";
 import {
   selectMatch,
-  setDebugState,
+  setConfigValue,
   applyNewDirtiedRanges,
   requestMatchesForDocument,
   requestError,
@@ -79,7 +79,7 @@ describe("Action handlers", () => {
           tr,
           {
             ...state,
-            debug: true,
+            config: { ...state.config, debug: true },
             dirtiedRanges: [{ from: 5, to: 10 }],
             requestPending: true
           },
@@ -109,7 +109,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          debug: true,
+          config: { ...state.config, debug: true },
           dirtiedRanges: [{ from: 5, to: 10 }],
           decorations: new DecorationSet().add(tr.doc, [
             createDebugDecorationFromRange({ from: 1, to: 3 })
@@ -134,7 +134,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          debug: true,
+          config: { ...state.config, debug: true },
           dirtiedRanges: [
             { from: 5, to: 10 },
             { from: 28, to: 35 }
@@ -380,12 +380,14 @@ describe("Action handlers", () => {
           }
         ],
         decorations: new DecorationSet(),
-        requestErrors: [{
-          requestId: exampleRequestId,
-          blockId: createBlockId(0, 1, 25),
-          message: "Too many requests",
-          categoryIds: ['example-category']
-        } as IMatchRequestError]
+        requestErrors: [
+          {
+            requestId: exampleRequestId,
+            blockId: createBlockId(0, 1, 25),
+            message: "Too many requests",
+            categoryIds: ["example-category"]
+          } as IMatchRequestError
+        ]
       });
     });
   });
@@ -585,11 +587,7 @@ describe("Action handlers", () => {
   describe("removeMatch", () => {
     it("should be a noop when matches aren't present", () => {
       const { state, tr } = createInitialData();
-      const newState = reducer(
-        tr,
-        state,
-        removeMatch("id-does-not-exist")
-      );
+      const newState = reducer(tr, state, removeMatch("id-does-not-exist"));
       expect(newState.currentMatches).toEqual(state.currentMatches);
       expect(newState.decorations).toEqual(state.decorations);
     });
@@ -613,12 +611,22 @@ describe("Action handlers", () => {
       expect(newState.decorations).toEqual(state.decorations);
     });
   });
-  describe("setDebug", () => {
-    it("should set the debug state", () => {
+  describe("setConfigValue", () => {
+    it("should set a config value", () => {
       const { state } = createInitialData();
       expect(
-        reducer(new Transaction(createDoc), state, setDebugState(true))
+        reducer(new Transaction(createDoc), state, setConfigValue("debug", true))
       ).toEqual({ ...state, debug: true });
+    });
+    it("should not accept incorrect config keys", () => {
+      const { state } = createInitialData();
+      // @ts-expect-error
+      reducer(new Transaction(createDoc), state, setConfigValue("not-a-key", true))
+    });
+    it("should not accept incorrect config values", () => {
+      const { state } = createInitialData();
+      // @ts-expect-error
+      reducer(new Transaction(createDoc), state, setConfigValue("debug", "true"))
     });
   });
 });

@@ -3,8 +3,7 @@ import {
   newHoverIdReceived,
   requestMatchesForDocument,
   selectMatch,
-  setDebugState,
-  setRequestMatchesOnDocModified,
+  setConfigValue,
   requestMatchesSuccess,
   requestError,
   requestMatchesForDirtyRanges,
@@ -18,7 +17,8 @@ import {
 import {
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IPluginState,
-  IStateHoverInfo
+  IStateHoverInfo,
+  IPluginConfig
 } from "./state/reducer";
 import {
   IMatcherResponse,
@@ -131,32 +131,20 @@ export const selectMatchCommand = <TMatch extends IMatch>(
 };
 
 /**
- * Set the debug state. Enabling debug mode provides additional marks
- * to reveal dirty ranges and ranges sent for matching.
+ * Set a configuration value.
  */
-export const setDebugStateCommand = (debug: boolean): Command => (
-  state,
-  dispatch
-) => {
-  if (dispatch) {
-    dispatch(
-      state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, setDebugState(debug))
-    );
-  }
-  return true;
-};
-
-/**
- * When enabled, the plugin will queue match requests as soon as the document is modified.
- */
-export const setRequestOnDocModifiedState = (
-  requestMatchesOnDocModified: boolean
+export const setConfigValueCommand = <
+  ConfigKey extends keyof IPluginConfig,
+  ConfigValue extends IPluginConfig[ConfigKey]
+>(
+  key: ConfigKey,
+  value: ConfigValue
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
-        setRequestMatchesOnDocModified(requestMatchesOnDocModified)
+        setConfigValue(key, value)
       )
     );
   }
@@ -341,8 +329,7 @@ export const createBoundCommands = <TMatch extends IMatch>(
     ),
     indicateHover: bindCommand(indicateHoverCommand),
     stopHover: bindCommand(stopHoverCommand),
-    setDebugState: bindCommand(setDebugStateCommand),
-    setRequestOnDocModified: bindCommand(setRequestOnDocModifiedState),
+    setConfigValue: bindCommand(setConfigValueCommand),
     applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
     applyRequestError: bindCommand(applyRequestErrorCommand),
     applyRequestComplete: bindCommand(applyRequestCompleteCommand)
