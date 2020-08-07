@@ -17,7 +17,7 @@ interface IViewOptions {
   sidebarNode: Element;
   contactHref?: string;
   feedbackHref?: string;
-  logger: ILogger;
+  logger?: ILogger;
   onIgnoreMatch?: (match: IMatch) => void;
 }
 
