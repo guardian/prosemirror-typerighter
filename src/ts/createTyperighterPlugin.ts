@@ -80,7 +80,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
         [] as IRange[]
       );
       if (newDirtiedRanges.length) {
-        if (newPluginState.requestMatchesOnDocModified) {
+        if (newPluginState.config.requestMatchesOnDocModified) {
           // We wait a tick here, as applyNewDirtiedRanges must run
           // before the newly dirtied range is available in the state.
           // @todo -- this is a bit of a hack, it can be done better.
