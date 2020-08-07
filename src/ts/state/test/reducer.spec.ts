@@ -22,6 +22,7 @@ import {
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
 import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
+import { addMatchesToState } from "../helpers";
 import {
   createMatcherResponse,
   createBlock,
@@ -30,8 +31,7 @@ import {
   exampleRequestId,
   createInitialData,
   defaultDoc,
-  createMatch,
-  addMatchesToState
+  createMatch
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
 

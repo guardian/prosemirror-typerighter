@@ -58,6 +58,7 @@ import {
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import { createBlock } from "../utils/block";
+import { addMatchesToState } from "./helpers";
 
 /**
  * Information about the span element the user is hovering over.
@@ -91,6 +92,13 @@ export interface IBlockInFlight {
   pendingCategoryIds: string[];
   block: IBlock;
 }
+
+/**
+ * A consumer-supplied predicate that allows consumers to ignore matches.
+ * Handy when, for example, consumers know that parts of the document are
+ * exempt from checks.
+ */
+export type IIgnoreMatch = (match: IMatch) => boolean;
 
 export interface IBlocksInFlightState {
   totalBlocks: number;
@@ -146,23 +154,27 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
-  active: boolean = true
-): IPluginState<TMatch> => ({
-  config: {
-    isActive: active,
-    debug: false,
-    requestMatchesOnDocModified: false
-  },
-  decorations: DecorationSet.create(doc, createDecorationsForMatches(matches)),
-  dirtiedRanges: [],
-  currentMatches: matches,
-  selectedMatch: undefined,
-  hoverId: undefined,
-  hoverInfo: undefined,
-  requestsInFlight: {},
-  requestPending: false,
-  requestErrors: []
-});
+  active: boolean = true,
+  ignoreMatch?: IIgnoreMatch
+): IPluginState<TMatch> => {
+  const initialState: IPluginState<TMatch> = {
+    config: {
+      isActive: active,
+      debug: false,
+      requestMatchesOnDocModified: false
+    },
+    decorations: DecorationSet.create(doc, []),
+    dirtiedRanges: [],
+    currentMatches: [],
+    selectedMatch: undefined,
+    hoverId: undefined,
+    hoverInfo: undefined,
+    requestsInFlight: {},
+    requestPending: false,
+    requestErrors: []
+  };
+  return addMatchesToState(initialState, doc, matches, ignoreMatch);
+};
 
 export const createReducer = (expandRanges: ExpandRanges) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(

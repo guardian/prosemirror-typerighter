@@ -1,5 +1,5 @@
 import { applyNewDirtiedRanges } from "./state/actions";
-import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
+import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION, IIgnoreMatch } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import { DECORATION_ATTRIBUTE_ID } from "./utils/decoration";
@@ -37,6 +37,11 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
    * Is the plugin active as it starts?
    */
   isActive?: boolean;
+
+  /**
+   * Ignore matches when this predicate returns false.
+   */
+  ignoreMatch?: IIgnoreMatch;
 }
 
 /**
@@ -54,6 +59,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
+    ignoreMatch
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
@@ -67,7 +73,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     key: new PluginKey("prosemirror-typerighter"),
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState(doc, matches, isActive);
+        const initialState = createInitialState(doc, matches, isActive, ignoreMatch);
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },

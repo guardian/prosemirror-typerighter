@@ -6,13 +6,15 @@ import {
   IMatcherResponse
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
-import { IPluginState, IBlocksInFlightState } from "../../state/reducer";
+import {
+  IPluginState,
+  IBlocksInFlightState
+} from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
 import { DecorationSet } from "prosemirror-view";
 import { createDoc, p } from "./prosemirror";
-import { createDecorationsForMatch } from "../../utils/decoration";
 
 export const matchLibrary: IMatchLibrary = [
   [
@@ -82,7 +84,7 @@ export const createMatcherResponse = (
       to: wordTo,
       matchId: createMatchId(0, wordFrom, wordTo, 0),
       suggestions,
-      matchContext: "here is a [block text] match",
+      matchContext: "here is a [block text] match"
     }
   ]
 });
@@ -104,7 +106,7 @@ export const createMatch = (
   to,
   matchId: createMatchId(0, from, to, 0),
   suggestions,
-  matchContext: "here is a [block text] match",
+  matchContext: "here is a [block text] match"
 });
 
 export const exampleCategoryIds = ["example-category"];
@@ -164,21 +166,5 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       requestPending: false,
       requestErrors: []
     } as IPluginState
-  };
-};
-
-export const addMatchesToState = (
-  state: IPluginState<IMatch>,
-  doc: any,
-  outputs: IMatch[]
-) => {
-  const decorations = outputs.reduce(
-    (set, output) => set.add(doc, createDecorationsForMatch(output)),
-    new DecorationSet()
-  );
-  return {
-    ...state,
-    currentMatches: outputs,
-    decorations
   };
 };
