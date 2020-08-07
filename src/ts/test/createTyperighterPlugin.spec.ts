@@ -107,4 +107,45 @@ describe("createTyperighterPlugin", () => {
     const decorations = getDecorationSpecsFromDoc(view);
     expect(decorations).toEqual(new Set());
   });
+  it("should not add matches and their decorations on init when the ignoreMatch predicate returns false", () => {
+    const { view, getState } = createPlugin({ ignoreMatch: () => false});
+
+    const decorations = getDecorationSpecsFromDoc(view);
+    expect(decorations).toEqual(new Set());
+
+    const pluginMatches = getState(view.state).currentMatches;
+    expect(pluginMatches).toEqual([]);
+  });
+  it("should not add matches and their decorations returned from a matcher when the ignoreMatch predicate returns false", () => {
+    const { commands, view, getState } = createPlugin({ ignoreMatch: () => false});
+
+    const response: IMatcherResponse = {
+      blocks,
+      categoryIds: ["cat1"],
+      matches: [
+        {
+          ...blocks[0],
+          matchId: "matchId",
+          matchedText: blocks[0].text,
+          message: "Example message",
+          category: {
+            id: "cat1",
+            name: "Category 1",
+            colour: "puce"
+          },
+          matchContext: "bigger block of text"
+        }
+      ],
+      requestId: "reqId"
+    };
+
+    commands.requestMatchesForDocument("docId", ["cat1"]);
+    commands.applyMatcherResponse(response);
+
+    const decorations = getDecorationSpecsFromDoc(view);
+    expect(decorations).toEqual(new Set());
+
+    const pluginMatches = getState(view.state).currentMatches;
+    expect(pluginMatches).toEqual([]);
+  });
 });
