@@ -9,7 +9,8 @@ import {
   requestMatchesForDirtyRanges,
   requestMatchesSuccess,
   newHoverIdReceived,
-  requestMatchesComplete as requestComplete
+  requestMatchesComplete as requestComplete,
+  removeMatch
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
 import { createReducer, IPluginState } from "../reducer";
@@ -367,7 +368,7 @@ describe("Action handlers", () => {
           requestId: exampleRequestId,
           blockId: createBlockId(0, 1, 25),
           message: "Too many requests",
-          categoryIds: ['example-category']
+          categoryIds: ["example-category"]
         })
       );
       expect(newState).toMatchObject({
@@ -574,6 +575,37 @@ describe("Action handlers", () => {
         ...otherState,
         selectedMatch: "exampleId"
       });
+    });
+  });
+  describe("removeMatch", () => {
+    it("should be a noop when matches aren't present", () => {
+      const { state, tr } = createInitialData();
+      const newState = reducer(
+        tr,
+        state,
+        removeMatch("id-does-not-exist")
+      );
+      expect(newState.currentMatches).toEqual(state.currentMatches);
+      expect(newState.decorations).toEqual(state.decorations);
+    });
+    it("should remove matches when they're present", () => {
+      const { state, tr } = createInitialData();
+      const matcherResponse = createMatcherResponse(5, 10);
+      let newState = reducer(
+        tr,
+        {
+          ...state,
+          requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+        },
+        requestMatchesSuccess(matcherResponse)
+      );
+      newState = reducer(
+        tr,
+        newState,
+        removeMatch(matcherResponse.matches[0].matchId)
+      );
+      expect(newState.currentMatches).toEqual([]);
+      expect(newState.decorations).toEqual(state.decorations);
     });
   });
   describe("setDebug", () => {

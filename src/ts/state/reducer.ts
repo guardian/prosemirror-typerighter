@@ -16,11 +16,13 @@ import {
   REQUEST_ERROR,
   REQUEST_COMPLETE,
   SELECT_MATCH,
+  REMOVE_MATCH,
   APPLY_NEW_DIRTY_RANGES,
   SET_DEBUG_STATE,
   SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
   Action,
-  ActionRequestComplete
+  ActionRequestComplete,
+  ActionRemoveMatch
 } from "./actions";
 import { IMatch, IBlock, IRange } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
@@ -182,6 +184,8 @@ export const createReducer = (expandRanges: ExpandRanges) => {
         return handleRequestComplete(tr, state, action);
       case SELECT_MATCH:
         return handleSelectMatch(tr, state, action);
+      case REMOVE_MATCH:
+        return handleRemoveMatch(tr, state, action);
       case APPLY_NEW_DIRTY_RANGES:
         return handleNewDirtyRanges(tr, state, action);
       case SET_DEBUG_STATE:
@@ -244,6 +248,32 @@ const handleSelectMatch = <TMatch extends IMatch>(
   return {
     ...state,
     selectedMatch: action.payload.matchId
+  };
+};
+
+/**
+ * Remove a match and its decoration from the state.
+ */
+const handleRemoveMatch = <TMatch extends IMatch>(
+  _: unknown,
+  state: IPluginState<TMatch>,
+  { payload: { id } }: ActionRemoveMatch
+): IPluginState<TMatch> => {
+  const decorationToRemove = state.decorations.find(
+    undefined,
+    undefined,
+    spec => spec.id === id
+  );
+  const decorations = decorationToRemove
+    ? state.decorations.remove(decorationToRemove)
+    : state.decorations;
+  const currentMatches = state.currentMatches.filter(
+    match => match.matchId !== id
+  );
+  return {
+    ...state,
+    decorations,
+    currentMatches
   };
 };
 
@@ -600,7 +630,12 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    requestsInFlight: amendBlockQueriesInFlight(state, requestId, blockId, categoryIds),
+    requestsInFlight: amendBlockQueriesInFlight(
+      state,
+      requestId,
+      blockId,
+      categoryIds
+    ),
     errorMessage: message
   };
 };
