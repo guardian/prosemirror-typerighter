@@ -5,7 +5,7 @@ import Block from "./icons/Block";
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
-import { IconButton } from "@material-ui/core";
+import IconButton from "@material-ui/core/IconButton";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;

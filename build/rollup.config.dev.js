@@ -1,6 +1,4 @@
-import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import alias from "@rollup/plugin-alias";
 import replace from '@rollup/plugin-replace';
 import serve from "rollup-plugin-serve";
 
@@ -18,16 +16,9 @@ export default [
     },
     plugins: [
       ...defaultPlugins,
-      alias({
-        entries: {
-          react: "preact/compat",
-          "react-dom": "preact/compat"
-        }
-      }),
       replace({
         "process.env.NODE_ENV": JSON.stringify("development")
       }),
-      nodeResolve({ browser: true }),
       commonjs(),
       serve({ port: 5000, contentBase: "pages/dist" })
     ]

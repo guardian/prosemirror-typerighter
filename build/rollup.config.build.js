@@ -1,15 +1,39 @@
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import babel from "@rollup/plugin-babel";
-import replace from '@rollup/plugin-replace';
+import replace from "@rollup/plugin-replace";
 
 import { defaultPlugins } from "./rollup.common.js";
 
 const plugins = [
   ...defaultPlugins,
   babel(),
+  nodeResolve({ browser: true }),
   replace({
     "process.env.NODE_ENV": JSON.stringify("production")
-  }),
+  })
 ];
+
+const externalModules = [
+  "prosemirror-example-setup",
+  "prosemirror-history",
+  "prosemirror-keymap",
+  "prosemirror-menu",
+  "prosemirror-model",
+  "prosemirror-schema-basic",
+  "prosemirror-state",
+  "prosemirror-test-builder",
+  "prosemirror-view",
+  "preact",
+  "prosemirror-tables",
+  "prosemirror-utils",
+  "uuid",
+  "prop-types",
+  "react-is",
+  "hoist-non-react-statics"
+];
+
+const external = id =>
+  /(lodash)/.test(id) || externalModules.includes(id);
 
 export default [
   {
@@ -18,7 +42,8 @@ export default [
       file: "dist/index.js",
       format: "cjs"
     },
-    plugins
+    plugins,
+    external
   },
   {
     input: "src/ts/index.ts",
@@ -26,6 +51,7 @@ export default [
       file: "dist/index.m.js",
       format: "es"
     },
-    plugins
+    plugins,
+    external
   }
 ];
