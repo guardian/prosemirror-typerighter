@@ -101,8 +101,8 @@ export interface IBlocksInFlightState {
 }
 
 export interface IPluginConfig {
-  // Is the plugin enabled – e.g. should it display matches and respond to commands?
-  isTyperighterOn: boolean;
+  // Is the plugin active – e.g. should it display matches and respond to commands?
+  isActive: boolean;
   // Should we trigger a request when the document is modified?
   requestMatchesOnDocModified: boolean;
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
@@ -145,10 +145,11 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
  */
 export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
-  matches: TMatch[] = []
+  matches: TMatch[] = [],
+  active: boolean = true
 ): IPluginState<TMatch> => ({
   config: {
-    isTyperighterOn: true,
+    isActive: active,
     debug: false,
     requestMatchesOnDocModified: false
   },

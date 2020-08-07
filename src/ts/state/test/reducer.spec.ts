@@ -87,7 +87,10 @@ describe("Action handlers", () => {
         )
       ).toEqual({
         ...state,
-        debug: true,
+        config: {
+          ...state.config,
+          debug: true
+        },
         dirtiedRanges: [],
         decorations: new DecorationSet().add(tr.doc, [
           createDebugDecorationFromRange({ from: 1, to: 22 }, false)
@@ -615,18 +618,30 @@ describe("Action handlers", () => {
     it("should set a config value", () => {
       const { state } = createInitialData();
       expect(
-        reducer(new Transaction(createDoc), state, setConfigValue("debug", true))
-      ).toEqual({ ...state, debug: true });
+        reducer(
+          new Transaction(createDoc),
+          state,
+          setConfigValue("debug", true)
+        )
+      ).toEqual({ ...state, config: { ...state.config, debug: true } });
     });
     it("should not accept incorrect config keys", () => {
       const { state } = createInitialData();
-      // @ts-expect-error
-      reducer(new Transaction(createDoc), state, setConfigValue("not-a-key", true))
+      reducer(
+        new Transaction(createDoc),
+        state,
+        // @ts-expect-error
+        setConfigValue("not-a-key", true)
+      );
     });
     it("should not accept incorrect config values", () => {
       const { state } = createInitialData();
-      // @ts-expect-error
-      reducer(new Transaction(createDoc), state, setConfigValue("debug", "true"))
+      reducer(
+        new Transaction(createDoc),
+        state,
+        // @ts-expect-error
+        setConfigValue("debug", "true")
+      );
     });
   });
 });

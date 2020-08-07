@@ -145,8 +145,11 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
   return {
     tr,
     state: {
-      debug: false,
-      requestMatchesOnDocModified: true,
+      config: {
+        debug: false,
+        requestMatchesOnDocModified: true,
+        isActive: true
+      },
       currentThrottle: 100,
       initialThrottle: 100,
       maxThrottle: 1000,
