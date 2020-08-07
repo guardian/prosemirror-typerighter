@@ -5,7 +5,6 @@ import Controls from "./Controls";
 import { Commands } from ".././commands";
 import { IMatch } from ".././interfaces/IMatch";
 import { MatcherService } from "..";
-import { Button } from "@material-ui/core";
 import { useState } from "preact/hooks";
 
 interface IProps {
@@ -55,7 +54,13 @@ const Sidebar = ({
           />
         </Fragment>
       ) : (
-        <Button onClick={() => setIsActive(true)}>Switch on Typerighter</Button>
+        <button
+          type="button"
+          className="Button"
+          onClick={() => setIsActive(true)}
+        >
+          Open Typerighter
+        </button>
       )}
     </div>
   );
