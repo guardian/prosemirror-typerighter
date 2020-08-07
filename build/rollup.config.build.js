@@ -1,4 +1,3 @@
-import { nodeResolve } from "@rollup/plugin-node-resolve";
 import babel from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
 
@@ -7,7 +6,6 @@ import { defaultPlugins } from "./rollup.common.js";
 const plugins = [
   ...defaultPlugins,
   babel(),
-  nodeResolve({ browser: true }),
   replace({
     "process.env.NODE_ENV": JSON.stringify("production")
   })

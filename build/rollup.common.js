@@ -1,3 +1,4 @@
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import alias from "@rollup/plugin-alias";
 import typescript from "rollup-plugin-typescript2";
 import postcss from "rollup-plugin-postcss";
@@ -9,6 +10,7 @@ export const defaultPlugins = [
     extract: true,
     plugins: [sass]
   }),
+  nodeResolve({ browser: true }),
   alias({
     entries: {
       react: "preact/compat",
