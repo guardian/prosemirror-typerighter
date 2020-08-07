@@ -14,7 +14,7 @@ interface IProps {
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
-  contactHref?: string;
+  feedbackHref?: string;
 }
 
 interface IState {
@@ -166,10 +166,10 @@ class Controls extends Component<IProps, IState> {
         {this.state.pluginState && selectHasError(this.state.pluginState) && (
           <div className="Controls__error-message">
             Error fetching matches. Please try checking the document again.{" "}
-            {this.props.contactHref && (
+            {this.props.feedbackHref && (
               <span>
                 If the error persists, please{" "}
-                <a href={this.props.contactHref} target="_blank">
+                <a href={this.getErrorFeedbackLink()} target="_blank">
                   contact us
                 </a>
                 .
@@ -225,6 +225,16 @@ class Controls extends Component<IProps, IState> {
       v4(),
       this.props.getCurrentCategories().map(_ => _.id)
     );
+  };
+
+  private getErrorFeedbackLink = () => {
+    const errorLmit = 10;
+    const data = {
+      url: document.location.href,
+      errors: this.state.pluginState?.requestErrors?.slice(0, errorLmit)
+    }
+    const encodedData = encodeURIComponent(JSON.stringify(data, undefined, 2));
+    return this.props.feedbackHref + encodedData;
   };
 }
 
