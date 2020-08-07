@@ -4,6 +4,7 @@ import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
 import { selectHasError } from "../state/selectors";
+import { Button } from "@material-ui/core";
 
 interface IProps {
   store: Store<IMatch>;
@@ -15,6 +16,7 @@ interface IProps {
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
+  deactivate: () => void;
 }
 
 interface IState {
@@ -34,7 +36,7 @@ class Controls extends Component<IProps, IState> {
     allCategories: [],
     currentCategories: [],
     isLoadingCategories: false,
-    pluginState: undefined
+    pluginState: undefined,
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -58,6 +60,9 @@ class Controls extends Component<IProps, IState> {
             >
               Check document
             </button>
+            <Button
+              onClick={this.props.deactivate}
+            >Switch off</Button>
           </div>
         </div>
       

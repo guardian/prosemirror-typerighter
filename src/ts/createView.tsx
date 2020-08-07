@@ -2,12 +2,11 @@ import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
 import MatchOverlay from "./components/MatchOverlay";
 import Store from "./state/store";
-import Results from "./components/Results";
-import Controls from "./components/Controls";
 import { Commands } from "./commands";
 import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
 import { ILogger, consoleLogger } from "./utils/logger";
+import Sidebar from "./components/Sidebar";
 
 interface IViewOptions {
   view: EditorView;
@@ -74,30 +73,14 @@ const createView = ({
   );
 
   render(
-    <div className="Sidebar__section">
-      <Controls
-        store={store}
-        setDebugState={value => commands.setConfigValue("debug", value)}
-        setRequestOnDocModified={value =>
-          commands.setConfigValue("requestMatchesOnDocModified", value)
-        }
-        requestMatchesForDocument={commands.requestMatchesForDocument}
-        fetchCategories={matcherService.fetchCategories}
-        getCurrentCategories={matcherService.getCurrentCategories}
-        addCategory={matcherService.addCategory}
-        removeCategory={matcherService.removeCategory}
-        feedbackHref={feedbackHref}
-      />
-      <Results
-        store={store}
-        applySuggestions={commands.applySuggestions}
-        applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-        selectMatch={commands.selectMatch}
-        indicateHover={commands.indicateHover}
-        stopHover={commands.stopHover}
-        contactHref={contactHref}
-      />
-    </div>,
+    <Sidebar 
+      store={store}
+      matcherService={matcherService}
+      commands={commands}
+      contactHref={contactHref}
+      feedbackHref={feedbackHref}
+      active={false}
+    />,
     sidebarNode
   );
 };
