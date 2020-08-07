@@ -1,11 +1,9 @@
 import { EditorState } from "prosemirror-state";
-import { EditorView, DecorationSet } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 
 import {
   createDoc,
   p,
-  getDecorationsForDoc,
-  getDecorationSpecsFromSet,
   getDecorationSpecsFromDoc,
   getDecorationSpecs
 } from "./helpers/prosemirror";
