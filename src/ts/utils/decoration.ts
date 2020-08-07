@@ -5,7 +5,6 @@ import { IRange, IMatch } from "../interfaces/IMatch";
 
 // Our decoration types.
 export const DECORATION_MATCH = "DECORATION_MATCH";
-export const DECORATION_MATCH_IS_CORRECT = "DECORATION_MATCH_IS_CORRECT";
 export const DECORATION_MATCH_IS_SELECTED = "DECORATION_MATCH_IS_HOVERING";
 export const DECORATION_MATCH_HEIGHT_MARKER = "DECORATION_MATCH_HEIGHT_MARKER";
 export const DECORATION_DIRTY = "DECORATION_DIRTY";
@@ -17,7 +16,6 @@ export const DecorationClassMap = {
   [DECORATION_MATCH]: "MatchDecoration",
   [DECORATION_MATCH_HEIGHT_MARKER]: "MatchDecoration__height-marker",
   [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected",
-  [DECORATION_MATCH_IS_CORRECT]: "MatchDecoration--is-correct"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-match-id";
@@ -47,8 +45,7 @@ export const removeDecorationsFromRanges = (
   ranges: IRange[],
   types = [
     DECORATION_MATCH,
-    DECORATION_MATCH_HEIGHT_MARKER,
-    DECORATION_MATCH_IS_CORRECT
+    DECORATION_MATCH_HEIGHT_MARKER
   ]
 ) =>
   ranges.reduce((acc, range) => {
@@ -97,17 +94,6 @@ const createHeightMarkerElement = (id: string) => {
 };
 
 /**
- * Create an 'isCorrect' element. Displays a little tick to let
- * users know that this range has been marked as correct.
- */
-const createIsCorrectElement = (id: string) => {
-  const element = document.createElement("span");
-  element.setAttribute(DECORATION_ATTRIBUTE_IS_CORRECT_ID, id);
-  element.className = DecorationClassMap[DECORATION_MATCH_IS_CORRECT];
-  return element;
-};
-
-/**
  * Create decorations for the given match.
  */
 export const createDecorationsForMatch = (
@@ -121,10 +107,12 @@ export const createDecorationsForMatch = (
       }`
     : DecorationClassMap[DECORATION_MATCH];
 
+
+  const matchColour = match.markAsCorrect ? "3ff200" :  match.category.colour;
   const opacity = isSelected ? "30" : "07";
   const style = `background-color: #${
-    match.category.colour
-  }${opacity}; border-bottom: 2px solid #${match.category.colour}`;
+    matchColour
+  }${opacity}; border-bottom: 2px solid #${matchColour}`;
 
   const decorations = [
     Decoration.inline(
@@ -154,20 +142,6 @@ export const createDecorationsForMatch = (
       } as any)
     );
   }
-
-  if (addWidgetDecorations && match.markAsCorrect) {
-    decorations.push(
-      Decoration.widget(match.to, createIsCorrectElement(match.matchId), {
-        type: DECORATION_MATCH_IS_CORRECT,
-        id: match.matchId,
-        categoryId: match.category.id,
-        // Important to keep the user from being able to insert characters
-        // between the inline decorations and this widget decoration
-        side: -1
-      } as any)
-    );
-  }
-
   return decorations;
 };
 

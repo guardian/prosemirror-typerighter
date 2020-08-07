@@ -54,7 +54,7 @@ describe("Decoration utils", () => {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
               style:
-                "background-color: #eeeee07; border-bottom: 2px solid #eeeee"
+                "background-color: #3ff20007; border-bottom: 2px solid #3ff200"
             },
             spec: {
               categoryId: "1",
@@ -74,18 +74,6 @@ describe("Decoration utils", () => {
               categoryId: "1",
               id: "0-from:0-to:5--match-0",
               type: "DECORATION_MATCH_HEIGHT_MARKER"
-            }
-          }
-        },
-        {
-          from: 5,
-          to: 5,
-          type: {
-            side: -1,
-            spec: {
-              categoryId: "1",
-              id: "0-from:0-to:5--match-0",
-              type: "DECORATION_MATCH_IS_CORRECT"
             }
           }
         }
