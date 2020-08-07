@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import Tooltip from "@material-ui/core/Tooltip";
-import Block from './icons/Block';
+import Block from "./icons/Block";
 
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
@@ -81,18 +81,20 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
                 </a>
               </div>
             )}
-            <div className="MatchWidget__ignore-match">
-              <Tooltip title="Ignore this match">
-                <IconButton
-                  className="MatchWidget__ignore-match-button"
-                  component="span"
-                  size="small"
-                  onClick={onIgnoreMatch && (() => onIgnoreMatch(match))}
-                >
-                  <Block />
-                </IconButton>
-              </Tooltip>
-            </div>
+            {onIgnoreMatch && (
+              <div className="MatchWidget__ignore-match">
+                <Tooltip title="Ignore this match">
+                  <IconButton
+                    className="MatchWidget__ignore-match-button"
+                    component="span"
+                    size="small"
+                    onClick={() => onIgnoreMatch(match)}
+                  >
+                    <Block />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            )}
           </div>
         </div>
       </div>
