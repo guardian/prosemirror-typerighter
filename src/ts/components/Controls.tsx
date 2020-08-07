@@ -42,14 +42,11 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
-    // const { setDebugState, setRequestOnDocModified } = this.props;
-    // const { debug = false, requestMatchesOnDocModified = false } =
-    //   this.state.pluginState || {};
-    const { isOpen, isLoadingCategories } = this.state;
-    return (
+
+     return (
       <Fragment>
         <div className="Sidebar__header-container">
-          <div className="Sidebar__header Sidebar__header-toggle">
+          <div className="Sidebar__header">
             <button
               type="button"
               className="Button"
@@ -61,108 +58,9 @@ class Controls extends Component<IProps, IState> {
             >
               Check document
             </button>
-
-            <div
-              onClick={this.toggleOpenState}
-              className="Sidebar__toggle-label"
-            >
-              Advanced&nbsp;
-              <span
-                className="Sidebar__toggle"
-                style={{ transform: isOpen ? "" : "rotate(-90deg)" }}
-              >
-                ▼
-              </span>
-            </div>
           </div>
         </div>
-        {isOpen && (
-          <div>
-            {/* <div className="Controls__row">
-                <label
-                  className="Controls__label"
-                  for="Controls__check-on-modify"
-                >
-                  Run checks when the document is modified
-                </label>
-                <div class="Controls__input">
-                  <input
-                    type="checkbox"
-                    id="Controls__check-on-modify"
-                    checked={requestMatchesOnDocModified}
-                    className="Input"
-                    onClick={() =>
-                      setRequestOnDocModified(!requestMatchesOnDocModified)
-                    }
-                  />
-                </div>
-              </div>
-              <div className="Controls__row">
-                <label
-                  className="Controls__label"
-                  for="Controls__show-dirty-ranges"
-                >
-                  Show dirty and pending ranges
-                </label>
-                <div class="Controls__input">
-                  <input
-                    id="Controls__show-dirty-ranges"
-                    type="checkbox"
-                    checked={debug}
-                    className="Input"
-                    onClick={() => setDebugState(!debug)}
-                  />
-                </div>
-              </div>
-              <div className="Controls__row">
-                <hr />
-              </div> */}
-            <div className="Controls__row">
-              <div className="Controls__header">
-                Select categories&nbsp;
-                {isLoadingCategories && (
-                  <span className="Sidebar__loading-spinner">|</span>
-                )}
-              </div>
-              <button
-                type="button"
-                class="Button flex-align-right"
-                onClick={this.fetchCategories}
-              >
-                Refresh
-              </button>
-            </div>
-            {this.state.allCategories.map(category => (
-              <div className="Controls__row">
-                <label
-                  className="Controls__label"
-                  for="Controls__show-dirty-ranges"
-                >
-                  {category.name}
-                </label>
-                <div class="Controls__input">
-                  <input
-                    id="Controls__show-dirty-ranges"
-                    type="checkbox"
-                    checked={
-                      !!this.state.currentCategories.find(
-                        _ => _.id === category.id
-                      )
-                    }
-                    className="Input"
-                    onInput={(e: Event) =>
-                      this.setCategoryState(
-                        category.id,
-                        (e.target! as HTMLInputElement).checked
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-            <hr />
-          </div>
-        )}
+      
         {this.state.pluginState && selectHasError(this.state.pluginState) && (
           <div className="Controls__error-message">
             Error fetching matches. Please try checking the document again.{" "}
@@ -182,15 +80,6 @@ class Controls extends Component<IProps, IState> {
   }
   private handleNotify = (state: IPluginState<IMatch>) => {
     this.setState({ pluginState: state });
-  };
-  private toggleOpenState = () => this.setState({ isOpen: !this.state.isOpen });
-  private setCategoryState = (categoryId: string, enabled: boolean) => {
-    enabled
-      ? this.props.addCategory(categoryId)
-      : this.props.removeCategory(categoryId);
-    this.setState({
-      currentCategories: this.props.getCurrentCategories()
-    });
   };
 
   private initCategories = async () => {
