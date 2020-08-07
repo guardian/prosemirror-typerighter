@@ -190,6 +190,9 @@ hr {
   display: flex;
   margin-left: auto;
   cursor: pointer;
+  .MatchWidget__ignore-match-button {
+    padding: 0;
+  }
 }
 
 .MatchWidget__feedbackLink {
