@@ -3,13 +3,11 @@ import {
   IMatch,
   ISuggestion,
   IBlock,
-  IMatcherResponse
+  IMatcherResponse,
+  ICategory
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
-import {
-  IPluginState,
-  IBlocksInFlightState
-} from "../../state/reducer";
+import { IPluginState, IBlocksInFlightState } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
@@ -52,42 +50,66 @@ export const createBlock = (
   id: `0-from:${from}-to:${to}`
 });
 
+interface ICreateMatcherResponseSpec {
+  from: number;
+  to: number;
+  wordFrom?: number;
+  wordTo?: number;
+  category?: ICategory;
+  suggestions?: ISuggestion[];
+};
+
 export const createMatcherResponse = (
-  from: number,
-  to: number,
-  wordFrom: number = from,
-  wordTo: number = from + 3,
-  category = {
-    id: "1",
-    name: "Cat",
-    colour: "eeeee"
-  },
-  suggestions = [] as ISuggestion[],
-  requestId = exampleRequestId
-): IMatcherResponse => ({
-  requestId,
-  categoryIds: [category.id],
-  blocks: [
+  specs: ICreateMatcherResponseSpec[],
+  requestId: string = exampleRequestId
+): IMatcherResponse =>
+  specs.reduce(
+    (acc, spec) => {
+      const {
+        from,
+        to,
+        wordFrom = from,
+        wordTo = from + 3,
+        category = {
+          id: "1",
+          name: "Cat",
+          colour: "eeeee"
+        },
+        suggestions = [] as ISuggestion[]
+      } = spec;
+
+      const newBlock = {
+        id: createBlockId(0, from, to),
+        from,
+        to,
+        text: "block text"
+      };
+
+      const newMatch = {
+        category,
+        matchedText: "block text",
+        message: "annotation",
+        from: wordFrom,
+        to: wordTo,
+        matchId: createMatchId(0, wordFrom, wordTo, 0),
+        suggestions,
+        matchContext: "here is a [block text] match"
+      };
+
+      return {
+        ...acc,
+        categoryIds: acc.categoryIds.concat(category.id),
+        blocks: acc.blocks.concat(newBlock),
+        matches: acc.matches.concat(newMatch)
+      };
+    },
     {
-      id: createBlockId(0, from, to),
-      from,
-      to,
-      text: "block text"
-    }
-  ],
-  matches: [
-    {
-      category,
-      matchedText: "block text",
-      message: "annotation",
-      from: wordFrom,
-      to: wordTo,
-      matchId: createMatchId(0, wordFrom, wordTo, 0),
-      suggestions,
-      matchContext: "here is a [block text] match"
-    }
-  ]
-});
+      requestId,
+      categoryIds: [],
+      blocks: [],
+      matches: []
+    } as IMatcherResponse
+  );
 
 export const createMatch = (
   from: number,

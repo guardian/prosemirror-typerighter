@@ -199,7 +199,7 @@ describe("Action handlers", () => {
         reducer(
           tr,
           localState,
-          requestMatchesSuccess(createMatcherResponse(1, 22))
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 22 }]))
         ).currentMatches
       ).toMatchObject([createMatch(1, 4)]);
     });
@@ -211,7 +211,7 @@ describe("Action handlers", () => {
           ...state,
           requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
         },
-        requestMatchesSuccess(createMatcherResponse(5, 10))
+        requestMatchesSuccess(createMatcherResponse([{ from: 5, to: 10 }]))
       );
       const newMatch = newState.currentMatches[0];
       const newDecorations = new DecorationSet().add(
@@ -232,11 +232,15 @@ describe("Action handlers", () => {
           "This category should remain untouched -- it's not included in the categories for the incoming matches"
       };
       const matcherResponse1 = {
-        ...createMatcherResponse(0, 15, 1, 7),
+        ...createMatcherResponse([{ from: 0, to: 15, wordFrom: 1, wordTo: 7 }]),
         markAsCorrect: true
       };
-      const matcherResponse2 = createMatcherResponse(0, 15, 9, 13, category);
-      const matcherResponse3 = createMatcherResponse(16, 37, 17, 25); // Some other output for another block
+      const matcherResponse2 = createMatcherResponse([
+        { from: 0, to: 15, wordFrom: 9, wordTo: 13, category }
+      ]);
+      const matcherResponse3 = createMatcherResponse([
+        { from: 16, to: 37, wordFrom: 17, wordTo: 25 }
+      ]); // Some other output for another block
       const requestsInFlight = createBlockQueriesInFlight(
         blocks,
         exampleRequestId,
@@ -346,7 +350,7 @@ describe("Action handlers", () => {
         reducer(
           tr,
           localState,
-          requestMatchesSuccess(createMatcherResponse(1, 3))
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
         )
       ).toEqual({
         ...localState,
@@ -364,7 +368,7 @@ describe("Action handlers", () => {
       let localState = reducerThatIgnoresMatches(
         tr,
         state,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
+        applyNewDirtiedRanges([{ from: 1, to: 5 }])
       );
       localState = reducerThatIgnoresMatches(
         tr,
@@ -375,11 +379,11 @@ describe("Action handlers", () => {
         reducerThatIgnoresMatches(
           tr,
           localState,
-          requestMatchesSuccess(createMatcherResponse(1, 3))
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 2 }]))
         )
       ).toEqual({
         ...localState,
-        currentMatches: [],
+        currentMatches: []
       });
     });
   });
@@ -624,7 +628,7 @@ describe("Action handlers", () => {
     });
     it("should remove matches when they're present", () => {
       const { state, tr } = createInitialData();
-      const matcherResponse = createMatcherResponse(5, 10);
+      const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
       let newState = reducer(
         tr,
         {
