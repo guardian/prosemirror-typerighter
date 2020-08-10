@@ -35,15 +35,11 @@
 
 .Sidebar__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   position: relative;
   flex-shrink: 0.2;
   font-weight: bold;
   justify-content: space-between;
-}
-
-.Sidebar__header-close-button {
-  
 }
 
 .Sidebar__list {

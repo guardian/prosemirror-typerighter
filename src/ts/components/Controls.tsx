@@ -4,8 +4,8 @@ import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
 import { selectHasError } from "../state/selectors";
-// import IconButton from "@material-ui/core/IconButton";
-// import CloseIcon from "@material-ui/icons/Close";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "./icons/CloseIcon";
 
 interface IProps {
   store: Store<IMatch>;
@@ -61,16 +61,13 @@ class Controls extends Component<IProps, IState> {
             >
               Check document
             </button>
-            <button
-              type="button"
-              className="Button Button__light"
-              onClick={this.props.deactivate}
-            >Close</button>
-            {/* <IconButton
+          
+            <IconButton
+              aria-label="close Typerighter"
               onClick={this.props.deactivate}
             >
-              <CloseIcon fontSize="large" />
-            </IconButton> */}
+              <CloseIcon/>
+            </IconButton>
           </div>
         </div>
       
