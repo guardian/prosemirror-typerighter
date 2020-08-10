@@ -360,31 +360,41 @@ describe("Action handlers", () => {
       });
     });
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {
-      const reducerThatIgnoresMatches = createReducer(
+      const ignoreMatchReducer = createReducer(
         expandRangesToParentBlockNode,
-        () => false
+        match => match.from < 2
       );
       const { state, tr } = createInitialData(defaultDoc, 1337);
-      let localState = reducerThatIgnoresMatches(
+      let localState = ignoreMatchReducer(
         tr,
         state,
-        applyNewDirtiedRanges([{ from: 1, to: 5 }])
+        applyNewDirtiedRanges([{ from: 1, to: 6 }])
       );
-      localState = reducerThatIgnoresMatches(
+      localState = ignoreMatchReducer(
         tr,
         localState,
-        requestMatchesForDirtyRanges("id", exampleCategoryIds)
+        requestMatchesForDirtyRanges(exampleRequestId, exampleCategoryIds)
       );
-      expect(
-        reducerThatIgnoresMatches(
-          tr,
-          localState,
-          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 2 }]))
-        )
-      ).toEqual({
+
+      const block =
+        localState.requestsInFlight[exampleRequestId].pendingBlocks[0].block;
+      const response = createMatcherResponse([
+        { from: 1, to: 2, block },
+        { from: 4, to: 5, block }
+      ]);
+      localState = ignoreMatchReducer(tr, localState, requestMatchesSuccess(response));
+      const currentMatches = [response.matches[0]];
+      const decorations = new DecorationSet().add(
+        tr.doc,
+        createDecorationsForMatch(response.matches[0])
+      );
+      const expectedState = {
         ...localState,
-        currentMatches: []
-      });
+        decorations,
+        currentMatches
+      };
+
+      expect(localState).toEqual(expectedState);
     });
   });
   describe("requestMatchesError", () => {

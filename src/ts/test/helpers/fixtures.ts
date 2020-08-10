@@ -53,11 +53,12 @@ export const createBlock = (
 interface ICreateMatcherResponseSpec {
   from: number;
   to: number;
+  block?: IBlock;
   wordFrom?: number;
   wordTo?: number;
   category?: ICategory;
   suggestions?: ISuggestion[];
-};
+}
 
 export const createMatcherResponse = (
   specs: ICreateMatcherResponseSpec[],
@@ -70,6 +71,7 @@ export const createMatcherResponse = (
         to,
         wordFrom = from,
         wordTo = from + 3,
+        block,
         category = {
           id: "1",
           name: "Cat",
@@ -78,7 +80,7 @@ export const createMatcherResponse = (
         suggestions = [] as ISuggestion[]
       } = spec;
 
-      const newBlock = {
+      const newBlock = block || {
         id: createBlockId(0, from, to),
         from,
         to,
@@ -98,7 +100,8 @@ export const createMatcherResponse = (
 
       return {
         ...acc,
-        categoryIds: acc.categoryIds.concat(category.id),
+        // Category ids should be unique
+        categoryIds: Array.from(new Set(acc.categoryIds.concat(category.id))),
         blocks: acc.blocks.concat(newBlock),
         matches: acc.matches.concat(newMatch)
       };
