@@ -7,9 +7,9 @@ export const addMatchesToState = <TMatch extends IMatch>(
   state: IPluginState<TMatch>,
   doc: any,
   matches: TMatch[],
-  ignoreMatch?: IIgnoreMatch
+  ignoreMatch: IIgnoreMatch
 ) => {
-  const matchesToApply = ignoreMatch ? matches.filter(ignoreMatch) : matches;
+  const matchesToApply = matches.filter(ignoreMatch);
   const decorations = matchesToApply.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
     new DecorationSet()

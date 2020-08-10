@@ -59,7 +59,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
-    ignoreMatch
+    ignoreMatch = () => true
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
@@ -67,7 +67,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
   const emptyDecorationSet = new DecorationSet();
-  const reducer = createReducer(expandRanges);
+  const reducer = createReducer(expandRanges, ignoreMatch);
 
   const plugin: Plugin = new Plugin({
     key: new PluginKey("prosemirror-typerighter"),

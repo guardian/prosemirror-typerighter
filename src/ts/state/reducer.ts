@@ -176,7 +176,7 @@ export const createInitialState = <TMatch extends IMatch>(
   return addMatchesToState(initialState, doc, matches, ignoreMatch);
 };
 
-export const createReducer = (expandRanges: ExpandRanges) => {
+export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
@@ -202,7 +202,7 @@ export const createReducer = (expandRanges: ExpandRanges) => {
       case REQUEST_FOR_DOCUMENT:
         return handleMatchesRequestForDocument(tr, state, action);
       case REQUEST_SUCCESS:
-        return handleMatchesRequestSuccess(tr, state, action);
+        return handleMatchesRequestSuccess(ignoreMatch)(tr, state, action);
       case REQUEST_ERROR:
         return handleMatchesRequestError(tr, state, action);
       case REQUEST_COMPLETE:
@@ -503,7 +503,9 @@ const amendBlockQueriesInFlight = <TMatch extends IMatch>(
 /**
  * Handle a response, decorating the document with any matches we've received.
  */
-const handleMatchesRequestSuccess = <TMatch extends IMatch>(
+const handleMatchesRequestSuccess = (
+  ignoreMatch: IIgnoreMatch
+) => <TMatch extends IMatch>(
   tr: Transaction,
   state: IPluginState<TMatch>,
   { payload: { response } }: ActionRequestMatchesSuccess<TMatch>
@@ -550,22 +552,24 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
     [] as Decoration[]
   );
 
+  const matchesToAdd = response.matches.filter(ignoreMatch);
+  const currentMapping = selectBlockQueriesInFlightForSet(
+    state,
+    response.requestId
+  )!.mapping;
+  const mappedMatchesToAdd = mapRanges(matchesToAdd, currentMapping);
+
   // Add the response to the current matches.
-  currentMatches = currentMatches.concat(
-    mapRanges(
-      response.matches,
-      selectBlockQueriesInFlightForSet(state, response.requestId)!.mapping
-    )
-  );
+  currentMatches = currentMatches.concat(mappedMatchesToAdd);
 
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
 
   // Create our decorations for the newly current matches.
-  const newDecorations = createDecorationsForMatches(response.matches);
+  const newDecorations = createDecorationsForMatches(mappedMatchesToAdd);
 
-  // Amend the block queries in flight to
+  // Amend the block queries in flight to remove the returned blocks and categories
   const newBlockQueriesInFlight = requestsInFlight.reduce(
     (acc, blockInFlight) =>
       amendBlockQueriesInFlight(
