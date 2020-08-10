@@ -4,7 +4,7 @@ import {
   IRange,
   IMatch
 } from "../interfaces/IMatch";
-import { IStateHoverInfo } from "./reducer";
+import { IStateHoverInfo, IPluginConfig } from "./reducer";
 
 /**
  * Action types.
@@ -19,8 +19,7 @@ export const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
 export const SELECT_MATCH = "SELECT_MATCH" as const;
 export const REMOVE_MATCH = "REMOVE_MATCH" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
-export const SET_DEBUG_STATE = "SET_DEBUG_STATE" as const;
-export const SET_REQUEST_MATCHES_ON_DOC_MODIFIED = "SET_REQUEST_MATCHES_ON_DOC_MODIFIED" as const;
+export const SET_CONFIG_VALUE = "SET_CONFIG_VALUE" as const;
 
 /**
  * Action creators.
@@ -95,29 +94,23 @@ export const selectMatch = (matchId: string) => ({
 });
 export type ActionSelectMatch = ReturnType<typeof selectMatch>;
 
-export const setDebugState = (debug: boolean) => ({
-  type: SET_DEBUG_STATE,
-  payload: { debug }
-});
-export type ActionSetDebugState = ReturnType<typeof setDebugState>;
-
-export const setRequestMatchesOnDocModified = (
-  requestMatchesOnDocModified: boolean
+export const setConfigValue = <
+  ConfigKey extends keyof IPluginConfig,
+  ConfigValue extends IPluginConfig[ConfigKey]
+>(
+  key: ConfigKey,
+  value: ConfigValue
 ) => ({
-  type: SET_REQUEST_MATCHES_ON_DOC_MODIFIED,
-  payload: { requestMatchesOnDocModified }
+  type: SET_CONFIG_VALUE,
+  payload: { key, value }
 });
-export type ActionSetRequestMatchesOnDocModified = ReturnType<
-  typeof setRequestMatchesOnDocModified
->;
+export type ActionSetConfigValue = ReturnType<typeof setConfigValue>;
 
 export const removeMatch = (id: string) => ({
   type: REMOVE_MATCH,
   payload: { id }
-})
-export type ActionRemoveMatch = ReturnType<
-  typeof removeMatch
->;
+});
+export type ActionRemoveMatch = ReturnType<typeof removeMatch>;
 
 export type Action<TMatch extends IMatch> =
   | ActionNewHoverIdReceived
@@ -128,6 +121,5 @@ export type Action<TMatch extends IMatch> =
   | ActionRequestComplete
   | ActionSelectMatch
   | ActionHandleNewDirtyRanges
-  | ActionSetDebugState
-  | ActionSetRequestMatchesOnDocModified
-  | ActionRemoveMatch
+  | ActionSetConfigValue
+  | ActionRemoveMatch;

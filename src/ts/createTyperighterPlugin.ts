@@ -2,10 +2,8 @@ import { applyNewDirtiedRanges } from "./state/actions";
 import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
-import {
-  DECORATION_ATTRIBUTE_ID
-} from "./utils/decoration";
-import { EditorView } from "prosemirror-view";
+import { DECORATION_ATTRIBUTE_ID } from "./utils/decoration";
+import { EditorView, DecorationSet } from "prosemirror-view";
 import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
@@ -21,7 +19,7 @@ import { indicateHoverCommand, stopHoverCommand } from "./commands";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-interface IPluginOptions<TMatch extends IMatch> {
+export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -34,6 +32,11 @@ interface IPluginOptions<TMatch extends IMatch> {
    * The initial set of matches to apply to the document, if any.
    */
   matches?: TMatch[];
+
+  /**
+   * Is the plugin active as it starts?
+   */
+  isActive?: boolean;
 }
 
 /**
@@ -47,18 +50,23 @@ interface IPluginOptions<TMatch extends IMatch> {
 const createTyperighterPlugin = <TMatch extends IMatch>(
   options: IPluginOptions<TMatch> = {}
 ) => {
-  const { expandRanges = expandRangesToParentBlockNode, matches = [] } = options;
+  const {
+    expandRanges = expandRangesToParentBlockNode,
+    matches = [],
+    isActive
+  } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
+  const emptyDecorationSet = new DecorationSet();
   const reducer = createReducer(expandRanges);
 
   const plugin: Plugin = new Plugin({
     key: new PluginKey("prosemirror-typerighter"),
     state: {
-      init: (_, { doc }) => createInitialState(doc, matches),
+      init: (_, { doc }) => createInitialState(doc, matches, isActive),
       apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
         return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));
@@ -80,7 +88,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
         [] as IRange[]
       );
       if (newDirtiedRanges.length) {
-        if (newPluginState.requestMatchesOnDocModified) {
+        if (newPluginState.config.requestMatchesOnDocModified) {
           // We wait a tick here, as applyNewDirtiedRanges must run
           // before the newly dirtied range is available in the state.
           // @todo -- this is a bit of a hack, it can be done better.
@@ -106,7 +114,10 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     },
     props: {
       decorations: state => {
-        return plugin.getState(state).decorations;
+        const pluginState = plugin.getState(state);
+        return pluginState.config.isActive
+          ? pluginState.decorations
+          : emptyDecorationSet;
       },
       handleDOMEvents: {
         mouseover: (view: EditorView, event: Event) => {
