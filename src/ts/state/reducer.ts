@@ -155,7 +155,7 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   active: boolean = true,
-  ignoreMatch?: IIgnoreMatch
+  ignoreMatch: IIgnoreMatch = () => true
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {
@@ -176,7 +176,7 @@ export const createInitialState = <TMatch extends IMatch>(
   return addMatchesToState(initialState, doc, matches, ignoreMatch);
 };
 
-export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch) => {
+export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = () => true) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
@@ -530,6 +530,7 @@ const handleMatchesRequestSuccess = (
     requestsInFlight.map(_ => _.block),
     match => !response.categoryIds.includes(match.category.id)
   );
+
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = requestsInFlight.reduce(
     (acc, blockInFlight) =>

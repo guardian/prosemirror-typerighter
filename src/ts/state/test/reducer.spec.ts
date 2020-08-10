@@ -35,7 +35,7 @@ import {
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
 
-const reducer = createReducer(expandRangesToParentBlockNode);
+const reducer = createReducer(expandRangesToParentBlockNode, () => true);
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -253,7 +253,8 @@ describe("Action handlers", () => {
           matcherResponse1.matches[0],
           matcherResponse2.matches[0],
           matcherResponse3.matches[0]
-        ]
+        ],
+        () => true
       );
 
       it("should remove previous decorations that match block and category of the incoming match", () => {
@@ -352,6 +353,33 @@ describe("Action handlers", () => {
         dirtiedRanges: [{ from: 1, to: 3 }],
         currentMatches: [],
         requestPending: true
+      });
+    });
+    it("should not apply matches if they trigger the ignoreMatch predicate", () => {
+      const reducerThatIgnoresMatches = createReducer(
+        expandRangesToParentBlockNode,
+        () => false
+      );
+      const { state, tr } = createInitialData(defaultDoc, 1337);
+      let localState = reducerThatIgnoresMatches(
+        tr,
+        state,
+        applyNewDirtiedRanges([{ from: 1, to: 3 }])
+      );
+      localState = reducerThatIgnoresMatches(
+        tr,
+        localState,
+        requestMatchesForDirtyRanges("id", exampleCategoryIds)
+      );
+      expect(
+        reducerThatIgnoresMatches(
+          tr,
+          localState,
+          requestMatchesSuccess(createMatcherResponse(1, 3))
+        )
+      ).toEqual({
+        ...localState,
+        currentMatches: [],
       });
     });
   });
