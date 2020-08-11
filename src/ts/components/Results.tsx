@@ -31,6 +31,7 @@ class Results extends Component<
 > {
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
+    this.setState({ pluginState: this.props.store.getState() });
   }
 
   public render() {

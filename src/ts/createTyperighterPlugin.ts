@@ -53,7 +53,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const {
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
-    isActive
+    isActive = true,
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
@@ -66,7 +66,11 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const plugin: Plugin = new Plugin({
     key: new PluginKey("prosemirror-typerighter"),
     state: {
-      init: (_, { doc }) => createInitialState(doc, matches, isActive),
+      init: (_, { doc }) => {
+        const initialState = createInitialState(doc, matches, isActive);
+        store.emit(STORE_EVENT_NEW_STATE, initialState);
+        return initialState;
+      },
       apply(tr: Transaction, state: TPluginState): TPluginState {
         // We use the reducer pattern to handle state transitions.
         return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));

@@ -4,6 +4,8 @@ import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
 import { selectHasError } from "../state/selectors";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "./icons/CloseIcon";
 
 interface IProps {
   store: Store<IMatch>;
@@ -15,6 +17,7 @@ interface IProps {
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
+  deactivate: () => void;
 }
 
 interface IState {
@@ -34,7 +37,7 @@ class Controls extends Component<IProps, IState> {
     allCategories: [],
     currentCategories: [],
     isLoadingCategories: false,
-    pluginState: undefined
+    pluginState: undefined,
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -58,6 +61,14 @@ class Controls extends Component<IProps, IState> {
             >
               Check document
             </button>
+          
+            <IconButton
+              size="small"
+              aria-label="close Typerighter"
+              onClick={this.props.deactivate}
+            >
+              <CloseIcon/>
+            </IconButton>
           </div>
         </div>
       
