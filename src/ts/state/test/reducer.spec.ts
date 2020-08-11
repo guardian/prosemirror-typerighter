@@ -29,30 +29,56 @@ import {
   exampleCategoryIds,
   createBlockQueriesInFlight,
   exampleRequestId,
-  createInitialData,
+  createInitialState,
   defaultDoc,
-  createMatch
+  createMatch,
+  ICreateMatcherResponseSpec
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
+import { getBlocksFromDocument } from "../../utils/prosemirror";
 
 const reducer = createReducer(expandRangesToParentBlockNode, () => true);
+
+/**
+ * Create a plugin state, creating the given matches and
+ * their decorations from the given spec.
+ */
+const createStateWithMatches = (
+  localReducer: ReturnType<typeof createReducer>,
+  matches: ICreateMatcherResponseSpec[]
+): { state: IPluginState; matches: IMatch[] } => {
+  const docTime = 1337;
+  const { state, tr } = createInitialState(defaultDoc, docTime);
+
+  let localState = localReducer(
+    tr,
+    state,
+    requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
+  );
+  const block = getBlocksFromDocument(defaultDoc, docTime)[0];
+  const matchesWithBlock = matches.map(match => ({ ...match, block }));
+  const response = createMatcherResponse(matchesWithBlock, exampleRequestId);
+  localState = localReducer(tr, localState, requestMatchesSuccess(response));
+
+  return { matches: response.matches, state: localState };
+};
 
 describe("Action handlers", () => {
   describe("No action", () => {
     it("should just return the state", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       expect(reducer(tr, state)).toEqual(state);
     });
   });
   describe("Unknown action", () => {
-    const { state, tr } = createInitialData();
+    const { state, tr } = createInitialState();
     expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toEqual(
       state
     );
   });
   describe("requestMatchesForDocument", () => {
     it("should apply dirty ranges for the entire doc", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       expect(
         reducer(
           tr,
@@ -73,7 +99,7 @@ describe("Action handlers", () => {
   });
   describe("requestMatchesForDirtyRanges", () => {
     it("should remove the pending status and any dirtied ranges, and mark the request as in flight", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       expect(
         reducer(
           tr,
@@ -107,7 +133,7 @@ describe("Action handlers", () => {
       });
     });
     it("should remove debug decorations, if any", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       const newState = reducer(
         tr,
         {
@@ -132,7 +158,7 @@ describe("Action handlers", () => {
         p("Example text to check"),
         p("More text to check")
       );
-      const { state, tr } = createInitialData(doc);
+      const { state, tr } = createInitialState(doc);
       const newState = reducer(
         tr,
         {
@@ -154,7 +180,7 @@ describe("Action handlers", () => {
   });
   describe("requestMatchesSuccess", () => {
     it("shouldn't do anything if there's nothing in the response and nothing to clean up", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       expect(
         reducer(
           tr,
@@ -169,7 +195,7 @@ describe("Action handlers", () => {
       ).toEqual(state);
     });
     it("shouldn't do anything if there are no categories", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       expect(
         reducer(
           tr,
@@ -184,7 +210,7 @@ describe("Action handlers", () => {
       ).toEqual(state);
     });
     it("should add incoming matches to the state", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       let localState = reducer(
         tr,
         state,
@@ -204,7 +230,7 @@ describe("Action handlers", () => {
       ).toMatchObject([createMatch(1, 4)]);
     });
     it("should create decorations for the incoming matches", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       const newState = reducer(
         tr,
         {
@@ -221,7 +247,7 @@ describe("Action handlers", () => {
       expect(newState.decorations).toEqual(newDecorations);
     });
     describe("superceded matches", () => {
-      const { state: initialState, tr } = createInitialData();
+      const { state: initialState, tr } = createInitialState();
       const firstBlock = createBlock(0, 15, "Example text to check");
       const secondBlock = createBlock(16, 37, "Another block of text");
       const blocks = [firstBlock, secondBlock];
@@ -330,7 +356,7 @@ describe("Action handlers", () => {
       });
     });
     it("should not apply matches if the ranges they apply to have since been dirtied", () => {
-      const { state, tr } = createInitialData(defaultDoc, 1337);
+      const { state, tr } = createInitialState(defaultDoc, 1337);
       let localState = reducer(
         tr,
         state,
@@ -362,44 +388,38 @@ describe("Action handlers", () => {
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {
       const ignoreMatchReducer = createReducer(
         expandRangesToParentBlockNode,
-        match => match.from < 2
-      );
-      const { state, tr } = createInitialData(defaultDoc, 1337);
-      let localState = ignoreMatchReducer(
-        tr,
-        state,
-        applyNewDirtiedRanges([{ from: 1, to: 6 }])
-      );
-      localState = ignoreMatchReducer(
-        tr,
-        localState,
-        requestMatchesForDirtyRanges(exampleRequestId, exampleCategoryIds)
+        match => match.from < 3
       );
 
-      const block =
-        localState.requestsInFlight[exampleRequestId].pendingBlocks[0].block;
-      const response = createMatcherResponse([
-        { from: 1, to: 2, block },
-        { from: 4, to: 5, block }
-      ]);
-      localState = ignoreMatchReducer(tr, localState, requestMatchesSuccess(response));
-      const currentMatches = [response.matches[0]];
-      const decorations = new DecorationSet().add(
-        tr.doc,
-        createDecorationsForMatch(response.matches[0])
+      const matchSpecs = [
+        { from: 2, to: 3 },
+        { from: 4, to: 6 }
+      ];
+      const { state, matches } = createStateWithMatches(
+        ignoreMatchReducer,
+        matchSpecs
       );
+
+      // We expect only the first match from the response to be applied.
+      const currentMatches = matches.slice(0, 1);
+      const decorations = getNewDecorationsForCurrentMatches(
+        currentMatches,
+        new DecorationSet(),
+        defaultDoc
+      );
+
       const expectedState = {
-        ...localState,
+        ...state,
         decorations,
         currentMatches
       };
 
-      expect(localState).toEqual(expectedState);
+      expect(state).toEqual(expectedState);
     });
   });
   describe("requestMatchesError", () => {
     it("Should re-add the in-flight request ranges as dirty ranges, and remove the inflight request", () => {
-      const { state: initialState, tr } = createInitialData();
+      const { state: initialState, tr } = createInitialState();
       const state = {
         ...initialState,
         requestsInFlight: createBlockQueriesInFlight([
@@ -437,7 +457,7 @@ describe("Action handlers", () => {
     });
   });
   describe("requestMatchesComplete", () => {
-    const { state: initialState, tr } = createInitialData();
+    const { state: initialState, tr } = createInitialState();
     it("should remove the inflight request from the state", () => {
       const state = {
         ...initialState,
@@ -470,7 +490,7 @@ describe("Action handlers", () => {
   });
   describe("newHoverIdReceived", () => {
     it("should update the hover id", () => {
-      const { state } = createInitialData();
+      const { state } = createInitialState();
       expect(
         reducer(
           new Transaction(createDoc),
@@ -484,7 +504,7 @@ describe("Action handlers", () => {
       });
     });
     it("should add hover decorations", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       const output: IMatch = {
         matchId: "match-id",
         from: 0,
@@ -517,7 +537,7 @@ describe("Action handlers", () => {
       });
     });
     it("should remove hover decorations", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       const output: IMatch = {
         matchId: "match-id",
         from: 0,
@@ -554,7 +574,7 @@ describe("Action handlers", () => {
   });
   describe("handleNewDirtyRanges", () => {
     it("should remove any decorations and matches that touch the passed ranges", () => {
-      const { state } = createInitialData();
+      const { state } = createInitialState();
       const currentMatches: IMatch[] = [
         {
           matchId: "match-id",
@@ -595,7 +615,7 @@ describe("Action handlers", () => {
   });
   describe("selectMatch", () => {
     it("should apply the selected match id", () => {
-      const { state } = createInitialData();
+      const { state } = createInitialState();
       const otherState = {
         ...state,
         currentMatches: [
@@ -631,13 +651,13 @@ describe("Action handlers", () => {
   });
   describe("removeMatch", () => {
     it("should be a noop when matches aren't present", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       const newState = reducer(tr, state, removeMatch("id-does-not-exist"));
       expect(newState.currentMatches).toEqual(state.currentMatches);
       expect(newState.decorations).toEqual(state.decorations);
     });
     it("should remove matches when they're present", () => {
-      const { state, tr } = createInitialData();
+      const { state, tr } = createInitialState();
       const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
       let newState = reducer(
         tr,
@@ -658,7 +678,7 @@ describe("Action handlers", () => {
   });
   describe("setConfigValue", () => {
     it("should set a config value", () => {
-      const { state } = createInitialData();
+      const { state } = createInitialState();
       expect(
         reducer(
           new Transaction(createDoc),
@@ -668,7 +688,7 @@ describe("Action handlers", () => {
       ).toEqual({ ...state, config: { ...state.config, debug: true } });
     });
     it("should not accept incorrect config keys", () => {
-      const { state } = createInitialData();
+      const { state } = createInitialState();
       reducer(
         new Transaction(createDoc),
         state,
@@ -677,7 +697,7 @@ describe("Action handlers", () => {
       );
     });
     it("should not accept incorrect config values", () => {
-      const { state } = createInitialData();
+      const { state } = createInitialState();
       reducer(
         new Transaction(createDoc),
         state,

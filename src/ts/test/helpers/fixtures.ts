@@ -50,7 +50,7 @@ export const createBlock = (
   id: `0-from:${from}-to:${to}`
 });
 
-interface ICreateMatcherResponseSpec {
+export interface ICreateMatcherResponseSpec {
   from: number;
   to: number;
   block?: IBlock;
@@ -165,7 +165,7 @@ export const createInitialTr = (doc: Node = defaultDoc) => {
   return tr;
 };
 
-export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
+export const createInitialState = (doc: Node = defaultDoc, time = 0) => {
   const tr = createInitialTr(doc);
   tr.doc = doc;
   tr.time = time;
