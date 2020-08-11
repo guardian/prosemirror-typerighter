@@ -155,7 +155,7 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   active: boolean = true,
-  ignoreMatch: IIgnoreMatch = () => true
+  ignoreMatch: IIgnoreMatch = () => false
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {
@@ -176,7 +176,7 @@ export const createInitialState = <TMatch extends IMatch>(
   return addMatchesToState(initialState, doc, matches, ignoreMatch);
 };
 
-export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = () => true) => {
+export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = () => false) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
@@ -553,7 +553,7 @@ const handleMatchesRequestSuccess = (
     [] as Decoration[]
   );
 
-  const matchesToAdd = response.matches.filter(ignoreMatch);
+  const matchesToAdd = response.matches.filter(match => !ignoreMatch(match));
   const currentMapping = selectBlockQueriesInFlightForSet(
     state,
     response.requestId

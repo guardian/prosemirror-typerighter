@@ -37,7 +37,7 @@ import {
 import { createBlockId } from "../../utils/block";
 import { getBlocksFromDocument } from "../../utils/prosemirror";
 
-const reducer = createReducer(expandRangesToParentBlockNode, () => true);
+const reducer = createReducer(expandRangesToParentBlockNode);
 
 /**
  * Create a plugin state, creating the given matches and
@@ -284,7 +284,7 @@ describe("Action handlers", () => {
           matcherResponse2.matches[0],
           matcherResponse3.matches[0]
         ],
-        () => true
+        () => false
       );
 
       it("should remove previous decorations that match block and category of the incoming match", () => {
@@ -388,7 +388,7 @@ describe("Action handlers", () => {
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {
       const ignoreMatchReducer = createReducer(
         expandRangesToParentBlockNode,
-        match => match.from < 3
+        match => match.from > 3
       );
 
       const matchSpecs = [

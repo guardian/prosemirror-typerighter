@@ -59,7 +59,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
-    ignoreMatch = () => true
+    ignoreMatch = () => false
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;

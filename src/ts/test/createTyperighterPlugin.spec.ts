@@ -119,10 +119,10 @@ describe("createTyperighterPlugin", () => {
     const pluginMatches = getState(view.state).currentMatches;
     expect(pluginMatches).toEqual([match]);
   });
-  it("should not add matches and their decorations on init when the ignoreMatch predicate returns false", () => {
+  it("should not add matches and their decorations on init when the ignoreMatch predicate returns true", () => {
     const match = createMatch(1, 2);
     const { view, getState } = createPlugin({
-      ignoreMatch: () => false,
+      ignoreMatch: () => true,
       matches: [match]
     });
 
@@ -132,9 +132,9 @@ describe("createTyperighterPlugin", () => {
     const pluginMatches = getState(view.state).currentMatches;
     expect(pluginMatches).toEqual([]);
   });
-  it("should not add matches and their decorations returned from a matcher when the ignoreMatch predicate returns false", () => {
+  it("should not add matches and their decorations returned from a matcher when the ignoreMatch predicate returns true", () => {
     const { commands, view, getState } = createPlugin({
-      ignoreMatch: () => false
+      ignoreMatch: () => true
     });
 
     const response: IMatcherResponse = createMatcherResponse([
