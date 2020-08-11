@@ -165,7 +165,7 @@ export const createInitialTr = (doc: Node = defaultDoc) => {
   return tr;
 };
 
-export const createInitialState = (doc: Node = defaultDoc, time = 0) => {
+export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
   const tr = createInitialTr(doc);
   tr.doc = doc;
   tr.time = time;

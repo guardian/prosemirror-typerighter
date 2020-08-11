@@ -9,7 +9,7 @@ import {
   createBlock,
   createBlockQueriesInFlight,
   exampleRequestId,
-  createInitialState,
+  createInitialData,
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
 import { IMatch } from '../../interfaces/IMatch';
@@ -71,7 +71,7 @@ describe("selectors", () => {
   });
   describe("selectNewBlockInFlight", () => {
     it("should find the new inflight matches given an old and a new state", () => {
-      const { state } = createInitialState();
+      const { state } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       expect(
@@ -98,7 +98,7 @@ describe("selectors", () => {
       ]);
     });
     it("shouldn't include matches missing in the new state but present in the old state", () => {
-      const { state } = createInitialState();
+      const { state } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       expect(
@@ -122,11 +122,11 @@ describe("selectors", () => {
   });
   describe("selectSuggestionAndRange", () => {
     it("should handle unknown outputs", () => {
-      const { state } = createInitialState();
+      const { state } = createInitialData();
       expect(selectSuggestionAndRange(state, "invalidId", 5)).toEqual(null);
     });
     it("should handle unknown suggestions for found outputs", () => {
-      const { state } = createInitialState();
+      const { state } = createInitialData();
       const currentMatches: IMatch[] = [
         {
           matchId: "match-id",
@@ -161,7 +161,7 @@ describe("selectors", () => {
       ).toEqual(null);
     });
     it("should select a suggestion and the range it should be applied to, given a match id and suggestion index", () => {
-      const { state } = createInitialState();
+      const { state } = createInitialData();
       const currentMatches: IMatch[] = [
         {
           matchId: "match-id",
@@ -222,11 +222,11 @@ describe("selectors", () => {
   });
   describe("selectPercentRemaining", () => {
     it("should report nothing when there are no requests in flight", () => {
-      const { state } = createInitialState();
+      const { state } = createInitialData();
       expect(selectPercentRemaining(state)).toEqual(0);
     });
     it("should select the percentage remaining for a single request", () => {
-      const { state: initialState } = createInitialState();
+      const { state: initialState } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       let state = {
@@ -250,7 +250,7 @@ describe("selectors", () => {
       expect(selectPercentRemaining(state)).toEqual(50);
     });
     it("should select the percentage remaining for multiple requests", () => {
-      const { state: initialState } = createInitialState();
+      const { state: initialState } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       const input3 = createBlock(15, 20);
