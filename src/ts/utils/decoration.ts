@@ -15,7 +15,7 @@ export const DecorationClassMap = {
   [DECORATION_INFLIGHT]: "MatchDebugInflight",
   [DECORATION_MATCH]: "MatchDecoration",
   [DECORATION_MATCH_HEIGHT_MARKER]: "MatchDecoration__height-marker",
-  [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected",
+  [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-match-id";
@@ -43,10 +43,7 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
 export const removeDecorationsFromRanges = (
   decorationSet: DecorationSet,
   ranges: IRange[],
-  types = [
-    DECORATION_MATCH,
-    DECORATION_MATCH_HEIGHT_MARKER
-  ]
+  types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]
 ) =>
   ranges.reduce((acc, range) => {
     const predicate = (spec: { [key: string]: any }) =>
@@ -102,18 +99,14 @@ export const createDecorationsForMatch = (
   addWidgetDecorations = true
 ) => {
   const className = isSelected
-    ? `${DecorationClassMap[DECORATION_MATCH]} ${
-        DecorationClassMap[DECORATION_MATCH_IS_SELECTED]
-      }`
+    ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
     : DecorationClassMap[DECORATION_MATCH];
 
-
-  const matchColour = match.markAsCorrect ? "3ff200" :  match.category.colour;
+  const matchColour = match.markAsCorrect ? "3ff200" : match.category.colour;
   const opacity = isSelected ? "30" : "07";
-  const style = `background-color: #${
-    matchColour
-  }${opacity}; border-bottom: 2px solid #${matchColour}`;
+  const style = `background-color: #${matchColour}${opacity}; border-bottom: 2px solid #${matchColour}`;
 
+  const spec = createDecorationSpecFromMatch(match);
   const decorations = [
     Decoration.inline(
       match.from,
@@ -122,14 +115,8 @@ export const createDecorationsForMatch = (
         class: className,
         style,
         [DECORATION_ATTRIBUTE_ID]: match.matchId
-      } as any,
-      {
-        type: DECORATION_MATCH,
-        id: match.matchId,
-        categoryId: match.category.id,
-        inclusiveStart: false,
-        inclusiveEnd: false
-      } as any
+      },
+      spec
     )
   ];
 
@@ -144,6 +131,15 @@ export const createDecorationsForMatch = (
   }
   return decorations;
 };
+
+export const createDecorationSpecFromMatch = (match: IMatch) =>
+  ({
+    type: DECORATION_MATCH,
+    id: match.matchId,
+    categoryId: match.category.id,
+    inclusiveStart: false,
+    inclusiveEnd: false
+  });
 
 export const createDecorationsForMatches = (matches: IMatch[]) =>
   flatten(matches.map(_ => createDecorationsForMatch(_)));

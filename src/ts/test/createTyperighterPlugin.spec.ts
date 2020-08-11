@@ -5,12 +5,13 @@ import {
   createDoc,
   p,
   getDecorationSpecsFromDoc,
-  getDecorationSpecs
+  getDecorationSpecs,
+  getDecorationSpecsFromMatches
 } from "./helpers/prosemirror";
 import createTyperighterPlugin, {
   IPluginOptions
 } from "../createTyperighterPlugin";
-import { createMatch } from "./helpers/fixtures";
+import { createMatch, createMatcherResponse } from "./helpers/fixtures";
 import { createBoundCommands } from "../commands";
 import { IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
@@ -96,7 +97,7 @@ describe("createTyperighterPlugin", () => {
     const decorationSpecs = getDecorationSpecsFromDoc(view);
     const decorationsSpecsToExpect = getDecorationSpecs(
       createDecorationsForMatches(matches)
-    )
+    );
 
     expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
@@ -107,8 +108,23 @@ describe("createTyperighterPlugin", () => {
     const decorations = getDecorationSpecsFromDoc(view);
     expect(decorations).toEqual(new Set());
   });
+  it("should add matches and their decorations on init", () => {
+    const match = createMatch(1, 2);
+    const { view, getState } = createPlugin({ matches: [match] });
+
+    const decorationSpecs = getDecorationSpecsFromDoc(view);
+    const expectedSpecs = getDecorationSpecsFromMatches([match], doc);
+    expect(decorationSpecs).toEqual(expectedSpecs);
+
+    const pluginMatches = getState(view.state).currentMatches;
+    expect(pluginMatches).toEqual([match]);
+  });
   it("should not add matches and their decorations on init when the ignoreMatch predicate returns false", () => {
-    const { view, getState } = createPlugin({ ignoreMatch: () => false});
+    const match = createMatch(1, 2);
+    const { view, getState } = createPlugin({
+      ignoreMatch: () => false,
+      matches: [match]
+    });
 
     const decorations = getDecorationSpecsFromDoc(view);
     expect(decorations).toEqual(new Set());
@@ -117,27 +133,13 @@ describe("createTyperighterPlugin", () => {
     expect(pluginMatches).toEqual([]);
   });
   it("should not add matches and their decorations returned from a matcher when the ignoreMatch predicate returns false", () => {
-    const { commands, view, getState } = createPlugin({ ignoreMatch: () => false});
+    const { commands, view, getState } = createPlugin({
+      ignoreMatch: () => false
+    });
 
-    const response: IMatcherResponse = {
-      blocks,
-      categoryIds: ["cat1"],
-      matches: [
-        {
-          ...blocks[0],
-          matchId: "matchId",
-          matchedText: blocks[0].text,
-          message: "Example message",
-          category: {
-            id: "cat1",
-            name: "Category 1",
-            colour: "puce"
-          },
-          matchContext: "bigger block of text"
-        }
-      ],
-      requestId: "reqId"
-    };
+    const response: IMatcherResponse = createMatcherResponse([
+      { from: 1, to: 2, block: blocks[0] }
+    ]);
 
     commands.requestMatchesForDocument("docId", ["cat1"]);
     commands.applyMatcherResponse(response);
