@@ -100,4 +100,6 @@ class Store<
   }
 }
 
+export type IStore = typeof Store;
+
 export default Store;
