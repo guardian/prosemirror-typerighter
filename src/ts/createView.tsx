@@ -79,7 +79,6 @@ const createView = ({
       commands={commands}
       contactHref={contactHref}
       feedbackHref={feedbackHref}
-      active={false}
     />,
     sidebarNode
   );

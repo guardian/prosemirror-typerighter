@@ -18,8 +18,9 @@
   font-size: $font-size-base;
 }
 
-.Sidebar__section-closed {
+.Sidebar__section--is-closed {
   background: none;
+  border: 0;
 }
 
 .Sidebar__container + .Sidebar__container {
@@ -32,7 +33,7 @@
   border-bottom: 1px solid $sidebar-border-color;
 }
 
-.Sidebar__header-container-closed {
+.Sidebar__header-container--is-closed {
   border: 0;
   display: flex;
   justify-content: flex-end;
