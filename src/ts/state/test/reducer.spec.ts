@@ -283,8 +283,7 @@ describe("Action handlers", () => {
           matcherResponse1.matches[0],
           matcherResponse2.matches[0],
           matcherResponse3.matches[0]
-        ],
-        () => false
+        ]
       );
 
       it("should remove previous decorations that match block and category of the incoming match", () => {

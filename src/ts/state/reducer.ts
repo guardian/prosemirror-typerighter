@@ -99,6 +99,7 @@ export interface IBlockInFlight {
  * exempt from checks.
  */
 export type IIgnoreMatch = (match: IMatch) => boolean;
+export const defaultIgnoreMatch: IIgnoreMatch = () => false;
 
 export interface IBlocksInFlightState {
   totalBlocks: number;
@@ -155,7 +156,7 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   active: boolean = true,
-  ignoreMatch: IIgnoreMatch = () => false
+  ignoreMatch: IIgnoreMatch = defaultIgnoreMatch
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {
@@ -176,7 +177,7 @@ export const createInitialState = <TMatch extends IMatch>(
   return addMatchesToState(initialState, doc, matches, ignoreMatch);
 };
 
-export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = () => false) => {
+export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = defaultIgnoreMatch) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
