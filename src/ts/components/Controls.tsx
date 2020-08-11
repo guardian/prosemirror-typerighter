@@ -63,7 +63,7 @@ class Controls extends Component<IProps, IState> {
             </button>
           
             <IconButton
-            className="Sidebar__header-icon"
+              size="small"
               aria-label="close Typerighter"
               onClick={this.props.deactivate}
             >

@@ -18,6 +18,10 @@
   font-size: $font-size-base;
 }
 
+.Sidebar__section-closed {
+  background: none;
+}
+
 .Sidebar__container + .Sidebar__container {
   margin-top: $gutter-width;
 }
@@ -26,6 +30,12 @@
   position: relative;
   padding: $gutter-width;
   border-bottom: 1px solid $sidebar-border-color;
+}
+
+.Sidebar__header-container-closed {
+  border: 0;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .Sidebar__header-contact {
@@ -40,10 +50,6 @@
   flex-shrink: 0.2;
   font-weight: bold;
   justify-content: space-between;
-}
-
-.Sidebar__header-icon {
-  font-size: 1.25rem;
 }
 
 .Sidebar__list {

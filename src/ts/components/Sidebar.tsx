@@ -54,13 +54,19 @@ const Sidebar = ({
           />
         </Fragment>
       ) : (
-        <button
-          type="button"
-          className="Button"
-          onClick={() => setIsActive(true)}
-        >
-          Open Typerighter
-        </button>
+        <div className="Sidebar__section-closed">
+          <div className="Sidebar__header-container Sidebar__header-container-closed">
+            <div className="Sidebar__header">
+              <button
+                type="button"
+                className="Button"
+                onClick={() => setIsActive(true)}
+              >
+                Open Typerighter
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
