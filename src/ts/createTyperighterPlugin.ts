@@ -39,7 +39,7 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   isActive?: boolean;
 
   /**
-   * Ignore matches when this predicate returns false.
+   * Ignore matches when this predicate returns true.
    */
   ignoreMatch?: IIgnoreMatch;
 }
