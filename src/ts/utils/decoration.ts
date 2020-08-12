@@ -108,7 +108,7 @@ const createHeightMarkerElement = (id: string) => {
  */
 export const createDecorationsForMatch = (
   match: IMatch,
-  matchColours: IMatchColours,
+  matchColours: IMatchColours = defaultMatchColours,
   isSelected = false,
   addWidgetDecorations = true
 ) => {
@@ -166,7 +166,7 @@ export const getColourForMatch = (
 
 export const createDecorationsForMatches = (
   matches: IMatch[],
-  matchColours: IMatchColours
+  matchColours: IMatchColours = defaultMatchColours
 ) => flatten(matches.map(_ => createDecorationsForMatch(_, matchColours)));
 
 export const findSingleDecoration = (
