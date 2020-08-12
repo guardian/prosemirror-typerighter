@@ -3,6 +3,18 @@ import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { IRange, IMatch } from "../interfaces/IMatch";
 
+export interface IMatchColours {
+  unambiguous: string;
+  ambiguous: string;
+  correct: string;
+}
+
+export const defaultMatchColours = {
+  unambiguous: "d90000",
+  ambiguous: "ffa500",
+  correct: "3ff200"
+};
+
 // Our decoration types.
 export const DECORATION_MATCH = "DECORATION_MATCH";
 export const DECORATION_MATCH_IS_SELECTED = "DECORATION_MATCH_IS_HOVERING";
@@ -15,7 +27,7 @@ export const DecorationClassMap = {
   [DECORATION_INFLIGHT]: "MatchDebugInflight",
   [DECORATION_MATCH]: "MatchDecoration",
   [DECORATION_MATCH_HEIGHT_MARKER]: "MatchDecoration__height-marker",
-  [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected",
+  [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-match-id";
@@ -43,10 +55,7 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
 export const removeDecorationsFromRanges = (
   decorationSet: DecorationSet,
   ranges: IRange[],
-  types = [
-    DECORATION_MATCH,
-    DECORATION_MATCH_HEIGHT_MARKER
-  ]
+  types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]
 ) =>
   ranges.reduce((acc, range) => {
     const predicate = (spec: { [key: string]: any }) =>
@@ -73,9 +82,10 @@ export const removeDecorationsFromRanges = (
 export const getNewDecorationsForCurrentMatches = (
   outputs: IMatch[],
   decorationSet: DecorationSet,
-  doc: Node
+  doc: Node,
+  matchColours: IMatchColours
 ) => {
-  const decorationsToAdd = createDecorationsForMatches(outputs);
+  const decorationsToAdd = createDecorationsForMatches(outputs, matchColours);
 
   return decorationSet.add(doc, decorationsToAdd);
 };
@@ -98,21 +108,17 @@ const createHeightMarkerElement = (id: string) => {
  */
 export const createDecorationsForMatch = (
   match: IMatch,
+  matchColours: IMatchColours,
   isSelected = false,
   addWidgetDecorations = true
 ) => {
   const className = isSelected
-    ? `${DecorationClassMap[DECORATION_MATCH]} ${
-        DecorationClassMap[DECORATION_MATCH_IS_SELECTED]
-      }`
+    ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
     : DecorationClassMap[DECORATION_MATCH];
 
-
-  const matchColour = match.markAsCorrect ? "3ff200" :  match.category.colour;
+  const matchColour = getColourForMatch(match, matchColours);
   const opacity = isSelected ? "30" : "07";
-  const style = `background-color: #${
-    matchColour
-  }${opacity}; border-bottom: 2px solid #${matchColour}`;
+  const style = `background-color: #${matchColour}${opacity}; border-bottom: 2px solid #${matchColour}`;
 
   const decorations = [
     Decoration.inline(
@@ -145,8 +151,23 @@ export const createDecorationsForMatch = (
   return decorations;
 };
 
-export const createDecorationsForMatches = (matches: IMatch[]) =>
-  flatten(matches.map(_ => createDecorationsForMatch(_)));
+export const getColourForMatch = (
+  match: IMatch,
+  matchColours: IMatchColours
+) => {
+  if (match.markAsCorrect) {
+    return matchColours.correct;
+  }
+  if (match.replacement) {
+    return matchColours.unambiguous;
+  }
+  return matchColours.ambiguous;
+};
+
+export const createDecorationsForMatches = (
+  matches: IMatch[],
+  matchColours: IMatchColours
+) => flatten(matches.map(_ => createDecorationsForMatch(_, matchColours)));
 
 export const findSingleDecoration = (
   decorationSet: DecorationSet,

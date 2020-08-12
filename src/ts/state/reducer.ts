@@ -37,7 +37,8 @@ import {
   removeDecorationsFromRanges,
   DECORATION_MATCH,
   createDecorationsForMatch,
-  createDecorationsForMatches
+  createDecorationsForMatches,
+  IMatchColours
 } from "../utils/decoration";
 import {
   mergeRanges,
@@ -108,6 +109,8 @@ export interface IPluginConfig {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
+  // The colours to use when rendering matches
+  matchColours: IMatchColours;
 }
 
 export interface IPluginState<TMatches extends IMatch = IMatch> {
@@ -146,14 +149,16 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
-  active: boolean = true
+  active: boolean = true,
+  matchColours: IMatchColours
 ): IPluginState<TMatch> => ({
   config: {
     isActive: active,
     debug: false,
-    requestMatchesOnDocModified: false
+    requestMatchesOnDocModified: false,
+    matchColours
   },
-  decorations: DecorationSet.create(doc, createDecorationsForMatches(matches)),
+  decorations: DecorationSet.create(doc, createDecorationsForMatches(matches, matchColours)),
   dirtiedRanges: [],
   currentMatches: matches,
   selectedMatch: undefined,
@@ -323,7 +328,7 @@ const handleNewHoverId = <TMatch extends IMatch>(
     }
     return decorations.add(
       tr.doc,
-      createDecorationsForMatch(output, hoverData.isSelected, false)
+      createDecorationsForMatch(output, state.config.matchColours, hoverData.isSelected, false)
     );
   }, decorations);
 
@@ -551,7 +556,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
 
   // Create our decorations for the newly current matches.
-  const newDecorations = createDecorationsForMatches(response.matches);
+  const newDecorations = createDecorationsForMatches(response.matches, state.config.matchColours);
 
   // Amend the block queries in flight to
   const newBlockQueriesInFlight = requestsInFlight.reduce(
