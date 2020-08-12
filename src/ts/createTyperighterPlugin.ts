@@ -1,8 +1,17 @@
 import { applyNewDirtiedRanges } from "./state/actions";
-import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION, IIgnoreMatch, includeAllMatches } from "./state/reducer";
+import {
+  IPluginState,
+  PROSEMIRROR_TYPERIGHTER_ACTION,
+  IIgnoreMatch,
+  includeAllMatches
+} from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
-import { DECORATION_ATTRIBUTE_ID } from "./utils/decoration";
+import {
+  DECORATION_ATTRIBUTE_ID,
+  IMatchColours,
+  defaultMatchColours
+} from "./utils/decoration";
 import { EditorView, DecorationSet } from "prosemirror-view";
 import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
@@ -42,6 +51,11 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
    * Ignore matches when this predicate returns true.
    */
   ignoreMatch?: IIgnoreMatch;
+
+  /**
+   * The colours to use for document matches.
+   */
+  matchColours?: IMatchColours;
 }
 
 /**
@@ -59,7 +73,8 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
-    ignoreMatch = includeAllMatches
+    ignoreMatch = includeAllMatches,
+    matchColours = defaultMatchColours
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
@@ -73,7 +88,13 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     key: new PluginKey("prosemirror-typerighter"),
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState(doc, matches, isActive, ignoreMatch);
+        const initialState = createInitialState(
+          doc,
+          matches,
+          isActive,
+          ignoreMatch,
+          matchColours
+        );
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },

@@ -43,8 +43,8 @@ class Results extends Component<
       stopHover,
       contactHref
     } = this.props;
-    const { currentMatches = [], requestsInFlight, selectedMatch } = this.state
-      .pluginState || { selectedMatch: undefined };
+    const { pluginState } = this.state;
+    const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
     const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
     const percentRemaining = this.getPercentRemaining();
@@ -86,12 +86,13 @@ class Results extends Component<
         </div>
 
         <div className="Sidebar__content">
-          {hasMatches && (
+          {hasMatches && pluginState && (
             <ul className="Sidebar__list">
-              {currentMatches.map(output => (
-                <li className="Sidebar__list-item" key={output.matchId}>
+              {currentMatches.map(match => (
+                <li className="Sidebar__list-item" key={match.matchId}>
                   <SidebarMatch
-                    output={output}
+                    matchColours={pluginState?.config.matchColours}
+                    match={match}
                     selectedMatch={selectedMatch}
                     applySuggestions={applySuggestions}
                     selectMatch={selectMatch}

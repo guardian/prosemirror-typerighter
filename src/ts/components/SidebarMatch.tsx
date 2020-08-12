@@ -1,13 +1,14 @@
 import compact from "lodash/compact";
 import { IMatch } from "../interfaces/IMatch";
 import { Component, h } from "preact";
-import { DECORATION_ATTRIBUTE_ID } from "../utils/decoration";
+import { DECORATION_ATTRIBUTE_ID, IMatchColours, getColourForMatch } from "../utils/decoration";
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 
 interface IProps {
-  output: IMatch;
+  match: IMatch;
+  matchColours: IMatchColours;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
   indicateHover: (blockId: string, _?: any) => void;
@@ -28,17 +29,17 @@ class SidebarMatch extends Component<IProps, IState> {
   };
 
   public render() {
-    const { output, applySuggestions, selectedMatch } = this.props;
-    const color = `#${output.category.colour}`;
-    const hasSuggestions = !!output.suggestions && !!output.suggestions.length;
+    const { match, matchColours, applySuggestions, selectedMatch } = this.props;
+    const color = getColourForMatch(match, matchColours, false).borderColour;
+    const hasSuggestions = !!match.suggestions && !!match.suggestions.length;
     const suggestions = compact([
-      output.replacement,
-      ...(output.suggestions || [])
+      match.replacement,
+      ...(match.suggestions || [])
     ]);
     return (
       <div
         className={`SidebarMatch__container ${
-          selectedMatch === output.matchId
+          selectedMatch === match.matchId
             ? "SidebarMatch__container--is-selected"
             : ""
         }`}
@@ -55,15 +56,15 @@ class SidebarMatch extends Component<IProps, IState> {
           <div className="SidebarMatch__header-label">
             <div>
               <div className="SidebarMatch__header-match-text">
-                {output.matchedText}
+                {match.matchedText}
               </div>
               <div className="SidebarMatch__header-description">
-                {output.message}
+                {match.message}
               </div>
             </div>
             <div className="SidebarMatch__header-meta">
               <div className="SidebarMatch__header-category">
-                {titleCase(output.category.name)}
+                {titleCase(match.category.name)}
               </div>
               {hasSuggestions && (
                 <div className="SidebarMatch__header-toggle-status">
@@ -79,7 +80,7 @@ class SidebarMatch extends Component<IProps, IState> {
               <div className="SidebarMatch__suggestion-list">
                 <SuggestionList
                   applySuggestions={applySuggestions}
-                  matchId={output.matchId}
+                  matchId={match.matchId}
                   suggestions={suggestions}
                 />
               </div>
@@ -96,9 +97,9 @@ class SidebarMatch extends Component<IProps, IState> {
   private scrollToRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    this.props.selectMatch(this.props.output.matchId);
+    this.props.selectMatch(this.props.match.matchId);
     const decorationElement = document.querySelector(
-      `[${DECORATION_ATTRIBUTE_ID}="${this.props.output.matchId}"]`
+      `[${DECORATION_ATTRIBUTE_ID}="${this.props.match.matchId}"]`
     );
     if (decorationElement) {
       decorationElement.scrollIntoView({
@@ -108,7 +109,7 @@ class SidebarMatch extends Component<IProps, IState> {
   };
 
   private handleMouseEnter = () => {
-    this.props.indicateHover(this.props.output.matchId);
+    this.props.indicateHover(this.props.match.matchId);
   };
 
   private handleMouseLeave = () => {

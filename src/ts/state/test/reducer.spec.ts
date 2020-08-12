@@ -17,7 +17,8 @@ import { createReducer, IPluginState } from "../reducer";
 import {
   createDebugDecorationFromRange,
   getNewDecorationsForCurrentMatches,
-  createDecorationsForMatch
+  createDecorationsForMatch,
+  defaultMatchColours
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
@@ -522,14 +523,14 @@ describe("Action handlers", () => {
         currentMatches: [output],
         decorations: new DecorationSet().add(
           tr.doc,
-          createDecorationsForMatch(output, false)
+          createDecorationsForMatch(output, defaultMatchColours, false)
         )
       };
       expect(reducer(tr, localState, newHoverIdReceived("match-id"))).toEqual({
         ...localState,
         decorations: new DecorationSet().add(
           tr.doc,
-          createDecorationsForMatch(output, true)
+          createDecorationsForMatch(output, defaultMatchColours, true)
         ),
         hoverId: "match-id",
         hoverInfo: undefined
@@ -553,7 +554,7 @@ describe("Action handlers", () => {
       const localState = {
         ...state,
         decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationsForMatch(output, true)
+          ...createDecorationsForMatch(output, defaultMatchColours, true)
         ]),
         currentMatches: [output],
         hoverId: "match-id",
@@ -564,7 +565,7 @@ describe("Action handlers", () => {
       ).toEqual({
         ...localState,
         decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationsForMatch(output, false)
+          ...createDecorationsForMatch(output, defaultMatchColours, false)
         ]),
         hoverId: undefined,
         hoverInfo: undefined
@@ -596,7 +597,8 @@ describe("Action handlers", () => {
         decorations: getNewDecorationsForCurrentMatches(
           currentMatches,
           state.decorations,
-          defaultDoc
+          defaultDoc,
+          defaultMatchColours
         )
       };
       expect(

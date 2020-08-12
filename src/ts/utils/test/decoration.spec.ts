@@ -1,4 +1,4 @@
-import { createDecorationsForMatch } from "../decoration";
+import { createDecorationsForMatch, defaultMatchColours } from "../decoration";
 import { createMatch } from "../../test/helpers/fixtures";
 import { IMatch } from "../../interfaces/IMatch";
 
@@ -18,7 +18,7 @@ describe("Decoration utils", () => {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
               style:
-                "background-color: #eeeee07; border-bottom: 2px solid #eeeee"
+                `background-color: ${defaultMatchColours.ambiguous}07; border-bottom: 2px solid ${defaultMatchColours.ambiguous}${defaultMatchColours.ambiguousOpacity}`
             },
             spec: {
               categoryId: "1",
@@ -54,7 +54,7 @@ describe("Decoration utils", () => {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
               style:
-                "background-color: #3ff20007; border-bottom: 2px solid #3ff200"
+                `background-color: ${defaultMatchColours.correct}07; border-bottom: 2px solid ${defaultMatchColours.correct}${defaultMatchColours.correctOpacity}`
             },
             spec: {
               categoryId: "1",

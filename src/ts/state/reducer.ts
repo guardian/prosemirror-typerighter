@@ -37,7 +37,8 @@ import {
   removeDecorationsFromRanges,
   DECORATION_MATCH,
   createDecorationsForMatch,
-  createDecorationsForMatches
+  createDecorationsForMatches,
+  IMatchColours
 } from "../utils/decoration";
 import {
   mergeRanges,
@@ -117,6 +118,8 @@ export interface IPluginConfig {
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
   debug: boolean;
+  // The colours to use when rendering matches
+  matchColours: IMatchColours;
 }
 
 export interface IPluginState<TMatches extends IMatch = IMatch> {
@@ -156,15 +159,17 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   active: boolean = true,
-  ignoreMatch: IIgnoreMatch = includeAllMatches
+  ignoreMatch: IIgnoreMatch = includeAllMatches,
+  matchColours: IMatchColours
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {
       isActive: active,
       debug: false,
-      requestMatchesOnDocModified: false
+      requestMatchesOnDocModified: false,
+      matchColours
     },
-    decorations: DecorationSet.create(doc, []),
+    decorations: DecorationSet.create(doc, createDecorationsForMatches(matches, matchColours)),
     dirtiedRanges: [],
     currentMatches: [],
     selectedMatch: undefined,
@@ -336,7 +341,7 @@ const handleNewHoverId = <TMatch extends IMatch>(
     }
     return decorations.add(
       tr.doc,
-      createDecorationsForMatch(output, hoverData.isSelected, false)
+      createDecorationsForMatch(output, state.config.matchColours, hoverData.isSelected, false)
     );
   }, decorations);
 
@@ -569,7 +574,7 @@ const handleMatchesRequestSuccess = (
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
 
   // Create our decorations for the newly current matches.
-  const newDecorations = createDecorationsForMatches(mappedMatchesToAdd);
+  const newDecorations = createDecorationsForMatches(mappedMatchesToAdd, state.config.matchColours);
 
   // Amend the block queries in flight to remove the returned blocks and categories
   const newBlockQueriesInFlight = requestsInFlight.reduce(

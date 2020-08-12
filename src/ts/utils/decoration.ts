@@ -3,6 +3,24 @@ import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { IRange, IMatch } from "../interfaces/IMatch";
 
+export interface IMatchColours {
+  unambiguous: string;
+  unambiguousOpacity: string;
+  ambiguous: string;
+  ambiguousOpacity: string;
+  correct: string;
+  correctOpacity: string;
+}
+
+export const defaultMatchColours = {
+  unambiguous: "#d90000",
+  unambiguousOpacity: "FF",
+  ambiguous: "#ffa500",
+  ambiguousOpacity: "4D",
+  correct: "#3ff200",
+  correctOpacity: "FF"
+};
+
 // Our decoration types.
 export const DECORATION_MATCH = "DECORATION_MATCH";
 export const DECORATION_MATCH_IS_SELECTED = "DECORATION_MATCH_IS_HOVERING";
@@ -70,9 +88,10 @@ export const removeDecorationsFromRanges = (
 export const getNewDecorationsForCurrentMatches = (
   outputs: IMatch[],
   decorationSet: DecorationSet,
-  doc: Node
+  doc: Node,
+  matchColours: IMatchColours
 ) => {
-  const decorationsToAdd = createDecorationsForMatches(outputs);
+  const decorationsToAdd = createDecorationsForMatches(outputs, matchColours);
 
   return decorationSet.add(doc, decorationsToAdd);
 };
@@ -95,6 +114,7 @@ const createHeightMarkerElement = (id: string) => {
  */
 export const createDecorationsForMatch = (
   match: IMatch,
+  matchColours: IMatchColours = defaultMatchColours,
   isSelected = false,
   addWidgetDecorations = true
 ) => {
@@ -102,9 +122,8 @@ export const createDecorationsForMatch = (
     ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
     : DecorationClassMap[DECORATION_MATCH];
 
-  const matchColour = match.markAsCorrect ? "3ff200" : match.category.colour;
-  const opacity = isSelected ? "30" : "07";
-  const style = `background-color: #${matchColour}${opacity}; border-bottom: 2px solid #${matchColour}`;
+  const {backgroundColour, borderColour} = getColourForMatch(match, matchColours, isSelected);
+  const style = `background-color: ${backgroundColour}; border-bottom: 2px solid ${borderColour}`;
 
   const spec = createDecorationSpecFromMatch(match);
   const decorations = [
@@ -141,8 +160,36 @@ export const createDecorationSpecFromMatch = (match: IMatch) =>
     inclusiveEnd: false
   });
 
-export const createDecorationsForMatches = (matches: IMatch[]) =>
-  flatten(matches.map(_ => createDecorationsForMatch(_)));
+export const getColourForMatch = (
+  match: IMatch,
+  matchColours: IMatchColours,
+  isSelected: boolean
+) : {backgroundColour: string, borderColour: string} => {
+
+  const backgroundOpacity = isSelected ? "30" : "07";
+
+  if (match.markAsCorrect) {
+    return {
+      backgroundColour: `${matchColours.correct}${backgroundOpacity}`,
+      borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
+    };
+  }
+  if (match.replacement) {
+    return {
+      backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`,
+      borderColour: `${matchColours.unambiguous}${matchColours.unambiguousOpacity}`
+    };
+  }
+  return {
+    backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`,
+    borderColour: `${matchColours.ambiguous}${matchColours.ambiguousOpacity}`
+  };
+};
+
+export const createDecorationsForMatches = (
+  matches: IMatch[],
+  matchColours: IMatchColours = defaultMatchColours
+) => flatten(matches.map(_ => createDecorationsForMatch(_, matchColours)));
 
 export const findSingleDecoration = (
   decorationSet: DecorationSet,
