@@ -5,14 +5,20 @@ import { IRange, IMatch } from "../interfaces/IMatch";
 
 export interface IMatchColours {
   unambiguous: string;
+  unambiguousOpacity: string;
   ambiguous: string;
+  ambiguousOpacity: string;
   correct: string;
+  correctOpacity: string;
 }
 
 export const defaultMatchColours = {
   unambiguous: "#d90000",
+  unambiguousOpacity: "FF",
   ambiguous: "#ffa500",
-  correct: "#3ff200"
+  ambiguousOpacity: "4D",
+  correct: "#3ff200",
+  correctOpacity: "FF"
 };
 
 // Our decoration types.
@@ -116,9 +122,8 @@ export const createDecorationsForMatch = (
     ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
     : DecorationClassMap[DECORATION_MATCH];
 
-  const matchColour = getColourForMatch(match, matchColours);
-  const opacity = isSelected ? "30" : "07";
-  const style = `background-color: ${matchColour}${opacity}; border-bottom: 2px solid ${matchColour}`;
+  const {backgroundColour, borderColour} = getColourForMatch(match, matchColours, isSelected);
+  const style = `background-color: ${backgroundColour}; border-bottom: 2px solid ${borderColour}`;
 
   const decorations = [
     Decoration.inline(
@@ -153,15 +158,28 @@ export const createDecorationsForMatch = (
 
 export const getColourForMatch = (
   match: IMatch,
-  matchColours: IMatchColours
-) => {
+  matchColours: IMatchColours,
+  isSelected: boolean
+) : {backgroundColour: string, borderColour: string} => {
+
+  const backgroundOpacity = isSelected ? "30" : "07";
+
   if (match.markAsCorrect) {
-    return matchColours.correct;
+    return {
+      backgroundColour: `${matchColours.correct}${backgroundOpacity}`, 
+      borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
+    };
   }
   if (match.replacement) {
-    return matchColours.unambiguous;
+    return {
+      backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`, 
+      borderColour: `${matchColours.unambiguous}${matchColours.unambiguousOpacity}`
+    };
   }
-  return matchColours.ambiguous;
+  return {
+    backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`, 
+    borderColour: `${matchColours.ambiguous}${matchColours.ambiguousOpacity}`
+  };
 };
 
 export const createDecorationsForMatches = (
