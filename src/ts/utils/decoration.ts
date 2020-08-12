@@ -5,14 +5,20 @@ import { IRange, IMatch } from "../interfaces/IMatch";
 
 export interface IMatchColours {
   unambiguous: string;
+  unambiguousOpacity: string;
   ambiguous: string;
+  ambiguousOpacity: string;
   correct: string;
+  correctOpacity: string;
 }
 
 export const defaultMatchColours = {
   unambiguous: "#d90000",
+  unambiguousOpacity: "FF",
   ambiguous: "#ffa500",
-  correct: "#3ff200"
+  ambiguousOpacity: "4D",
+  correct: "#3ff200",
+  correctOpacity: "FF"
 };
 
 // Our decoration types.
@@ -150,7 +156,7 @@ export const createDecorationsForMatch = (
   return decorations;
 };
 
-export const getColourForMatch  = (
+export const getColourForMatch = (
   match: IMatch,
   matchColours: IMatchColours,
   isSelected: boolean
@@ -161,18 +167,18 @@ export const getColourForMatch  = (
   if (match.markAsCorrect) {
     return {
       backgroundColour: `${matchColours.correct}${backgroundOpacity}`, 
-      borderColour: `${matchColours.correct}`
+      borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
     };
   }
   if (match.replacement) {
     return {
       backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`, 
-      borderColour: `${matchColours.unambiguous}`
+      borderColour: `${matchColours.unambiguous}${matchColours.unambiguousOpacity}`
     };
   }
   return {
     backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`, 
-    borderColour: `${matchColours.ambiguous}4D`
+    borderColour: `${matchColours.ambiguous}${matchColours.ambiguousOpacity}`
   };
 };
 

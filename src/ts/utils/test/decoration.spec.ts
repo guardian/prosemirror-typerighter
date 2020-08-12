@@ -18,7 +18,7 @@ describe("Decoration utils", () => {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
               style:
-                `background-color: ${defaultMatchColours.ambiguous}07; border-bottom: 2px solid ${defaultMatchColours.ambiguous}4D`
+                `background-color: ${defaultMatchColours.ambiguous}07; border-bottom: 2px solid ${defaultMatchColours.ambiguous}${defaultMatchColours.ambiguousOpacity}`
             },
             spec: {
               categoryId: "1",
@@ -54,7 +54,7 @@ describe("Decoration utils", () => {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
               style:
-                `background-color: ${defaultMatchColours.correct}07; border-bottom: 2px solid ${defaultMatchColours.correct}`
+                `background-color: ${defaultMatchColours.correct}07; border-bottom: 2px solid ${defaultMatchColours.correct}${defaultMatchColours.correctOpacity}`
             },
             spec: {
               categoryId: "1",
