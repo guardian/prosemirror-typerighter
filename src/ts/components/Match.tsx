@@ -6,10 +6,12 @@ import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import IconButton from "@material-ui/core/IconButton";
+import { getColourForMatch, IMatchColours } from "../utils/decoration";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
+  matchColours: IMatchColours;
   feedbackHref?: string;
   onIgnoreMatch?: (match: IMatch) => void;
 }
@@ -18,6 +20,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   public ref: HTMLDivElement | null = null;
   public render({
     match,
+    matchColours,
     applySuggestions,
     onIgnoreMatch
   }: IMatchProps<TMatch>) {
@@ -61,7 +64,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
           <div className="MatchWidget__type">
             <span
               className="MatchWidget__color-swatch"
-              style={{ backgroundColor: `#${category.colour}` }}
+              style={{ backgroundColor: getColourForMatch(match, matchColours) }}
             ></span>
             {category.name}
           </div>

@@ -12,6 +12,7 @@ interface IState {
   hoverInfo: IStateHoverInfo | undefined;
   match: IMatch | undefined;
   isVisible: boolean;
+  pluginState: IPluginState | undefined;
 }
 interface IProps<TMatch extends IMatch> {
   store: Store<TMatch, IStoreEvents<TMatch>>;
@@ -35,7 +36,8 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
     left: undefined,
     top: undefined,
     hoverInfo: undefined,
-    match: undefined
+    match: undefined,
+    pluginState: undefined
   };
   private matchRef: Match<TMatch> | undefined = undefined;
 
@@ -57,8 +59,8 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
 
   public render() {
     const { applySuggestions, feedbackHref, onIgnoreMatch } = this.props;
-    const { match, left, top } = this.state;
-    if (!match || left === undefined || top === undefined) {
+    const { match, left, top, pluginState } = this.state;
+    if (!pluginState || !match || left === undefined || top === undefined) {
       return null;
     }
     return (
@@ -79,6 +81,7 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
           <Match
             ref={_ => (this.matchRef = _)}
             match={match}
+            matchColours={pluginState.config.matchColours}
             applySuggestions={applySuggestions}
             feedbackHref={feedbackHref}
             onIgnoreMatch={onIgnoreMatch}
@@ -101,12 +104,14 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
       return this.setState({
         hoverInfo: state.hoverInfo,
         match,
+        pluginState: state,
         ...newState
       });
     }
     this.setState({
       hoverInfo: undefined,
       match: undefined,
+      pluginState: state,
       ...newState
     });
   };
@@ -146,7 +151,9 @@ class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
       spanRects.length > 1
         ? Math.max(...spanRects.map(_ => _.right))
         : undefined;
-    const absoluteLeft = hoveredRect ? hoveredRect.left : hoverInfo.mouseClientX;
+    const absoluteLeft = hoveredRect
+      ? hoveredRect.left
+      : hoverInfo.mouseClientX;
     const absoluteTop = hoveredRect
       ? hoveredRect.top + hoveredRect.height
       : hoverInfo.mouseClientX;

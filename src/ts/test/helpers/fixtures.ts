@@ -12,7 +12,7 @@ import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
 import { DecorationSet } from "prosemirror-view";
 import { createDoc, p } from "./prosemirror";
-import { createDecorationsForMatch } from "../../utils/decoration";
+import { createDecorationsForMatch, defaultMatchColours } from "../../utils/decoration";
 
 export const matchLibrary: IMatchLibrary = [
   [
@@ -148,7 +148,8 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       config: {
         debug: false,
         requestMatchesOnDocModified: true,
-        isActive: true
+        isActive: true,
+        matchColours: defaultMatchColours
       },
       currentThrottle: 100,
       initialThrottle: 100,
