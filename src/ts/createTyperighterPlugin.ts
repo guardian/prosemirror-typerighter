@@ -1,8 +1,17 @@
 import { applyNewDirtiedRanges } from "./state/actions";
-import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION } from "./state/reducer";
+import {
+  IPluginState,
+  PROSEMIRROR_TYPERIGHTER_ACTION,
+  IIgnoreMatch,
+  includeAllMatches
+} from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
-import { DECORATION_ATTRIBUTE_ID, IMatchColours, defaultMatchColours } from "./utils/decoration";
+import {
+  DECORATION_ATTRIBUTE_ID,
+  IMatchColours,
+  defaultMatchColours
+} from "./utils/decoration";
 import { EditorView, DecorationSet } from "prosemirror-view";
 import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
@@ -39,6 +48,11 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   isActive?: boolean;
 
   /**
+   * Ignore matches when this predicate returns true.
+   */
+  ignoreMatch?: IIgnoreMatch;
+
+  /**
    * The colours to use for document matches.
    */
   matchColours?: IMatchColours;
@@ -59,6 +73,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
+    ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours
   } = options;
   // A handy alias to reduce repetition
@@ -67,13 +82,19 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
   const emptyDecorationSet = new DecorationSet();
-  const reducer = createReducer(expandRanges);
+  const reducer = createReducer(expandRanges, ignoreMatch);
 
   const plugin: Plugin = new Plugin({
     key: new PluginKey("prosemirror-typerighter"),
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState(doc, matches, isActive, matchColours);
+        const initialState = createInitialState(
+          doc,
+          matches,
+          isActive,
+          ignoreMatch,
+          matchColours
+        );
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },

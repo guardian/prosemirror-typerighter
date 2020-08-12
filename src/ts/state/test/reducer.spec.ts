@@ -23,6 +23,7 @@ import {
 import { expandRangesToParentBlockNode } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
 import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
+import { addMatchesToState } from "../helpers";
 import {
   createMatcherResponse,
   createBlock,
@@ -32,11 +33,36 @@ import {
   createInitialData,
   defaultDoc,
   createMatch,
-  addMatchesToState
+  ICreateMatcherResponseSpec
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
+import { getBlocksFromDocument } from "../../utils/prosemirror";
 
 const reducer = createReducer(expandRangesToParentBlockNode);
+
+/**
+ * Create a plugin state, creating the given matches and
+ * their decorations from the given spec.
+ */
+const createStateWithMatches = (
+  localReducer: ReturnType<typeof createReducer>,
+  matches: ICreateMatcherResponseSpec[]
+): { state: IPluginState; matches: IMatch[] } => {
+  const docTime = 1337;
+  const { state, tr } = createInitialData(defaultDoc, docTime);
+
+  let localState = localReducer(
+    tr,
+    state,
+    requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
+  );
+  const block = getBlocksFromDocument(defaultDoc, docTime)[0];
+  const matchesWithBlock = matches.map(match => ({ ...match, block }));
+  const response = createMatcherResponse(matchesWithBlock, exampleRequestId);
+  localState = localReducer(tr, localState, requestMatchesSuccess(response));
+
+  return { matches: response.matches, state: localState };
+};
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -200,7 +226,7 @@ describe("Action handlers", () => {
         reducer(
           tr,
           localState,
-          requestMatchesSuccess(createMatcherResponse(1, 22))
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 22 }]))
         ).currentMatches
       ).toMatchObject([createMatch(1, 4)]);
     });
@@ -212,7 +238,7 @@ describe("Action handlers", () => {
           ...state,
           requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
         },
-        requestMatchesSuccess(createMatcherResponse(5, 10))
+        requestMatchesSuccess(createMatcherResponse([{ from: 5, to: 10 }]))
       );
       const newMatch = newState.currentMatches[0];
       const newDecorations = new DecorationSet().add(
@@ -233,11 +259,15 @@ describe("Action handlers", () => {
           "This category should remain untouched -- it's not included in the categories for the incoming matches"
       };
       const matcherResponse1 = {
-        ...createMatcherResponse(0, 15, 1, 7),
+        ...createMatcherResponse([{ from: 0, to: 15, wordFrom: 1, wordTo: 7 }]),
         markAsCorrect: true
       };
-      const matcherResponse2 = createMatcherResponse(0, 15, 9, 13, category);
-      const matcherResponse3 = createMatcherResponse(16, 37, 17, 25); // Some other output for another block
+      const matcherResponse2 = createMatcherResponse([
+        { from: 0, to: 15, wordFrom: 9, wordTo: 13, category }
+      ]);
+      const matcherResponse3 = createMatcherResponse([
+        { from: 16, to: 37, wordFrom: 17, wordTo: 25 }
+      ]); // Some other output for another block
       const requestsInFlight = createBlockQueriesInFlight(
         blocks,
         exampleRequestId,
@@ -346,7 +376,7 @@ describe("Action handlers", () => {
         reducer(
           tr,
           localState,
-          requestMatchesSuccess(createMatcherResponse(1, 3))
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
         )
       ).toEqual({
         ...localState,
@@ -354,6 +384,37 @@ describe("Action handlers", () => {
         currentMatches: [],
         requestPending: true
       });
+    });
+    it("should not apply matches if they trigger the ignoreMatch predicate", () => {
+      const ignoreMatchReducer = createReducer(
+        expandRangesToParentBlockNode,
+        match => match.from > 3
+      );
+
+      const matchSpecs = [
+        { from: 2, to: 3 },
+        { from: 4, to: 6 }
+      ];
+      const { state, matches } = createStateWithMatches(
+        ignoreMatchReducer,
+        matchSpecs
+      );
+
+      // We expect only the first match from the response to be applied.
+      const currentMatches = matches.slice(0, 1);
+      const decorations = getNewDecorationsForCurrentMatches(
+        currentMatches,
+        new DecorationSet(),
+        defaultDoc
+      );
+
+      const expectedState = {
+        ...state,
+        decorations,
+        currentMatches
+      };
+
+      expect(state).toEqual(expectedState);
     });
   });
   describe("requestMatchesError", () => {
@@ -598,7 +659,7 @@ describe("Action handlers", () => {
     });
     it("should remove matches when they're present", () => {
       const { state, tr } = createInitialData();
-      const matcherResponse = createMatcherResponse(5, 10);
+      const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
       let newState = reducer(
         tr,
         {

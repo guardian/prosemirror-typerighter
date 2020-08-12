@@ -1,4 +1,4 @@
-import { Schema } from "prosemirror-model";
+import { Schema, Node } from "prosemirror-model";
 import { marks, nodes } from "prosemirror-schema-basic";
 import { builders } from "prosemirror-test-builder";
 import {
@@ -7,6 +7,8 @@ import {
   InlineDecorationSpec,
   Decoration
 } from "prosemirror-view";
+import { getNewDecorationsForCurrentMatches } from "../../utils/decoration";
+import { IMatch } from "../../interfaces/IMatch";
 
 const schema = new Schema({
   nodes,
@@ -31,6 +33,11 @@ export const getDecorationSpecsFromDoc = (
   view: EditorView
 ): Set<InlineDecorationSpec> =>
   getDecorationSpecsFromSet(view.someProp("decorations", f => f(view.state)));
+
+export const getDecorationSpecsFromMatches = (matches: IMatch[], doc: Node) => {
+  const decorationSet = getNewDecorationsForCurrentMatches(matches, new DecorationSet(), doc)
+  return getDecorationSpecsFromSet(decorationSet);
+}
 
 export const getDecorationSpecsFromSet = (
   set: DecorationSet

@@ -125,6 +125,7 @@ export const createDecorationsForMatch = (
   const {backgroundColour, borderColour} = getColourForMatch(match, matchColours, isSelected);
   const style = `background-color: ${backgroundColour}; border-bottom: 2px solid ${borderColour}`;
 
+  const spec = createDecorationSpecFromMatch(match);
   const decorations = [
     Decoration.inline(
       match.from,
@@ -133,14 +134,8 @@ export const createDecorationsForMatch = (
         class: className,
         style,
         [DECORATION_ATTRIBUTE_ID]: match.matchId
-      } as any,
-      {
-        type: DECORATION_MATCH,
-        id: match.matchId,
-        categoryId: match.category.id,
-        inclusiveStart: false,
-        inclusiveEnd: false
-      } as any
+      },
+      spec
     )
   ];
 
@@ -156,6 +151,15 @@ export const createDecorationsForMatch = (
   return decorations;
 };
 
+export const createDecorationSpecFromMatch = (match: IMatch) =>
+  ({
+    type: DECORATION_MATCH,
+    id: match.matchId,
+    categoryId: match.category.id,
+    inclusiveStart: false,
+    inclusiveEnd: false
+  });
+
 export const getColourForMatch = (
   match: IMatch,
   matchColours: IMatchColours,
@@ -166,18 +170,18 @@ export const getColourForMatch = (
 
   if (match.markAsCorrect) {
     return {
-      backgroundColour: `${matchColours.correct}${backgroundOpacity}`, 
+      backgroundColour: `${matchColours.correct}${backgroundOpacity}`,
       borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
     };
   }
   if (match.replacement) {
     return {
-      backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`, 
+      backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`,
       borderColour: `${matchColours.unambiguous}${matchColours.unambiguousOpacity}`
     };
   }
   return {
-    backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`, 
+    backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`,
     borderColour: `${matchColours.ambiguous}${matchColours.ambiguousOpacity}`
   };
 };

@@ -59,6 +59,7 @@ import {
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import { createBlock } from "../utils/block";
+import { addMatchesToState } from "./helpers";
 
 /**
  * Information about the span element the user is hovering over.
@@ -92,6 +93,14 @@ export interface IBlockInFlight {
   pendingCategoryIds: string[];
   block: IBlock;
 }
+
+/**
+ * A consumer-supplied predicate that allows consumers to ignore matches.
+ * Handy when, for example, consumers know that parts of the document are
+ * exempt from checks.
+ */
+export type IIgnoreMatch = (match: IMatch) => boolean;
+export const includeAllMatches: IIgnoreMatch = () => false;
 
 export interface IBlocksInFlightState {
   totalBlocks: number;
@@ -150,26 +159,30 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   active: boolean = true,
+  ignoreMatch: IIgnoreMatch = includeAllMatches,
   matchColours: IMatchColours
-): IPluginState<TMatch> => ({
-  config: {
-    isActive: active,
-    debug: false,
-    requestMatchesOnDocModified: false,
-    matchColours
-  },
-  decorations: DecorationSet.create(doc, createDecorationsForMatches(matches, matchColours)),
-  dirtiedRanges: [],
-  currentMatches: matches,
-  selectedMatch: undefined,
-  hoverId: undefined,
-  hoverInfo: undefined,
-  requestsInFlight: {},
-  requestPending: false,
-  requestErrors: []
-});
+): IPluginState<TMatch> => {
+  const initialState: IPluginState<TMatch> = {
+    config: {
+      isActive: active,
+      debug: false,
+      requestMatchesOnDocModified: false,
+      matchColours
+    },
+    decorations: DecorationSet.create(doc, createDecorationsForMatches(matches, matchColours)),
+    dirtiedRanges: [],
+    currentMatches: [],
+    selectedMatch: undefined,
+    hoverId: undefined,
+    hoverInfo: undefined,
+    requestsInFlight: {},
+    requestPending: false,
+    requestErrors: []
+  };
+  return addMatchesToState(initialState, doc, matches, ignoreMatch);
+};
 
-export const createReducer = (expandRanges: ExpandRanges) => {
+export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = includeAllMatches) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
@@ -195,7 +208,7 @@ export const createReducer = (expandRanges: ExpandRanges) => {
       case REQUEST_FOR_DOCUMENT:
         return handleMatchesRequestForDocument(tr, state, action);
       case REQUEST_SUCCESS:
-        return handleMatchesRequestSuccess(tr, state, action);
+        return handleMatchesRequestSuccess(ignoreMatch)(tr, state, action);
       case REQUEST_ERROR:
         return handleMatchesRequestError(tr, state, action);
       case REQUEST_COMPLETE:
@@ -496,7 +509,9 @@ const amendBlockQueriesInFlight = <TMatch extends IMatch>(
 /**
  * Handle a response, decorating the document with any matches we've received.
  */
-const handleMatchesRequestSuccess = <TMatch extends IMatch>(
+const handleMatchesRequestSuccess = (
+  ignoreMatch: IIgnoreMatch
+) => <TMatch extends IMatch>(
   tr: Transaction,
   state: IPluginState<TMatch>,
   { payload: { response } }: ActionRequestMatchesSuccess<TMatch>
@@ -521,6 +536,7 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
     requestsInFlight.map(_ => _.block),
     match => !response.categoryIds.includes(match.category.id)
   );
+
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = requestsInFlight.reduce(
     (acc, blockInFlight) =>
@@ -543,22 +559,24 @@ const handleMatchesRequestSuccess = <TMatch extends IMatch>(
     [] as Decoration[]
   );
 
+  const matchesToAdd = response.matches.filter(match => !ignoreMatch(match));
+  const currentMapping = selectBlockQueriesInFlightForSet(
+    state,
+    response.requestId
+  )!.mapping;
+  const mappedMatchesToAdd = mapRanges(matchesToAdd, currentMapping);
+
   // Add the response to the current matches.
-  currentMatches = currentMatches.concat(
-    mapRanges(
-      response.matches,
-      selectBlockQueriesInFlightForSet(state, response.requestId)!.mapping
-    )
-  );
+  currentMatches = currentMatches.concat(mappedMatchesToAdd);
 
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
 
   // Create our decorations for the newly current matches.
-  const newDecorations = createDecorationsForMatches(response.matches, state.config.matchColours);
+  const newDecorations = createDecorationsForMatches(mappedMatchesToAdd, state.config.matchColours);
 
-  // Amend the block queries in flight to
+  // Amend the block queries in flight to remove the returned blocks and categories
   const newBlockQueriesInFlight = requestsInFlight.reduce(
     (acc, blockInFlight) =>
       amendBlockQueriesInFlight(
