@@ -18,7 +18,7 @@ describe("Decoration utils", () => {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
               style:
-                `background-color: ${defaultMatchColours.ambiguous}07; border-bottom: 2px solid ${defaultMatchColours.ambiguous}`
+                `background-color: ${defaultMatchColours.ambiguous}07; border-bottom: 2px solid ${defaultMatchColours.ambiguous}4D`
             },
             spec: {
               categoryId: "1",

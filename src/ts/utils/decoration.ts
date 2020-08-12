@@ -116,9 +116,8 @@ export const createDecorationsForMatch = (
     ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
     : DecorationClassMap[DECORATION_MATCH];
 
-  const matchColour = getColourForMatch(match, matchColours);
-  const opacity = isSelected ? "30" : "07";
-  const style = `background-color: ${matchColour}${opacity}; border-bottom: 2px solid ${matchColour}`;
+  const {backgroundColour, borderColour} = getColourForMatch(match, matchColours, isSelected);
+  const style = `background-color: ${backgroundColour}; border-bottom: 2px solid ${borderColour}`;
 
   const decorations = [
     Decoration.inline(
@@ -151,17 +150,30 @@ export const createDecorationsForMatch = (
   return decorations;
 };
 
-export const getColourForMatch = (
+export const getColourForMatch  = (
   match: IMatch,
-  matchColours: IMatchColours
-) => {
+  matchColours: IMatchColours,
+  isSelected: boolean
+) : {backgroundColour: string, borderColour: string} => {
+
+  const backgroundOpacity = isSelected ? "30" : "07";
+
   if (match.markAsCorrect) {
-    return matchColours.correct;
+    return {
+      backgroundColour: `${matchColours.correct}${backgroundOpacity}`, 
+      borderColour: `${matchColours.correct}`
+    };
   }
   if (match.replacement) {
-    return matchColours.unambiguous;
+    return {
+      backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`, 
+      borderColour: `${matchColours.unambiguous}`
+    };
   }
-  return matchColours.ambiguous;
+  return {
+    backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`, 
+    borderColour: `${matchColours.ambiguous}4D`
+  };
 };
 
 export const createDecorationsForMatches = (

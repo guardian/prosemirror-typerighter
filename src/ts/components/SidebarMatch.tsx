@@ -30,7 +30,7 @@ class SidebarMatch extends Component<IProps, IState> {
 
   public render() {
     const { match, matchColours, applySuggestions, selectedMatch } = this.props;
-    const color = getColourForMatch(match, matchColours);
+    const color = getColourForMatch(match, matchColours, false).borderColour;
     const hasSuggestions = !!match.suggestions && !!match.suggestions.length;
     const suggestions = compact([
       match.replacement,

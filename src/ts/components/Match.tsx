@@ -64,7 +64,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
           <div className="MatchWidget__type">
             <span
               className="MatchWidget__color-swatch"
-              style={{ backgroundColor: getColourForMatch(match, matchColours) }}
+              style={{ backgroundColor: getColourForMatch(match, matchColours, false).backgroundColour }}
             ></span>
             {category.name}
           </div>
