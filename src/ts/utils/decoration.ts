@@ -10,9 +10,9 @@ export interface IMatchColours {
 }
 
 export const defaultMatchColours = {
-  unambiguous: "d90000",
-  ambiguous: "ffa500",
-  correct: "3ff200"
+  unambiguous: "#d90000",
+  ambiguous: "#ffa500",
+  correct: "#3ff200"
 };
 
 // Our decoration types.
@@ -118,7 +118,7 @@ export const createDecorationsForMatch = (
 
   const matchColour = getColourForMatch(match, matchColours);
   const opacity = isSelected ? "30" : "07";
-  const style = `background-color: #${matchColour}${opacity}; border-bottom: 2px solid #${matchColour}`;
+  const style = `background-color: ${matchColour}${opacity}; border-bottom: 2px solid ${matchColour}`;
 
   const decorations = [
     Decoration.inline(
