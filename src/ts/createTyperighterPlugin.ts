@@ -1,5 +1,5 @@
 import { applyNewDirtiedRanges } from "./state/actions";
-import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION, IIgnoreMatch } from "./state/reducer";
+import { IPluginState, PROSEMIRROR_TYPERIGHTER_ACTION, IIgnoreMatch, includeAllMatches } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import { DECORATION_ATTRIBUTE_ID } from "./utils/decoration";
@@ -59,7 +59,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
-    ignoreMatch = () => false
+    ignoreMatch = includeAllMatches
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
