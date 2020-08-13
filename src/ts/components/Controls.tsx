@@ -66,6 +66,10 @@ class Controls extends Component<IProps, IState> {
               size="small"
               aria-label="close Typerighter"
               onClick={this.props.deactivate}
+              disabled={
+                this.state.pluginState &&
+                !!Object.keys(this.state.pluginState.requestsInFlight).length
+              }
             >
               <CloseIcon/>
             </IconButton>
