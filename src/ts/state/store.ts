@@ -100,4 +100,6 @@ class Store<
   }
 }
 
+export type IStore<TMatch extends IMatch = IMatch> = Store<TMatch>;
+
 export default Store;

@@ -1,3 +1,5 @@
+import { IMatch, IBlock } from './interfaces/IMatch'
+import { IStore } from './state/store';
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
 import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
@@ -13,5 +15,8 @@ export {
   convertTyperighterResponse,
   createBoundCommands,
   createView,
-  createTyperighterPlugin
+  createTyperighterPlugin,
+  IMatch,
+  IBlock,
+  IStore
 };
