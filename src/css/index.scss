@@ -7,15 +7,16 @@ $match-color-hover: #3dcde624;
 $match-gray: #999999;
 $match-debug-color-dirty: #f7a85e66;
 $match-debug-color-inflight: #31a72085;
-$match-suggestion-background-color: #f3f3f3;
-$match-suggestion-background-color-hover: #eee;
-$match-suggestion-color: #999;
-$match-suggestion-color-hover: #888;
+$match-suggestion-background-color: #138ad2;
+$match-suggestion-background-color-hover: #106ea8;
+$match-suggestion-color: #fff;
+$match-suggestion-color-hover: #fff;
 $match-suggestion-wiki-extract-height: 85px;
 $icon-fill-color-default: #999999;
 $font-size-base: 15px;
 $font-size-large: 1.1em;
 $font-size-small: 0.8em;
+$base-border-radius: 3px;
 
 // Mixins
 @mixin placeholderAnimation {
@@ -72,7 +73,7 @@ hr {
 .Button {
   padding: 4px 6px;
   border: 1px solid lightgrey;
-  border-radius: 3px;
+  border-radius: $base-border-radius;
   font-size: $font-size-base;
   font-weight: normal;
   cursor: pointer;

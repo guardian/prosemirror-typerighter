@@ -1,3 +1,47 @@
+.Suggestion {
+  padding: $gutter-width;
+  border-radius: $base-border-radius;
+}
+
+.Suggestion__matched-text {
+  display: inline-block;
+  position: relative;
+  font-weight: normal;
+}
+
+.Suggestion__arrow {
+  font-weight: normal;
+  display: inline-block;
+  position: relative;
+  top: 1px;
+}
+
+.Suggestion__matched-text {
+  .Suggestion__diff-added {
+    font-weight: bold;
+  }
+}
+
+.Suggestion {
+  display: block;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: $font-size-large;
+  color: $match-suggestion-color;
+  background-color: $match-suggestion-background-color;
+}
+
+.Suggestion:nth-child(even) {
+  background-color: darken($match-suggestion-background-color, 2%);
+}
+
+.Suggestion:hover {
+  color: $match-suggestion-color-hover;
+  background-color: $match-suggestion-background-color-hover;
+}
+.Suggestion + .Suggestion {
+  margin-top: 3px;
+}
 .WikiSuggestion__container {
   display: flex;
   & + .WikiSuggestion__container {
