@@ -81,6 +81,7 @@ class SidebarMatch extends Component<IProps, IState> {
                 <SuggestionList
                   applySuggestions={applySuggestions}
                   matchId={match.matchId}
+                  matchedText={match.matchedText}
                   suggestions={suggestions}
                 />
               </div>

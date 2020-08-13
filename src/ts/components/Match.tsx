@@ -31,7 +31,8 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       suggestions,
       replacement,
       markAsCorrect,
-      matchContext
+      matchContext,
+      matchedText
     } = match;
     const url = document.URL;
     const feedbackInfo = {
@@ -53,6 +54,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
           <SuggestionList
             applySuggestions={applySuggestions}
             matchId={matchId}
+            matchedText={matchedText}
             suggestions={suggestionsToRender}
           />
         </div>

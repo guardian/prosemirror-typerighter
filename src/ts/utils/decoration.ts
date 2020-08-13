@@ -17,7 +17,7 @@ export const defaultMatchColours = {
   unambiguousOpacity: "FF",
   ambiguous: "#ffa500",
   ambiguousOpacity: "4D",
-  correct: "#3ff200",
+  correct: "#228816",
   correctOpacity: "FF"
 };
 
