@@ -28,8 +28,8 @@ To update the project readme, edit the README.md in ./build and run `build:doc`.
 
 To publish, you'll need to have an account on [NPM](https://www.npmjs.com/) and be a member of the [Guardian organisation](https://www.npmjs.com/org/guardian).
 
-Before publishing, ensure your feature branch has been tagged with the [correct new version number](https://semver.org/) and merged to master. One easy way to achieve this is with npm via `npm version major | minor | patch`.
+Before publishing, create a branch named and tagged with the [correct new version number](https://semver.org/), and merge it to master. To bump the version and create the tag, use npm via `npm version major | minor | patch`.
 
-Once you're ready to publish a new release, running `npm publish` will build the application, generate its type declarations, and publish.
+Once this is merged, you're ready to publish a new release. Running `npm publish` will build the application, generate its type declarations, and publish.
 
 

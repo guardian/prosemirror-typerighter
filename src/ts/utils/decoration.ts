@@ -89,7 +89,7 @@ export const getNewDecorationsForCurrentMatches = (
   outputs: IMatch[],
   decorationSet: DecorationSet,
   doc: Node,
-  matchColours: IMatchColours
+  matchColours: IMatchColours = defaultMatchColours
 ) => {
   const decorationsToAdd = createDecorationsForMatches(outputs, matchColours);
 
