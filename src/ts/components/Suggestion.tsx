@@ -13,10 +13,9 @@ interface IProps {
 }
 
 /**
- * At the moment, only show fancy diffs for single words – longer text
- * is likely to require a different UI.
+ * At the moment, only show fancy diffs for smaller words.
  */
-const shouldShowDiff = (matchedText: string) => matchedText.indexOf(" ") === -1
+const shouldShowDiff = (matchedText: string) => matchedText.length < 16
 
 /**
  * Render a diff between the matched text and the suggestion, only showing
