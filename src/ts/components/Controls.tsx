@@ -17,12 +17,11 @@ interface IProps {
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
-  deactivate: () => void;
+  onToggleActiveState: () => void;
 }
 
 interface IState {
   pluginState: IPluginState<IMatch> | undefined;
-  isOpen: boolean;
   allCategories: ICategory[];
   currentCategories: ICategory[];
   isLoadingCategories: boolean;
@@ -33,7 +32,6 @@ interface IState {
  */
 class Controls extends Component<IProps, IState> {
   public state = {
-    isOpen: false,
     allCategories: [],
     currentCategories: [],
     isLoadingCategories: false,
@@ -41,35 +39,48 @@ class Controls extends Component<IProps, IState> {
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
+    this.setState({ pluginState: this.props.store.getState() });
     this.initCategories();
   }
 
   public render() {
-    const buttonDisabled =
+    const checkInProgress: boolean | undefined =
       this.state.pluginState &&
       !!Object.keys(this.state.pluginState.requestsInFlight).length;
 
+    const handleCheckDocumentButtonClick = (): void => {
+      if (!this.state.pluginState?.config.isActive) {
+        this.props.onToggleActiveState();
+      }
+      this.requestMatchesForDocument();
+    };
+
+    const headerContainerClasses = this.state.pluginState?.config.isActive
+      ? "Sidebar__header-container"
+      : "Sidebar__header-container Sidebar__header-container--is-closed";
+
     return (
       <Fragment>
-        <div className="Sidebar__header-container">
+        <div className={headerContainerClasses}>
           <div className="Sidebar__header">
             <button
               type="button"
               className="Button"
-              onClick={this.requestMatchesForDocument}
-              disabled={buttonDisabled}
+              onClick={handleCheckDocumentButtonClick}
+              disabled={checkInProgress}
             >
               Check document
             </button>
-
-            <IconButton
-              size="small"
-              aria-label="close Typerighter"
-              onClick={this.props.deactivate}
-              disabled={buttonDisabled}
-            >
-              <CloseIcon />
-            </IconButton>
+            {this.state.pluginState?.config.isActive && (
+              <IconButton
+                size="small"
+                aria-label="close Typerighter"
+                onClick={this.props.onToggleActiveState}
+                disabled={checkInProgress}
+              >
+                <CloseIcon />
+              </IconButton>
+            )}
           </div>
         </div>
 
