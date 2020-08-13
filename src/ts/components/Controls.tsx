@@ -37,7 +37,7 @@ class Controls extends Component<IProps, IState> {
     allCategories: [],
     currentCategories: [],
     isLoadingCategories: false,
-    pluginState: undefined,
+    pluginState: undefined
   } as IState;
   public componentWillMount() {
     this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
@@ -45,8 +45,11 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
+    const buttonDisabled =
+      this.state.pluginState &&
+      !!Object.keys(this.state.pluginState.requestsInFlight).length;
 
-     return (
+    return (
       <Fragment>
         <div className="Sidebar__header-container">
           <div className="Sidebar__header">
@@ -54,28 +57,22 @@ class Controls extends Component<IProps, IState> {
               type="button"
               className="Button"
               onClick={this.requestMatchesForDocument}
-              disabled={
-                this.state.pluginState &&
-                !!Object.keys(this.state.pluginState.requestsInFlight).length
-              }
+              disabled={buttonDisabled}
             >
               Check document
             </button>
-          
+
             <IconButton
               size="small"
               aria-label="close Typerighter"
               onClick={this.props.deactivate}
-              disabled={
-                this.state.pluginState &&
-                !!Object.keys(this.state.pluginState.requestsInFlight).length
-              }
+              disabled={buttonDisabled}
             >
-              <CloseIcon/>
+              <CloseIcon />
             </IconButton>
           </div>
         </div>
-      
+
         {this.state.pluginState && selectHasError(this.state.pluginState) && (
           <div className="Controls__error-message">
             Error fetching matches. Please try checking the document again.{" "}
@@ -136,7 +133,7 @@ class Controls extends Component<IProps, IState> {
     const data = {
       url: document.location.href,
       errors: this.state.pluginState?.requestErrors?.slice(0, errorLmit)
-    }
+    };
     const encodedData = encodeURIComponent(JSON.stringify(data, undefined, 2));
     return this.props.feedbackHref + encodedData;
   };
