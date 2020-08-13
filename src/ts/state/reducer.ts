@@ -38,7 +38,8 @@ import {
   DECORATION_MATCH,
   createDecorationsForMatch,
   createDecorationsForMatches,
-  IMatchColours
+  IMatchColours,
+  defaultMatchColours
 } from "../utils/decoration";
 import {
   mergeRanges,
@@ -160,7 +161,7 @@ export const createInitialState = <TMatch extends IMatch>(
   matches: TMatch[] = [],
   active: boolean = true,
   ignoreMatch: IIgnoreMatch = includeAllMatches,
-  matchColours: IMatchColours
+  matchColours: IMatchColours = defaultMatchColours
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {
