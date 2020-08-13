@@ -7,10 +7,11 @@ import { ApplySuggestionOptions } from "../commands";
 interface IProps {
   suggestions: ISuggestion[];
   matchId: string;
+  matchedText: string;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
 }
 
-const SuggestionList = ({ suggestions, matchId, applySuggestions }: IProps) => {
+const SuggestionList = ({ suggestions, matchId, matchedText, applySuggestions }: IProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const firstSuggestion = suggestions[0];
   const otherSuggestions = suggestions.slice(1);
@@ -19,6 +20,7 @@ const SuggestionList = ({ suggestions, matchId, applySuggestions }: IProps) => {
       {suggestions.length ? (
         <Suggestion
           matchId={matchId}
+          matchedText={matchedText}
           suggestion={firstSuggestion}
           applySuggestions={applySuggestions}
         />
@@ -37,6 +39,7 @@ const SuggestionList = ({ suggestions, matchId, applySuggestions }: IProps) => {
           {otherSuggestions.map(suggestion => (
             <Suggestion
               matchId={matchId}
+              matchedText={matchedText}
               suggestion={suggestion}
               applySuggestions={applySuggestions}
             />
