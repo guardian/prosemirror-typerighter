@@ -27,7 +27,8 @@ const externalModules = [
   "uuid",
   "prop-types",
   "react-is",
-  "hoist-non-react-statics"
+  "hoist-non-react-statics",
+  "diff"
 ];
 
 const external = id =>
