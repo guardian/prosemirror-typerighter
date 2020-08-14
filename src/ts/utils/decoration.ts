@@ -16,7 +16,7 @@ export const defaultMatchColours = {
   unambiguous: "#d90000",
   unambiguousOpacity: "FF",
   ambiguous: "#ffa500",
-  ambiguousOpacity: "4D",
+  ambiguousOpacity: "AD",
   correct: "#228816",
   correctOpacity: "FF"
 };
@@ -166,7 +166,7 @@ export const getColourForMatch = (
   isSelected: boolean
 ) : {backgroundColour: string, borderColour: string} => {
 
-  const backgroundOpacity = isSelected ? "30" : "07";
+  const backgroundOpacity = isSelected ? "50" : "07";
 
   if (match.markAsCorrect) {
     return {
