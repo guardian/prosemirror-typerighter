@@ -59,8 +59,8 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
                 <div className="MatchWidget__ignore-match-button"
                 onClick={() => onIgnoreMatch(match)}
                 >
-                  <Correct fontSize="small"/>
-                   Mark as correct
+                  <Correct className="MatchWidget__ignore-match-icon"/>
+                    Mark as correct
                 </div>
               </div>
             )}
