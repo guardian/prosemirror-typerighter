@@ -17,7 +17,7 @@ interface IViewOptions {
   contactHref?: string;
   feedbackHref?: string;
   logger?: ILogger;
-  onIgnoreMatch?: (match: IMatch) => void;
+  onMarkCorrect?: (match: IMatch) => void;
 }
 
 /**
@@ -36,7 +36,7 @@ const createView = ({
   contactHref,
   feedbackHref,
   logger = consoleLogger,
-  onIgnoreMatch
+  onMarkCorrect
 }: IViewOptions) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
@@ -59,11 +59,11 @@ const createView = ({
         commands.applySuggestions(suggestionOpts);
         commands.stopHover();
       }}
-      onIgnoreMatch={
-        onIgnoreMatch &&
+      onMarkCorrect={
+        onMarkCorrect &&
         (match => {
           commands.ignoreMatch(match.matchId);
-          onIgnoreMatch(match);
+          onMarkCorrect(match);
         })
       }
       containerElement={wrapperElement}

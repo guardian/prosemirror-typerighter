@@ -10,7 +10,7 @@ interface IMatchProps<TMatch extends IMatch> {
   match: TMatch;
   matchColours: IMatchColours;
   feedbackHref?: string;
-  onIgnoreMatch?: (match: IMatch) => void;
+  onMarkCorrect?: (match: IMatch) => void;
 }
 
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
@@ -19,7 +19,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     match,
     matchColours,
     applySuggestions,
-    onIgnoreMatch
+    onMarkCorrect
   }: IMatchProps<TMatch>) {
     const {
       matchId,
@@ -53,11 +53,10 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
             matchedText={matchedText}
             suggestions={suggestionsToRender}
           />}
-
-          {onIgnoreMatch && (
+          {onMarkCorrect && (
               <div className="MatchWidget__ignore-match">
                 <div className="MatchWidget__ignore-match-button"
-                onClick={() => onIgnoreMatch(match)}
+                onClick={() => onMarkCorrect(match)}
                 >
                   <Correct className="MatchWidget__ignore-match-icon"/>
                    Mark as correct
