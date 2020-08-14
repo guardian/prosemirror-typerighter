@@ -131,7 +131,7 @@ class Results extends Component<
     if (oldKeys.length && !newKeys.length) {
       setTimeout(this.maybeResetLoadingBar, 300);
     }
-    if (!oldKeys.length && newKeys.length) {
+    if (!this.state.loadingBarVisible && newKeys.length) {
       this.setState({ loadingBarVisible: true });
     }
   };

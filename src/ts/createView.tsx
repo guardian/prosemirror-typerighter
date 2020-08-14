@@ -17,7 +17,7 @@ interface IViewOptions {
   contactHref?: string;
   feedbackHref?: string;
   logger?: ILogger;
-  onIgnoreMatch?: (match: IMatch) => void;
+  onMarkCorrect?: (match: IMatch) => void;
   // The element responsible for scrolling the editor content.
   // Used to scroll to matches when they're clicked in the sidebar.
   editorScrollElement: Element;
@@ -26,6 +26,7 @@ interface IViewOptions {
   // to place the match in the middle of the screen, as the size of the
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
+
 }
 
 /**
@@ -44,7 +45,7 @@ const createView = ({
   contactHref,
   feedbackHref,
   logger = consoleLogger,
-  onIgnoreMatch,
+  onMarkCorrect,
   editorScrollElement,
   getScrollOffset = () => 50
 }: IViewOptions) => {
@@ -69,11 +70,11 @@ const createView = ({
         commands.applySuggestions(suggestionOpts);
         commands.stopHover();
       }}
-      onIgnoreMatch={
-        onIgnoreMatch &&
+      onMarkCorrect={
+        onMarkCorrect &&
         (match => {
           commands.ignoreMatch(match.matchId);
-          onIgnoreMatch(match);
+          onMarkCorrect(match);
         })
       }
       containerElement={wrapperElement}

@@ -52,7 +52,8 @@ if (editorElement && sidebarNode) {
 
   // When the user scrolls to matches, place the match in the middle of the editor.
   const menuHeight = 47;
-  const getScrollOffset = () => editorElement.getBoundingClientRect().height / 2 - menuHeight;
+  const getScrollOffset = () =>
+    editorElement.getBoundingClientRect().height / 2 - menuHeight;
 
   const commands = createBoundCommands(view, getState);
   const matcherService = new MatcherService(
@@ -68,7 +69,7 @@ if (editorElement && sidebarNode) {
     sidebarNode,
     contactHref: "mailto:example@typerighter.co.uk",
     feedbackHref: "http://a-form-for-example.com",
-    onIgnoreMatch: match => console.info('Match ignored!', match),
+    onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
     getScrollOffset
   });

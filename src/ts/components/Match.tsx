@@ -1,19 +1,16 @@
 import { Component, h } from "preact";
-import Tooltip from "@material-ui/core/Tooltip";
-import Block from "./icons/Block";
-
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
-import IconButton from "@material-ui/core/IconButton";
 import { getColourForMatch, IMatchColours } from "../utils/decoration";
+import Correct from "./icons/Correct";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
   matchColours: IMatchColours;
   feedbackHref?: string;
-  onIgnoreMatch?: (match: IMatch) => void;
+  onMarkCorrect?: (match: IMatch) => void;
 }
 
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
@@ -22,7 +19,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     match,
     matchColours,
     applySuggestions,
-    onIgnoreMatch
+    onMarkCorrect
   }: IMatchProps<TMatch>) {
     const {
       matchId,
@@ -47,16 +44,25 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     };
 
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
-    const suggestionContent = suggestionsToRender &&
-      applySuggestions &&
-      !markAsCorrect && (
+    const suggestionContent = (
         <div className="MatchWidget__suggestion-list">
+          {suggestionsToRender && applySuggestions && !markAsCorrect && 
           <SuggestionList
             applySuggestions={applySuggestions}
             matchId={matchId}
             matchedText={matchedText}
             suggestions={suggestionsToRender}
-          />
+          />}
+          {onMarkCorrect && (
+              <div className="MatchWidget__ignore-match">
+                <div className="MatchWidget__ignore-match-button"
+                onClick={() => onMarkCorrect(match)}
+                >
+                  <Correct className="MatchWidget__ignore-match-icon"/>
+                   Mark as correct
+                </div>
+              </div>
+            )}
         </div>
       );
 
@@ -84,20 +90,6 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
                 >
                   Issue with this result? Tell us!
                 </a>
-              </div>
-            )}
-            {onIgnoreMatch && (
-              <div className="MatchWidget__ignore-match">
-                <Tooltip title="Ignore this match">
-                  <IconButton
-                    className="MatchWidget__ignore-match-button"
-                    component="span"
-                    size="small"
-                    onClick={() => onIgnoreMatch(match)}
-                  >
-                    <Block />
-                  </IconButton>
-                </Tooltip>
               </div>
             )}
           </div>

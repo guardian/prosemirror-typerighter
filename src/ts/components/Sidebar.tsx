@@ -23,22 +23,33 @@ const Sidebar = ({
   matcherService,
   commands,
   contactHref,
-  feedbackHref,
   editorScrollElement,
-  getScrollOffset
+  getScrollOffset,
+  feedbackHref
 }: IProps) => {
-  const [pluginState, setPluginState] = useState<IPluginState | undefined>(undefined);
+  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
+    undefined
+  );
   useEffect(() => {
     setPluginState(store.getState());
     store.on(STORE_EVENT_NEW_STATE, setPluginState);
     return () => {
-        store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
+      store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
     };
   }, []);
+
+  const handleToggleActiveState = (): void => {
+    commands.setConfigValue("isActive", !pluginState?.config.isActive);
+  };
+
+  const sidebarClasses = pluginState?.config.isActive
+    ? "Sidebar__section"
+    : "Sidebar__section Sidebar__section--is-closed";
+
   return (
     <Fragment>
-      {pluginState?.config.isActive ? (
-        <div className="Sidebar__section">
+      {pluginState && (
+        <div className={sidebarClasses}>
           <Controls
             store={store}
             setDebugState={value => commands.setConfigValue("debug", value)}
@@ -51,33 +62,21 @@ const Sidebar = ({
             addCategory={matcherService.addCategory}
             removeCategory={matcherService.removeCategory}
             feedbackHref={feedbackHref}
-            deactivate={() => commands.setConfigValue("isActive", false)}
+            onToggleActiveState={handleToggleActiveState}
           />
-          <Results
-            store={store}
-            applySuggestions={commands.applySuggestions}
-            applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-            selectMatch={commands.selectMatch}
-            indicateHover={commands.indicateHover}
-            stopHover={commands.stopHover}
-            contactHref={contactHref}
-            editorScrollElement={editorScrollElement}
-            getScrollOffset={getScrollOffset}
-          />
-        </div>
-      ) : (
-        <div className="Sidebar__section Sidebar__section--is-closed">
-          <div className="Sidebar__header-container Sidebar__header-container--is-closed">
-            <div className="Sidebar__header">
-              <button
-                type="button"
-                className="Button"
-                onClick={() => commands.setConfigValue("isActive", true)}
-              >
-                Open Typerighter
-              </button>
-            </div>
-          </div>
+          {pluginState?.config.isActive && (
+            <Results
+              store={store}
+              applySuggestions={commands.applySuggestions}
+              applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
+              selectMatch={commands.selectMatch}
+              indicateHover={commands.indicateHover}
+              stopHover={commands.stopHover}
+              contactHref={contactHref}
+              editorScrollElement={editorScrollElement}
+              getScrollOffset={getScrollOffset}
+            />
+          )}
         </div>
       )}
     </Fragment>
