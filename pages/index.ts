@@ -64,7 +64,7 @@ if (editorElement && sidebarNode) {
     sidebarNode,
     contactHref: "mailto:example@typerighter.co.uk",
     feedbackHref: "http://a-form-for-example.com",
-    onIgnoreMatch: match => console.info('Match ignored!', match)
+    onMarkCorrect: match => console.info('Match ignored!', match)
   });
 
   // Handy debugging tools
