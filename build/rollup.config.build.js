@@ -21,6 +21,7 @@ const externalModules = [
   "prosemirror-state",
   "prosemirror-test-builder",
   "prosemirror-view",
+  "prosemirror-transform",
   "preact",
   "prosemirror-tables",
   "prosemirror-utils",
