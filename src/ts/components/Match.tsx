@@ -1,12 +1,9 @@
 import { Component, h } from "preact";
-import Tooltip from "@material-ui/core/Tooltip";
-import Block from "./icons/Block";
-
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
-import IconButton from "@material-ui/core/IconButton";
 import { getColourForMatch, IMatchColours } from "../utils/decoration";
+import Correct from "./icons/Correct";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
@@ -57,6 +54,16 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
             matchedText={matchedText}
             suggestions={suggestionsToRender}
           />
+          {onIgnoreMatch && (
+              <div className="MatchWidget__ignore-match">
+                <div className="MatchWidget__ignore-match-button"
+                onClick={() => onIgnoreMatch(match)}
+                >
+                  <Correct fontSize="small"/>
+                   Mark as correct
+                </div>
+              </div>
+            )}
         </div>
       );
 
@@ -84,20 +91,6 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
                 >
                   Issue with this result? Tell us!
                 </a>
-              </div>
-            )}
-            {onIgnoreMatch && (
-              <div className="MatchWidget__ignore-match">
-                <Tooltip title="Ignore this match">
-                  <IconButton
-                    className="MatchWidget__ignore-match-button"
-                    component="span"
-                    size="small"
-                    onClick={() => onIgnoreMatch(match)}
-                  >
-                    <Block />
-                  </IconButton>
-                </Tooltip>
               </div>
             )}
           </div>
