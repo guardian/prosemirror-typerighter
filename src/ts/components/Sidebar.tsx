@@ -14,6 +14,8 @@ interface IProps {
   commands: Commands;
   contactHref?: string;
   feedbackHref?: string;
+  editorScrollElement: Element;
+  getScrollOffset: () => number;
 }
 
 const Sidebar = ({
@@ -22,6 +24,8 @@ const Sidebar = ({
   commands,
   contactHref,
   feedbackHref,
+  editorScrollElement,
+  getScrollOffset
 }: IProps) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(undefined);
   useEffect(() => {
@@ -32,7 +36,7 @@ const Sidebar = ({
     };
   }, []);
   return (
-    <Fragment>    
+    <Fragment>
       {pluginState?.config.isActive ? (
         <div className="Sidebar__section">
           <Controls
@@ -57,6 +61,8 @@ const Sidebar = ({
             indicateHover={commands.indicateHover}
             stopHover={commands.stopHover}
             contactHref={contactHref}
+            editorScrollElement={editorScrollElement}
+            getScrollOffset={getScrollOffset}
           />
         </div>
       ) : (

@@ -18,6 +18,14 @@ interface IViewOptions {
   feedbackHref?: string;
   logger?: ILogger;
   onIgnoreMatch?: (match: IMatch) => void;
+  // The element responsible for scrolling the editor content.
+  // Used to scroll to matches when they're clicked in the sidebar.
+  editorScrollElement: Element;
+  // Gets a scroll offset when we scroll to matches. This allows consumers
+  // to dynamically change the offset. Useful when e.g. consumers would like
+  // to place the match in the middle of the screen, as the size of the
+  // document might change during the lifecycle of the page.
+  getScrollOffset?: () => number;
 }
 
 /**
@@ -36,7 +44,9 @@ const createView = ({
   contactHref,
   feedbackHref,
   logger = consoleLogger,
-  onIgnoreMatch
+  onIgnoreMatch,
+  editorScrollElement,
+  getScrollOffset = () => 50
 }: IViewOptions) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
@@ -73,12 +83,14 @@ const createView = ({
   );
 
   render(
-    <Sidebar 
+    <Sidebar
       store={store}
       matcherService={matcherService}
       commands={commands}
       contactHref={contactHref}
       feedbackHref={feedbackHref}
+      editorScrollElement={editorScrollElement}
+      getScrollOffset={getScrollOffset}
     />,
     sidebarNode
   );

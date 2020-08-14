@@ -201,3 +201,7 @@ export const findSingleDecoration = (
   }
   return decorations[0];
 };
+
+export const maybeGetDecorationElement = (matchId: string): HTMLElement | null => document.querySelector(
+    `[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`
+  )
