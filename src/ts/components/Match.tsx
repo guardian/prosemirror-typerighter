@@ -44,23 +44,23 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
     };
 
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
-    const suggestionContent = suggestionsToRender &&
-      applySuggestions &&
-      !markAsCorrect && (
+    const suggestionContent = (
         <div className="MatchWidget__suggestion-list">
+          {suggestionsToRender && applySuggestions && !markAsCorrect && 
           <SuggestionList
             applySuggestions={applySuggestions}
             matchId={matchId}
             matchedText={matchedText}
             suggestions={suggestionsToRender}
-          />
+          />}
+
           {onIgnoreMatch && (
               <div className="MatchWidget__ignore-match">
                 <div className="MatchWidget__ignore-match-button"
                 onClick={() => onIgnoreMatch(match)}
                 >
                   <Correct className="MatchWidget__ignore-match-icon"/>
-                    Mark as correct
+                   Mark as correct
                 </div>
               </div>
             )}

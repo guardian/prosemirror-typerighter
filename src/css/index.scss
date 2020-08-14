@@ -5,7 +5,7 @@ $text-color-secondary: #5f5e5e;
 $match-color: #3dcde6;
 $match-color-hover: #3dcde624;
 $match-gray: #999999;
-$match-ignore-color: #a9a7a7;
+$match-ignore-color-hover: #ece9e9;
 $match-debug-color-dirty: #f7a85e66;
 $match-debug-color-inflight: #31a72085;
 $match-suggestion-background-color: #228816;
@@ -194,8 +194,12 @@ hr {
     border-radius: $base-border-radius;
     font-weight: normal;
     font-size: $font-size-base;
-    color: white;
-    background-color: $match-ignore-color;
+    color: $match-suggestion-background-color;
+
+  }
+
+  .MatchWidget__ignore-match-button:hover {
+    background-color: $match-ignore-color-hover;
   }
 
   .MatchWidget__ignore-match-icon {
