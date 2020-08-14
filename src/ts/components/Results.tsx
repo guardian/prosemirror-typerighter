@@ -16,6 +16,8 @@ interface IProps {
   indicateHover: (matchId: string, _?: any) => void;
   stopHover: () => void;
   contactHref?: string;
+  editorScrollElement: Element;
+  getScrollOffset: () => number;
 }
 
 /**
@@ -41,7 +43,9 @@ class Results extends Component<
       selectMatch,
       indicateHover,
       stopHover,
-      contactHref
+      contactHref,
+      editorScrollElement,
+      getScrollOffset
     } = this.props;
     const { pluginState } = this.state;
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
@@ -98,6 +102,8 @@ class Results extends Component<
                     selectMatch={selectMatch}
                     indicateHover={indicateHover}
                     stopHover={stopHover}
+                    editorScrollElement={editorScrollElement}
+                    getScrollOffset={getScrollOffset}
                   />
                 </li>
               ))}

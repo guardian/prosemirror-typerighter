@@ -14,6 +14,8 @@ interface IProps {
   commands: Commands;
   contactHref?: string;
   feedbackHref?: string;
+  editorScrollElement: Element;
+  getScrollOffset: () => number;
 }
 
 const Sidebar = ({
@@ -21,6 +23,8 @@ const Sidebar = ({
   matcherService,
   commands,
   contactHref,
+  editorScrollElement,
+  getScrollOffset,
   feedbackHref
 }: IProps) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
@@ -69,6 +73,8 @@ const Sidebar = ({
               indicateHover={commands.indicateHover}
               stopHover={commands.stopHover}
               contactHref={contactHref}
+              editorScrollElement={editorScrollElement}
+              getScrollOffset={getScrollOffset}
             />
           )}
         </div>

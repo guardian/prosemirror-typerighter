@@ -1,7 +1,11 @@
 import compact from "lodash/compact";
 import { IMatch } from "../interfaces/IMatch";
 import { Component, h } from "preact";
-import { DECORATION_ATTRIBUTE_ID, IMatchColours, getColourForMatch } from "../utils/decoration";
+import {
+  IMatchColours,
+  getColourForMatch,
+  maybeGetDecorationElement
+} from "../utils/decoration";
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
@@ -12,8 +16,10 @@ interface IProps {
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
   indicateHover: (blockId: string, _?: any) => void;
-  stopHover: ()  =>  void;
+  stopHover: () => void;
   selectedMatch: string | undefined;
+  editorScrollElement: Element;
+  getScrollOffset: () => number;
 }
 
 interface IState {
@@ -98,12 +104,18 @@ class SidebarMatch extends Component<IProps, IState> {
   private scrollToRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    this.props.selectMatch(this.props.match.matchId);
-    const decorationElement = document.querySelector(
-      `[${DECORATION_ATTRIBUTE_ID}="${this.props.match.matchId}"]`
-    );
+
+    const { editorScrollElement, match, getScrollOffset } = this.props;
+    if (!editorScrollElement) {
+      return;
+    }
+
+    const decorationElement = maybeGetDecorationElement(match.matchId);
+
     if (decorationElement) {
-      decorationElement.scrollIntoView({
+      const scrollToYCoord = decorationElement.offsetTop - getScrollOffset();
+      editorScrollElement.scrollTo({
+        top: scrollToYCoord,
         behavior: "smooth"
       });
     }
