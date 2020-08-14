@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
-import { selectHasError } from "../state/selectors";
+import { selectHasError, selectRequestsInProgress } from "../state/selectors";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "./icons/CloseIcon";
 
@@ -44,9 +44,6 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
-    const checkInProgress: boolean | undefined =
-      this.state.pluginState &&
-      !!Object.keys(this.state.pluginState.requestsInFlight).length;
 
     const handleCheckDocumentButtonClick = (): void => {
       if (!this.state.pluginState?.config.isActive) {
@@ -67,7 +64,7 @@ class Controls extends Component<IProps, IState> {
               type="button"
               className="Button"
               onClick={handleCheckDocumentButtonClick}
-              disabled={checkInProgress}
+              disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
             >
               Check document
             </button>
@@ -76,7 +73,7 @@ class Controls extends Component<IProps, IState> {
                 size="small"
                 aria-label="close Typerighter"
                 onClick={this.props.onToggleActiveState}
-                disabled={checkInProgress}
+                disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
               >
                 <CloseIcon />
               </IconButton>

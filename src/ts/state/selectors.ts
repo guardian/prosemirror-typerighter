@@ -127,3 +127,7 @@ export const selectHasError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean =>
   !!state.requestErrors && state.requestErrors.length > 0;
+
+export const selectRequestsInProgress = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): boolean => !!Object.keys(state.requestsInFlight).length;
