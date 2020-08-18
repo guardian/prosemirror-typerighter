@@ -5,7 +5,6 @@ import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
-import { selectAllAutoFixableMatches } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
 
 interface IProps {
@@ -39,7 +38,6 @@ class Results extends Component<
   public render() {
     const {
       applySuggestions,
-      applyAutoFixableSuggestions,
       selectMatch,
       indicateHover,
       stopHover,
@@ -50,7 +48,6 @@ class Results extends Component<
     const { pluginState } = this.state;
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
-    const noOfAutoFixableSuggestions = this.getNoOfAutoFixableSuggestions();
     const percentRemaining = this.getPercentRemaining();
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
@@ -62,14 +59,7 @@ class Results extends Component<
             <span>
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
-            {!!noOfAutoFixableSuggestions && (
-              <button
-                class="Button flex-align-right"
-                onClick={applyAutoFixableSuggestions}
-              >
-                Fix all ({noOfAutoFixableSuggestions})
-              </button>
-            )}
+           
           </div>
           {contactHref && (
             <div className="Sidebar__header-contact">
@@ -153,13 +143,6 @@ class Results extends Component<
     return selectPercentRemaining(state);
   };
 
-  private getNoOfAutoFixableSuggestions = () => {
-    const state = this.state.pluginState;
-    if (!state) {
-      return 0;
-    }
-    return selectAllAutoFixableMatches(state).length;
-  };
 }
 
 export default Results;
