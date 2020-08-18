@@ -26,7 +26,6 @@ interface IViewOptions {
   // to place the match in the middle of the screen, as the size of the
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
-
 }
 
 /**
@@ -37,7 +36,6 @@ interface IViewOptions {
  *  - The plugin results pane
  */
 const createView = ({
-  view,
   store,
   matcherService,
   commands,
@@ -52,14 +50,8 @@ const createView = ({
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
   const overlayNode = document.createElement("div");
-
-  // We wrap this in a container to allow the overlay to be positioned
-  // relative to the editable document.
-  const wrapperElement = document.createElement("div");
-  wrapperElement.classList.add("TyperighterPlugin__container");
-  view.dom.parentNode!.replaceChild(wrapperElement, view.dom);
-  wrapperElement.appendChild(view.dom);
-  view.dom.insertAdjacentElement("afterend", overlayNode);
+  overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");
+  document.body.appendChild(overlayNode);
   logger.info("Typerighter plugin starting");
 
   // Finally, render our components.
@@ -77,7 +69,6 @@ const createView = ({
           onMarkCorrect(match);
         })
       }
-      containerElement={wrapperElement}
       feedbackHref={feedbackHref}
     />,
     overlayNode
