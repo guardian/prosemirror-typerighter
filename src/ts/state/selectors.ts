@@ -1,9 +1,5 @@
 import { IMatch } from "../interfaces/IMatch";
-import {
-  IPluginState,
-  IBlockInFlight,
-  IBlocksInFlightState
-} from "./reducer";
+import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
 export const selectMatchByMatchId = <TMatch extends IMatch>(
   state: IPluginState<TMatch>,
@@ -11,9 +7,7 @@ export const selectMatchByMatchId = <TMatch extends IMatch>(
 ): IMatch | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
-export const selectBlockQueriesInFlightForSet = <
-  TMatch extends IMatch
->(
+export const selectBlockQueriesInFlightForSet = <TMatch extends IMatch>(
   state: IPluginState<TMatch>,
   requestId: string
 ): IBlocksInFlightState | undefined => {
@@ -25,21 +19,14 @@ export const selectSingleBlockInFlightById = <TMatch extends IMatch>(
   requestId: string,
   blockId: string
 ): IBlockInFlight | undefined => {
-  const blocksInFlight = selectBlockQueriesInFlightForSet(
-    state,
-    requestId
-  );
+  const blocksInFlight = selectBlockQueriesInFlightForSet(state, requestId);
   if (!blocksInFlight) {
     return;
   }
-  return blocksInFlight.pendingBlocks.find(
-    _ => _.block.id === blockId
-  );
+  return blocksInFlight.pendingBlocks.find(_ => _.block.id === blockId);
 };
 
-export const selectBlockQueriesInFlightById = <
-  TMatch extends IMatch
->(
+export const selectBlockQueriesInFlightById = <TMatch extends IMatch>(
   state: IPluginState<TMatch>,
   requestId: string,
   blockIds: string[]
@@ -125,8 +112,16 @@ export const selectAllAutoFixableMatches = <TMatch extends IMatch>(
 
 export const selectHasError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
-): boolean =>
-  !!state.requestErrors && state.requestErrors.length > 0;
+): boolean => !!state.requestErrors && state.requestErrors.length > 0;
+
+export const selectHasAuthError = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): boolean => {
+  const authErrors = state.requestErrors.filter(_ =>
+    _.message.startsWith("401")
+  );
+  return authErrors.length > 0;
+};
 
 export const selectRequestsInProgress = <TMatch extends IMatch>(
   state: IPluginState<TMatch>

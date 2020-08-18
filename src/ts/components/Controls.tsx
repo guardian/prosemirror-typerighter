@@ -6,7 +6,11 @@ import { Close } from "@material-ui/icons";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
-import { selectHasError, selectRequestsInProgress } from "../state/selectors";
+import {
+  selectHasError,
+  selectHasAuthError,
+  selectRequestsInProgress
+} from "../state/selectors";
 
 interface IProps {
   store: Store<IMatch>;
@@ -45,7 +49,6 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
-
     const handleCheckDocumentButtonClick = (): void => {
       if (!this.state.pluginState?.config.isActive) {
         this.props.onToggleActiveState();
@@ -65,7 +68,10 @@ class Controls extends Component<IProps, IState> {
               type="button"
               className="Button"
               onClick={handleCheckDocumentButtonClick}
-              disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
+              disabled={
+                this.state.pluginState &&
+                selectRequestsInProgress(this.state.pluginState)
+              }
             >
               Check document
             </button>
@@ -74,7 +80,10 @@ class Controls extends Component<IProps, IState> {
                 size="small"
                 aria-label="close Typerighter"
                 onClick={this.props.onToggleActiveState}
-                disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
+                disabled={
+                  this.state.pluginState &&
+                  selectRequestsInProgress(this.state.pluginState)
+                }
               >
                 <Close />
               </IconButton>
@@ -82,9 +91,26 @@ class Controls extends Component<IProps, IState> {
           </div>
         </div>
 
-        {this.state.pluginState && selectHasError(this.state.pluginState) && (
+        {this.state.pluginState &&
+          selectHasError(this.state.pluginState) &&
+          !selectHasAuthError(this.state.pluginState) && (
+            <div className="Controls__error-message">
+              Error fetching matches. Please try checking the document again.{" "}
+              {this.props.feedbackHref && (
+                <span>
+                  If the error persists, please{" "}
+                  <a href={this.getErrorFeedbackLink()} target="_blank">
+                    contact us
+                  </a>
+                  .
+                </span>
+              )}
+            </div>
+          )}
+
+        {this.state.pluginState && selectHasAuthError(this.state.pluginState) && (
           <div className="Controls__error-message">
-            Error fetching matches. Please try checking the document again.{" "}
+            Authentication error - please refresh the page.{" "}
             {this.props.feedbackHref && (
               <span>
                 If the error persists, please{" "}
