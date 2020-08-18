@@ -306,7 +306,7 @@ const createHandleNewFocusState = (focusState: "highlightId" | "hoverId") => <
 ): IPluginState<TMatch> => {
   let decorations = state.decorations;
   const incomingHoverId = action.payload.matchId;
-  const currentHoverId = state.hoverId;
+  const currentHoverId = state[focusState];
 
   // The current hover decorations are no longer valid -- remove them.
   const currentHoverDecorations = decorations.find(
