@@ -1,4 +1,3 @@
-import { EditorView } from "prosemirror-view";
 import { h, render } from "preact";
 import MatchOverlay from "./components/MatchOverlay";
 import Store from "./state/store";
@@ -9,7 +8,6 @@ import { ILogger, consoleLogger } from "./utils/logger";
 import Sidebar from "./components/Sidebar";
 
 interface IViewOptions {
-  view: EditorView;
   store: Store<IMatch>;
   matcherService: MatcherService<IMatch>;
   commands: Commands;
