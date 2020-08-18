@@ -7,8 +7,10 @@ import {
   ActionRequestMatchesForDirtyRanges,
   ActionHandleNewDirtyRanges,
   ActionNewHoverIdReceived,
+  ActionNewHighlightIdReceived,
   ActionSelectMatch,
   NEW_HOVER_ID,
+  NEW_HIGHLIGHT_ID,
   REQUEST_FOR_DIRTY_RANGES,
   REQUEST_FOR_DOCUMENT,
   REQUEST_SUCCESS,
@@ -62,33 +64,6 @@ import { Mapping } from "prosemirror-transform";
 import { createBlock } from "../utils/block";
 import { addMatchesToState } from "./helpers";
 
-/**
- * Information about the span element the user is hovering over.
- */
-export interface IStateHoverInfo {
-  // The offsetLeft property of the element relative to the document container.
-  // If the span covers multiple lines, this will be the point that the span
-  // starts on the line - for the left position of the bounding rectangle see
-  // `left`.
-  offsetLeft: number;
-  // The offsetTop property of the element relative to the document container.
-  offsetTop: number;
-  // The left property from the element's bounding rectangle.
-  containerLeft: number;
-  // The top property from the element's bounding rectangle.
-  containerTop: number;
-  // The height of the element.
-  height: number;
-  // The x coordinate of the mouse position relative to the element
-  mouseClientX: number;
-  // The y coordinate of the mouse position relative to the element
-  mouseClientY: number;
-  // The height the element would have if it occupied a single line.
-  // Useful when determining where to put a tooltip if the user
-  // is hovering over a span that covers several lines.
-  markerClientRects: DOMRectList | ClientRectList;
-}
-
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
@@ -134,10 +109,12 @@ export interface IPluginState<TMatches extends IMatch = IMatch> {
   dirtiedRanges: IRange[];
   // The currently selected match.
   selectedMatch: string | undefined;
-  // The id of the match the user is currently hovering over.
+  // The id of the match the user is currently hovering over –
+  // e.g. to display a tooltip.
   hoverId: string | undefined;
-  // See StateHoverInfo.
-  hoverInfo: IStateHoverInfo | undefined;
+  // The id of the match the user is currently highlighting –
+  // triggers a focus state on the match decoration.
+  highlightId: string | undefined;
   // Are there requests pending: have ranges been dirtied but
   // not yet been expanded and sent in a request?
   requestPending: boolean;
@@ -170,12 +147,15 @@ export const createInitialState = <TMatch extends IMatch>(
       requestMatchesOnDocModified: false,
       matchColours
     },
-    decorations: DecorationSet.create(doc, createDecorationsForMatches(matches, matchColours)),
+    decorations: DecorationSet.create(
+      doc,
+      createDecorationsForMatches(matches, matchColours)
+    ),
     dirtiedRanges: [],
     currentMatches: [],
     selectedMatch: undefined,
     hoverId: undefined,
-    hoverInfo: undefined,
+    highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
     requestErrors: []
@@ -183,10 +163,15 @@ export const createInitialState = <TMatch extends IMatch>(
   return addMatchesToState(initialState, doc, matches, ignoreMatch);
 };
 
-export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMatch = includeAllMatches) => {
+export const createReducer = (
+  expandRanges: ExpandRanges,
+  ignoreMatch: IIgnoreMatch = includeAllMatches
+) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
+  const handleNewHoverId = createHandleNewFocusState('hoverId');
+  const handleNewHighlightId = createHandleNewFocusState('highlightId');
   return <TMatch extends IMatch>(
     tr: Transaction,
     incomingState: IPluginState<TMatch>,
@@ -204,6 +189,8 @@ export const createReducer = (expandRanges: ExpandRanges, ignoreMatch: IIgnoreMa
     switch (action.type) {
       case NEW_HOVER_ID:
         return handleNewHoverId(tr, state, action);
+      case NEW_HIGHLIGHT_ID:
+        return handleNewHighlightId(tr, state, action);
       case REQUEST_FOR_DIRTY_RANGES:
         return handleMatchesRequestForDirtyRanges(tr, state, action);
       case REQUEST_FOR_DOCUMENT:
@@ -308,12 +295,14 @@ const handleRemoveMatch = <TMatch extends IMatch>(
 };
 
 /**
- * Handle the receipt of a new hover id.
+ * Handle the receipt of a new focus state.
  */
-const handleNewHoverId = <TMatch extends IMatch>(
+const createHandleNewFocusState = (focusState: "highlightId" | "hoverId") => <
+  TMatch extends IMatch
+>(
   tr: Transaction,
   state: IPluginState<TMatch>,
-  action: ActionNewHoverIdReceived
+  action: ActionNewHoverIdReceived | ActionNewHighlightIdReceived
 ): IPluginState<TMatch> => {
   let decorations = state.decorations;
   const incomingHoverId = action.payload.matchId;
@@ -342,15 +331,19 @@ const handleNewHoverId = <TMatch extends IMatch>(
     }
     return decorations.add(
       tr.doc,
-      createDecorationsForMatch(output, state.config.matchColours, hoverData.isSelected, false)
+      createDecorationsForMatch(
+        output,
+        state.config.matchColours,
+        hoverData.isSelected,
+        false
+      )
     );
   }, decorations);
 
   return {
     ...state,
     decorations,
-    hoverId: action.payload.matchId,
-    hoverInfo: action.payload.hoverInfo
+    [focusState]: action.payload.matchId
   };
 };
 
@@ -510,9 +503,9 @@ const amendBlockQueriesInFlight = <TMatch extends IMatch>(
 /**
  * Handle a response, decorating the document with any matches we've received.
  */
-const handleMatchesRequestSuccess = (
-  ignoreMatch: IIgnoreMatch
-) => <TMatch extends IMatch>(
+const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatch) => <
+  TMatch extends IMatch
+>(
   tr: Transaction,
   state: IPluginState<TMatch>,
   { payload: { response } }: ActionRequestMatchesSuccess<TMatch>
@@ -575,7 +568,10 @@ const handleMatchesRequestSuccess = (
   currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
 
   // Create our decorations for the newly current matches.
-  const newDecorations = createDecorationsForMatches(mappedMatchesToAdd, state.config.matchColours);
+  const newDecorations = createDecorationsForMatches(
+    mappedMatchesToAdd,
+    state.config.matchColours
+  );
 
   // Amend the block queries in flight to remove the returned blocks and categories
   const newBlockQueriesInFlight = requestsInFlight.reduce(

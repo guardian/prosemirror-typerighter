@@ -1,5 +1,3 @@
-import { IStateHoverInfo } from "../state/reducer";
-
 /**
  * Find the first ancestor node of the given node that matches the selector.
  */
@@ -16,42 +14,4 @@ export function findAncestor(
     // tslint:disable-next-line no-empty
   ) {}
   return currentElement;
-}
-
-/**
- * Get the dimensions required for our UI code to render a tooltip. We encapsulate this here
- * to avoid dealing with side effects in the plugin reducer.
- */
-export function getStateHoverInfoFromEvent(
-  event: MouseEvent,
-  containerElement: Element | null,
-  heightMarkerElement: Element | null
-): IStateHoverInfo | undefined {
-  if (
-    !event.target ||
-    !(event.target instanceof HTMLElement) ||
-    !containerElement ||
-    !(containerElement instanceof HTMLElement) ||
-    !heightMarkerElement ||
-    !(heightMarkerElement instanceof HTMLElement)
-  ) {
-    return;
-  }
-  const {
-    left: containerLeft,
-    top: containerTop
-  } = containerElement.getBoundingClientRect();
-  const mouseOffsetX = event.clientX;
-  const mouseOffsetY = event.clientY;
-  const { offsetLeft, offsetTop, offsetHeight: height } = event.target;
-  return {
-    containerLeft,
-    containerTop,
-    offsetLeft,
-    offsetTop,
-    height,
-    mouseClientX: mouseOffsetX,
-    mouseClientY: mouseOffsetY,
-    markerClientRects: event.target.getClientRects()
-  };
 }

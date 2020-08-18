@@ -16,7 +16,6 @@ import { EditorView, DecorationSet } from "prosemirror-view";
 import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
-import { getStateHoverInfoFromEvent } from "./utils/dom";
 import { IRange, IMatch } from "./interfaces/IMatch";
 import { Node } from "prosemirror-model";
 import Store, {
@@ -24,7 +23,7 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
-import { indicateHoverCommand, stopHoverCommand } from "./commands";
+import { startHoverCommand, stopHoverCommand } from "./commands";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -178,15 +177,8 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
             return false;
           }
 
-          const hoverInfo = getStateHoverInfoFromEvent(
-            // We're very sure that this is a mouseevent, but Typescript isn't.
-            event as MouseEvent,
-            view.dom,
-            matchDecoration
-          );
-
-          if (newMatchId && hoverInfo) {
-            indicateHoverCommand(newMatchId, hoverInfo)(
+          if (newMatchId) {
+            startHoverCommand(newMatchId)(
               view.state,
               view.dispatch
             );

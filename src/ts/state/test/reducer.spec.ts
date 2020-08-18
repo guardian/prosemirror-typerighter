@@ -495,7 +495,7 @@ describe("Action handlers", () => {
         reducer(
           new Transaction(createDoc),
           state,
-          newHoverIdReceived("exampleHoverId", undefined)
+          newHoverIdReceived("exampleHoverId")
         )
       ).toEqual({
         ...state,
@@ -561,7 +561,7 @@ describe("Action handlers", () => {
         hoverInfo: undefined
       };
       expect(
-        reducer(tr, localState, newHoverIdReceived(undefined, undefined))
+        reducer(tr, localState, newHoverIdReceived(undefined))
       ).toEqual({
         ...localState,
         decorations: new DecorationSet().add(tr.doc, [

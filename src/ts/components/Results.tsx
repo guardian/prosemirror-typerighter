@@ -12,8 +12,8 @@ interface IProps {
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
   selectMatch: (matchId: string) => void;
-  indicateHover: (matchId: string, _?: any) => void;
-  stopHover: () => void;
+  indicateHighlight: (matchId: string, _?: any) => void;
+  stopHighlight: () => void;
   contactHref?: string;
   editorScrollElement: Element;
   getScrollOffset: () => number;
@@ -39,8 +39,8 @@ class Results extends Component<
     const {
       applySuggestions,
       selectMatch,
-      indicateHover,
-      stopHover,
+      indicateHighlight,
+      stopHighlight,
       contactHref,
       editorScrollElement,
       getScrollOffset
@@ -59,7 +59,7 @@ class Results extends Component<
             <span>
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
-           
+
           </div>
           {contactHref && (
             <div className="Sidebar__header-contact">
@@ -90,8 +90,8 @@ class Results extends Component<
                     selectedMatch={selectedMatch}
                     applySuggestions={applySuggestions}
                     selectMatch={selectMatch}
-                    indicateHover={indicateHover}
-                    stopHover={stopHover}
+                    indicateHighlight={indicateHighlight}
+                    stopHighlight={stopHighlight}
                     editorScrollElement={editorScrollElement}
                     getScrollOffset={getScrollOffset}
                   />
