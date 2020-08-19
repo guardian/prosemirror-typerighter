@@ -1,5 +1,4 @@
-import { h, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import React, { useState }  from "react";
 import { ISuggestion } from "../interfaces/IMatch";
 import Suggestion from "./Suggestion";
 import { ApplySuggestionOptions } from "../commands";
@@ -35,7 +34,7 @@ const SuggestionList = ({ suggestions, matchId, matchedText, applySuggestions }:
         </div>
       ) : null}
       {isOpen && (
-        <Fragment>
+        <>
           {otherSuggestions.map(suggestion => (
             <Suggestion
               matchId={matchId}
@@ -44,7 +43,7 @@ const SuggestionList = ({ suggestions, matchId, matchedText, applySuggestions }:
               applySuggestions={applySuggestions}
             />
           ))}
-        </Fragment>
+        </>
       )}
     </div>
   );

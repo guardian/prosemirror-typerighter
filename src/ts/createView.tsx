@@ -1,4 +1,5 @@
-import { h, render } from "preact";
+import React from "react";
+import { render } from "react-dom";
 import MatchOverlay from "./components/MatchOverlay";
 import Store from "./state/store";
 import { Commands } from "./commands";

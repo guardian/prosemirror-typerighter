@@ -1,6 +1,5 @@
-import { Component, h } from "preact";
+import React, { Component } from "react";
 import snarkdown from "snarkdown";
-
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
@@ -18,12 +17,13 @@ interface IMatchProps<TMatch extends IMatch> {
 
 class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
   public ref: HTMLDivElement | null = null;
-  public render({
-    match,
-    matchColours,
-    applySuggestions,
-    onMarkCorrect
-  }: IMatchProps<TMatch>) {
+  public render() {
+    const {
+      match,
+      matchColours,
+      applySuggestions,
+      onMarkCorrect
+    }: IMatchProps<TMatch> = this.props;
     const {
       matchId,
       category,

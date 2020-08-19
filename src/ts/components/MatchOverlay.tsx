@@ -1,12 +1,11 @@
 import Match from "./Match";
-import { h } from "preact";
+import React, { useState, useEffect } from "react";
 import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
 import Store, { IStoreEvents, STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
-import { useState, useEffect } from "preact/hooks";
 import { usePopper } from "react-popper";
 
 interface IProps<TMatch extends IMatch> {
@@ -89,7 +88,7 @@ const matchOverlay = <TMatch extends IMatch = IMatch>({
 
   return (
     <div
-      class="TyperighterPlugin__decoration-container"
+      className="TyperighterPlugin__decoration-container"
       style={styles.popper as any}
       {...attributes.popper}
       ref={setPopperElement}

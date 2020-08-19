@@ -1,4 +1,4 @@
-import { h } from "preact";
+import React from "react";
 
 import SvgIcon, { SvgIconTypeMap } from "@material-ui/core/SvgIcon";
 import { DefaultComponentProps } from "@material-ui/core/OverridableComponent";

@@ -1,5 +1,4 @@
-import { h, FunctionalComponent, Fragment } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import React, { useEffect, useState } from "react";
 import { IWikiSuggestion } from "../interfaces/IMatch";
 
 type IProps = IWikiSuggestion & {
@@ -28,11 +27,11 @@ interface IWikiArticleSummary {
   thumbnail?: IWikiThumbnail;
 }
 
-const WikiSuggestion: FunctionalComponent<IProps> = ({
+const WikiSuggestion = ({
   text,
   title,
   applySuggestion
-}) => {
+}: IProps) => {
   const [article, setArticle] = useState(undefined as
     | IWikiArticleSummary
     | undefined);
@@ -56,29 +55,29 @@ const WikiSuggestion: FunctionalComponent<IProps> = ({
   );
 
   return (
-    <div class="WikiSuggestion__container">
-      <div class="WikiSuggestion__text">
-        <div class="WikiSuggestion__suggestion" onClick={applySuggestion}>
+    <div className="WikiSuggestion__container">
+      <div className="WikiSuggestion__text">
+        <div className="WikiSuggestion__suggestion" onClick={applySuggestion}>
           {text}
         </div>
         {article && (
-          <Fragment>
-            <div class="WikiSuggestion__extract">
+          <>
+            <div className="WikiSuggestion__extract">
               {article.extract.slice(0, 220)}...
               <a
-                class="WikiSuggestion__link"
+                className="WikiSuggestion__link"
                 href={getWikiUrl(title)}
                 target="_blank"
               />
             </div>
-          </Fragment>
+          </>
         )}
         {!article && isLoading && (
-          <div class="WikiSuggestion__extract--placeholder" />
+          <div className="WikiSuggestion__extract--placeholder" />
         )}
       </div>
       <div
-        class={`WikiSuggestion__thumbnail ${isLoading &&
+        className={`WikiSuggestion__thumbnail ${isLoading &&
           "WikiSuggestion__thumbnail--placeholder"}`}
         style={{
           backgroundImage:

@@ -1,4 +1,4 @@
-import { Component, h, Fragment } from "preact";
+import React, { Component } from "react";
 import { v4 } from "uuid";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
@@ -57,7 +57,7 @@ class Controls extends Component<IProps, IState> {
       : "Sidebar__header-container Sidebar__header-container--is-closed";
 
     return (
-      <Fragment>
+      <>
         <div className={headerContainerClasses}>
           <div className="Sidebar__header">
             <button
@@ -95,7 +95,7 @@ class Controls extends Component<IProps, IState> {
             )}
           </div>
         )}
-      </Fragment>
+      </>
     );
   }
   private handleNotify = (state: IPluginState<IMatch>) => {
