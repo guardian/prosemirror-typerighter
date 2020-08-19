@@ -1,11 +1,11 @@
-import { h, Fragment } from "preact";
+import React, { useState, useEffect } from "react";
+
 import Store, { STORE_EVENT_NEW_STATE } from ".././state/store";
 import Results from "./Results";
 import Controls from "./Controls";
 import { Commands } from ".././commands";
 import { IMatch } from ".././interfaces/IMatch";
 import { MatcherService } from "..";
-import { useState, useEffect } from "preact/hooks";
 import { IPluginState } from "../state/reducer";
 
 interface IProps {
@@ -47,7 +47,7 @@ const Sidebar = ({
     : "Sidebar__section Sidebar__section--is-closed";
 
   return (
-    <Fragment>
+    <>
       {pluginState && (
         <div className={sidebarClasses}>
           <Controls
@@ -79,7 +79,7 @@ const Sidebar = ({
           )}
         </div>
       )}
-    </Fragment>
+    </>
   );
 };
 

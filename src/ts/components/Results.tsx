@@ -1,4 +1,4 @@
-import { Component, h, Fragment } from "preact";
+import React, { Component } from "react";
 import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
@@ -53,7 +53,7 @@ class Results extends Component<
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
     return (
-      <Fragment>
+      <>
         <div className="Sidebar__header-container">
           <div className="Sidebar__header">
             <span>
@@ -70,7 +70,7 @@ class Results extends Component<
           )}
           {this.state.loadingBarVisible && (
             <div
-              class="LoadingBar"
+              className="LoadingBar"
               style={{
                 opacity: isLoading ? 1 : 0,
                 width: `${100 - percentRemaining}%`
@@ -103,7 +103,7 @@ class Results extends Component<
             <div className="Sidebar__awaiting-match">No matches to report.</div>
           )}
         </div>
-      </Fragment>
+      </>
     );
   }
 

@@ -1,11 +1,12 @@
-import { Component, h, Fragment } from "preact";
+import React, { Component } from "react";
 import { v4 } from "uuid";
+import IconButton from "@material-ui/core/IconButton";
+import { Close } from "@material-ui/icons";
+
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
 import { selectHasError, selectRequestsInProgress } from "../state/selectors";
-import IconButton from "@material-ui/core/IconButton";
-import CloseIcon from "./icons/CloseIcon";
 
 interface IProps {
   store: Store<IMatch>;
@@ -57,7 +58,7 @@ class Controls extends Component<IProps, IState> {
       : "Sidebar__header-container Sidebar__header-container--is-closed";
 
     return (
-      <Fragment>
+      <>
         <div className={headerContainerClasses}>
           <div className="Sidebar__header">
             <button
@@ -75,7 +76,7 @@ class Controls extends Component<IProps, IState> {
                 onClick={this.props.onToggleActiveState}
                 disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
               >
-                <CloseIcon />
+                <Close />
               </IconButton>
             )}
           </div>
@@ -95,7 +96,7 @@ class Controls extends Component<IProps, IState> {
             )}
           </div>
         )}
-      </Fragment>
+      </>
     );
   }
   private handleNotify = (state: IPluginState<IMatch>) => {

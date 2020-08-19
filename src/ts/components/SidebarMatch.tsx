@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
 import { IMatch } from "../interfaces/IMatch";
-import { Component, h } from "preact";
+import React, { Component } from "react";
 import {
   IMatchColours,
   getColourForMatch,
@@ -101,7 +101,7 @@ class SidebarMatch extends Component<IProps, IState> {
     this.setState({ isOpen: !this.state.isOpen });
   };
 
-  private scrollToRange = (e: MouseEvent) => {
+  private scrollToRange = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
 

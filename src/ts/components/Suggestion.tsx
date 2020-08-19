@@ -1,4 +1,4 @@
-import { h, Fragment } from "preact";
+import React from "react";
 import jsDiff, { Change } from "diff";
 
 import { ApplySuggestionOptions } from "../commands";
@@ -31,15 +31,15 @@ const renderMatchDiff = (suggestionText: string, matchedText: string) => {
   const diffs = jsDiff.diffChars(suggestionText, matchedText);
 
   return (
-    <Fragment>
+    <>
       {diffs
         .filter((diff: Change) => !diff.removed)
         .map(diff => (
-          <span class={`Suggestion__diff-${diff.added ? "added" : ""}`}>
+          <span className={`Suggestion__diff-${diff.added ? "added" : ""}`}>
             {diff.value}
           </span>
         ))}
-    </Fragment>
+    </>
   );
 };
 
@@ -48,18 +48,18 @@ const renderSuggestionText = (matchedText: string, suggestionText: string) => {
     const matchSuggestionDiff = renderMatchDiff(suggestionText, matchedText);
 
     return (
-      <Fragment>
-        <span class="Suggestion__matched-text">
+      <>
+        <span className="Suggestion__matched-text">
           {matchSuggestionDiff}
-          <span class="Suggestion__matched-text-strikethrough"></span>
+          <span className="Suggestion__matched-text-strikethrough"></span>
         </span>
-        <span class="Suggestion__arrow">&nbsp;→&nbsp;</span>
-        <span class="Suggestion__text">{suggestionText}</span>
-      </Fragment>
+        <span className="Suggestion__arrow">&nbsp;→&nbsp;</span>
+        <span className="Suggestion__text">{suggestionText}</span>
+      </>
     )
   }
 
-  return <span class="Suggestion__text">{suggestionText}</span>
+  return <span className="Suggestion__text">{suggestionText}</span>
 }
 
 const Suggestion = ({
@@ -79,7 +79,7 @@ const Suggestion = ({
   switch (suggestion.type) {
     case "TEXT_SUGGESTION": {
       return (
-        <div class="Suggestion" onClick={boundApplySuggestions}>
+        <div className="Suggestion" onClick={boundApplySuggestions}>
           {renderSuggestionText(matchedText, suggestion.text)}
         </div>
       );
