@@ -4,3 +4,5 @@ export type ArgumentTypes<F extends Function> = F extends (
 ) => any
   ? A
   : never;
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

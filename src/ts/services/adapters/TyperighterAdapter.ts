@@ -61,16 +61,23 @@ class TyperighterAdapter implements IMatcherAdapter {
       try {
         const response = await fetch(`${this.url}/check`, {
           method: "POST",
-          credentials: 'include',
+          credentials: "include",
           headers: new Headers({
             "Content-Type": "application/json"
           }),
           body: JSON.stringify(body)
         });
+        if (response.status === 401 || response.status === 419) {
+          return onRequestError({
+            requestId,
+            blockId: input.id,
+            message: `${response.status}: ${response.statusText}`,
+            categoryIds,
+            type: "AUTH_ERROR"
+          });
+        }
         if (response.status !== 200) {
-          throw new Error(
-            `${response.status}: ${response.statusText}`
-          );
+          throw new Error(`${response.status}: ${response.statusText}`);
         }
         const responseData: ITypeRighterResponse = await response.json();
         this.responseBuffer.push(responseData);
@@ -80,14 +87,15 @@ class TyperighterAdapter implements IMatcherAdapter {
           requestId,
           blockId: input.id,
           message: e.message,
-          categoryIds
+          categoryIds,
+          type: "GENERAL_ERROR"
         });
       }
     });
   };
   public fetchCategories = async () => {
     const response = await fetch(`${this.url}/categories`, {
-      credentials: 'include',
+      credentials: "include",
       headers: new Headers({
         "Content-Type": "application/json"
       })

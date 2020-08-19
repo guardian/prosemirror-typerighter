@@ -22,8 +22,8 @@ import {
 } from "./state/reducer";
 import {
   IMatcherResponse,
-  IMatchRequestError,
-  IMatch
+  IMatch,
+  TMatchRequestErrorWithDefault
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
@@ -208,13 +208,16 @@ export const applyMatcherResponseCommand = (
  * to be resent on the next request.
  */
 export const applyRequestErrorCommand = (
-  matchRequestError: IMatchRequestError
+  matchRequestError: TMatchRequestErrorWithDefault
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
-        requestError(matchRequestError)
+        requestError({
+          ...matchRequestError,
+          type: matchRequestError.type || "GENERAL_ERROR"
+        })
       )
     );
   }
