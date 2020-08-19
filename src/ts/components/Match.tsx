@@ -46,7 +46,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       markAsCorrect
     };
 
-    const safeMessage = stripHtml(message);
+    const messageWithoutHtml = stripHtml(message);
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
     const suggestionContent = (
       <div className="MatchWidget__suggestion-list">
@@ -88,7 +88,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
           {suggestionContent}
           <div
             className="MatchWidget__annotation"
-            dangerouslySetInnerHTML={{ __html: snarkdown(safeMessage) }}
+            dangerouslySetInnerHTML={{ __html: snarkdown(messageWithoutHtml) }}
           ></div>
           <div className="MatchWidget__footer">
             {this.props.feedbackHref && (
