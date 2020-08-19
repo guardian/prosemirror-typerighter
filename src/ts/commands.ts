@@ -109,7 +109,10 @@ export const stopHoverCommand = (): Command => (state, dispatch) => {
 
 
 /**
- * Indicate the user is hovering over a match.
+ * Indicate the user is highlighting a match decoration.
+ *
+ * The highlight state indicates that we'd like to draw the user's
+ * attention to this match, without additional UI elements, e.g. tooltips.
  */
 export const startHighlightCommand = (matchId: string): Command => (
   state,
@@ -127,7 +130,7 @@ export const startHighlightCommand = (matchId: string): Command => (
 };
 
 /**
- * Indicate that the user is no longer hovering over a match.
+ * Indicate that the user is no longer highlighting a match decoration.
  */
 export const stopHighlightCommand = (): Command => (state, dispatch) => {
   if (dispatch) {
