@@ -433,7 +433,8 @@ describe("Action handlers", () => {
           requestId: exampleRequestId,
           blockId: createBlockId(0, 1, 25),
           message: "Too many requests",
-          categoryIds: ["example-category"]
+          categoryIds: ["example-category"],
+          type: "GENERAL_ERROR"
         })
       );
       expect(newState).toMatchObject({
