@@ -49,8 +49,10 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
+    const pluginIsActive = this.state.pluginState?.config.isActive;
+
     const handleCheckDocumentButtonClick = (): void => {
-      if (!this.state.pluginState?.config.isActive) {
+      if (!pluginIsActive) {
         this.props.onToggleActiveState();
       }
       this.requestMatchesForDocument();
@@ -112,7 +114,7 @@ class Controls extends Component<IProps, IState> {
             >
               Check document
             </button>
-            {this.state.pluginState?.config.isActive && (
+            {pluginIsActive && (
               <IconButton
                 size="small"
                 aria-label="close Typerighter"
@@ -127,7 +129,7 @@ class Controls extends Component<IProps, IState> {
             )}
           </div>
         </div>
-        {renderErrorMessage()}
+        {pluginIsActive && renderErrorMessage()}
       </>
     );
   }
