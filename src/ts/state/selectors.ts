@@ -110,17 +110,17 @@ export const selectAllAutoFixableMatches = <TMatch extends IMatch>(
     _ => _.replacement && _.replacement.text === _.message
   );
 
-export const selectHasError = <TMatch extends IMatch>(
+export const selectHasGeneralError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
-): boolean => !!state.requestErrors && state.requestErrors.length > 0;
+): boolean => {
+  const generalErrors = state.requestErrors.filter(_ => _.type === "GENERAL_ERROR");
+  return !!state.requestErrors && generalErrors.length > 0};
 
 export const selectHasAuthError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => {
-  const authErrors = state.requestErrors.filter(_ =>
-    _.message.startsWith("401")
-  );
-  return authErrors.length > 0;
+  const authErrors = state.requestErrors.filter(_ => _.type === "AUTH_ERROR");
+  return !!state.requestErrors && authErrors.length > 0;
 };
 
 export const selectRequestsInProgress = <TMatch extends IMatch>(
