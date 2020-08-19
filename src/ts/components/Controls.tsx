@@ -7,7 +7,7 @@ import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
 import {
-  selectHasError,
+  selectHasGeneralError,
   selectHasAuthError,
   selectRequestsInProgress
 } from "../state/selectors";
@@ -60,6 +60,43 @@ class Controls extends Component<IProps, IState> {
       ? "Sidebar__header-container"
       : "Sidebar__header-container Sidebar__header-container--is-closed";
 
+    const renderErrorMessage = () => {
+      const pluginState = this.state.pluginState;
+
+      if (!pluginState) {
+        return;
+      }
+
+      const hasAuthError = selectHasAuthError(pluginState);
+      const hasGeneralError = selectHasGeneralError(pluginState);
+      const hasErrors: boolean = hasAuthError || hasGeneralError;
+
+      let errorMessage: string = "";
+      if (hasAuthError) {
+        errorMessage = "Authentication error - please refresh the page. ";
+      }
+      if (hasGeneralError && !hasAuthError) {
+        errorMessage =
+          "Error fetching matches. Please try checking the document again. ";
+      }
+      if (hasErrors) {
+        return (
+          <div className="Controls__error-message">
+            {errorMessage}
+            {this.props.feedbackHref && (
+              <span>
+                If the error persists, please{" "}
+                <a href={this.getErrorFeedbackLink()} target="_blank">
+                  contact us
+                </a>
+                .
+              </span>
+            )}
+          </div>
+        );
+      }
+    };
+
     return (
       <>
         <div className={headerContainerClasses}>
@@ -90,38 +127,7 @@ class Controls extends Component<IProps, IState> {
             )}
           </div>
         </div>
-
-        {this.state.pluginState &&
-          selectHasError(this.state.pluginState) &&
-          !selectHasAuthError(this.state.pluginState) && (
-            <div className="Controls__error-message">
-              Error fetching matches. Please try checking the document again.{" "}
-              {this.props.feedbackHref && (
-                <span>
-                  If the error persists, please{" "}
-                  <a href={this.getErrorFeedbackLink()} target="_blank">
-                    contact us
-                  </a>
-                  .
-                </span>
-              )}
-            </div>
-          )}
-
-        {this.state.pluginState && selectHasAuthError(this.state.pluginState) && (
-          <div className="Controls__error-message">
-            Authentication error - please refresh the page.{" "}
-            {this.props.feedbackHref && (
-              <span>
-                If the error persists, please{" "}
-                <a href={this.getErrorFeedbackLink()} target="_blank">
-                  contact us
-                </a>
-                .
-              </span>
-            )}
-          </div>
-        )}
+        {renderErrorMessage()}
       </>
     );
   }
