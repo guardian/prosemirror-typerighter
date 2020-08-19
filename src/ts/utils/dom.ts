@@ -1,11 +1,13 @@
+import snarkdown from "snarkdown";
+
 /**
  * Strip any HTML from an input string.
  */
-export const stripHtml = (text: string) => {
-  const decoder = document.createElement('div')
-  decoder.innerHTML = text
-  return decoder.textContent || ''
-}
+export const getHtmlFromMarkdown = (markdown: string) => {
+  const decoder = document.createElement("div");
+  decoder.innerHTML = markdown;
+  return snarkdown(decoder.textContent || "");
+};
 
 /**
  * Find the first ancestor node of the given node that matches the selector.

@@ -1,6 +1,8 @@
 import compact from "lodash/compact";
-import { IMatch } from "../interfaces/IMatch";
+
 import React, { Component } from "react";
+
+import { IMatch } from "../interfaces/IMatch";
 import {
   IMatchColours,
   getColourForMatch,
@@ -9,6 +11,7 @@ import {
 import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
+import { getHtmlFromMarkdown } from "../utils/dom";
 
 interface IProps {
   match: IMatch;
@@ -64,9 +67,12 @@ class SidebarMatch extends Component<IProps, IState> {
               <div className="SidebarMatch__header-match-text">
                 {match.matchedText}
               </div>
-              <div className="SidebarMatch__header-description">
-                {match.message}
-              </div>
+              <div
+                className="SidebarMatch__header-description"
+                dangerouslySetInnerHTML={{
+                  __html: getHtmlFromMarkdown(match.message)
+                }}
+              ></div>
             </div>
             <div className="SidebarMatch__header-meta">
               <div className="SidebarMatch__header-category">
