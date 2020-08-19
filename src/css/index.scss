@@ -50,6 +50,9 @@ $base-border-radius: 3px;
 @import "./Suggestion.scss";
 @import "./SuggestionList.scss";
 @import "./Icon.scss";
+@import "./MatchWidget.scss";
+@import "./MatchDecoration.scss";
+@import "./MatchDebug.scss";
 
 // Elements
 
@@ -89,171 +92,6 @@ hr {
   outline: none;
 }
 
-.MatchWidget {
-  background-color: white;
-  display: block;
-  position: relative;
-  padding: $gutter-width * 1.5;
-  font-family: sans-serif;
-  font-style: normal;
-  font-weight: normal;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
-  border-radius: 3px;
-  width: 300px;
-  transition: opacity 0.1s, transform 0.1s;
-  transform: translate3d(0, -3px, 0);
-  z-index: 100;
-  overflow: hidden;
-}
-
-.MatchWidget__container {
-  margin-top: 13px;
-  position: relative;
-  font-size: $font-size-base;
-}
-
-.MatchWidget__container--is-hovering .MatchWidget {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
-
-.MatchWidget__type {
-  color: $match-gray;
-  font-variant: small-caps;
-  // normalise line height, as the small-caps take up less space
-  line-height: 0.7;
-  text-transform: lowercase;
-  letter-spacing: 0.3px;
-}
-.MatchWidget__suggestion {
-  padding: $gutter-width;
-}
-
-.MatchWidget__type {
-  padding-bottom: $gutter-width;
-}
-
-.MatchWidget__annotation {
-  padding-top: $gutter-width;
-}
-
-.MatchWidget__color-swatch {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 5px;
-  border-radius: 8px;
-}
-
-.MatchWidget__label {
-  display: block;
-  margin-bottom: 2px;
-  transition: background-color 0.1s;
-}
-
-.MatchWidget__suggestion-list {
-  display: block;
-  margin-top: 3px;
-}
-
-.MatchWidget__suggestion {
-  display: block;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: $font-size-large;
-  color: $match-suggestion-color;
-  background-color: $match-suggestion-background-color;
-}
-
-.MatchWidget__suggestion:nth-child(even) {
-  background-color: darken($match-suggestion-background-color, 2%);
-}
-
-.MatchWidget__suggestion:hover {
-  color: $match-suggestion-color-hover;
-  background-color: $match-suggestion-background-color-hover;
-}
-.MatchWidget__suggestion + .MatchWidget__suggestion {
-  margin-top: 3px;
-}
-
-.MatchWidget__footer {
-  margin-top: $gutter-width;
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.MatchWidget__ignore-match {
-  display: block;
-  margin-left: auto;
-  cursor: pointer;
-
-  .MatchWidget__ignore-match-button {
-    padding: $gutter-width;
-    border-radius: $base-border-radius;
-    font-weight: normal;
-    font-size: $font-size-base;
-    color: $match-suggestion-background-color;
-  }
-
-  .MatchWidget__ignore-match-button:hover {
-    background-color: $match-ignore-color-hover;
-  }
-
-  .MatchWidget__ignore-match-icon {
-    font-size: 0.8em;
-    padding-right: 5px;
-  }
-
-}
-
-.SidebarMatch__suggestion-list + .MatchWidget__ignore-match {
-  margin-top: 3px;
-}
-
-.MatchWidget__feedbackLink {
-  font-size: $font-size-small;
-  a {
-    color: $match-gray;
-  }
-}
-
-.MatchDecoration {
-  border-bottom: 2px solid $match-color;
-}
-
-.MatchDecoration__height-marker {
-  &:before {
-    // We insert a unicode zero width space character here to ensure the
-    // height marker has content. As a result, it grows to match the line-height.
-    // See https://stackoverflow.com/questions/14217902/how-to-set-empty-span-height-equal-to-default-line-height
-    content: "\200b";
-  }
-}
-
-.MatchDecoration--is-correct {
-  position: relative;
-  &:after {
-    display: block;
-    content: "✓";
-    position: absolute;
-    right: -10px;
-    top: -8px;
-    color: rgb(4, 213, 20);
-    font-weight: bold;
-    pointer-events: none;
-  }
-}
-
-.MatchDebugDirty {
-  background-color: $match-debug-color-dirty;
-}
-
-.MatchDebugInflight {
-  background-color: $match-debug-color-inflight;
-}
-
 .TyperighterPlugin__overlay {
   position: absolute;
   top: 0;
@@ -264,6 +102,11 @@ hr {
   position: absolute;
 }
 
-.TyperighterPlugin__container {
+.TyperighterPlugin__tooltip-overlay {
+  // position: relative provides a new stacking context, which
+  // gives the tooltip a better chance of appearing on top of
+  // other elements.
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context
   position: relative;
+  z-index: 10;
 }

@@ -1,185 +1,109 @@
 import Match from "./Match";
-import { Component, h } from "preact";
-import { IStateHoverInfo, IPluginState } from "../state/reducer";
+import { h } from "preact";
+import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
-import Store, { STORE_EVENT_NEW_STATE, IStoreEvents } from "../state/store";
+import { maybeGetDecorationElement } from "../utils/decoration";
+import Store, { IStoreEvents, STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
+import { useState, useEffect } from "preact/hooks";
+import { usePopper } from "react-popper";
 
-interface IState {
-  left: number | undefined;
-  top: number | undefined;
-  hoverInfo: IStateHoverInfo | undefined;
-  match: IMatch | undefined;
-  isVisible: boolean;
-  pluginState: IPluginState | undefined;
-}
 interface IProps<TMatch extends IMatch> {
   store: Store<TMatch, IStoreEvents<TMatch>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
-  // The element that contains the tooltips. Tooltips will be positioned
-  // within this element.
-  containerElement?: HTMLElement;
   feedbackHref?: string;
   onMarkCorrect?: (match: IMatch) => void;
 }
 
 /**
- * An overlay to display match tooltips. Subscribes to hover events.
+ * An overlay to display match tooltips.
  */
-class MatchOverlay<TMatch extends IMatch = IMatch> extends Component<
-  IProps<TMatch>,
-  IState
-> {
-  public state: IState = {
-    isVisible: false,
-    left: undefined,
-    top: undefined,
-    hoverInfo: undefined,
-    match: undefined,
-    pluginState: undefined
-  };
-  private matchRef: Match<TMatch> | undefined = undefined;
+const matchOverlay = <TMatch extends IMatch = IMatch>({
+  applySuggestions,
+  feedbackHref,
+  onMarkCorrect,
+  store
+}: IProps<TMatch>) => {
+  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
+    undefined
+  );
+  const [currentMatchId, setCurrentMatchId] = useState<string | undefined>(
+    undefined
+  );
+  const [
+    referenceElement,
+    setReferenceElement
+  ] = useState<HTMLDivElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
+    null
+  );
+  const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null);
 
-  public componentWillMount() {
-    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
-  }
+  useEffect(() => {
+    // Subscribe to the plugin state. We keep a separate reference to the
+    // currentMatchId so we can create an effect that watches for it changing.
+    // If we watched the whole plugin state, we'd have a lot of redundant calls.
+    store.on(STORE_EVENT_NEW_STATE, newState => {
+      setPluginState(newState);
+      setCurrentMatchId(newState.hoverId);
+    });
+    return () =>
+      store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
+  }, []);
 
-  public componentDidUpdate() {
-    if (this.state.isVisible) {
+  useEffect(() => {
+    // If we've got a new match tooltip to display, get the reference to
+    // the current decoration and set the state.
+    if (!currentMatchId) {
       return;
     }
-    const { left, top } = this.getCoordsFromHoverEvent();
-    this.setState({
-      isVisible: true,
-      left,
-      top
-    });
+    const matchElement = maybeGetDecorationElement(currentMatchId);
+    setReferenceElement(matchElement as any);
+  }, [currentMatchId]);
+
+  const { styles, attributes } = usePopper(referenceElement, popperElement, {
+    placement: 'bottom-start',
+    modifiers: [
+      { name: "arrow", options: { element: arrowElement } },
+      // We provide a negative offset here to ensure there's an overlap
+      // between the decoration triggering the tooltip and the tooltip.
+      // If there's a gap, the tooltip library detects a `mouseleave` event
+      // and closes the tooltip prematurely. We account for this with
+      // padding on the tooltip container – see the styling for MatchWidget.
+      { name: "offset", options: { offset: [0, -5] } }
+    ]
+  });
+
+  if (!pluginState) {
+    return null;
   }
 
-  public render() {
-    const { applySuggestions, feedbackHref, onMarkCorrect } = this.props;
-    const { match, left, top, pluginState } = this.state;
-    if (!pluginState || !match || left === undefined || top === undefined) {
-      return null;
-    }
-    return (
-      <div
-        class="TyperighterPlugin__overlay"
-        onMouseOver={this.handleMouseOver}
-      >
-        <div
-          class="TyperighterPlugin__decoration-container"
-          style={{
-            // We hoist top slightly to ensure that the rendered element overlaps the
-            // span that triggered the overlay -- if the mouse falls through a gap it
-            // will trigger a mouseleave event that will close the overlay.
-            top: top - 5,
-            left
-          }}
-        >
-          <Match
-            ref={_ => (this.matchRef = _)}
-            match={match}
-            matchColours={pluginState.config.matchColours}
-            applySuggestions={applySuggestions}
-            feedbackHref={feedbackHref}
-            onMarkCorrect={onMarkCorrect}
-          />
-        </div>
-      </div>
-    );
+  const maybeMatch =
+    pluginState.hoverId &&
+    selectMatchByMatchId(pluginState, pluginState.hoverId);
+
+  if (!maybeMatch) {
+    return null;
   }
 
-  private handleMouseOver = (e: MouseEvent) => e.stopPropagation();
+  return (
+    <div
+      class="TyperighterPlugin__decoration-container"
+      style={styles.popper as any}
+      {...attributes.popper}
+      ref={setPopperElement}
+    >
+      <div ref={setArrowElement} style={styles.arrow as any} />
+      <Match
+        match={maybeMatch}
+        matchColours={pluginState.config.matchColours}
+        applySuggestions={applySuggestions}
+        feedbackHref={feedbackHref}
+        onMarkCorrect={onMarkCorrect}
+      />
+    </div>
+  );
+};
 
-  private handleNotify = (state: IPluginState<IMatch>) => {
-    const newState = {
-      isVisible: false,
-      left: 0,
-      top: 0
-    };
-    if (state.hoverId && state.hoverInfo) {
-      const match = selectMatchByMatchId(state, state.hoverId);
-      return this.setState({
-        hoverInfo: state.hoverInfo,
-        match,
-        pluginState: state,
-        ...newState
-      });
-    }
-    this.setState({
-      hoverInfo: undefined,
-      match: undefined,
-      pluginState: state,
-      ...newState
-    });
-  };
-
-  private getCoordsFromHoverEvent = () => {
-    if (!this.matchRef || !this.state.hoverInfo) {
-      return { left: 0, top: 0 };
-    }
-
-    const {
-      left: tooltipLeft,
-      top: tooltipTop,
-      maxLeft: toolTipMaxLeft
-    } = this.getIdealTooltipCoords(this.state.hoverInfo);
-
-    const maxLeft = this.props.containerElement
-      ? (toolTipMaxLeft || this.props.containerElement.clientWidth) -
-        this.matchRef.ref!.offsetWidth
-      : Infinity;
-
-    return {
-      left: tooltipLeft < maxLeft ? tooltipLeft : maxLeft,
-      top: tooltipTop
-    };
-  };
-
-  private getIdealTooltipCoords = (hoverInfo: IStateHoverInfo) => {
-    const spanRects = Array.from(hoverInfo.markerClientRects);
-    const hoveredRect = spanRects.find(rect =>
-      this.areCoordsWithinClientRect(
-        hoverInfo.mouseClientX,
-        hoverInfo.mouseClientY,
-        rect
-      )
-    );
-    const maxLeft =
-      spanRects.length > 1
-        ? Math.max(...spanRects.map(_ => _.right))
-        : undefined;
-    const absoluteLeft = hoveredRect
-      ? hoveredRect.left
-      : hoverInfo.mouseClientX;
-    const absoluteTop = hoveredRect
-      ? hoveredRect.top + hoveredRect.height
-      : hoverInfo.mouseClientX;
-
-    const left = absoluteLeft - hoverInfo.containerLeft;
-    const top = absoluteTop - hoverInfo.containerTop;
-
-    return { left, top, maxLeft };
-  };
-
-  private areCoordsWithinClientRect = (
-    x: number,
-    y: number,
-    rect: DOMRect | ClientRect
-  ): boolean => {
-    // We seem to need some padding here to account for small discrepancies between
-    // the mouse coords and the bounding box of the span rect.
-    const padding = 2;
-    const isInRect = !!(
-      x >= rect.left - padding &&
-      x <= rect.left + rect.width + padding &&
-      y >= rect.top - padding &&
-      y <= rect.top + rect.height + padding
-    );
-    return isInRect;
-  };
-}
-
-export default MatchOverlay;
+export default matchOverlay;

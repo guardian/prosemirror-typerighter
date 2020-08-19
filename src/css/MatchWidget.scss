@@ -1,0 +1,143 @@
+
+.MatchWidget {
+  background-color: white;
+  display: block;
+  position: relative;
+  padding: $gutter-width * 1.5;
+  font-family: sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.18);
+  border-radius: 3px;
+  width: 300px;
+  transition: opacity 0.1s, transform 0.1s;
+  transform: translate3d(0, -3px, 0);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.MatchWidget__container {
+  /**
+   * We provide padding here to distance the MatchWidget tooltip
+   * from the decoration it's attached to. The value is 15px, but
+   * the distance the user sees is ~10px, as we ask our tooltip
+   * library to offset its positioning by -5px.
+   *
+   * This ensures that there's no gap between the tooltip and the
+   * decoration when the user moves their mouse from the decoration
+   * to the tooltip. If there's a gap, the tooltip library detects a
+   * `mouseleave` event and closes the tooltip prematurely.
+   *
+   * We align the tooltip to the left by default,
+   */
+  padding: 15px 15px 15px 0px;
+  position: relative;
+  font-size: $font-size-base;
+}
+
+.MatchWidget__container--is-hovering .MatchWidget {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.MatchWidget__type {
+  color: $match-gray;
+  font-variant: small-caps;
+  // normalise line height, as the small-caps take up less space
+  line-height: 0.7;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+}
+.MatchWidget__suggestion {
+  padding: $gutter-width;
+}
+
+.MatchWidget__type {
+  padding-bottom: $gutter-width;
+}
+
+.MatchWidget__annotation {
+  padding-top: $gutter-width;
+}
+
+.MatchWidget__color-swatch {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 8px;
+}
+
+.MatchWidget__label {
+  display: block;
+  margin-bottom: 2px;
+  transition: background-color 0.1s;
+}
+
+.MatchWidget__suggestion-list {
+  display: block;
+  margin-top: 3px;
+}
+
+.MatchWidget__suggestion {
+  display: block;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: $font-size-large;
+  color: $match-suggestion-color;
+  background-color: $match-suggestion-background-color;
+}
+
+.MatchWidget__suggestion:nth-child(even) {
+  background-color: darken($match-suggestion-background-color, 2%);
+}
+
+.MatchWidget__suggestion:hover {
+  color: $match-suggestion-color-hover;
+  background-color: $match-suggestion-background-color-hover;
+}
+.MatchWidget__suggestion + .MatchWidget__suggestion {
+  margin-top: 3px;
+}
+
+.MatchWidget__footer {
+  margin-top: $gutter-width;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.MatchWidget__ignore-match {
+  display: block;
+  margin-left: auto;
+  cursor: pointer;
+
+  .MatchWidget__ignore-match-button {
+    padding: $gutter-width;
+    border-radius: $base-border-radius;
+    font-weight: normal;
+    font-size: $font-size-base;
+    color: $match-suggestion-background-color;
+  }
+
+  .MatchWidget__ignore-match-button:hover {
+    background-color: $match-ignore-color-hover;
+  }
+
+  .MatchWidget__ignore-match-icon {
+    font-size: 0.8em;
+    padding-right: 5px;
+  }
+
+}
+
+.SidebarMatch__suggestion-list + .MatchWidget__ignore-match {
+  margin-top: 3px;
+}
+
+.MatchWidget__feedbackLink {
+  font-size: $font-size-small;
+  a {
+    color: $match-gray;
+  }
+}

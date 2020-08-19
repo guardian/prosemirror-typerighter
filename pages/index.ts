@@ -62,7 +62,6 @@ if (editorElement && sidebarNode) {
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
   createView({
-    view,
     store,
     matcherService,
     commands,
