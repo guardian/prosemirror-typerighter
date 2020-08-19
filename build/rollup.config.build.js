@@ -11,33 +11,6 @@ const plugins = [
   })
 ];
 
-const externalModules = [
-  "prosemirror-example-setup",
-  "prosemirror-history",
-  "prosemirror-keymap",
-  "prosemirror-menu",
-  "prosemirror-model",
-  "prosemirror-schema-basic",
-  "prosemirror-state",
-  "prosemirror-test-builder",
-  "prosemirror-view",
-  "prosemirror-transform",
-  "preact",
-  "prosemirror-tables",
-  "prosemirror-utils",
-  "uuid",
-  "prop-types",
-  "react-is",
-  "hoist-non-react-statics",
-  "diff",
-  "react-fast-compare",
-  "warning",
-  "snarkdown"
-];
-
-const external = id =>
-  /(lodash)/.test(id) || externalModules.includes(id);
-
 export default [
   {
     input: "src/ts/index.ts",
@@ -45,8 +18,7 @@ export default [
       file: "dist/index.js",
       format: "cjs"
     },
-    plugins,
-    external
+    plugins
   },
   {
     input: "src/ts/index.ts",
@@ -54,7 +26,6 @@ export default [
       file: "dist/index.m.js",
       format: "es"
     },
-    plugins,
-    external
+    plugins
   }
 ];
