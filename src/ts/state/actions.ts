@@ -4,7 +4,7 @@ import {
   IRange,
   IMatch
 } from "../interfaces/IMatch";
-import { IStateHoverInfo, IPluginConfig } from "./reducer";
+import { IPluginConfig } from "./reducer";
 
 /**
  * Action types.
@@ -16,6 +16,7 @@ export const REQUEST_SUCCESS = "REQUEST_SUCCESS" as const;
 export const REQUEST_ERROR = "REQUEST_ERROR" as const;
 export const REQUEST_COMPLETE = "REQUEST_COMPLETE" as const;
 export const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
+export const NEW_HIGHLIGHT_ID = "NEW_HIGHLIGHT_ID" as const;
 export const SELECT_MATCH = "SELECT_MATCH" as const;
 export const REMOVE_MATCH = "REMOVE_MATCH" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
@@ -72,13 +73,21 @@ export const requestMatchesComplete = (requestId: string) => ({
 export type ActionRequestComplete = ReturnType<typeof requestMatchesComplete>;
 
 export const newHoverIdReceived = (
-  matchId: string | undefined,
-  hoverInfo?: IStateHoverInfo | undefined
+  matchId: string | undefined
 ) => ({
   type: NEW_HOVER_ID,
-  payload: { matchId, hoverInfo }
+  payload: { matchId }
 });
 export type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
+
+export const newHighlightIdReceived = (
+  matchId: string | undefined
+) => ({
+  type: NEW_HIGHLIGHT_ID,
+  payload: { matchId }
+});
+export type ActionNewHighlightIdReceived = ReturnType<typeof newHighlightIdReceived>;
+
 
 export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
   type: APPLY_NEW_DIRTY_RANGES,
@@ -114,6 +123,7 @@ export type ActionRemoveMatch = ReturnType<typeof removeMatch>;
 
 export type Action<TMatch extends IMatch> =
   | ActionNewHoverIdReceived
+  | ActionNewHighlightIdReceived
   | ActionRequestMatchesSuccess<TMatch>
   | ActionRequestMatchesForDirtyRanges
   | ActionRequestMatchesForDocument

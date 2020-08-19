@@ -15,8 +15,8 @@ interface IProps {
   matchColours: IMatchColours;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
-  indicateHover: (blockId: string, _?: any) => void;
-  stopHover: () => void;
+  indicateHighlight: (blockId: string, _?: any) => void;
+  stopHighlight: () => void;
   selectedMatch: string | undefined;
   editorScrollElement: Element;
   getScrollOffset: () => number;
@@ -122,11 +122,11 @@ class SidebarMatch extends Component<IProps, IState> {
   };
 
   private handleMouseEnter = () => {
-    this.props.indicateHover(this.props.match.matchId);
+    this.props.indicateHighlight(this.props.match.matchId);
   };
 
   private handleMouseLeave = () => {
-    this.props.stopHover();
+    this.props.stopHighlight();
   };
 }
 

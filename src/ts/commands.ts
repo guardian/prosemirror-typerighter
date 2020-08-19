@@ -8,7 +8,8 @@ import {
   requestError,
   requestMatchesForDirtyRanges,
   requestMatchesComplete,
-  removeMatch
+  removeMatch,
+  newHighlightIdReceived
 } from "./state/actions";
 import {
   selectMatchByMatchId,
@@ -17,7 +18,6 @@ import {
 import {
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IPluginState,
-  IStateHoverInfo,
   IPluginConfig
 } from "./state/reducer";
 import {
@@ -75,19 +75,17 @@ export const requestMatchesForDirtyRangesCommand = (
 };
 
 /**
- * Indicate new hover information is available. This could include
- * details on hover coords if available (for example, if hovering
- * over a match decoration) to allow the positioning of e.g. tooltips.
+ * Indicate the user is hovering over a match.
  */
-export const indicateHoverCommand = (
-  matchId: string,
-  hoverInfo?: IStateHoverInfo
-): Command => (state, dispatch) => {
+export const startHoverCommand = (matchId: string): Command => (
+  state,
+  dispatch
+) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
-        newHoverIdReceived(matchId, hoverInfo)
+        newHoverIdReceived(matchId)
       )
     );
   }
@@ -95,15 +93,51 @@ export const indicateHoverCommand = (
 };
 
 /**
- * Indicate that the user is no longer hovering over a
- * prosemirror-typerighter tooltip.
+ * Indicate that the user is no longer hovering over a match.
  */
 export const stopHoverCommand = (): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
-        newHoverIdReceived(undefined, undefined)
+        newHoverIdReceived(undefined)
+      )
+    );
+  }
+  return true;
+};
+
+
+/**
+ * Indicate the user is highlighting a match decoration.
+ *
+ * The highlight state indicates that we'd like to draw the user's
+ * attention to this match, without additional UI elements, e.g. tooltips.
+ */
+export const startHighlightCommand = (matchId: string): Command => (
+  state,
+  dispatch
+) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        newHighlightIdReceived(matchId)
+      )
+    );
+  }
+  return true;
+};
+
+/**
+ * Indicate that the user is no longer highlighting a match decoration.
+ */
+export const stopHighlightCommand = (): Command => (state, dispatch) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        newHighlightIdReceived(undefined)
       )
     );
   }
@@ -327,8 +361,10 @@ export const createBoundCommands = <TMatch extends IMatch>(
     requestMatchesForDirtyRanges: bindCommand(
       requestMatchesForDirtyRangesCommand
     ),
-    indicateHover: bindCommand(indicateHoverCommand),
+    indicateHover: bindCommand(startHoverCommand),
     stopHover: bindCommand(stopHoverCommand),
+    indicateHighlight: bindCommand(startHighlightCommand),
+    stopHighlight: bindCommand(stopHighlightCommand),
     setConfigValue: bindCommand(setConfigValueCommand),
     applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
     applyRequestError: bindCommand(applyRequestErrorCommand),
