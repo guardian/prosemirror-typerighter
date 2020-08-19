@@ -1,9 +1,12 @@
 import { Component, h } from "preact";
+import snarkdown from "snarkdown";
+
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchColours } from "../utils/decoration";
 import Correct from "./icons/Correct";
+import { stripHtml } from "../utils/dom";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
@@ -43,28 +46,31 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       markAsCorrect
     };
 
+    const messageWithoutHtml = stripHtml(message);
     const suggestionsToRender = replacement ? [replacement] : suggestions || [];
     const suggestionContent = (
-        <div className="MatchWidget__suggestion-list">
-          {suggestionsToRender && applySuggestions && !markAsCorrect && 
+      <div className="MatchWidget__suggestion-list">
+        {suggestionsToRender && applySuggestions && !markAsCorrect && (
           <SuggestionList
             applySuggestions={applySuggestions}
             matchId={matchId}
             matchedText={matchedText}
             suggestions={suggestionsToRender}
-          />}
-          {onMarkCorrect && (
-              <div className="MatchWidget__ignore-match">
-                <div className="MatchWidget__ignore-match-button"
-                onClick={() => onMarkCorrect(match)}
-                >
-                  <Correct className="MatchWidget__ignore-match-icon"/>
-                   Mark as correct
-                </div>
-              </div>
-            )}
-        </div>
-      );
+          />
+        )}
+        {onMarkCorrect && (
+          <div className="MatchWidget__ignore-match">
+            <div
+              className="MatchWidget__ignore-match-button"
+              onClick={() => onMarkCorrect(match)}
+            >
+              <Correct className="MatchWidget__ignore-match-icon" />
+              Mark as correct
+            </div>
+          </div>
+        )}
+      </div>
+    );
 
     return (
       <div className="MatchWidget__container">
@@ -72,12 +78,18 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
           <div className="MatchWidget__type">
             <span
               className="MatchWidget__color-swatch"
-              style={{ backgroundColor: getColourForMatch(match, matchColours, false).borderColour }}
+              style={{
+                backgroundColor: getColourForMatch(match, matchColours, false)
+                  .borderColour
+              }}
             ></span>
             {category.name}
           </div>
           {suggestionContent}
-          <div className="MatchWidget__annotation">{message}</div>
+          <div
+            className="MatchWidget__annotation"
+            dangerouslySetInnerHTML={{ __html: snarkdown(messageWithoutHtml) }}
+          ></div>
           <div className="MatchWidget__footer">
             {this.props.feedbackHref && (
               <div className="MatchWidget__feedbackLink">

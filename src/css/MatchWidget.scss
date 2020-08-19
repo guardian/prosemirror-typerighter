@@ -58,6 +58,11 @@
 
 .MatchWidget__annotation {
   padding-top: $gutter-width;
+  // Match descriptions generated with markdown
+  // will be nested in p tags.
+  p {
+    margin: 0;
+  }
 }
 
 .MatchWidget__color-swatch {
