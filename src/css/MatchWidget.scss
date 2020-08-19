@@ -118,11 +118,17 @@
   cursor: pointer;
 
   .MatchWidget__ignore-match-button {
+    display: flex;
+    align-items: center;
     padding: $gutter-width;
     border-radius: $base-border-radius;
     font-weight: normal;
     font-size: $font-size-base;
     color: $match-suggestion-background-color;
+  }
+
+  .MatchWidget__ignore-match-text {
+    margin-left: $gutter-width / 2;
   }
 
   .MatchWidget__ignore-match-button:hover {

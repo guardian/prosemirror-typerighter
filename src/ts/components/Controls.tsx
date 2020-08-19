@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { v4 } from "uuid";
+import IconButton from "@material-ui/core/IconButton";
+import { Close } from "@material-ui/icons";
+
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
 import { selectHasError, selectRequestsInProgress } from "../state/selectors";
-import IconButton from "@material-ui/core/IconButton";
-import CloseIcon from "./icons/CloseIcon";
 
 interface IProps {
   store: Store<IMatch>;
@@ -75,7 +76,7 @@ class Controls extends Component<IProps, IState> {
                 onClick={this.props.onToggleActiveState}
                 disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
               >
-                <CloseIcon />
+                <Close />
               </IconButton>
             )}
           </div>

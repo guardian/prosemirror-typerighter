@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import snarkdown from "snarkdown";
+
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchColours } from "../utils/decoration";
-import Correct from "./icons/Correct";
+import { Check } from "@material-ui/icons";
 import { stripHtml } from "../utils/dom";
 
 interface IMatchProps<TMatch extends IMatch> {
@@ -56,21 +57,20 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
             matchId={matchId}
             matchedText={matchedText}
             suggestions={suggestionsToRender}
-          />
-        )}
-        {onMarkCorrect && (
-          <div className="MatchWidget__ignore-match">
-            <div
-              className="MatchWidget__ignore-match-button"
-              onClick={() => onMarkCorrect(match)}
-            >
-              <Correct className="MatchWidget__ignore-match-icon" />
-              Mark as correct
-            </div>
-          </div>
-        )}
-      </div>
-    );
+/>
+)}
+          {onMarkCorrect && (
+              <div className="MatchWidget__ignore-match">
+                <div className="MatchWidget__ignore-match-button"
+                onClick={() => onMarkCorrect(match)}
+                >
+                  <Check fontSize="small" />
+                  <span className="MatchWidget__ignore-match-text">Mark as correct</span>
+                </div>
+              </div>
+            )}
+        </div>
+      );
 
     return (
       <div className="MatchWidget__container">
