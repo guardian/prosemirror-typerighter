@@ -18,7 +18,8 @@ export default [
       file: "dist/index.js",
       format: "cjs"
     },
-    plugins
+    plugins,
+    external: ["snarkdown"]
   },
   {
     input: "src/ts/index.ts",
@@ -26,6 +27,7 @@ export default [
       file: "dist/index.m.js",
       format: "es"
     },
-    plugins
+    plugins,
+    external: ["snarkdown"]
   }
 ];
