@@ -1,7 +1,9 @@
 import snarkdown from "snarkdown";
 
 /**
- * Strip any HTML from an input string.
+ * Convert a string containing markdown to HTML.
+ *
+ * Strips any existing markup before converting.
  */
 export const getHtmlFromMarkdown = (markdown: string) => {
   const decoder = document.createElement("div");
