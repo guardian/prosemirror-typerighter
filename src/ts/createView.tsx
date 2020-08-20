@@ -13,6 +13,7 @@ interface IViewOptions {
   matcherService: MatcherService<IMatch>;
   commands: Commands;
   sidebarNode: Element;
+  overlayNode: Element;
   contactHref?: string;
   feedbackHref?: string;
   logger?: ILogger;
@@ -39,6 +40,7 @@ const createView = ({
   matcherService,
   commands,
   sidebarNode,
+  overlayNode,
   contactHref,
   feedbackHref,
   logger = consoleLogger,
@@ -48,9 +50,7 @@ const createView = ({
 }: IViewOptions) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
-  const overlayNode = document.createElement("div");
   overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");
-  document.body.appendChild(overlayNode);
   logger.info("Typerighter plugin starting");
 
   // Finally, render our components.
@@ -69,6 +69,7 @@ const createView = ({
         })
       }
       feedbackHref={feedbackHref}
+      stopHover={commands.stopHover}
     />,
     overlayNode
   );

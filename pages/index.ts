@@ -32,7 +32,15 @@ if (contentElement && contentElement.parentElement) {
 const historyPlugin = history();
 const editorElement = document.querySelector("#editor");
 const sidebarNode = document.querySelector("#sidebar");
-const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin();
+
+const overlayNode = document.createElement("div");
+document.body.append(overlayNode);
+const isElementPartOfTyperighterUI = (element: HTMLElement) =>
+  overlayNode.contains(element);
+
+const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
+  isElementPartOfTyperighterUI
+});
 
 if (editorElement && sidebarNode) {
   const view = new EditorView(editorElement, {
@@ -66,6 +74,7 @@ if (editorElement && sidebarNode) {
     matcherService,
     commands,
     sidebarNode,
+    overlayNode,
     contactHref: "mailto:example@typerighter.co.uk",
     feedbackHref: "http://a-form-for-example.com",
     onMarkCorrect: match => console.info("Match ignored!", match),

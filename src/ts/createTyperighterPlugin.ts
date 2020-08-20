@@ -13,7 +13,7 @@ import {
   defaultMatchColours
 } from "./utils/decoration";
 import { EditorView, DecorationSet } from "prosemirror-view";
-import { Plugin, Transaction, EditorState, PluginKey } from "prosemirror-state";
+import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
 import { IRange, IMatch } from "./interfaces/IMatch";
@@ -23,7 +23,12 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
-import { startHoverCommand, stopHoverCommand } from "./commands";
+import {
+  startHoverCommand,
+  stopHoverCommand
+} from "./commands";
+import { maybeResetHoverStates } from "./utils/plugin";
+import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -55,6 +60,14 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
    * The colours to use for document matches.
    */
   matchColours?: IMatchColours;
+
+  /**
+   * Is the given element part of the typerighter UI, but not
+   * part of the Prosemirror editor? This helps us avoid resetting
+   * hover or highlight states when we're hoving over e.g. tooltips
+   * or other overlay nodes that are mounted outside of the editor.
+   */
+  isElementPartOfTyperighterUI?: (el: HTMLElement) => boolean;
 }
 
 /**
@@ -73,7 +86,8 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     matches = [],
     isActive = true,
     ignoreMatch = includeAllMatches,
-    matchColours = defaultMatchColours
+    matchColours = defaultMatchColours,
+    isElementPartOfTyperighterUI = () => false
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TMatch>;
@@ -84,7 +98,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const reducer = createReducer(expandRanges, ignoreMatch);
 
   const plugin: Plugin = new Plugin({
-    key: new PluginKey("prosemirror-typerighter"),
+    key: pluginKey,
     state: {
       init: (_, { doc }) => {
         const initialState = createInitialState(
@@ -150,6 +164,10 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
           : emptyDecorationSet;
       },
       handleDOMEvents: {
+        mouseleave: (view, event) => {
+          maybeResetHoverStates(view, isElementPartOfTyperighterUI, event);
+          return false;
+        },
         mouseover: (view: EditorView, event: Event) => {
           if (!event.target || !(event.target instanceof HTMLElement)) {
             return false;
@@ -178,10 +196,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
           }
 
           if (newMatchId) {
-            startHoverCommand(newMatchId)(
-              view.state,
-              view.dispatch
-            );
+            startHoverCommand(newMatchId)(view.state, view.dispatch);
           } else {
             stopHoverCommand()(view.state, view.dispatch);
           }
