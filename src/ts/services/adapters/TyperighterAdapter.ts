@@ -30,7 +30,7 @@ export const convertTyperighterResponse = (
     message: match.shortMessage,
     category: match.rule.category,
     suggestions: match.suggestions,
-    replacement: match.rule.replacement,
+    replacement: match.replacement,
     markAsCorrect: match.markAsCorrect,
     matchContext: match.matchContext
   }))
