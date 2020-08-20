@@ -72,7 +72,7 @@ const matchOverlay = <TMatch extends IMatch = IMatch>({
       // If there's a gap, the tooltip library detects a `mouseleave` event
       // and closes the tooltip prematurely. We account for this with
       // padding on the tooltip container – see the styling for MatchWidget.
-      { name: "offset", options: { offset: [0, -1] } }
+      { name: "offset", options: { offset: [0, -3] } }
     ]
   });
 
