@@ -1,3 +1,5 @@
+import { PartialBy } from "../utils/types";
+
 export interface IRange {
   from: number;
   to: number;
@@ -30,14 +32,22 @@ export interface IWikiSuggestion {
   score: number;
 }
 
+export type TErrorType = "GENERAL_ERROR" | "AUTH_ERROR";
+
 export interface IMatchRequestError {
   requestId: string;
   // If we have an id, we can link the error to a specific block.
   // If not, we treat the error as nonspecific.
   blockId?: string;
   message: string;
-  categoryIds: string[]
+  categoryIds: string[];
+  type: TErrorType;
 }
+
+export type TMatchRequestErrorWithDefault = PartialBy<
+  IMatchRequestError,
+  "type"
+>;
 
 export interface IMatch<TSuggestion = ISuggestion> {
   matchId: string;
@@ -72,4 +82,3 @@ export type IMatchLibrary = Array<
     type: string;
   }>
 >;
-

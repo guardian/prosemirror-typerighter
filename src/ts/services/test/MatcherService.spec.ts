@@ -104,7 +104,8 @@ describe("MatcherService", () => {
           "400: Bad Request",
         blockId: "0-from:0-to:10",
         requestId: "set-id",
-        categoryIds: []
+        categoryIds: [],
+        type: "GENERAL_ERROR"
       } as IMatchRequestError);
       done();
     });

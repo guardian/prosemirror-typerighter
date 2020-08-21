@@ -6,7 +6,12 @@ import { Close } from "@material-ui/icons";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { IMatch, ICategory } from "../interfaces/IMatch";
-import { selectHasError, selectRequestsInProgress } from "../state/selectors";
+import {
+  selectHasGeneralError,
+  selectHasAuthError,
+  selectRequestsInProgress,
+  selectPluginIsActive
+} from "../state/selectors";
 
 interface IProps {
   store: Store<IMatch>;
@@ -45,17 +50,54 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
+    const pluginIsActive =
+      this.state.pluginState && selectPluginIsActive(this.state.pluginState);
 
     const handleCheckDocumentButtonClick = (): void => {
-      if (!this.state.pluginState?.config.isActive) {
+      if (!pluginIsActive) {
         this.props.onToggleActiveState();
       }
       this.requestMatchesForDocument();
     };
 
-    const headerContainerClasses = this.state.pluginState?.config.isActive
+    const headerContainerClasses = pluginIsActive
       ? "Sidebar__header-container"
       : "Sidebar__header-container Sidebar__header-container--is-closed";
+
+    const renderErrorMessage = () => {
+      const pluginState = this.state.pluginState;
+
+      if (!pluginState) {
+        return;
+      }
+
+      const hasAuthError = selectHasAuthError(pluginState);
+      const hasGeneralError = selectHasGeneralError(pluginState);
+      const hasErrors: boolean = hasAuthError || hasGeneralError;
+
+      if (!hasErrors) {
+        return;
+      }
+
+      const errorMessage: string = hasAuthError
+        ? "Authentication error - please refresh the page."
+        : "Error fetching matches. Please try checking the document again.";
+
+      return (
+        <div className="Controls__error-message">
+          {errorMessage}
+          {this.props.feedbackHref && (
+            <span>
+              If the error persists, please{" "}
+              <a href={this.getErrorFeedbackLink()} target="_blank">
+                contact us
+              </a>
+              .
+            </span>
+          )}
+        </div>
+      );
+    };
 
     return (
       <>
@@ -65,37 +107,29 @@ class Controls extends Component<IProps, IState> {
               type="button"
               className="Button"
               onClick={handleCheckDocumentButtonClick}
-              disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
+              disabled={
+                this.state.pluginState &&
+                selectRequestsInProgress(this.state.pluginState)
+              }
             >
               Check document
             </button>
-            {this.state.pluginState?.config.isActive && (
+            {pluginIsActive && (
               <IconButton
                 size="small"
                 aria-label="close Typerighter"
                 onClick={this.props.onToggleActiveState}
-                disabled={this.state.pluginState && selectRequestsInProgress(this.state.pluginState)}
+                disabled={
+                  this.state.pluginState &&
+                  selectRequestsInProgress(this.state.pluginState)
+                }
               >
                 <Close />
               </IconButton>
             )}
           </div>
         </div>
-
-        {this.state.pluginState && selectHasError(this.state.pluginState) && (
-          <div className="Controls__error-message">
-            Error fetching matches. Please try checking the document again.{" "}
-            {this.props.feedbackHref && (
-              <span>
-                If the error persists, please{" "}
-                <a href={this.getErrorFeedbackLink()} target="_blank">
-                  contact us
-                </a>
-                .
-              </span>
-            )}
-          </div>
-        )}
+        {pluginIsActive && renderErrorMessage()}
       </>
     );
   }

@@ -3,7 +3,7 @@ import {
   IMatch,
   ICategory,
   IMatcherResponse,
-  IMatchRequestError
+  TMatchRequestErrorWithDefault
 } from "./IMatch";
 
 /**
@@ -37,7 +37,7 @@ export type TMatchesReceivedCallback<
 > = (response: IMatcherResponse<TMatch>) => void;
 
 export type TRequestErrorCallback = (
-  matchRequestError: IMatchRequestError
+  matchRequestError: TMatchRequestErrorWithDefault
 ) => void;
 
 export type TRequestCompleteCallback = (requestId: string) => void;
