@@ -9,7 +9,8 @@ import { IMatch, ICategory } from "../interfaces/IMatch";
 import {
   selectHasGeneralError,
   selectHasAuthError,
-  selectRequestsInProgress
+  selectRequestsInProgress,
+  selectPluginIsActive
 } from "../state/selectors";
 
 interface IProps {
@@ -49,7 +50,8 @@ class Controls extends Component<IProps, IState> {
   }
 
   public render() {
-    const pluginIsActive = this.state.pluginState?.config.isActive;
+    const pluginIsActive =
+      this.state.pluginState && selectPluginIsActive(this.state.pluginState);
 
     const handleCheckDocumentButtonClick = (): void => {
       if (!pluginIsActive) {
@@ -58,7 +60,7 @@ class Controls extends Component<IProps, IState> {
       this.requestMatchesForDocument();
     };
 
-    const headerContainerClasses = this.state.pluginState?.config.isActive
+    const headerContainerClasses = pluginIsActive
       ? "Sidebar__header-container"
       : "Sidebar__header-container Sidebar__header-container--is-closed";
 
@@ -71,7 +73,7 @@ class Controls extends Component<IProps, IState> {
 
       const hasAuthError = selectHasAuthError(pluginState);
       const hasGeneralError = selectHasGeneralError(pluginState);
-      const hasErrors: boolean = hasAuthError || hasGeneralError;    
+      const hasErrors: boolean = hasAuthError || hasGeneralError;
 
       if (!hasErrors) {
         return;
