@@ -22,17 +22,13 @@ export const convertTyperighterResponse = (
   requestId,
   categoryIds: response.categoryIds,
   blocks: response.blocks,
-  matches: response.matches.map(match => ({
+  matches: response.matches.map(({ fromPos, toPos, rule, ...match }) => ({
     matchId: v4(),
-    from: match.fromPos,
-    to: match.toPos,
-    matchedText: match.matchedText,
-    message: match.shortMessage,
-    category: match.rule.category,
-    suggestions: match.suggestions,
-    replacement: match.rule.replacement,
-    markAsCorrect: match.markAsCorrect,
-    matchContext: match.matchContext
+    from: fromPos,
+    to: toPos,
+    category: rule.category,
+    rule,
+    ...match
   }))
 });
 

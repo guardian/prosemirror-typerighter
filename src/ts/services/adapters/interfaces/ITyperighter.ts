@@ -19,6 +19,7 @@ export interface ITypeRighterMatch {
   toPos: number;
   matchedText: string;
   message: string;
+  replacement?: ISuggestion;
   shortMessage: string;
   rule: ITypeRighterRule;
   suggestions: ISuggestion[];
