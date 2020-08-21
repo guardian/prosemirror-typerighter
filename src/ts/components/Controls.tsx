@@ -71,32 +71,30 @@ class Controls extends Component<IProps, IState> {
 
       const hasAuthError = selectHasAuthError(pluginState);
       const hasGeneralError = selectHasGeneralError(pluginState);
-      const hasErrors: boolean = hasAuthError || hasGeneralError;
+      const hasErrors: boolean = hasAuthError || hasGeneralError;    
 
-      let errorMessage: string = "";
-      if (hasAuthError) {
-        errorMessage = "Authentication error - please refresh the page. ";
+      if (!hasErrors) {
+        return;
       }
-      if (hasGeneralError && !hasAuthError) {
-        errorMessage =
-          "Error fetching matches. Please try checking the document again. ";
-      }
-      if (hasErrors) {
-        return (
-          <div className="Controls__error-message">
-            {errorMessage}
-            {this.props.feedbackHref && (
-              <span>
-                If the error persists, please{" "}
-                <a href={this.getErrorFeedbackLink()} target="_blank">
-                  contact us
-                </a>
-                .
-              </span>
-            )}
-          </div>
-        );
-      }
+
+      const errorMessage: string = hasAuthError
+        ? "Authentication error - please refresh the page."
+        : "Error fetching matches. Please try checking the document again.";
+
+      return (
+        <div className="Controls__error-message">
+          {errorMessage}
+          {this.props.feedbackHref && (
+            <span>
+              If the error persists, please{" "}
+              <a href={this.getErrorFeedbackLink()} target="_blank">
+                contact us
+              </a>
+              .
+            </span>
+          )}
+        </div>
+      );
     };
 
     return (

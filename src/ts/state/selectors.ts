@@ -114,13 +114,13 @@ export const selectHasGeneralError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => {
   const generalErrors = state.requestErrors.filter(_ => _.type === "GENERAL_ERROR");
-  return !!state.requestErrors && generalErrors.length > 0};
+  return generalErrors.length > 0};
 
 export const selectHasAuthError = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => {
   const authErrors = state.requestErrors.filter(_ => _.type === "AUTH_ERROR");
-  return !!state.requestErrors && authErrors.length > 0;
+  return authErrors.length > 0;
 };
 
 export const selectRequestsInProgress = <TMatch extends IMatch>(
