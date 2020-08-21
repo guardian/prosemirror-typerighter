@@ -11,6 +11,7 @@ import { usePopper } from "react-popper";
 interface IProps<TMatch extends IMatch> {
   store: Store<TMatch, IStoreEvents<TMatch>>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
+  stopHover: () => void;
   feedbackHref?: string;
   onMarkCorrect?: (match: IMatch) => void;
 }
@@ -22,6 +23,7 @@ const matchOverlay = <TMatch extends IMatch = IMatch>({
   applySuggestions,
   feedbackHref,
   onMarkCorrect,
+  stopHover,
   store
 }: IProps<TMatch>) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
@@ -70,7 +72,7 @@ const matchOverlay = <TMatch extends IMatch = IMatch>({
       // If there's a gap, the tooltip library detects a `mouseleave` event
       // and closes the tooltip prematurely. We account for this with
       // padding on the tooltip container – see the styling for MatchWidget.
-      { name: "offset", options: { offset: [0, -5] } }
+      { name: "offset", options: { offset: [0, -3] } }
     ]
   });
 
@@ -92,6 +94,7 @@ const matchOverlay = <TMatch extends IMatch = IMatch>({
       style={styles.popper as any}
       {...attributes.popper}
       ref={setPopperElement}
+      onMouseLeave={stopHover}
     >
       <div ref={setArrowElement} style={styles.arrow as any} />
       <Match
