@@ -11,7 +11,7 @@ interface ITelemetryEvent {
   };
 }
 
-enum TYPERIGHTER_TELEMETRY_TYPE {
+export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_SUGGESTION_IS_ACCEPTED = "TYPERIGHTER_SUGGESTION_IS_ACCEPTED",
   TYPERIGHTER_MARK_AS_CORRECT = "TYPERIGHTER_MARK_AS_CORRECT",
   TYPERIGHTER_MATCH_FOUND = "TYPERIGHTER_MATCH_FOUND",
@@ -20,7 +20,7 @@ enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_SIDEBAR_MATCH_CLICK = "TYPERIGHTER_SIDEBAR_MATCH_CLICK"
 }
 
-interface ITyperighterTelemetryEvent extends ITelemetryEvent {
+export interface ITyperighterTelemetryEvent extends ITelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE;
   tags: ITelemetryEvent["tags"] & {
     // The URL of the resource containing the text that was scanned
@@ -35,38 +35,38 @@ interface IMatchEventTags {
   matchContext: string;
 }
 
-interface IMatchFoundEvent extends ITyperighterTelemetryEvent {
+export interface IMatchFoundEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_FOUND;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
 }
 
-interface ISuggestionEvent extends ITyperighterTelemetryEvent {
+export interface ISuggestionAcceptedEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUGGESTION_IS_ACCEPTED;
-  value: boolean;
+  value: 1;
   tags: ITyperighterTelemetryEvent["tags"] &
     IMatchEventTags & {
       suggestion: string;
     };
 }
 
-interface IMarkAsCorrectEvent extends ITyperighterTelemetryEvent {
+export interface IMarkAsCorrectEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
 }
 
-interface ICheckDocumentEvent extends ITyperighterTelemetryEvent {
+export interface ICheckDocumentEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CHECK_DOCUMENT;
   value: 1;
 }
 
-interface IOpenTyperighterEvent extends ITyperighterTelemetryEvent {
+export interface IOpenTyperighterEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED;
   value: boolean;
 }
 
-interface ISidebarClickEvent extends ITyperighterTelemetryEvent {
+export interface ISidebarClickEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
