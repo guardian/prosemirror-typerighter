@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import IconButton from "@material-ui/core/IconButton";
 import { Close } from "@material-ui/icons";
@@ -12,8 +12,7 @@ import {
   selectRequestsInProgress,
   selectPluginIsActive
 } from "../state/selectors";
-import TelemetryService from "../services/TelemetryService";
-import { ITyperighterTelemetryEvent } from "../interfaces/ITelemetryData";
+import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   store: Store<IMatch>;
@@ -53,6 +52,8 @@ const Controls = ({
 
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(false);
+
+    const{telemetryService} = useContext(TelemetryContext);
     
     const fetchAllCategories = async () => {
       setIsLoadingCategories(true);
@@ -84,19 +85,18 @@ const Controls = ({
       );
     };
 
-      const stubTelemetrySender = (event: ITyperighterTelemetryEvent) =>
-      console.log(event);
-      const telemetryService = new TelemetryService(stubTelemetrySender);
-
     const handleCheckDocumentButtonClick = (): void => {
       if (!pluginIsActive) {
         onToggleActiveState();
+        telemetryService?.typerighterIsOpened({documentUrl: document.URL})
       }
       requestMatches();
+      telemetryService?.documentIsChecked({documentUrl: document.URL})
+
     };
 
     const handleCloseButtonClick = (): void => {
-      telemetryService.typerighterIsClosed({documentUrl: document.URL});
+      telemetryService?.typerighterIsClosed({documentUrl: document.URL});
       onToggleActiveState();
     }
 
