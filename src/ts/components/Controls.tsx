@@ -12,6 +12,8 @@ import {
   selectRequestsInProgress,
   selectPluginIsActive
 } from "../state/selectors";
+import TelemetryService from "../services/TelemetryService";
+import { ITyperighterTelemetryEvent } from "../interfaces/ITelemetryData";
 
 interface IProps {
   store: Store<IMatch>;
@@ -82,12 +84,21 @@ const Controls = ({
       );
     };
 
+      const stubTelemetrySender = (event: ITyperighterTelemetryEvent) =>
+      console.log(event);
+      const telemetryService = new TelemetryService(stubTelemetrySender);
+
     const handleCheckDocumentButtonClick = (): void => {
       if (!pluginIsActive) {
         onToggleActiveState();
       }
       requestMatches();
     };
+
+    const handleCloseButtonClick = (): void => {
+      telemetryService.typerighterIsClosed({documentUrl: document.URL});
+      onToggleActiveState();
+    }
 
     const headerContainerClasses = pluginIsActive
       ? "Sidebar__header-container"
@@ -130,7 +141,7 @@ const Controls = ({
       <>
         <div className={headerContainerClasses}>
           <div className="Sidebar__header">
-            <button
+          <button
               type="button"
               className="Button"
               onClick={handleCheckDocumentButtonClick}
@@ -146,7 +157,7 @@ const Controls = ({
               <IconButton
                 size="small"
                 aria-label="close Typerighter"
-                onClick={onToggleActiveState}
+                onClick={handleCloseButtonClick}
                 disabled={
                   pluginState &&
                   selectRequestsInProgress(pluginState)

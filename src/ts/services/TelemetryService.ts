@@ -6,7 +6,7 @@ import {
   ISidebarClickEvent
 } from "../interfaces/ITelemetryData";
 
-export default class TelemetryService {
+class TelemetryService {
   constructor(
     private sendTelemetryEvent: (event: ITyperighterTelemetryEvent) => void
   ) {}
@@ -65,3 +65,5 @@ export default class TelemetryService {
     });
   }
 }
+
+export default TelemetryService;
