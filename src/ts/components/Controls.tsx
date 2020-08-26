@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { v4 } from "uuid";
 import IconButton from "@material-ui/core/IconButton";
 import { Close } from "@material-ui/icons";
@@ -26,38 +26,70 @@ interface IProps {
   onToggleActiveState: () => void;
 }
 
-interface IState {
-  pluginState: IPluginState<IMatch> | undefined;
-  allCategories: ICategory[];
-  currentCategories: ICategory[];
-  isLoadingCategories: boolean;
-}
+const getErrorFeedbackLink = (pluginState: IPluginState<IMatch> | undefined, feedbackHref: string | undefined) => {
+  const errorLmit = 10;
+  const data = {
+    url: document.location.href,
+    errors: pluginState?.requestErrors?.slice(0, errorLmit)
+  };
+  const encodedData = encodeURIComponent(JSON.stringify(data, undefined, 2));
+  return feedbackHref + encodedData;
+};
 
 /**
- * A sidebar to display current matches and allow users to apply suggestions.
+ * Controls to open and close Typerighter and check document.
  */
-class Controls extends Component<IProps, IState> {
-  public state = {
-    allCategories: [],
-    currentCategories: [],
-    isLoadingCategories: false,
-    pluginState: undefined
-  } as IState;
-  public componentWillMount() {
-    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNotify);
-    this.setState({ pluginState: this.props.store.getState() });
-    this.initCategories();
-  }
+const controls = ({
+    store,
+    requestMatchesForDocument,
+    fetchCategories,
+    getCurrentCategories,
+    feedbackHref,
+    onToggleActiveState,
+    addCategory
+  }: IProps) => {
 
-  public render() {
+    const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
+    const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(false);
+    
+    const fetchAllCategories = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const allCategories = await fetchCategories();
+        allCategories.forEach(category => addCategory(category.id));
+        setIsLoadingCategories(false);
+      } catch (e) {
+        setIsLoadingCategories(false);
+      }
+    };
+    
+    useEffect(() => {   
+      store.on(STORE_EVENT_NEW_STATE, newState => {
+        setPluginState(newState);
+      });
+      setPluginState(store.getState());
+
+      fetchAllCategories();
+
+      return () =>
+        store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
+    }, []);
+
     const pluginIsActive =
-      this.state.pluginState && selectPluginIsActive(this.state.pluginState);
+      pluginState && selectPluginIsActive(pluginState);
+
+    const requestMatches = () => {
+      requestMatchesForDocument(
+        v4(),
+        getCurrentCategories().map(_ => _.id)
+      );
+    };
 
     const handleCheckDocumentButtonClick = (): void => {
       if (!pluginIsActive) {
-        this.props.onToggleActiveState();
+        onToggleActiveState();
       }
-      this.requestMatchesForDocument();
+      requestMatches();
     };
 
     const headerContainerClasses = pluginIsActive
@@ -65,8 +97,6 @@ class Controls extends Component<IProps, IState> {
       : "Sidebar__header-container Sidebar__header-container--is-closed";
 
     const renderErrorMessage = () => {
-      const pluginState = this.state.pluginState;
-
       if (!pluginState) {
         return;
       }
@@ -86,10 +116,10 @@ class Controls extends Component<IProps, IState> {
       return (
         <div className="Controls__error-message">
           {errorMessage}
-          {this.props.feedbackHref && (
+          {feedbackHref && (
             <span>
               If the error persists, please{" "}
-              <a href={this.getErrorFeedbackLink()} target="_blank">
+              <a href={getErrorFeedbackLink(pluginState, feedbackHref)} target="_blank">
                 contact us
               </a>
               .
@@ -108,8 +138,9 @@ class Controls extends Component<IProps, IState> {
               className="Button"
               onClick={handleCheckDocumentButtonClick}
               disabled={
-                this.state.pluginState &&
-                selectRequestsInProgress(this.state.pluginState)
+                isLoadingCategories || (
+                pluginState &&
+                selectRequestsInProgress(pluginState))
               }
             >
               Check document
@@ -118,10 +149,10 @@ class Controls extends Component<IProps, IState> {
               <IconButton
                 size="small"
                 aria-label="close Typerighter"
-                onClick={this.props.onToggleActiveState}
+                onClick={onToggleActiveState}
                 disabled={
-                  this.state.pluginState &&
-                  selectRequestsInProgress(this.state.pluginState)
+                  pluginState &&
+                  selectRequestsInProgress(pluginState)
                 }
               >
                 <Close />
@@ -133,53 +164,6 @@ class Controls extends Component<IProps, IState> {
       </>
     );
   }
-  private handleNotify = (state: IPluginState<IMatch>) => {
-    this.setState({ pluginState: state });
-  };
 
-  private initCategories = async () => {
-    const allCategories = await this.fetchCategories();
-    if (!allCategories) {
-      return;
-    }
-    this.setState({
-      currentCategories: allCategories
-    });
-    allCategories.forEach(category => this.props.addCategory(category.id));
-  };
 
-  private fetchCategories = async () => {
-    this.setState({ isLoadingCategories: true });
-    try {
-      const allCategories = await this.props.fetchCategories();
-      this.setState({
-        allCategories,
-        isLoadingCategories: false
-      });
-      return allCategories;
-    } catch (e) {
-      this.setState({
-        isLoadingCategories: false
-      });
-    }
-  };
-
-  private requestMatchesForDocument = () => {
-    this.props.requestMatchesForDocument(
-      v4(),
-      this.props.getCurrentCategories().map(_ => _.id)
-    );
-  };
-
-  private getErrorFeedbackLink = () => {
-    const errorLmit = 10;
-    const data = {
-      url: document.location.href,
-      errors: this.state.pluginState?.requestErrors?.slice(0, errorLmit)
-    };
-    const encodedData = encodeURIComponent(JSON.stringify(data, undefined, 2));
-    return this.props.feedbackHref + encodedData;
-  };
-}
-
-export default Controls;
+export default controls;
