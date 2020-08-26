@@ -70,9 +70,6 @@ const controls = ({
       setPluginState(store.getState());
 
       fetchAllCategories();
-
-      return () =>
-        store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
     }, []);
 
     const pluginIsActive =
