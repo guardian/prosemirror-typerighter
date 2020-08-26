@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
@@ -22,33 +22,67 @@ interface IProps {
 /**
  * Displays current matches and allows users to apply suggestions.
  */
-class Results extends Component<
-  IProps,
-  {
-    pluginState: IPluginState<IMatch> | undefined;
-    groupResults: boolean;
-    loadingBarVisible: boolean;
-  }
-> {
-  public componentWillMount() {
-    this.props.store.on(STORE_EVENT_NEW_STATE, this.handleNewState);
-    this.setState({ pluginState: this.props.store.getState() });
-  }
 
-  public render() {
-    const {
-      applySuggestions,
-      selectMatch,
-      indicateHighlight,
-      stopHighlight,
-      contactHref,
-      editorScrollElement,
-      getScrollOffset
-    } = this.props;
-    const { pluginState } = this.state;
+  const Results =  ({
+    store,
+    applySuggestions,
+    selectMatch,
+    indicateHighlight,
+    stopHighlight,
+    contactHref,
+    editorScrollElement,
+    getScrollOffset
+  }: IProps) => {
+
+    const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
+    const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+
+    const handleNewState = (pluginState: IPluginState<IMatch>) => {
+      setPluginState({
+          ...pluginState,
+          currentMatches: sortBy(pluginState.currentMatches, "from")
+        
+      });
+      const oldKeys = pluginState
+        ? Object.keys(pluginState.requestsInFlight)
+        : [];
+      const newKeys = Object.keys(pluginState.requestsInFlight);
+      if (oldKeys.length && !newKeys.length) {
+        setTimeout(maybeResetLoadingBar, 300);
+      }
+      if (!loadingBarVisible && newKeys.length) {
+        setLoadingBarVisible(true);
+      }
+    };
+
+    useEffect(() => {   
+      store.on(STORE_EVENT_NEW_STATE, newState => {
+        handleNewState(newState);
+      });
+      setPluginState(store.getState());
+    }, []);
+
+    const getPercentRemaining = () => {
+      if (!pluginState) {
+        return 0;
+      }
+      return selectPercentRemaining(pluginState);
+    };
+
+    
+  
+    const maybeResetLoadingBar = () => {
+      if (
+        !pluginState ||
+        !!Object.keys(pluginState.requestsInFlight)
+      ) {
+        setLoadingBarVisible(false);
+      }
+    };
+    
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
-    const percentRemaining = this.getPercentRemaining();
+    const percentRemaining = getPercentRemaining();
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
@@ -68,7 +102,7 @@ class Results extends Component<
               </a>
             </div>
           )}
-          {this.state.loadingBarVisible && (
+          {loadingBarVisible && (
             <div
               className="LoadingBar"
               style={{
@@ -106,43 +140,5 @@ class Results extends Component<
       </>
     );
   }
-
-  private handleNewState = (pluginState: IPluginState<IMatch>) => {
-    this.setState({
-      pluginState: {
-        ...pluginState,
-        currentMatches: sortBy(pluginState.currentMatches, "from")
-      }
-    });
-    const oldKeys = this.state.pluginState
-      ? Object.keys(this.state.pluginState.requestsInFlight)
-      : [];
-    const newKeys = Object.keys(pluginState.requestsInFlight);
-    if (oldKeys.length && !newKeys.length) {
-      setTimeout(this.maybeResetLoadingBar, 300);
-    }
-    if (!this.state.loadingBarVisible && newKeys.length) {
-      this.setState({ loadingBarVisible: true });
-    }
-  };
-
-  private maybeResetLoadingBar = () => {
-    if (
-      !this.state.pluginState ||
-      !!Object.keys(this.state.pluginState.requestsInFlight)
-    ) {
-      this.setState({ loadingBarVisible: false });
-    }
-  };
-
-  private getPercentRemaining = () => {
-    const state = this.state.pluginState;
-    if (!state) {
-      return 0;
-    }
-    return selectPercentRemaining(state);
-  };
-
-}
 
 export default Results;
