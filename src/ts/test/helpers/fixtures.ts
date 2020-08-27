@@ -89,6 +89,7 @@ export const createMatcherResponse = (
       };
 
       const newMatch = {
+        ruleId: "ruleId",
         category,
         matchedText: "block text",
         message: "annotation",
@@ -125,6 +126,7 @@ export const createMatch = (
     colour: "eeeee"
   }
 ): IMatch => ({
+  ruleId: "ruleId",
   category,
   matchedText: "block text",
   message: "annotation",
