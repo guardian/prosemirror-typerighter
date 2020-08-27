@@ -29,9 +29,10 @@ export interface ITyperighterTelemetryEvent extends ITelemetryEvent {
 }
 
 interface IMatchEventTags {
-  ruleId: string;
+  ruleId: string,
   suggestion?: string;
-  match: string;
+  matchId: string;
+  matchedText: string;
   matchContext: string;
 }
 

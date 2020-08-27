@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import jsDiff, { Change } from "diff";
 
 import { ApplySuggestionOptions } from "../commands";
-import { ISuggestion } from "../interfaces/IMatch";
+import { ISuggestion, IMatch } from "../interfaces/IMatch";
 import WikiSuggestion from "./WikiSuggestion";
+import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
-  matchId: string;
-  matchedText: string;
+  match: IMatch;
   suggestion: ISuggestion;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
 }
@@ -15,7 +15,7 @@ interface IProps {
 /**
  * At the moment, only show fancy diffs for smaller words.
  */
-const shouldShowDiff = (matchedText: string) => matchedText.length < 16
+const shouldShowDiff = (matchedText: string) => matchedText.length < 16;
 
 /**
  * Render a diff between the matched text and the suggestion, only showing
@@ -56,31 +56,41 @@ const renderSuggestionText = (matchedText: string, suggestionText: string) => {
         <span className="Suggestion__arrow">&nbsp;→&nbsp;</span>
         <span className="Suggestion__text">{suggestionText}</span>
       </>
-    )
+    );
   }
 
-  return <span className="Suggestion__text">{suggestionText}</span>
-}
+  return <span className="Suggestion__text">{suggestionText}</span>;
+};
 
-const Suggestion = ({
-  matchId,
-  suggestion,
-  matchedText,
-  applySuggestions
-}: IProps) => {
-  const boundApplySuggestions = () =>
-    applySuggestions &&
+const Suggestion = ({ match, suggestion, applySuggestions }: IProps) => {
+  const { telemetryService } = useContext(TelemetryContext);
+
+  const boundApplySuggestions = () => {
+    if (!applySuggestions) {
+      return;
+    }
+
     applySuggestions([
       {
-        matchId,
+        matchId: match.matchId,
         text: suggestion.text
       }
     ]);
+
+    telemetryService?.suggestionIsAccepted({
+      documentUrl: document.URL,
+      ruleId: match.ruleId,
+      matchId: match.matchId,
+      matchedText: match.matchedText,
+      matchContext: match.matchContext,
+      suggestion: suggestion.text
+    });
+  };
   switch (suggestion.type) {
     case "TEXT_SUGGESTION": {
       return (
         <div className="Suggestion" onClick={boundApplySuggestions}>
-          {renderSuggestionText(matchedText, suggestion.text)}
+          {renderSuggestionText(match.matchedText, suggestion.text)}
         </div>
       );
     }

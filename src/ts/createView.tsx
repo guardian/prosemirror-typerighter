@@ -59,7 +59,7 @@ const createView = ({
 
   // Finally, render our components.
   render(
-    <TelemetryContext.Provider value={{telemetryService}}>
+    <TelemetryContext.Provider value={{ telemetryService }}>
       <MatchOverlay
         store={store}
         applySuggestions={suggestionOpts => {
@@ -71,6 +71,13 @@ const createView = ({
           (match => {
             commands.ignoreMatch(match.matchId);
             onMarkCorrect(match);
+            telemetryService.matchIsMarkedAsCorrect({
+              documentUrl: document.URL,
+              ruleId: match.ruleId,
+              matchId: match.matchId,
+              matchedText: match.matchedText,
+              matchContext: match.matchContext
+            });
           })
         }
         feedbackHref={feedbackHref}
@@ -78,11 +85,10 @@ const createView = ({
       />
     </TelemetryContext.Provider>,
     overlayNode
-    
   );
 
   render(
-    <TelemetryContext.Provider value={{telemetryService}}>
+    <TelemetryContext.Provider value={{ telemetryService }}>
       <Sidebar
         store={store}
         matcherService={matcherService}
