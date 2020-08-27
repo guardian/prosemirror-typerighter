@@ -59,6 +59,7 @@ describe("createTyperighterPlugin", () => {
       matches: [
         {
           ...blocks[0],
+          ruleId: "ruleId",
           matchId: "matchId",
           matchedText: blocks[0].text,
           message: "Example message",

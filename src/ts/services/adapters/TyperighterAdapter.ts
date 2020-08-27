@@ -27,7 +27,7 @@ export const convertTyperighterResponse = (
     from: fromPos,
     to: toPos,
     category: rule.category,
-    rule,
+    ruleId: rule.id,
     ...match
   }))
 });

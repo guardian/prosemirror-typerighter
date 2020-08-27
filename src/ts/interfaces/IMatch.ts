@@ -53,6 +53,7 @@ export interface IMatch<TSuggestion = ISuggestion> {
   matchId: string;
   from: number;
   to: number;
+  ruleId: string;
   matchedText: string;
   message: string;
   category: ICategory;
