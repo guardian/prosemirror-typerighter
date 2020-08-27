@@ -39,7 +39,7 @@ const getErrorFeedbackLink = (pluginState: IPluginState<IMatch> | undefined, fee
 /**
  * Controls to open and close Typerighter and check document.
  */
-const controls = ({
+const Controls = ({
     store,
     requestMatchesForDocument,
     fetchCategories,
@@ -70,9 +70,6 @@ const controls = ({
       setPluginState(store.getState());
 
       fetchAllCategories();
-
-      return () =>
-        store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
     }, []);
 
     const pluginIsActive =
@@ -166,4 +163,4 @@ const controls = ({
   }
 
 
-export default controls;
+export default Controls;
