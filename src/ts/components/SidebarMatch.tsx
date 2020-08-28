@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import { IMatch } from "../interfaces/IMatch";
 import {
@@ -12,6 +12,7 @@ import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getHtmlFromMarkdown } from "../utils/dom";
+import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   match: IMatch;
@@ -37,10 +38,11 @@ const SidebarMatch = ({
   stopHighlight,
   selectedMatch,
   editorScrollElement,
-  getScrollOffset,
+  getScrollOffset
 }: IProps) => {
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const { telemetryService } = useContext(TelemetryContext);
 
   const color = getColourForMatch(match, matchColours, false).borderColour;
   const hasSuggestions = !!match.suggestions && !!match.suggestions.length;
@@ -57,10 +59,18 @@ const SidebarMatch = ({
     e.preventDefault();
     e.stopPropagation();
 
+    telemetryService?.sidebarMatchClicked({
+      documentUrl: document.URL,
+      ruleId: match.ruleId,
+      matchId: match.matchId,
+      matchedText: match.matchedText,
+      matchContext: match.matchContext
+    });
+
     if (!editorScrollElement) {
       return;
     }
-  
+
     const decorationElement = maybeGetDecorationElement(match.matchId);
 
     if (decorationElement) {
@@ -79,7 +89,6 @@ const SidebarMatch = ({
   const handleMouseLeave = () => {
     stopHighlight();
   };
-
 
   return (
     <div
@@ -128,8 +137,7 @@ const SidebarMatch = ({
             <div className="SidebarMatch__suggestion-list">
               <SuggestionList
                 applySuggestions={applySuggestions}
-                matchId={match.matchId}
-                matchedText={match.matchedText}
+                match={match}
                 suggestions={suggestions}
               />
             </div>

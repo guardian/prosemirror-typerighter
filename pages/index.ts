@@ -16,6 +16,8 @@ import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
+import { ITyperighterTelemetryEvent } from "../src/ts/interfaces/ITelemetryData";
+import TelemetryService from "../src/ts/services/TelemetryService";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -69,6 +71,11 @@ if (editorElement && sidebarNode) {
     commands,
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
+
+  const stubTelemetrySender = (event: ITyperighterTelemetryEvent) =>
+  console.log(event);
+  const telemetryService = new TelemetryService(stubTelemetrySender);
+
   createView({
     store,
     matcherService,
@@ -79,7 +86,8 @@ if (editorElement && sidebarNode) {
     feedbackHref: "http://a-form-for-example.com",
     onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
-    getScrollOffset
+    getScrollOffset,
+    telemetryService
   });
 
   // Handy debugging tools

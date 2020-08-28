@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import IconButton from "@material-ui/core/IconButton";
 import { Close } from "@material-ui/icons";
@@ -12,6 +12,7 @@ import {
   selectRequestsInProgress,
   selectPluginIsActive
 } from "../state/selectors";
+import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   store: Store<IMatch>;
@@ -51,6 +52,8 @@ const Controls = ({
 
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(false);
+
+    const{telemetryService} = useContext(TelemetryContext);
     
     const fetchAllCategories = async () => {
       setIsLoadingCategories(true);
@@ -85,9 +88,17 @@ const Controls = ({
     const handleCheckDocumentButtonClick = (): void => {
       if (!pluginIsActive) {
         onToggleActiveState();
+        telemetryService?.typerighterIsOpened({documentUrl: document.URL})
       }
       requestMatches();
+      telemetryService?.documentIsChecked({documentUrl: document.URL})
+
     };
+
+    const handleCloseButtonClick = (): void => {
+      telemetryService?.typerighterIsClosed({documentUrl: document.URL});
+      onToggleActiveState();
+    }
 
     const headerContainerClasses = pluginIsActive
       ? "Sidebar__header-container"
@@ -130,7 +141,7 @@ const Controls = ({
       <>
         <div className={headerContainerClasses}>
           <div className="Sidebar__header">
-            <button
+          <button
               type="button"
               className="Button"
               onClick={handleCheckDocumentButtonClick}
@@ -146,7 +157,7 @@ const Controls = ({
               <IconButton
                 size="small"
                 aria-label="close Typerighter"
-                onClick={onToggleActiveState}
+                onClick={handleCloseButtonClick}
                 disabled={
                   pluginState &&
                   selectRequestsInProgress(pluginState)

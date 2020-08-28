@@ -7,6 +7,8 @@ import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
 import { ILogger, consoleLogger } from "./utils/logger";
 import Sidebar from "./components/Sidebar";
+import TelemetryService from "./services/TelemetryService";
+import TelemetryContext from "./contexts/TelemetryContext";
 
 interface IViewOptions {
   store: Store<IMatch>;
@@ -26,6 +28,7 @@ interface IViewOptions {
   // to place the match in the middle of the screen, as the size of the
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
+  telemetryService: TelemetryService;
 }
 
 /**
@@ -38,6 +41,7 @@ interface IViewOptions {
 const createView = ({
   store,
   matcherService,
+  telemetryService,
   commands,
   sidebarNode,
   overlayNode,
@@ -55,35 +59,46 @@ const createView = ({
 
   // Finally, render our components.
   render(
-    <MatchOverlay
-      store={store}
-      applySuggestions={suggestionOpts => {
-        commands.applySuggestions(suggestionOpts);
-        commands.stopHover();
-      }}
-      onMarkCorrect={
-        onMarkCorrect &&
-        (match => {
-          commands.ignoreMatch(match.matchId);
-          onMarkCorrect(match);
-        })
-      }
-      feedbackHref={feedbackHref}
-      stopHover={commands.stopHover}
-    />,
+    <TelemetryContext.Provider value={{ telemetryService }}>
+      <MatchOverlay
+        store={store}
+        applySuggestions={suggestionOpts => {
+          commands.applySuggestions(suggestionOpts);
+          commands.stopHover();
+        }}
+        onMarkCorrect={
+          onMarkCorrect &&
+          (match => {
+            commands.ignoreMatch(match.matchId);
+            onMarkCorrect(match);
+            telemetryService.matchIsMarkedAsCorrect({
+              documentUrl: document.URL,
+              ruleId: match.ruleId,
+              matchId: match.matchId,
+              matchedText: match.matchedText,
+              matchContext: match.matchContext
+            });
+          })
+        }
+        feedbackHref={feedbackHref}
+        stopHover={commands.stopHover}
+      />
+    </TelemetryContext.Provider>,
     overlayNode
   );
 
   render(
-    <Sidebar
-      store={store}
-      matcherService={matcherService}
-      commands={commands}
-      contactHref={contactHref}
-      feedbackHref={feedbackHref}
-      editorScrollElement={editorScrollElement}
-      getScrollOffset={getScrollOffset}
-    />,
+    <TelemetryContext.Provider value={{ telemetryService }}>
+      <Sidebar
+        store={store}
+        matcherService={matcherService}
+        commands={commands}
+        contactHref={contactHref}
+        feedbackHref={feedbackHref}
+        editorScrollElement={editorScrollElement}
+        getScrollOffset={getScrollOffset}
+      />
+    </TelemetryContext.Provider>,
     sidebarNode
   );
 };
