@@ -28,7 +28,7 @@ interface IViewOptions {
   // to place the match in the middle of the screen, as the size of the
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
-  telemetryService: TelemetryService;
+  telemetryService?: TelemetryService;
 }
 
 /**
@@ -71,7 +71,7 @@ const createView = ({
           (match => {
             commands.ignoreMatch(match.matchId);
             onMarkCorrect(match);
-            telemetryService.matchIsMarkedAsCorrect({
+            telemetryService?.matchIsMarkedAsCorrect({
               documentUrl: document.URL,
               ruleId: match.ruleId,
               matchId: match.matchId,
