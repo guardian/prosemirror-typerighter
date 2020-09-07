@@ -1,6 +1,8 @@
-import { Node } from "prosemirror-model";
+import { Node, Mark } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
+import * as jsDiff from "diff";
+
 import { IBlock } from "../interfaces/IMatch";
 import { createBlock } from "./block";
 
@@ -38,18 +40,19 @@ export const findChildren = (
 /**
  * Create IBlock objects from the block leaf nodes of a given document.
  */
-export const getBlocksFromDocument = (
-  doc: Node,
-  time = 0
-): IBlock[] => {
+export const getBlocksFromDocument = (doc: Node, time = 0): IBlock[] => {
   const ranges = [] as IBlock[];
   doc.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push(
-        createBlock(doc, {
-          from: pos + 1,
-          to: pos + descNode.nodeSize
-        }, time)
+        createBlock(
+          doc,
+          {
+            from: pos + 1,
+            to: pos + descNode.nodeSize
+          },
+          time
+        )
       );
       return false;
     }
@@ -75,3 +78,56 @@ export const getReplaceTransactions = (tr: Transaction) =>
   tr.steps.filter(
     step => step instanceof ReplaceStep || step instanceof ReplaceAroundStep
   );
+
+interface ISuggestionFragment {
+  text: string;
+  marks: Array<Mark<any>>;
+  from: number;
+  to: number;
+}
+
+/**
+ * Generates a minimal array of replacement nodes and ranges from two pieces of text.
+ * This lets us make the smallest change to the document possible given a replacement,
+ * which gives us a better chance of preserving marks sensibly.
+ *
+ * Preserves marks that span the entirety of the text to be replaced.
+ */
+export const getReplacementFragmentsFromReplacement = (
+  tr: Transaction,
+  from: number,
+  to: number,
+  replacement: string
+): ISuggestionFragment[] => {
+  const currentText = tr.doc.textBetween(from, to);
+  const diffs = jsDiff.diffChars(currentText, replacement, {
+    ignoreCase: false
+  });
+  const { fragments } = diffs.reduce(
+    (acc, diff) => {
+      // We're only interested in additions – they represent replacements
+      // that differ from the text in the document as it stands.
+      if (!diff.added || !diff.count) {
+        return acc;
+      }
+
+      // Find all of the marks that span the text we're replacing.
+      const { fragments: currentFragments, currentPos } = acc;
+      const $from = tr.doc.resolve(from + currentPos);
+      const $to = tr.doc.resolve($from.pos + diff.count);
+      const marks = $from.marksAcross($to) || Mark.none;
+      const newFragment = { text: diff.value, marks, from: $from.pos, to: $to.pos};
+
+      return {
+        fragments: currentFragments.concat(newFragment),
+        currentPos: currentPos + diff.count
+      };
+    },
+    {
+      fragments: [] as ISuggestionFragment[],
+      currentPos: 0
+    }
+  );
+
+  return fragments;
+};

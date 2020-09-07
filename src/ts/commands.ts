@@ -27,7 +27,7 @@ import {
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
-import { Mark } from "prosemirror-model";
+import { getReplacementFragmentsFromReplacement } from "./utils/prosemirror";
 
 type Command = (
   state: EditorState,
@@ -329,15 +329,17 @@ const maybeApplySuggestions = (
         if (!text) {
           return;
         }
-        const $from = tr.doc.resolve(from);
-        const $to = tr.doc.resolve(to);
-        const marks = $from.marksAcross($to) || Mark.none
-        const newNode = state.schema.text(text).mark(marks)
-        tr.replaceWith(
-          tr.mapping.map(from),
-          tr.mapping.map(to),
-          newNode
-        )
+        const mappedFrom = tr.mapping.map(from);
+        const mappedTo = tr.mapping.map(to);
+        const replacements = getReplacementFragmentsFromReplacement(tr, mappedFrom, mappedTo, text);
+        replacements.forEach(({ text: fragText, marks, from: fragFrom, to: fragTo}) => {
+          const node = state.schema.text(fragText, marks)
+          tr.replaceWith(
+            fragFrom,
+            fragTo,
+            node
+          )
+        })
       }
     );
     dispatch(tr);

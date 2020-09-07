@@ -19,7 +19,7 @@ describe("Commands", () => {
       expect(getByText(editorElement, "An improved sentence")).toBeTruthy();
     });
 
-    it("should keep marks when suggestions are applied", () => {
+    it("should keep marks across the whole replaced text when suggestions are applied", () => {
       const match = createMatch(4, 11, [
         { text: "Example", type: "TEXT_SUGGESTION" }
       ]);
@@ -35,7 +35,7 @@ describe("Commands", () => {
       expect(element.innerHTML).toBe("An <strong>improved</strong> sentence")
     });
 
-    it("should preserve marks within ", () => {
+    it("should keep marks across parts of the replaced text when suggestions are applied", () => {
       const match = createMatch(4, 11, [
         { text: "Example", type: "TEXT_SUGGESTION" }
       ]);
@@ -47,7 +47,7 @@ describe("Commands", () => {
       commands.applySuggestions([{ text: "Example", matchId: match.matchId }]);
 
       // The found element's text node is missing 'improved', as that text is nested
-      const element = getByText(editorElement, "An sentence")
+      const element = getByText(editorElement, "An ale sentence")
       expect(element.innerHTML).toBe("An <strong>Ex</strong>a<em>mp</em>le sentence")
     });
   });
