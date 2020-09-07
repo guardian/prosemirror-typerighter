@@ -34,5 +34,21 @@ describe("Commands", () => {
       const element = getByText(editorElement, "An sentence")
       expect(element.innerHTML).toBe("An <strong>improved</strong> sentence")
     });
+
+    it("should preserve marks within ", () => {
+      const match = createMatch(4, 11, [
+        { text: "Example", type: "TEXT_SUGGESTION" }
+      ]);
+      const {
+        editorElement,
+        commands
+      } = createEditor("<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>", [match]);
+
+      commands.applySuggestions([{ text: "Example", matchId: match.matchId }]);
+
+      // The found element's text node is missing 'improved', as that text is nested
+      const element = getByText(editorElement, "An sentence")
+      expect(element.innerHTML).toBe("An <strong>Ex</strong>a<em>mp</em>le sentence")
+    });
   });
 });
