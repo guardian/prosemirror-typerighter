@@ -99,7 +99,9 @@ export const getReplacementFragmentsFromReplacement = (
   to: number,
   replacement: string
 ): ISuggestionFragment[] => {
-  const currentText = tr.doc.textBetween(from, to);
+  const mappedFrom = tr.mapping.map(from);
+  const mappedTo = tr.mapping.map(to);
+  const currentText = tr.doc.textBetween(mappedFrom, mappedTo);
   const patches = jsDiff.diffChars(currentText, replacement, {
     ignoreCase: false
   });
@@ -122,7 +124,7 @@ export const getReplacementFragmentsFromReplacement = (
           currentPos: currentPos + patch.count
         };
       }
-      const $from = tr.doc.resolve(from + currentPos);
+      const $from = tr.doc.resolve(mappedFrom + currentPos);
       const $to = tr.doc.resolve(Math.min($from.pos + patch.count, tr.doc.nodeSize - 2));
 
       // If this patch removes chars, create a fragment for
@@ -145,9 +147,10 @@ export const getReplacementFragmentsFromReplacement = (
 
       let marks;
       if (isThisPatchNew) {
-        // If this patch adds characters and the previous patch left
-        // a range intact, inherit the marks from the last character
-        // of that range.
+        // If this patch adds characters and the previous patch did not affect the
+        // text, inherit the marks from the last character of that patch's range.
+        // This ensures that text that expands upon an existing range shares the
+        // existing range's style.
         const $lastCharFrom = tr.doc.resolve($from.pos - 1);
         marks = $lastCharFrom.marksAcross($from) || Mark.none;
       } else {

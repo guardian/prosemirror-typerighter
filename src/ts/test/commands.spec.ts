@@ -51,6 +51,22 @@ describe("Commands", () => {
       expect(element.innerHTML).toBe("Two <strong>beggars</strong>")
     });
 
+    it("should keep multiple marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
+      const match = createMatch(5, 9, [
+        { text: "beggar", type: "TEXT_SUGGESTION" }
+      ]);
+      const {
+        editorElement,
+        commands
+      } = createEditor("<p>Two <em><strong>eggs</strong></em></p>", [match]);
+
+      commands.applySuggestions([{ text: "beggars", matchId: match.matchId }]);
+
+      // The found element's text node is missing 'improved', as that text is nested
+      const element = getByText(editorElement, "Two")
+      expect(element.innerHTML).toBe("Two <em><strong>beggars</strong></em>")
+    });
+
     it("should keep marks across parts of the replaced text when suggestions are applied with additions", () => {
       const match = createMatch(4, 11, [
         { text: "Example", type: "TEXT_SUGGESTION" }

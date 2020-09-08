@@ -330,12 +330,10 @@ const maybeApplySuggestions = (
     if (!text) {
       return;
     }
-    const mappedFrom = tr.mapping.map(from);
-    const mappedTo = tr.mapping.map(to);
     const replacementFrags = getReplacementFragmentsFromReplacement(
       tr,
-      mappedFrom,
-      mappedTo,
+      from,
+      to,
       text
     );
     replacementFrags.forEach(
