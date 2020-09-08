@@ -100,27 +100,72 @@ export const getReplacementFragmentsFromReplacement = (
   replacement: string
 ): ISuggestionFragment[] => {
   const currentText = tr.doc.textBetween(from, to);
-  const diffs = jsDiff.diffChars(currentText, replacement, {
+  const patches = jsDiff.diffChars(currentText, replacement, {
     ignoreCase: false
   });
-  const { fragments } = diffs.reduce(
-    (acc, diff) => {
-      // We're only interested in additions – they represent replacements
-      // that differ from the text in the document as it stands.
-      if (!diff.added || !diff.count) {
-        return acc;
+
+  const { fragments } = patches.reduce(
+    ({ fragments: currentFragments, currentPos }, patch) => {
+      // If there are no chars, ignore.
+      if (!patch.count) {
+        return {
+          fragments: currentFragments,
+          currentPos
+        };
       }
 
-      // Find all of the marks that span the text we're replacing.
-      const { fragments: currentFragments, currentPos } = acc;
+      // If this patch hasn't changed anything, ignore it and
+      // increment the count.
+      if (!patch.added && !patch.removed) {
+        return {
+          fragments: currentFragments,
+          currentPos: currentPos + patch.count
+        };
+      }
       const $from = tr.doc.resolve(from + currentPos);
-      const $to = tr.doc.resolve($from.pos + diff.count);
-      const marks = $from.marksAcross($to) || Mark.none;
-      const newFragment = { text: diff.value, marks, from: $from.pos, to: $to.pos};
+      const $to = tr.doc.resolve(Math.min($from.pos + patch.count, tr.doc.nodeSize - 2));
+
+      // If this patch removes chars, create a fragment for
+      // the range, and leave the cursor where it is.
+      if (patch.removed) {
+        return {
+          fragments: currentFragments.concat({
+            from: $from.pos,
+            to: $to.pos,
+            text: "",
+            marks: []
+          }),
+          currentPos
+        };
+      }
+
+      const prevFragment = currentFragments[currentFragments.length - 1];
+      const isThisPatchNew =
+        !!prevFragment && (prevFragment.to || 0) < $from.pos;
+
+      let marks;
+      if (isThisPatchNew) {
+        // If this patch adds characters and the previous patch left
+        // a range intact, inherit the marks from the last character
+        // of that range.
+        const $lastCharFrom = tr.doc.resolve($from.pos - 1);
+        marks = $lastCharFrom.marksAcross($from) || Mark.none;
+      } else {
+        // If this patch adds characters, find all of the marks
+        // that span the text we're replacing, and copy them across.
+        marks = $from.marksAcross($to) || Mark.none;
+      }
+
+      const newFragment = {
+        text: patch.value,
+        marks,
+        from: $from.pos,
+        to: $to.pos
+      };
 
       return {
         fragments: currentFragments.concat(newFragment),
-        currentPos: currentPos + diff.count
+        currentPos: currentPos + patch.count
       };
     },
     {

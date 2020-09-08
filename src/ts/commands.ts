@@ -108,7 +108,6 @@ export const stopHoverCommand = (): Command => (state, dispatch) => {
   return true;
 };
 
-
 /**
  * Indicate the user is highlighting a match decoration.
  *
@@ -322,28 +321,35 @@ const maybeApplySuggestions = (
     return false;
   }
 
-  if (dispatch) {
-    const tr = state.tr;
-    suggestionsToApply.forEach(
-      ({ from, to, text }) => {
-        if (!text) {
-          return;
+  if (!dispatch) {
+    return true;
+  }
+
+  const tr = state.tr;
+  suggestionsToApply.forEach(({ from, to, text }) => {
+    if (!text) {
+      return;
+    }
+    const mappedFrom = tr.mapping.map(from);
+    const mappedTo = tr.mapping.map(to);
+    const replacementFrags = getReplacementFragmentsFromReplacement(
+      tr,
+      mappedFrom,
+      mappedTo,
+      text
+    );
+    replacementFrags.forEach(
+      ({ text: fragText, marks, from: fragFrom, to: fragTo }) => {
+        if (fragText) {
+          const node = state.schema.text(fragText, marks);
+          return tr.insert(fragFrom, node);
         }
-        const mappedFrom = tr.mapping.map(from);
-        const mappedTo = tr.mapping.map(to);
-        const replacements = getReplacementFragmentsFromReplacement(tr, mappedFrom, mappedTo, text);
-        replacements.forEach(({ text: fragText, marks, from: fragFrom, to: fragTo}) => {
-          const node = state.schema.text(fragText, marks)
-          tr.replaceWith(
-            fragFrom,
-            fragTo,
-            node
-          )
-        })
+        tr.delete(fragFrom, fragTo);
       }
     );
-    dispatch(tr);
-  }
+  });
+
+  dispatch(tr);
 
   return true;
 };
