@@ -1,69 +1,49 @@
-import {
-  ITyperighterTelemetryEvent,
-  ISuggestionAcceptedEvent,
-  TYPERIGHTER_TELEMETRY_TYPE,
-  IMarkAsCorrectEvent,
-  ISidebarClickEvent
-} from "../interfaces/ITelemetryData";
+import throttle from 'lodash/throttle';
+import chunk from 'lodash/chunk';
 
-class TelemetryService {
-  constructor(
-    private sendTelemetryEvent: (event: ITyperighterTelemetryEvent) => void
-  ) {}
+import { ITyperighterTelemetryEvent } from "../interfaces/ITelemetryData";
 
-  public suggestionIsAccepted(tags: ISuggestionAcceptedEvent["tags"]) {
-    this.sendTelemetryEvent({
-      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUGGESTION_IS_ACCEPTED,
-      value: 1,
-      eventTime: new Date().toISOString(),
-      tags
-    });
-  }
+class UserTelemetryEventSender {
+    private postEventLimit = 500;
+    private eventBuffer: ITyperighterTelemetryEvent[] = [];
+    
+    public constructor(private telemetryUrl: string, private throttleDelay: number) {};
 
-  public matchIsMarkedAsCorrect(tags: IMarkAsCorrectEvent["tags"]) {
-    this.sendTelemetryEvent({
-      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT,
-      value: 1,
-      eventTime: new Date().toISOString(),
-      tags
-    });
-  }
+    private async sendEvents(): Promise<void> {
+        const [firstChunk, ...subsequentChunks] = chunk(this.eventBuffer, this.postEventLimit);
+        if (!firstChunk) {
+          return Promise.resolve();
+        }
 
-  public documentIsChecked(tags: ITyperighterTelemetryEvent["tags"]) {
-    this.sendTelemetryEvent({
-      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CHECK_DOCUMENT,
-      value: 1,
-      eventTime: new Date().toISOString(),
-      tags
-    });
-  }
+        const jsonEventBuffer = JSON.stringify(firstChunk);
 
-  public typerighterIsOpened(tags: ITyperighterTelemetryEvent["tags"]) {
-    this.sendTelemetryEvent({
-        type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED,
-        value: true,
-        eventTime: new Date().toISOString(),
-        tags
-    });
-  }
+        // Push the remaining events back into the buffer
+        this.eventBuffer = subsequentChunks.flat();
 
-  public typerighterIsClosed(tags: ITyperighterTelemetryEvent["tags"]) {
-    this.sendTelemetryEvent({
-        type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED,
-        value: false,
-        eventTime: new Date().toISOString(),
-        tags
-    });
-  }
+        await fetch(`${this.telemetryUrl}/event`, {
+            method: "POST",
+            credentials: "include",
+            headers: new Headers({
+              "Content-Type": "application/json"
+            }),
+            body: jsonEventBuffer
+          });
+  
+        if (this.eventBuffer.length) {
+          this.throttledSendEvents();
+        }
+    }
+    
+    private throttledSendEvents = throttle(this.sendEvents, this.throttleDelay, { trailing: true, leading: false })
 
-  public sidebarMatchClicked(tags: ISidebarClickEvent["tags"]) {
-    this.sendTelemetryEvent({
-        type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK,
-        value: 1,
-        eventTime: new Date().toISOString(),
-        tags
-    });
-  }
+    public addEvent(event: ITyperighterTelemetryEvent): void {
+      this.eventBuffer.push(event);
+      this.throttledSendEvents();
+    }
+
+    public flushEvents(): Promise<void> {
+        return this.sendEvents();
+    }
 }
 
-export default TelemetryService;
+export default UserTelemetryEventSender;

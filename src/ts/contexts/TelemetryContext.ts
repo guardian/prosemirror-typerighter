@@ -1,8 +1,8 @@
 import { createContext } from 'react';
-import TelemetryService from '../services/TelemetryService';
+import TyperighterTelemetryAdapter from '../services/TyperighterTelemetryAdapter';
 
 const TelemetryContext = createContext({
-    telemetryService: undefined as TelemetryService | undefined
+    telemetryService: undefined as TyperighterTelemetryAdapter | undefined
 });
 
 export default TelemetryContext

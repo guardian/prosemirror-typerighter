@@ -7,7 +7,7 @@ import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
 import { ILogger, consoleLogger } from "./utils/logger";
 import Sidebar from "./components/Sidebar";
-import TelemetryService from "./services/TelemetryService";
+import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TelemetryContext from "./contexts/TelemetryContext";
 
 interface IViewOptions {
@@ -28,7 +28,7 @@ interface IViewOptions {
   // to place the match in the middle of the screen, as the size of the
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
-  telemetryService?: TelemetryService;
+  telemetryService?: TyperighterTelemetryAdapter;
 }
 
 /**

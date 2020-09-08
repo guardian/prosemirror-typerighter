@@ -17,7 +17,7 @@ import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
 import { ITyperighterTelemetryEvent } from "../src/ts/interfaces/ITelemetryData";
-import TelemetryService from "../src/ts/services/TelemetryService";
+import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -74,7 +74,7 @@ if (editorElement && sidebarNode) {
 
   const stubTelemetrySender = (event: ITyperighterTelemetryEvent) =>
   console.log(event);
-  const telemetryService = new TelemetryService(stubTelemetrySender);
+  const telemetryService = new TyperighterTelemetryAdapter(stubTelemetrySender, "user-telemetry-service", "CODE");
 
   createView({
     store,
