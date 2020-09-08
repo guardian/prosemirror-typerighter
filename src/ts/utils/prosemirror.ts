@@ -1,4 +1,4 @@
-import { Node, Mark } from "prosemirror-model";
+import { Node, Mark, Schema } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
 import * as jsDiff from "diff";
@@ -81,7 +81,10 @@ export const getReplaceTransactions = (tr: Transaction) =>
 
 interface ISuggestionFragment {
   text: string;
-  marks: Array<Mark<any>>;
+  // Why a function? Evaluating getMarks is delayed because it must be invoked
+  // after the previous fragments are applied to the transaction, to ensure that
+  // it resolves its positions correctly.
+  getMarks?: (tr: Transaction) => Array<Mark<any>>;
   from: number;
   to: number;
 }
@@ -99,9 +102,7 @@ export const getReplacementFragmentsFromReplacement = (
   to: number,
   replacement: string
 ): ISuggestionFragment[] => {
-  const mappedFrom = tr.mapping.map(from);
-  const mappedTo = tr.mapping.map(to);
-  const currentText = tr.doc.textBetween(mappedFrom, mappedTo);
+  const currentText = tr.doc.textBetween(from, to);
   const patches = jsDiff.diffChars(currentText, replacement, {
     ignoreCase: false
   });
@@ -124,46 +125,52 @@ export const getReplacementFragmentsFromReplacement = (
           currentPos: currentPos + patch.count
         };
       }
-      const $from = tr.doc.resolve(mappedFrom + currentPos);
-      const $to = tr.doc.resolve(Math.min($from.pos + patch.count, tr.doc.nodeSize - 2));
+
+      const newFrom = from + currentPos;
+      const newTo = newFrom + patch.count;
 
       // If this patch removes chars, create a fragment for
       // the range, and leave the cursor where it is.
       if (patch.removed) {
+        const fragment = {
+          from: newFrom,
+          to: newTo,
+          text: ""
+        };
+
         return {
-          fragments: currentFragments.concat({
-            from: $from.pos,
-            to: $to.pos,
-            text: "",
-            marks: []
-          }),
+          fragments: currentFragments.concat(fragment),
           currentPos
         };
       }
 
       const prevFragment = currentFragments[currentFragments.length - 1];
-      const isThisPatchNew =
-        !!prevFragment && (prevFragment.to || 0) < $from.pos;
+      const isInsertion = !!prevFragment && (prevFragment.to || 0) < newFrom;
 
-      let marks;
-      if (isThisPatchNew) {
-        // If this patch adds characters and the previous patch did not affect the
-        // text, inherit the marks from the last character of that patch's range.
-        // This ensures that text that expands upon an existing range shares the
-        // existing range's style.
-        const $lastCharFrom = tr.doc.resolve($from.pos - 1);
-        marks = $lastCharFrom.marksAcross($from) || Mark.none;
+      let getMarks;
+      if (isInsertion) {
+        // If this patch is an insertion, inherit the marks from the last character
+        // of that patch's range. This ensures that text that expands upon an existing
+        // range shares the existing range's style.
+        getMarks = (localTr: Transaction) => {
+          const $newFrom = localTr.doc.resolve(newFrom)
+          const $lastCharFrom = localTr.doc.resolve(newFrom - 1);
+          return $lastCharFrom.marksAcross($newFrom) || Mark.none;
+        };
       } else {
-        // If this patch adds characters, find all of the marks
+        // If this patch is a replacement, find all of the marks
         // that span the text we're replacing, and copy them across.
-        marks = $from.marksAcross($to) || Mark.none;
+        getMarks = (localTr: Transaction) => {
+          const $newTo = localTr.doc.resolve(newTo)
+          return localTr.doc.resolve(newFrom).marksAcross($newTo) || Mark.none;
+        }
       }
 
       const newFragment = {
         text: patch.value,
-        marks,
-        from: $from.pos,
-        to: $to.pos
+        getMarks,
+        from: newFrom,
+        to: newTo
       };
 
       return {
@@ -178,4 +185,22 @@ export const getReplacementFragmentsFromReplacement = (
   );
 
   return fragments;
+};
+
+/**
+ * Apply a suggestion fragment to a transaction.
+ *
+ * Mutates the given transaction.
+ */
+export const applyFragmentToTransaction = (
+  tr: Transaction,
+  schema: Schema<any>,
+  { text, from, to, getMarks }: ISuggestionFragment
+) => {
+  if (text) {
+    const marks = getMarks ? getMarks(tr) : []
+    const node = schema.text(text, marks);
+    return tr.insert(from, node);
+  }
+  tr.delete(from, to);
 };

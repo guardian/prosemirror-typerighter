@@ -27,7 +27,10 @@ import {
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
-import { getReplacementFragmentsFromReplacement } from "./utils/prosemirror";
+import {
+  getReplacementFragmentsFromReplacement,
+  applyFragmentToTransaction
+} from "./utils/prosemirror";
 
 type Command = (
   state: EditorState,
@@ -330,20 +333,18 @@ const maybeApplySuggestions = (
     if (!text) {
       return;
     }
+
+    const mappedFrom = tr.mapping.map(from);
+    const mappedTo = tr.mapping.map(to);
     const replacementFrags = getReplacementFragmentsFromReplacement(
       tr,
-      from,
-      to,
+      mappedFrom,
+      mappedTo,
       text
     );
-    replacementFrags.forEach(
-      ({ text: fragText, marks, from: fragFrom, to: fragTo }) => {
-        if (fragText) {
-          const node = state.schema.text(fragText, marks);
-          return tr.insert(fragFrom, node);
-        }
-        tr.delete(fragFrom, fragTo);
-      }
+
+    replacementFrags.forEach(frag =>
+      applyFragmentToTransaction(tr, state.schema, frag)
     );
   });
 
