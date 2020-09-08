@@ -30,9 +30,23 @@ describe("Commands", () => {
 
       commands.applySuggestions([{ text: "improved", matchId: match.matchId }]);
 
-      // The found element's text node is missing 'improved', as that text is nested
       const element = getByText(editorElement, "An sentence")
       expect(element.innerHTML).toBe("An <strong>improved</strong> sentence")
+    });
+
+    it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range ", () => {
+      const match = createMatch(1, 36, [
+        { text: "I'm a Celebrity ... Get Me Out Of Here!", type: "TEXT_SUGGESTION" }
+      ]);
+      const {
+        editorElement,
+        commands
+      } = createEditor("<p>i'm a celebrity get me <em>out</em> of <strong>here</strong></p>", [match]);
+
+      commands.applySuggestions([{ text: "I'm a Celebrity ... Get Me Out Of Here!", matchId: match.matchId }]);
+
+      const element = getByText(editorElement, "I'm a Celebrity ... Get Me Of")
+      expect(element.innerHTML).toBe("I'm a Celebrity ... Get Me <em>Out</em> Of <strong>Here!</strong>")
     });
 
     it("should keep marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
@@ -46,7 +60,6 @@ describe("Commands", () => {
 
       commands.applySuggestions([{ text: "beggars", matchId: match.matchId }]);
 
-      // The found element's text node is missing 'improved', as that text is nested
       const element = getByText(editorElement, "Two")
       expect(element.innerHTML).toBe("Two <strong>beggars</strong>")
     });
@@ -62,7 +75,6 @@ describe("Commands", () => {
 
       commands.applySuggestions([{ text: "beggars", matchId: match.matchId }]);
 
-      // The found element's text node is missing 'improved', as that text is nested
       const element = getByText(editorElement, "Two")
       expect(element.innerHTML).toBe("Two <em><strong>beggars</strong></em>")
     });
@@ -78,7 +90,6 @@ describe("Commands", () => {
 
       commands.applySuggestions([{ text: "Example", matchId: match.matchId }]);
 
-      // Again, we only match with the text directly contained by the element. It's a bit awkward.
       const element = getByText(editorElement, "An ale sentence")
       expect(element.innerHTML).toBe("An <strong>Ex</strong>a<em>mp</em>le sentence")
     });
@@ -94,7 +105,6 @@ describe("Commands", () => {
 
       commands.applySuggestions([{ text: "ample", matchId: match.matchId }]);
 
-      // Again, we only match with the text directly contained by the element. It's a bit awkward.
       const element = getByText(editorElement, "An ale sentence")
       expect(element.innerHTML).toBe("An a<em>mp</em>le sentence")
     });
