@@ -114,7 +114,7 @@ type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete
  *
  * Preserves marks that span the entirety of the text to be replaced.
  */
-export const getReplacementFragmentsFromReplacement = (
+export const getPatchesFromReplacementText = (
   tr: Transaction,
   from: number,
   to: number,
@@ -211,7 +211,7 @@ export const getReplacementFragmentsFromReplacement = (
  *
  * Mutates the given transaction.
  */
-export const applyFragmentToTransaction = (
+export const applyPatchToTransaction = (
   tr: Transaction,
   schema: Schema<any>,
   patch: ISuggestionPatch

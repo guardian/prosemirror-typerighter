@@ -28,8 +28,8 @@ import {
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
 import {
-  getReplacementFragmentsFromReplacement,
-  applyFragmentToTransaction
+  getPatchesFromReplacementText,
+  applyPatchToTransaction
 } from "./utils/prosemirror";
 
 type Command = (
@@ -336,7 +336,7 @@ const maybeApplySuggestions = (
 
     const mappedFrom = tr.mapping.map(from);
     const mappedTo = tr.mapping.map(to);
-    const replacementFrags = getReplacementFragmentsFromReplacement(
+    const replacementFrags = getPatchesFromReplacementText(
       tr,
       mappedFrom,
       mappedTo,
@@ -344,7 +344,7 @@ const maybeApplySuggestions = (
     );
 
     replacementFrags.forEach(frag =>
-      applyFragmentToTransaction(tr, state.schema, frag)
+      applyPatchToTransaction(tr, state.schema, frag)
     );
   });
 
