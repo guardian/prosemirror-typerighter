@@ -47,7 +47,7 @@ describe("Commands", () => {
       );
     });
 
-    it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range ", () => {
+    it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>i'm a celebrity get me <em>out</em> of <strong>here</strong></p>",
         1,
@@ -57,6 +57,19 @@ describe("Commands", () => {
 
       expect(editorElement.innerHTML).toBe(
         "I'm a Celebrity ... Get Me <em>Out</em> Of <strong>Here!</strong>"
+      );
+    });
+
+    it("should keep overlapping marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p>i'm a celebrity get me <em>out of <strong>here</em></strong></p>",
+        1,
+        36,
+        "I'm a Celebrity ... Get Me Out Of Here!"
+      );
+
+      expect(editorElement.innerHTML).toBe(
+        "I'm a Celebrity ... Get Me <em>Out Of <strong>Here!</strong></em>"
       );
     });
 
