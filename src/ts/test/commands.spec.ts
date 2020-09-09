@@ -1,112 +1,111 @@
-import { getByText} from '@testing-library/dom';
-
 import { createEditor } from "./helpers/createEditor";
 import { createMatch } from "./helpers/fixtures";
+
+/**
+ * Applies a suggestion to a document, and returns the editor element
+ * containing the document node for inspection.
+ */
+const applySuggestionToDoc = (
+  before: string,
+  from: number,
+  to: number,
+  replacement: string
+): HTMLElement => {
+  const match = createMatch(from, to, [
+    { text: "N/A", type: "TEXT_SUGGESTION" }
+  ]);
+  const { editorElement, commands } = createEditor(before, [match]);
+
+  commands.applySuggestions([{ text: replacement, matchId: match.matchId }]);
+
+  return editorElement.querySelector("p")!;
+};
 
 describe("Commands", () => {
   describe("applySuggestionsCommand", () => {
     it("should apply a suggestion to the document", () => {
-      const match = createMatch(4, 11, [
-        { text: "Example", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>An example sentence</p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>An example sentence</p>",
+        4,
+        11,
+        "improved"
+      );
 
-      commands.applySuggestions([{ text: "improved", matchId: match.matchId }]);
-
-      expect(getByText(editorElement, "An improved sentence")).toBeTruthy();
+      expect(editorElement.innerHTML).toBe("An improved sentence");
     });
 
     it("should keep marks across the whole replaced text when suggestions are applied and additions are made to the end of the range", () => {
-      const match = createMatch(4, 11, [
-        { text: "Example", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>An <strong>example</strong> sentence</p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>An <strong>example</strong> sentence</p>",
+        4,
+        11,
+        "improved"
+      );
 
-      commands.applySuggestions([{ text: "improved", matchId: match.matchId }]);
-
-      const element = getByText(editorElement, "An sentence")
-      expect(element.innerHTML).toBe("An <strong>improved</strong> sentence")
+      expect(editorElement.innerHTML).toBe(
+        "An <strong>improved</strong> sentence"
+      );
     });
 
     it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range ", () => {
-      const match = createMatch(1, 36, [
-        { text: "I'm a Celebrity ... Get Me Out Of Here!", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>i'm a celebrity get me <em>out</em> of <strong>here</strong></p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>i'm a celebrity get me <em>out</em> of <strong>here</strong></p>",
+        1,
+        36,
+        "I'm a Celebrity ... Get Me Out Of Here!"
+      );
 
-      commands.applySuggestions([{ text: "I'm a Celebrity ... Get Me Out Of Here!", matchId: match.matchId }]);
-
-      const element = getByText(editorElement, "I'm a Celebrity ... Get Me Of")
-      expect(element.innerHTML).toBe("I'm a Celebrity ... Get Me <em>Out</em> Of <strong>Here!</strong>")
+      expect(editorElement.innerHTML).toBe(
+        "I'm a Celebrity ... Get Me <em>Out</em> Of <strong>Here!</strong>"
+      );
     });
 
     it("should keep marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
-      const match = createMatch(5, 9, [
-        { text: "beggar", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>Two <strong>eggs</strong></p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>Two <strong>eggs</strong></p>",
+        5,
+        9,
+        "beggars"
+      );
 
-      commands.applySuggestions([{ text: "beggars", matchId: match.matchId }]);
-
-      const element = getByText(editorElement, "Two")
-      expect(element.innerHTML).toBe("Two <strong>beggars</strong>")
+      expect(editorElement.innerHTML).toBe("Two <strong>beggars</strong>");
     });
 
     it("should keep multiple marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
-      const match = createMatch(5, 9, [
-        { text: "beggar", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>Two <em><strong>eggs</strong></em></p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>Two <em><strong>eggs</strong></em></p>",
+        5,
+        9,
+        "beggars"
+      );
 
-      commands.applySuggestions([{ text: "beggars", matchId: match.matchId }]);
-
-      const element = getByText(editorElement, "Two")
-      expect(element.innerHTML).toBe("Two <em><strong>beggars</strong></em>")
+      expect(editorElement.innerHTML).toBe(
+        "Two <em><strong>beggars</strong></em>"
+      );
     });
 
     it("should keep marks across parts of the replaced text when suggestions are applied with additions", () => {
-      const match = createMatch(4, 11, [
-        { text: "Example", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>",
+        4,
+        11,
+        "Example"
+      );
 
-      commands.applySuggestions([{ text: "Example", matchId: match.matchId }]);
-
-      const element = getByText(editorElement, "An ale sentence")
-      expect(element.innerHTML).toBe("An <strong>Ex</strong>a<em>mp</em>le sentence")
+      expect(editorElement.innerHTML).toBe(
+        "An <strong>Ex</strong>a<em>mp</em>le sentence"
+      );
     });
 
     it("should keep marks across parts of the replaced text when suggestions are applied with deletions", () => {
-      const match = createMatch(4, 11, [
-        { text: "ample", type: "TEXT_SUGGESTION" }
-      ]);
-      const {
-        editorElement,
-        commands
-      } = createEditor("<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>", [match]);
+      const editorElement = applySuggestionToDoc(
+        "<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>",
+        4,
+        11,
+        "ample"
+      );
 
-      commands.applySuggestions([{ text: "ample", matchId: match.matchId }]);
-
-      const element = getByText(editorElement, "An ale sentence")
-      expect(element.innerHTML).toBe("An a<em>mp</em>le sentence")
+      expect(editorElement.innerHTML).toBe("An a<em>mp</em>le sentence");
     });
   });
 });
