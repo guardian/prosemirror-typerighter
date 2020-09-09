@@ -28,7 +28,7 @@ interface IViewOptions {
   // to place the match in the middle of the screen, as the size of the
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
-  telemetryService?: TyperighterTelemetryAdapter;
+  telemetryAdapter?: TyperighterTelemetryAdapter;
 }
 
 /**
@@ -41,7 +41,7 @@ interface IViewOptions {
 const createView = ({
   store,
   matcherService,
-  telemetryService,
+  telemetryAdapter,
   commands,
   sidebarNode,
   overlayNode,
@@ -59,7 +59,7 @@ const createView = ({
 
   // Finally, render our components.
   render(
-    <TelemetryContext.Provider value={{ telemetryService }}>
+    <TelemetryContext.Provider value={{ telemetryAdapter: telemetryAdapter }}>
       <MatchOverlay
         store={store}
         applySuggestions={suggestionOpts => {
@@ -71,7 +71,7 @@ const createView = ({
           (match => {
             commands.ignoreMatch(match.matchId);
             onMarkCorrect(match);
-            telemetryService?.matchIsMarkedAsCorrect({
+            telemetryAdapter?.matchIsMarkedAsCorrect({
               documentUrl: document.URL,
               ruleId: match.ruleId,
               matchId: match.matchId,
@@ -88,7 +88,7 @@ const createView = ({
   );
 
   render(
-    <TelemetryContext.Provider value={{ telemetryService }}>
+    <TelemetryContext.Provider value={{ telemetryAdapter }}>
       <Sidebar
         store={store}
         matcherService={matcherService}

@@ -2,12 +2,12 @@ export interface ITelemetryEvent {
   /**
    * The application sending the event
    */
-  app?: string;
+  app: string;
 
   /**
    * The application stage, e.g. 'CODE' | 'PROD'
    */
-  stage?: string;
+  stage: string;
 
   /**
    * The type of event we're sending, e.g. 'USER_ACTION_1' | 'USER_ACTION_2'

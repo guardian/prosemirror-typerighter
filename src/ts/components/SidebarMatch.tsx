@@ -42,7 +42,7 @@ const SidebarMatch = ({
 }: IProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  const { telemetryService } = useContext(TelemetryContext);
+  const { telemetryAdapter } = useContext(TelemetryContext);
 
   const color = getColourForMatch(match, matchColours, false).borderColour;
   const hasSuggestions = !!match.suggestions && !!match.suggestions.length;
@@ -59,7 +59,7 @@ const SidebarMatch = ({
     e.preventDefault();
     e.stopPropagation();
 
-    telemetryService?.sidebarMatchClicked({
+    telemetryAdapter?.sidebarMatchClicked({
       documentUrl: document.URL,
       ruleId: match.ruleId,
       matchId: match.matchId,

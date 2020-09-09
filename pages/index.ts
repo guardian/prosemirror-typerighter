@@ -73,7 +73,7 @@ if (editorElement && sidebarNode) {
   );
 
   const telemetryService = new TelemetryService("https://example.com")
-  const typerighterTelemetryService = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
+  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
 
   createView({
     store,
@@ -86,7 +86,7 @@ if (editorElement && sidebarNode) {
     onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
     getScrollOffset,
-    telemetryService: typerighterTelemetryService
+    telemetryAdapter: typerighterTelemetryAdapter
   });
 
   // Handy debugging tools
