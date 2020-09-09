@@ -16,7 +16,7 @@ import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
-import { ITyperighterTelemetryEvent } from "../src/ts/interfaces/ITelemetryData";
+import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 import TelemetryService from "../src/ts/services/TelemetryService";
 
 const mySchema = new Schema({
@@ -72,9 +72,8 @@ if (editorElement && sidebarNode) {
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
 
-  const stubTelemetrySender = (event: ITyperighterTelemetryEvent) =>
-  console.log(event);
-  const telemetryService = new TelemetryService(stubTelemetrySender);
+  const telemetryService = new TelemetryService("https://example.com")
+  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
 
   createView({
     store,
@@ -87,7 +86,7 @@ if (editorElement && sidebarNode) {
     onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
     getScrollOffset,
-    telemetryService
+    telemetryAdapter: typerighterTelemetryAdapter
   });
 
   // Handy debugging tools

@@ -63,7 +63,7 @@ const renderSuggestionText = (matchedText: string, suggestionText: string) => {
 };
 
 const Suggestion = ({ match, suggestion, applySuggestions }: IProps) => {
-  const { telemetryService } = useContext(TelemetryContext);
+  const { telemetryAdapter } = useContext(TelemetryContext);
 
   const boundApplySuggestions = () => {
     if (!applySuggestions) {
@@ -77,7 +77,7 @@ const Suggestion = ({ match, suggestion, applySuggestions }: IProps) => {
       }
     ]);
 
-    telemetryService?.suggestionIsAccepted({
+    telemetryAdapter?.suggestionIsAccepted({
       documentUrl: document.URL,
       ruleId: match.ruleId,
       matchId: match.matchId,

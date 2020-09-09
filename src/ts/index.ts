@@ -2,6 +2,8 @@ import { IMatch, IBlock } from './interfaces/IMatch'
 import { IStore } from './state/store';
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
+import TelemetryService from "./services/TelemetryService";
+import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
 import { createBoundCommands } from "./commands";
 import { getBlocksFromDocument } from './utils/prosemirror';
@@ -10,6 +12,8 @@ import '../css/index.scss';
 
 export {
   MatcherService,
+  TelemetryService,
+  TyperighterTelemetryAdapter,
   TyperighterAdapter,
   getBlocksFromDocument,
   convertTyperighterResponse,
