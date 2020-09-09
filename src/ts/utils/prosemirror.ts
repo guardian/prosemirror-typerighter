@@ -79,15 +79,33 @@ export const getReplaceTransactions = (tr: Transaction) =>
     step => step instanceof ReplaceStep || step instanceof ReplaceAroundStep
   );
 
-interface ISuggestionFragment {
-  text: string;
-  // Why a function? Evaluating getMarks is delayed because it must be invoked
-  // after the previous fragments are applied to the transaction, to ensure that
-  // it resolves its positions correctly.
-  getMarks?: (tr: Transaction) => Array<Mark<any>>;
+/**
+ * A patch representing part, or all, of a suggestion, to apply to the document.
+ *
+ * Patches must be applied in order, as they represent a sequence of insertions
+ * and deletions, and the positions indicated by a later patch will be dependent
+ * on earlier patches.
+ */
+interface IBaseSuggestionPatch {
   from: number;
   to: number;
 }
+
+interface ISuggestionPatchDelete extends IBaseSuggestionPatch {
+  type: "DELETE"
+}
+
+interface ISuggestionPatchInsert extends IBaseSuggestionPatch {
+  type: "INSERT";
+  text: string;
+  // Why a function? We must evaluate getMarks at the point at which the patch
+  // is applied to the document, not when it's first created. This ensures that
+  // positions stored in a patch correctly map to the document, even after previous
+  // patches have altered it.
+  getMarks: (tr: Transaction) => Array<Mark<any>>;
+}
+
+type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete
 
 /**
  * Generates a minimal array of replacement nodes and ranges from two pieces of text.
@@ -101,7 +119,7 @@ export const getReplacementFragmentsFromReplacement = (
   from: number,
   to: number,
   replacement: string
-): ISuggestionFragment[] => {
+): ISuggestionPatch[] => {
   const currentText = tr.doc.textBetween(from, to);
   const patches = jsDiff.diffChars(currentText, replacement, {
     ignoreCase: false
@@ -135,7 +153,7 @@ export const getReplacementFragmentsFromReplacement = (
         const fragment = {
           from: newFrom,
           to: newTo,
-          text: ""
+          type: "DELETE" as const
         };
 
         return {
@@ -167,6 +185,7 @@ export const getReplacementFragmentsFromReplacement = (
       }
 
       const newFragment = {
+        type: "INSERT" as const,
         text: patch.value,
         getMarks,
         from: newFrom,
@@ -179,7 +198,7 @@ export const getReplacementFragmentsFromReplacement = (
       };
     },
     {
-      fragments: [] as ISuggestionFragment[],
+      fragments: [] as ISuggestionPatch[],
       currentPos: 0
     }
   );
@@ -195,12 +214,12 @@ export const getReplacementFragmentsFromReplacement = (
 export const applyFragmentToTransaction = (
   tr: Transaction,
   schema: Schema<any>,
-  { text, from, to, getMarks }: ISuggestionFragment
+  patch: ISuggestionPatch
 ) => {
-  if (text) {
-    const marks = getMarks ? getMarks(tr) : []
-    const node = schema.text(text, marks);
-    return tr.insert(from, node);
+  if (patch.type === "INSERT") {
+    const marks = patch.getMarks(tr)
+    const node = schema.text(patch.text, marks);
+    return tr.insert(patch.from, node);
   }
-  tr.delete(from, to);
+  tr.delete(patch.from, patch.to);
 };
