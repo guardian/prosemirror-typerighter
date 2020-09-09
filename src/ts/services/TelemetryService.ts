@@ -6,7 +6,7 @@ import { ITyperighterTelemetryEvent } from "../interfaces/ITelemetryData";
 class UserTelemetryEventSender {
     private postEventLimit = 500;
     private eventBuffer: ITyperighterTelemetryEvent[] = [];
-    
+
     public constructor(private telemetryUrl: string, private throttleDelay: number) {};
 
     private async sendEvents(): Promise<void> {
@@ -20,20 +20,25 @@ class UserTelemetryEventSender {
         // Push the remaining events back into the buffer
         this.eventBuffer = subsequentChunks.flat();
 
-        await fetch(`${this.telemetryUrl}/event`, {
-            method: "POST",
-            credentials: "include",
-            headers: new Headers({
-              "Content-Type": "application/json"
-            }),
-            body: jsonEventBuffer
-          });
-  
+        const response = await fetch(`${this.telemetryUrl}/event`, {
+          method: "POST",
+          credentials: "include",
+          headers: new Headers({
+            "Content-Type": "application/json"
+          }),
+          body: jsonEventBuffer
+        });
+
+        if (!response.ok) {
+          this.eventBuffer = this.eventBuffer.concat(firstChunk);
+        }
+
         if (this.eventBuffer.length) {
+
           this.throttledSendEvents();
         }
     }
-    
+
     private throttledSendEvents = throttle(this.sendEvents, this.throttleDelay, { trailing: true, leading: false })
 
     public addEvent(event: ITyperighterTelemetryEvent): void {
