@@ -150,10 +150,10 @@ export const getPatchesFromReplacementText = (
       // If this patch removes chars, create a fragment for
       // the range, and leave the cursor where it is.
       if (patch.removed) {
-        const fragment = {
+        const fragment: ISuggestionPatchDelete = {
           from: newFrom,
           to: newTo,
-          type: "DELETE" as const
+          type: "DELETE"
         };
 
         return {
@@ -163,13 +163,13 @@ export const getPatchesFromReplacementText = (
       }
 
       const prevFragment = currentFragments[currentFragments.length - 1];
-      const isInsertion = !!prevFragment && (prevFragment.to || 0) < newFrom;
+      const isInsertionThatFollowsUnalteredRange = !!prevFragment && (prevFragment.to || 0) < newFrom;
 
       let getMarks;
-      if (isInsertion) {
-        // If this patch is an insertion, inherit the marks from the last character
-        // of that patch's range. This ensures that text that expands upon an existing
-        // range shares the existing range's style.
+      if (isInsertionThatFollowsUnalteredRange) {
+        // If this patch is an insertion that follows an unaltered range, inherit the marks
+        // from the character that precedes this patch. This ensures that text that expands
+        // upon an existing range shares the existing range's style.
         getMarks = (localTr: Transaction) => {
           const $newFrom = localTr.doc.resolve(newFrom)
           const $lastCharFrom = localTr.doc.resolve(newFrom - 1);
@@ -184,8 +184,8 @@ export const getPatchesFromReplacementText = (
         }
       }
 
-      const newFragment = {
-        type: "INSERT" as const,
+      const newFragment: ISuggestionPatchInsert = {
+        type: "INSERT",
         text: patch.value,
         getMarks,
         from: newFrom,
