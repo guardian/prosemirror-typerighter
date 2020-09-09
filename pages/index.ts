@@ -16,8 +16,8 @@ import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
-import { ITyperighterTelemetryEvent } from "../src/ts/interfaces/ITelemetryData";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
+import TelemetryService from "../src/ts/services/TelemetryService";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -72,9 +72,9 @@ if (editorElement && sidebarNode) {
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
 
-  const stubTelemetrySender = (event: ITyperighterTelemetryEvent) =>
-  console.log(event);
-  const telemetryService = new TyperighterTelemetryAdapter(stubTelemetrySender, "user-telemetry-service", "CODE");
+
+  const telemetryService = new TelemetryService("http://example.com")
+  const typerighterTelemetryService = new TyperighterTelemetryAdapter(telemetryService, "user-telemetry-service", "DEV");
 
   createView({
     store,
@@ -87,7 +87,7 @@ if (editorElement && sidebarNode) {
     onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
     getScrollOffset,
-    telemetryService
+    telemetryService: typerighterTelemetryService
   });
 
   // Handy debugging tools

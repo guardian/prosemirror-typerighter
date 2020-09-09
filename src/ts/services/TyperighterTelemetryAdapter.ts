@@ -5,16 +5,17 @@ import {
   IMarkAsCorrectEvent,
   ISidebarClickEvent
 } from "../interfaces/ITelemetryData";
+import TelemetryService from './TelemetryService';
 
 class TyperighterTelemetryAdapter {
   constructor(
-    private sendTelemetryEvent: (event: ITyperighterTelemetryEvent) => void,
-    private app: string, 
+    private telemetryService: TelemetryService,
+    private app: string,
     private stage: string
   ) {}
 
   public suggestionIsAccepted(tags: ISuggestionAcceptedEvent["tags"]) {
-    this.sendTelemetryEvent({
+    this.telemetryService.addEvent({
       app: this.app,
       stage: this.stage,
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUGGESTION_IS_ACCEPTED,
@@ -25,7 +26,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public matchIsMarkedAsCorrect(tags: IMarkAsCorrectEvent["tags"]) {
-    this.sendTelemetryEvent({
+    this.telemetryService.addEvent({
       app: this.app,
       stage: this.stage,
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT,
@@ -36,7 +37,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public documentIsChecked(tags: ITyperighterTelemetryEvent["tags"]) {
-    this.sendTelemetryEvent({
+    this.telemetryService.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CHECK_DOCUMENT,
       value: 1,
       eventTime: new Date().toISOString(),
@@ -45,7 +46,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public typerighterIsOpened(tags: ITyperighterTelemetryEvent["tags"]) {
-    this.sendTelemetryEvent({
+    this.telemetryService.addEvent({
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED,
@@ -56,7 +57,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public typerighterIsClosed(tags: ITyperighterTelemetryEvent["tags"]) {
-    this.sendTelemetryEvent({
+    this.telemetryService.addEvent({
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED,
@@ -67,7 +68,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public sidebarMatchClicked(tags: ISidebarClickEvent["tags"]) {
-    this.sendTelemetryEvent({
+    this.telemetryService.addEvent({
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK,

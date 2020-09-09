@@ -7,7 +7,7 @@ class UserTelemetryEventSender {
     private postEventLimit = 500;
     private eventBuffer: ITyperighterTelemetryEvent[] = [];
 
-    public constructor(private telemetryUrl: string, private throttleDelay: number) {};
+    public constructor(private telemetryUrl: string, private throttleDelay: number = 10000) {};
 
     private async sendEvents(): Promise<void> {
         const [firstChunk, ...subsequentChunks] = chunk(this.eventBuffer, this.postEventLimit);
