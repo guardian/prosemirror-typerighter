@@ -17,7 +17,7 @@ export interface ITelemetryEvent {
   /**
    * The value of the event in question
    */
-  value: boolean | number;
+  value: number;
 
   /**
    * The time the event occurred (not the time it was queued, or sent), in ISO-8601 date format
@@ -87,7 +87,7 @@ export interface ICheckDocumentEvent extends ITyperighterTelemetryEvent {
 
 export interface IOpenTyperighterEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED;
-  value: boolean;
+  value: 0 | 1;
 }
 
 export interface ISidebarClickEvent extends ITyperighterTelemetryEvent {

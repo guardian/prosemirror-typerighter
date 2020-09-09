@@ -22,6 +22,7 @@ class UserTelemetryEventSender {
 
         const response = await fetch(`${this.telemetryUrl}/event`, {
           method: "POST",
+          mode: "cors",
           credentials: "include",
           headers: new Headers({
             "Content-Type": "application/json"

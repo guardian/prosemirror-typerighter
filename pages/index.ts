@@ -72,9 +72,8 @@ if (editorElement && sidebarNode) {
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
 
-
-  const telemetryService = new TelemetryService("http://example.com")
-  const typerighterTelemetryService = new TyperighterTelemetryAdapter(telemetryService, "user-telemetry-service", "DEV");
+  const telemetryService = new TelemetryService("https://example.com")
+  const typerighterTelemetryService = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
 
   createView({
     store,

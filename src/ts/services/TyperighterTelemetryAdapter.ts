@@ -38,6 +38,8 @@ class TyperighterTelemetryAdapter {
 
   public documentIsChecked(tags: ITyperighterTelemetryEvent["tags"]) {
     this.telemetryService.addEvent({
+      app: this.app,
+      stage: this.stage,
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CHECK_DOCUMENT,
       value: 1,
       eventTime: new Date().toISOString(),
@@ -50,7 +52,7 @@ class TyperighterTelemetryAdapter {
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED,
-        value: true,
+        value: 1,
         eventTime: new Date().toISOString(),
         tags
     });
@@ -61,7 +63,7 @@ class TyperighterTelemetryAdapter {
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED,
-        value: false,
+        value: 0,
         eventTime: new Date().toISOString(),
         tags
     });
