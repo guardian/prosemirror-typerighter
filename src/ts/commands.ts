@@ -27,7 +27,10 @@ import {
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
-import { Mark } from "prosemirror-model";
+import {
+  getPatchesFromReplacementText,
+  applyPatchToTransaction
+} from "./utils/prosemirror";
 
 type Command = (
   state: EditorState,
@@ -107,7 +110,6 @@ export const stopHoverCommand = (): Command => (state, dispatch) => {
   }
   return true;
 };
-
 
 /**
  * Indicate the user is highlighting a match decoration.
@@ -322,26 +324,31 @@ const maybeApplySuggestions = (
     return false;
   }
 
-  if (dispatch) {
-    const tr = state.tr;
-    suggestionsToApply.forEach(
-      ({ from, to, text }) => {
-        if (!text) {
-          return;
-        }
-        const $from = tr.doc.resolve(from);
-        const $to = tr.doc.resolve(to);
-        const marks = $from.marksAcross($to) || Mark.none
-        const newNode = state.schema.text(text).mark(marks)
-        tr.replaceWith(
-          tr.mapping.map(from),
-          tr.mapping.map(to),
-          newNode
-        )
-      }
-    );
-    dispatch(tr);
+  if (!dispatch) {
+    return true;
   }
+
+  const tr = state.tr;
+  suggestionsToApply.forEach(({ from, to, text }) => {
+    if (!text) {
+      return;
+    }
+
+    const mappedFrom = tr.mapping.map(from);
+    const mappedTo = tr.mapping.map(to);
+    const replacementFrags = getPatchesFromReplacementText(
+      tr,
+      mappedFrom,
+      mappedTo,
+      text
+    );
+
+    replacementFrags.forEach(frag =>
+      applyPatchToTransaction(tr, state.schema, frag)
+    );
+  });
+
+  dispatch(tr);
 
   return true;
 };
