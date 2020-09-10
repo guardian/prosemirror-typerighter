@@ -25,7 +25,14 @@
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
   },
   "release": {
-    "branches": ["master"]
+    "branches": [
+      "master"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
@@ -56,6 +63,8 @@
     "coveralls": "^3.0.2",
     "eslint": "^4.13.1",
     "fetch-mock": "^7.3.3",
+    "git-cz": "^4.7.1",
+    "husky": "^4.3.0",
     "jest": "^23.6.0",
     "node-fetch": "^2.2.1",
     "prettier": "^1.9.2",
