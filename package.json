@@ -24,6 +24,9 @@
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
   },
+  "release": {
+    "branches": ["master"]
+  },
   "devDependencies": {
     "@babel/core": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
