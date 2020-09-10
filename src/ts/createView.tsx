@@ -59,7 +59,7 @@ const createView = ({
 
   // Finally, render our components.
   render(
-    <TelemetryContext.Provider value={{ telemetryAdapter: telemetryAdapter }}>
+    <TelemetryContext.Provider value={{ telemetryAdapter }}>
       <MatchOverlay
         store={store}
         applySuggestions={suggestionOpts => {

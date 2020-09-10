@@ -1,5 +1,5 @@
 import { IBlock, IMatch, ICategory } from "../interfaces/IMatch";
-import { IMatcherAdapter } from "../interfaces/IMatcherAdapter";
+import { IMatcherAdapter, TMatchesReceivedCallback } from "../interfaces/IMatcherAdapter";
 import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
@@ -7,6 +7,7 @@ import Store, {
 import { Commands } from "../commands";
 import { selectAllBlockQueriesInFlight } from "../state/selectors";
 import { v4 } from "uuid";
+import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
 
 /**
  * A matcher service to manage the interaction between the prosemirror-typerighter plugin
@@ -22,6 +23,7 @@ class MatcherService<TMatch extends IMatch> {
     private store: Store<TMatch>,
     private commands: Commands,
     private adapter: IMatcherAdapter<TMatch>,
+    private telemetryAdapter?: TyperighterTelemetryAdapter,
     // The initial throttle duration for pending requests.
     private initialThrottle = 2000,
   ) {
@@ -33,6 +35,17 @@ class MatcherService<TMatch extends IMatch> {
       this.scheduleRequest();
     });
   }
+
+  private sendMatchTelemetryEvents = (matches: TMatch[]) => {
+    matches.forEach((match: TMatch) => this.telemetryAdapter?.matchFound({
+      documentUrl: document.URL,
+      ruleId: match.ruleId,
+      matchId: match.matchId,
+      matchedText: match.matchedText,
+      matchContext: match.matchContext
+    }));
+  }
+  
 
   /**
    * Get all of the available categories from the matcher service.
@@ -62,11 +75,15 @@ class MatcherService<TMatch extends IMatch> {
    * Fetch matches for a set of blocks.
    */
   public async fetchMatches(requestId: string, blocks: IBlock[]) {
+    const applyMatcherResponse: TMatchesReceivedCallback<TMatch> = (response) => {
+      this.sendMatchTelemetryEvents(response.matches);
+      this.commands.applyMatcherResponse(response);
+    };
     this.adapter.fetchMatches(
       requestId,
       blocks,
       this.currentCategories.map(_ => _.id),
-      this.commands.applyMatcherResponse,
+      applyMatcherResponse,
       this.commands.applyRequestError,
       this.commands.applyRequestComplete
     );

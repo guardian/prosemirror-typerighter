@@ -3,7 +3,8 @@ import {
   ISuggestionAcceptedEvent,
   TYPERIGHTER_TELEMETRY_TYPE,
   IMarkAsCorrectEvent,
-  ISidebarClickEvent
+  ISidebarClickEvent,
+  IMatchFoundEvent
 } from "../interfaces/ITelemetryData";
 import TelemetryService from './TelemetryService';
 
@@ -74,6 +75,17 @@ class TyperighterTelemetryAdapter {
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK,
+        value: 1,
+        eventTime: new Date().toISOString(),
+        tags
+    });
+  }
+
+  public matchFound(tags: IMatchFoundEvent["tags"]) {
+    this.telemetryService.addEvent({
+        app: this.app,
+        stage: this.stage,
+        type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_FOUND,
         value: 1,
         eventTime: new Date().toISOString(),
         tags
