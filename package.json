@@ -24,11 +24,6 @@
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
   },
-  "release": {
-    "branches": [
-      "master"
-    ]
-  },
   "husky": {
     "hooks": {
       "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"

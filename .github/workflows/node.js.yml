@@ -31,6 +31,14 @@ jobs:
       uses: cycjimmy/semantic-release-action@v2
       with:
         dry_run: true
+        branches: |
+          [
+            'master',
+            {
+              name: 'beta',
+              prerelease: true
+            }
+          ]
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
