@@ -24,12 +24,15 @@ To test this plugin in applications that use it before publishing a release, use
 
 To update the project readme, edit the README.md in ./build and run `build:doc`. This runs Typedoc and appends the generated type information to the readme file, which is then published to the ./docs folder.
 
-## Publishing new versions
+## Commiting and publishing new versions
 
-To publish, you'll need to have an account on [NPM](https://www.npmjs.com/) and be a member of the [Guardian organisation](https://www.npmjs.com/org/guardian).
+This repository uses [semantic-release](https://github.com/semantic-release/semantic-release) to publish new versions of this package when PRs are merged to `master`, and prelease versions when code is pushed to `beta`.
 
-Before publishing, create a branch named and tagged with the [correct new version number](https://semver.org/), and merge it to master. To bump the version and create the tag, use npm via `npm version major | minor | patch`.
+Version numbers are determined by the commit history, and so to trigger a release you'll need to use the [commitizen](https://github.com/commitizen-tools/commitizen) format when writing commits.
 
-Once this is merged, you're ready to publish a new release. Running `npm publish` will build the application, generate its type declarations, and publish.
+A pre-commit githook is installed on `npm i` to launch the commitizen tool, which will help you write a well-formed commit message. You can skip this with `ctrl-c` if necessary, but do bear in mind that commits that aren't in this format cannot trigger releases.
+
+
+
 
 
