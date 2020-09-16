@@ -52,7 +52,6 @@ class TyperighterAdapter implements IMatcherAdapter {
       const body = {
         requestId,
         blocks: [input],
-        categoryIds
       };
       try {
         const response = await fetch(`${this.url}/check`, {
