@@ -9,8 +9,10 @@ import { ILogger, consoleLogger } from "./utils/logger";
 import Sidebar from "./components/Sidebar";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TelemetryContext from "./contexts/TelemetryContext";
+import { EditorView } from "prosemirror-view";
 
 interface IViewOptions {
+  view: EditorView;
   store: Store<IMatch>;
   matcherService: MatcherService<IMatch>;
   commands: Commands;
@@ -39,6 +41,7 @@ interface IViewOptions {
  *  - The plugin results pane
  */
 const createView = ({
+  view,
   store,
   matcherService,
   telemetryAdapter,
@@ -65,12 +68,22 @@ const createView = ({
         applySuggestions={suggestionOpts => {
           commands.applySuggestions(suggestionOpts);
           commands.stopHover();
+          // This is necessary to prevent what we think is a bug that produces
+          // odd history results when Ctrl-Z triggers an undo event and the editor
+          // is not focused. If a user accepts a suggestion without the line below,
+          // the editor is unfocused by the click event. If the user immediately hits
+          // Ctrl-Z to revert the suggestion, the _browser's_ undo behaviour is
+          // triggered – not Prosemirror's – leading to weird history shenanigans.
+          // See e.g. https://discuss.prosemirror.net/t/native-undo-history/1823
+          view.focus();
         }}
         onMarkCorrect={
           onMarkCorrect &&
           (match => {
             commands.ignoreMatch(match.matchId);
             onMarkCorrect(match);
+            // See the previous comment re: focusing in `applySuggestions`.
+            view.focus();
             telemetryAdapter?.matchIsMarkedAsCorrect({
               documentUrl: document.URL,
               ruleId: match.ruleId,
