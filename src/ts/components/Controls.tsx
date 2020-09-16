@@ -19,7 +19,6 @@ interface IProps {
   setDebugState: (debug: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
-  fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
@@ -46,39 +45,21 @@ const getErrorFeedbackLink = (
 const Controls = ({
   store,
   requestMatchesForDocument,
-  fetchCategories,
   getCurrentCategories,
   feedbackHref,
   onToggleActiveState,
-  addCategory
 }: IProps) => {
   const [pluginState, setPluginState] = useState<
     IPluginState<IMatch> | undefined
   >(undefined);
-  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(
-    false
-  );
 
   const { telemetryAdapter } = useContext(TelemetryContext);
-
-  const fetchAllCategories = async () => {
-    setIsLoadingCategories(true);
-    try {
-      const allCategories = await fetchCategories();
-      allCategories.forEach(category => addCategory(category.id));
-      setIsLoadingCategories(false);
-    } catch (e) {
-      setIsLoadingCategories(false);
-    }
-  };
 
   useEffect(() => {
     store.on(STORE_EVENT_NEW_STATE, newState => {
       setPluginState(newState);
     });
     setPluginState(store.getState());
-
-    fetchAllCategories();
   }, []);
 
   const pluginIsActive = pluginState && selectPluginIsActive(pluginState);
@@ -152,10 +133,7 @@ const Controls = ({
             type="button"
             className="Button"
             onClick={handleCheckDocumentButtonClick}
-            disabled={
-              isLoadingCategories ||
-              (pluginState && selectRequestsInProgress(pluginState))
-            }
+            disabled={pluginState && selectRequestsInProgress(pluginState)}
           >
             Check document
           </button>
