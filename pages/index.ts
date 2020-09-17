@@ -79,6 +79,7 @@ if (editorElement && sidebarNode) {
   );
 
   createView({
+    view,
     store,
     matcherService,
     commands,
