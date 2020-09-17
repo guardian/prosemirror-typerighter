@@ -1,3 +1,5 @@
+type TelemetryBool = 'true' | 'false';
+
 export interface ITelemetryEvent {
   /**
    * The application sending the event
@@ -55,6 +57,9 @@ interface IMatchEventTags {
   ruleId: string,
   suggestion?: string;
   matchId: string;
+  matchIsMarkedAsCorrect: TelemetryBool;
+  matchIsAdvisory: TelemetryBool;
+  matchHasReplacement: TelemetryBool;
   matchedText: string;
   matchContext: string;
 }
