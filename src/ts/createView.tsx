@@ -84,13 +84,7 @@ const createView = ({
             onMarkCorrect(match);
             // See the previous comment re: focusing in `applySuggestions`.
             view.focus();
-            telemetryAdapter?.matchIsMarkedAsCorrect({
-              documentUrl: document.URL,
-              ruleId: match.ruleId,
-              matchId: match.matchId,
-              matchedText: match.matchedText,
-              matchContext: match.matchContext
-            });
+            telemetryAdapter?.matchIsMarkedAsCorrect(match, document.URL);
           })
         }
         feedbackHref={feedbackHref}

@@ -59,13 +59,7 @@ const SidebarMatch = ({
     e.preventDefault();
     e.stopPropagation();
 
-    telemetryAdapter?.sidebarMatchClicked({
-      documentUrl: document.URL,
-      ruleId: match.ruleId,
-      matchId: match.matchId,
-      matchedText: match.matchedText,
-      matchContext: match.matchContext
-    });
+    telemetryAdapter?.sidebarMatchClicked(match, document.URL);
 
     if (!editorScrollElement) {
       return;
