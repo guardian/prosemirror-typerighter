@@ -57,7 +57,6 @@ const Sidebar = ({
               commands.setConfigValue("requestMatchesOnDocModified", value)
             }
             requestMatchesForDocument={commands.requestMatchesForDocument}
-            fetchCategories={matcherService.fetchCategories}
             getCurrentCategories={matcherService.getCurrentCategories}
             addCategory={matcherService.addCategory}
             removeCategory={matcherService.removeCategory}
