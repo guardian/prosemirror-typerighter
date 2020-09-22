@@ -257,34 +257,32 @@ describe("selectors", () => {
       const input2 = createBlock(10, 15);
       const input3 = createBlock(15, 20);
       const input4 = createBlock(20, 25);
+      // let state = {
+      //   ...initialState,
+      //   requestsInFlight: {
+      //     ...createBlockQueriesInFlight([input1, input2]),
+      //     ...createBlockQueriesInFlight([input3], "set-id-2")
+      //   }
+      // };
+      // expect(selectPercentRemaining(state)).toEqual(100);
       let state = {
-        ...initialState,
-        requestsInFlight: {
-          ...createBlockQueriesInFlight([input1, input2]),
-          ...createBlockQueriesInFlight([input3], "set-id-2")
-        }
-      };
-      expect(selectPercentRemaining(state)).toEqual(100);
-      state = {
         ...initialState,
         requestsInFlight: {
           ...createBlockQueriesInFlight(
             [input1, input2],
             exampleRequestId,
-            exampleCategoryIds,
-            [],
-            3
+            ["set-id-2", "set-id-3"],
+            ["set-id-2"]
           ),
           ...createBlockQueriesInFlight(
-            [input3, input4],
+            [input3],
             "set-id-2",
             exampleCategoryIds,
             exampleCategoryIds,
-            2
           )
         }
       };
-      expect(selectPercentRemaining(state)).toEqual(40);
+      expect(selectPercentRemaining(state)).toEqual(60);
     });
   });
 });
