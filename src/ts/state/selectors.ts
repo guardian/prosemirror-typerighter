@@ -71,9 +71,9 @@ export const selectPercentRemaining = <TMatch extends IMatch>(
     state.requestsInFlight
   ).reduce(
     ([totalWorkAcc, remainingWorkAcc], queryState) => {
-      const allWork = queryState.totalBlocks * queryState.categoryIds.length;
+      const allWork = queryState.totalBlocks * Math.max(queryState.categoryIds.length, 1);
       const remainingWork = queryState.pendingBlocks.reduce(
-        (acc, block) => acc + block.pendingCategoryIds.length,
+        (acc, block) => acc + Math.max(block.pendingCategoryIds.length, 1),
         0
       );
       return [totalWorkAcc + allWork, remainingWorkAcc + remainingWork];
