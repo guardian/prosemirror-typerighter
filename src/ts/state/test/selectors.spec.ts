@@ -13,6 +13,7 @@ import {
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
 import { IMatch } from '../../interfaces/IMatch';
+import { omit } from "lodash";
 
 describe("selectors", () => {
   describe("selectMatchById", () => {
@@ -251,38 +252,59 @@ describe("selectors", () => {
       };
       expect(selectPercentRemaining(state)).toEqual(50);
     });
+    it("should select the percentage remaining for a single request for all categories", () => {
+      const { state: initialState } = createInitialData();
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
+      let state = {
+        ...initialState,
+        requestsInFlight: createBlockQueriesInFlight(
+          [input1, input2],
+          exampleRequestId,
+          []
+        )
+      };
+      expect(selectPercentRemaining(state)).toEqual(100);
+      state = {
+        ...initialState,
+        requestsInFlight: omit(state.requestsInFlight, exampleRequestId),
+      };
+      expect(selectPercentRemaining(state)).toEqual(0);
+    });
     it("should select the percentage remaining for multiple requests", () => {
       const { state: initialState } = createInitialData();
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       const input3 = createBlock(15, 20);
       const input4 = createBlock(20, 25);
-      // let state = {
-      //   ...initialState,
-      //   requestsInFlight: {
-      //     ...createBlockQueriesInFlight([input1, input2]),
-      //     ...createBlockQueriesInFlight([input3], "set-id-2")
-      //   }
-      // };
-      // expect(selectPercentRemaining(state)).toEqual(100);
       let state = {
+        ...initialState,
+        requestsInFlight: {
+          ...createBlockQueriesInFlight([input1, input2]),
+          ...createBlockQueriesInFlight([input3], "set-id-2")
+        }
+      };
+      expect(selectPercentRemaining(state)).toEqual(100);
+      state = {
         ...initialState,
         requestsInFlight: {
           ...createBlockQueriesInFlight(
             [input1, input2],
             exampleRequestId,
-            ["set-id-2", "set-id-3"],
-            ["set-id-2"]
+            exampleCategoryIds,
+            [],
+            3
           ),
           ...createBlockQueriesInFlight(
-            [input3],
+            [input3, input4],
             "set-id-2",
             exampleCategoryIds,
             exampleCategoryIds,
+            2
           )
         }
       };
-      expect(selectPercentRemaining(state)).toEqual(60);
+      expect(selectPercentRemaining(state)).toEqual(40);
     });
   });
 });
