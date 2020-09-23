@@ -106,7 +106,6 @@ class TyperighterTelemetryAdapter {
     ruleId: match.ruleId,
     matchId: match.matchId,
     matchedText: match.matchedText,
-    matchContext: match.matchContext,
     matchHasReplacement: match.replacement ? 'true' : 'false',
     matchIsAdvisory: 'false',
     matchIsMarkedAsCorrect: match.markAsCorrect ? 'true' : 'false',
