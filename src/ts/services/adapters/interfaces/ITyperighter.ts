@@ -36,6 +36,7 @@ export interface ITypeRighterType {
 }
 
 export interface ITypeRighterRule {
+  matcherType: string;
   category: ITypeRighterCategory;
   description: string;
   id: string;

@@ -1,4 +1,4 @@
-type TelemetryBool = 'true' | 'false';
+type TelemetryBool = "true" | "false";
 
 export interface ITelemetryEvent {
   /**
@@ -35,7 +35,6 @@ export interface ITelemetryEvent {
   };
 }
 
-
 export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_SUGGESTION_IS_ACCEPTED = "TYPERIGHTER_SUGGESTION_IS_ACCEPTED",
   TYPERIGHTER_MARK_AS_CORRECT = "TYPERIGHTER_MARK_AS_CORRECT",
@@ -54,7 +53,8 @@ export interface ITyperighterTelemetryEvent extends ITelemetryEvent {
 }
 
 interface IMatchEventTags {
-  ruleId: string,
+  matcherType: string;
+  ruleId: string;
   suggestion?: string;
   matchId: string;
   matchIsMarkedAsCorrect: TelemetryBool;
