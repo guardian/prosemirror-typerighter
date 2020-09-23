@@ -1,5 +1,8 @@
 import { IBlock, IMatch, ICategory } from "../interfaces/IMatch";
-import { IMatcherAdapter, TMatchesReceivedCallback } from "../interfaces/IMatcherAdapter";
+import {
+  IMatcherAdapter,
+  TMatchesReceivedCallback
+} from "../interfaces/IMatcherAdapter";
 import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
@@ -25,7 +28,7 @@ class MatcherService<TMatch extends IMatch> {
     private adapter: IMatcherAdapter<TMatch>,
     private telemetryAdapter?: TyperighterTelemetryAdapter,
     // The initial throttle duration for pending requests.
-    private initialThrottle = 2000,
+    private initialThrottle = 2000
   ) {
     this.currentThrottle = this.initialThrottle;
     this.store.on(STORE_EVENT_NEW_MATCHES, (requestId, requestsInFlight) => {
@@ -37,15 +40,10 @@ class MatcherService<TMatch extends IMatch> {
   }
 
   private sendMatchTelemetryEvents = (matches: TMatch[]) => {
-    matches.forEach((match: TMatch) => this.telemetryAdapter?.matchFound({
-      documentUrl: document.URL,
-      ruleId: match.ruleId,
-      matchId: match.matchId,
-      matchedText: match.matchedText,
-      matchContext: match.matchContext
-    }));
-  }
-  
+    matches.forEach((match: TMatch) =>
+      this.telemetryAdapter?.matchFound(match, document.URL)
+    );
+  };
 
   /**
    * Get all of the available categories from the matcher service.
@@ -75,7 +73,7 @@ class MatcherService<TMatch extends IMatch> {
    * Fetch matches for a set of blocks.
    */
   public async fetchMatches(requestId: string, blocks: IBlock[]) {
-    const applyMatcherResponse: TMatchesReceivedCallback<TMatch> = (response) => {
+    const applyMatcherResponse: TMatchesReceivedCallback<TMatch> = response => {
       this.sendMatchTelemetryEvents(response.matches);
       this.commands.applyMatcherResponse(response);
     };
