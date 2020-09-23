@@ -13,6 +13,7 @@ import {
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
 import { IMatch } from '../../interfaces/IMatch';
+import { omit } from "lodash";
 
 describe("selectors", () => {
   describe("selectMatchById", () => {
@@ -250,6 +251,25 @@ describe("selectors", () => {
         )
       };
       expect(selectPercentRemaining(state)).toEqual(50);
+    });
+    it("should select the percentage remaining for a single request for all categories", () => {
+      const { state: initialState } = createInitialData();
+      const input1 = createBlock(0, 5);
+      const input2 = createBlock(10, 15);
+      let state = {
+        ...initialState,
+        requestsInFlight: createBlockQueriesInFlight(
+          [input1, input2],
+          exampleRequestId,
+          []
+        )
+      };
+      expect(selectPercentRemaining(state)).toEqual(100);
+      state = {
+        ...initialState,
+        requestsInFlight: omit(state.requestsInFlight, exampleRequestId),
+      };
+      expect(selectPercentRemaining(state)).toEqual(0);
     });
     it("should select the percentage remaining for multiple requests", () => {
       const { state: initialState } = createInitialData();
