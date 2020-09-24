@@ -89,6 +89,7 @@ export const createMatcherResponse = (
       };
 
       const newMatch = {
+        matcherType: "regex",
         ruleId: "ruleId",
         category,
         matchedText: "block text",
@@ -126,6 +127,7 @@ export const createMatch = (
     colour: "eeeee"
   }
 ): IMatch => ({
+  matcherType: "regex",
   ruleId: "ruleId",
   category,
   matchedText: "block text",

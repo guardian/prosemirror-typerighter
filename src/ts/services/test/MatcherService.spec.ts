@@ -27,6 +27,7 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
     message: "It's just a bunch of numbers, mate",
     shortMessage: "It's just a bunch of numbers, mate",
     rule: {
+      matcherType: "regex",
       category: {
         id: "numberCat",
         name: "The number category",

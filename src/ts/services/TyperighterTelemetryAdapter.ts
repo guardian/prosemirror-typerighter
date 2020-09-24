@@ -103,6 +103,7 @@ class TyperighterTelemetryAdapter {
   }
 
   private getTelemetryTagsFromMatch = (match: IMatch) => ({
+    matcherType: match.matcherType,
     ruleId: match.ruleId,
     matchId: match.matchId,
     matchedText: match.matchedText,

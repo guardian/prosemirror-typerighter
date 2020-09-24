@@ -130,6 +130,7 @@ describe("selectors", () => {
       const { state } = createInitialData();
       const currentMatches: IMatch[] = [
         {
+          matcherType: "regex",
           ruleId: "ruleId",
           matchId: "match-id",
           from: 0,
@@ -166,6 +167,7 @@ describe("selectors", () => {
       const { state } = createInitialData();
       const currentMatches: IMatch[] = [
         {
+          matcherType: "regex",
           ruleId: "ruleId",
           matchId: "match-id",
           from: 0,
