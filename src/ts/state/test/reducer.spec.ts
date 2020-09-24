@@ -507,6 +507,7 @@ describe("Action handlers", () => {
     it("should add hover decorations", () => {
       const { state, tr } = createInitialData();
       const output: IMatch = {
+        matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
         from: 0,
@@ -541,6 +542,7 @@ describe("Action handlers", () => {
     it("should remove hover decorations", () => {
       const { state, tr } = createInitialData();
       const output: IMatch = {
+        matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
         from: 0,
@@ -580,6 +582,7 @@ describe("Action handlers", () => {
       const { state } = createInitialData();
       const currentMatches: IMatch[] = [
         {
+          matcherType: "regex",
           ruleId: "ruleId",
           matchId: "match-id",
           from: 1,
@@ -625,6 +628,7 @@ describe("Action handlers", () => {
         ...state,
         currentMatches: [
           {
+            matcherType: "regex",
             ruleId: "ruleId",
             matchId: "match-id",
             text: "example",
