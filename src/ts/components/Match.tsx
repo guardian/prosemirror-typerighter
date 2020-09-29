@@ -3,14 +3,14 @@ import React, { Component } from "react";
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
-import { getColourForMatch, IMatchColours } from "../utils/decoration";
+import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
 import { Check } from "@material-ui/icons";
 import { getHtmlFromMarkdown } from "../utils/dom";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
-  matchColours: IMatchColours;
+  matchColours: IMatchTypeToColourMap;
   feedbackHref?: string;
   onMarkCorrect?: (match: IMatch) => void;
 }

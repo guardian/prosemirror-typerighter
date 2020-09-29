@@ -1,4 +1,9 @@
-import { createDecorationsForMatch, defaultMatchColours } from "../decoration";
+import {
+  createDecorationsForMatch,
+  defaultMatchColours,
+  getMatchType,
+  MatchType
+} from "../decoration";
 import { createMatch } from "../../test/helpers/fixtures";
 import { IMatch } from "../../interfaces/IMatch";
 
@@ -17,8 +22,7 @@ describe("Decoration utils", () => {
             attrs: {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
-              style:
-                `background-color: ${defaultMatchColours.ambiguous}07; border-bottom: 2px solid ${defaultMatchColours.ambiguous}${defaultMatchColours.ambiguousOpacity}`
+              style: `background-color: ${defaultMatchColours.default}07; border-bottom: 2px solid ${defaultMatchColours.default}${defaultMatchColours.defaultOpacity}`
             },
             spec: {
               categoryId: "1",
@@ -41,8 +45,7 @@ describe("Decoration utils", () => {
             attrs: {
               class: "MatchDecoration",
               "data-match-id": "0-from:0-to:5--match-0",
-              style:
-                `background-color: ${defaultMatchColours.correct}07; border-bottom: 2px solid ${defaultMatchColours.correct}${defaultMatchColours.correctOpacity}`
+              style: `background-color: ${defaultMatchColours.correct}07; border-bottom: 2px solid ${defaultMatchColours.correct}${defaultMatchColours.correctOpacity}`
             },
             spec: {
               categoryId: "1",
@@ -54,6 +57,23 @@ describe("Decoration utils", () => {
           }
         }
       ]);
+    });
+  });
+  describe("getMatchType", () => {
+    const defaultMatch = createMatch(0, 5);
+    it("gives a MatchType of CORRECT when markAsCorrect is set", () => {
+      const match = { ...defaultMatch, markAsCorrect: true };
+      expect(getMatchType(match)).toBe(MatchType.CORRECT);
+    });
+    it("gives a matchType of HAS_REPLACEMENT when a replacement is available", () => {
+      const match = {
+        ...defaultMatch,
+        replacement: { text: "u r wrong", type: "TEXT_SUGGESTION" as const }
+      };
+      expect(getMatchType(match)).toBe(MatchType.HAS_REPLACEMENT);
+    });
+    it("gives a match type of DEFAULT when none of the above apply", () => {
+      expect(getMatchType(defaultMatch)).toBe(MatchType.DEFAULT);
     });
   });
 });
