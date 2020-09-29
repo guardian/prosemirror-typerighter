@@ -9,7 +9,7 @@ import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
   DECORATION_ATTRIBUTE_ID,
-  IMatchColours,
+  IMatchTypeToColourMap,
   defaultMatchColours
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
@@ -54,7 +54,7 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   /**
    * The colours to use for document matches.
    */
-  matchColours?: IMatchColours;
+  matchColours?: IMatchTypeToColourMap;
 
   /**
    * Is the given element part of the typerighter UI, but not

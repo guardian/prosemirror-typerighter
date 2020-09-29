@@ -4,7 +4,7 @@ import React, { useState, useContext } from "react";
 
 import { IMatch } from "../interfaces/IMatch";
 import {
-  IMatchColours,
+  IMatchTypeToColourMap,
   getColourForMatch,
   maybeGetDecorationElement
 } from "../utils/decoration";
@@ -16,7 +16,7 @@ import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   match: IMatch;
-  matchColours: IMatchColours;
+  matchColours: IMatchTypeToColourMap;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;
