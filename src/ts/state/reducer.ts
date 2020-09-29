@@ -51,7 +51,7 @@ import {
   findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
-import { ExpandRanges } from "../createTyperighterPlugin";
+import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
@@ -63,6 +63,7 @@ import {
 import { Mapping } from "prosemirror-transform";
 import { createBlock } from "../utils/block";
 import { addMatchesToState } from "./helpers";
+import { IDefaultFilterState } from "../utils/plugin";
 
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
@@ -75,8 +76,8 @@ export interface IBlockInFlight {
  * Handy when, for example, consumers know that parts of the document are
  * exempt from checks.
  */
-export type IIgnoreMatch = (match: IMatch) => boolean;
-export const includeAllMatches: IIgnoreMatch = () => false;
+export type IIgnoreMatchPredicate = (match: IMatch) => boolean;
+export const includeAllMatches: IIgnoreMatchPredicate = () => false;
 
 export interface IBlocksInFlightState {
   totalBlocks: number;
@@ -98,7 +99,10 @@ export interface IPluginConfig {
   matchColours: IMatchTypeToColourMap;
 }
 
-export interface IPluginState<TMatches extends IMatch = IMatch> {
+export interface IPluginState<
+  TFilterState = IDefaultFilterState,
+  TMatches extends IMatch = IMatch
+> {
   config: IPluginConfig;
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
@@ -125,7 +129,19 @@ export interface IPluginState<TMatches extends IMatch = IMatch> {
   };
   // The current error message.
   requestErrors: IMatchRequestError[];
+  // The current state of the filter
+  filterState: TFilterState;
 }
+
+type TReducerHandler<
+  TFilterType,
+  TAction extends Action<TMatch>,
+  TMatch extends IMatch = IMatch
+> = (
+  tr: Transaction,
+  state: IPluginState<TFilterType, TMatch>,
+  action: TAction
+) => IPluginState<TFilterType, TMatch>;
 
 // The transaction meta key that namespaces our actions.
 export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
@@ -133,14 +149,15 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 /**
  * Initial state.
  */
-export const createInitialState = <TMatch extends IMatch>(
+export const createInitialState = <TFilterState, TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   active: boolean = true,
-  ignoreMatch: IIgnoreMatch = includeAllMatches,
+  filterState: TFilterState,
+  ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
   matchColours: IMatchTypeToColourMap = defaultMatchColours
-): IPluginState<TMatch> => {
-  const initialState: IPluginState<TMatch> = {
+): IPluginState<TFilterState, TMatch> => {
+  const initialState: IPluginState<TFilterState, TMatch> = {
     config: {
       isActive: active,
       debug: false,
@@ -158,25 +175,31 @@ export const createInitialState = <TMatch extends IMatch>(
     highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
-    requestErrors: []
+    requestErrors: [],
+    filterState
   };
-  return addMatchesToState(initialState, doc, matches, ignoreMatch);
+  return addMatchesToState<TFilterState, TMatch>(
+    initialState,
+    doc,
+    matches,
+    ignoreMatch
+  );
 };
 
 export const createReducer = (
   expandRanges: ExpandRanges,
-  ignoreMatch: IIgnoreMatch = includeAllMatches
+  ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
-  const handleNewHoverId = createHandleNewFocusState('hoverId');
-  const handleNewHighlightId = createHandleNewFocusState('highlightId');
-  return <TMatch extends IMatch>(
+  const handleNewHoverId = createHandleNewFocusState("hoverId");
+  const handleNewHighlightId = createHandleNewFocusState("highlightId");
+  return <TFilterState, TMatch extends IMatch>(
     tr: Transaction,
-    incomingState: IPluginState<TMatch>,
+    incomingState: IPluginState<TFilterState, TMatch>,
     action?: Action<TMatch>
-  ): IPluginState<TMatch> => {
+  ): IPluginState<TFilterState, TMatch> => {
     // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
     const state = tr.docChanged
       ? getNewStateFromTransaction(tr, incomingState)
@@ -221,10 +244,10 @@ export const createReducer = (
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
  */
-const getNewStateFromTransaction = <TMatch extends IMatch>(
+const getNewStateFromTransaction = <TFilterState, TMatch extends IMatch>(
   tr: Transaction,
-  incomingState: IPluginState<TMatch>
-): IPluginState<TMatch> => {
+  incomingState: IPluginState<TFilterState, TMatch>
+): IPluginState<TFilterState, TMatch> => {
   const mappedRequestsInFlight = Object.entries(
     incomingState.requestsInFlight
   ).reduce((acc, [requestId, requestsInFlight]) => {
@@ -257,11 +280,11 @@ const getNewStateFromTransaction = <TMatch extends IMatch>(
 /**
  * Handle the selection of a hover id.
  */
-const handleSelectMatch = <TMatch extends IMatch>(
+const handleSelectMatch = <TFilterState, TMatch extends IMatch>(
   _: unknown,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   action: ActionSelectMatch
-): IPluginState<TMatch> => {
+): IPluginState<TFilterState, TMatch> => {
   return {
     ...state,
     selectedMatch: action.payload.matchId
@@ -271,11 +294,11 @@ const handleSelectMatch = <TMatch extends IMatch>(
 /**
  * Remove a match and its decoration from the state.
  */
-const handleRemoveMatch = <TMatch extends IMatch>(
+const handleRemoveMatch = <TFilterState, TMatch extends IMatch>(
   _: unknown,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { id } }: ActionRemoveMatch
-): IPluginState<TMatch> => {
+): IPluginState<TFilterState, TMatch> => {
   const decorationToRemove = state.decorations.find(
     undefined,
     undefined,
@@ -297,13 +320,13 @@ const handleRemoveMatch = <TMatch extends IMatch>(
 /**
  * Handle the receipt of a new focus state.
  */
-const createHandleNewFocusState = (focusState: "highlightId" | "hoverId") => <
-  TMatch extends IMatch
->(
-  tr: Transaction,
-  state: IPluginState<TMatch>,
-  action: ActionNewHoverIdReceived | ActionNewHighlightIdReceived
-): IPluginState<TMatch> => {
+const createHandleNewFocusState = <TFilterState, TMatch extends IMatch>(
+  focusState: "highlightId" | "hoverId"
+): TReducerHandler<
+  TFilterState,
+  ActionNewHoverIdReceived | ActionNewHighlightIdReceived,
+  TMatch
+> => (tr, state, action) => {
   let decorations = state.decorations;
   const incomingHoverId = action.payload.matchId;
   const currentHoverId = state[focusState];
@@ -346,9 +369,9 @@ const createHandleNewFocusState = (focusState: "highlightId" | "hoverId") => <
   };
 };
 
-const handleNewDirtyRanges = <TMatch extends IMatch>(
+const handleNewDirtyRanges = <TFilterState, TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
 ) => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
@@ -384,9 +407,9 @@ const handleNewDirtyRanges = <TMatch extends IMatch>(
  */
 const createHandleMatchesRequestForDirtyRanges = (
   expandRanges: ExpandRanges
-) => <TMatch extends IMatch>(
+) => <TFilterState, TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ) => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
@@ -399,9 +422,9 @@ const createHandleMatchesRequestForDirtyRanges = (
 /**
  * Handle a matches request for the entire document.
  */
-const handleMatchesRequestForDocument = <TMatch extends IMatch>(
+const handleMatchesRequestForDocument = <TFilterState, TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDocument
 ) => {
   return handleRequestStart(
@@ -418,10 +441,10 @@ const handleRequestStart = (
   requestId: string,
   blocks: IBlock[],
   categoryIds: string[]
-) => <TMatch extends IMatch>(
+) => <TFilterState, TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TMatch>
-): IPluginState<TMatch> => {
+  state: IPluginState<TFilterState, TMatch>
+): IPluginState<TFilterState, TMatch> => {
   // Replace any debug decorations, if they exist.
   const decorations = state.config.debug
     ? removeDecorationsFromRanges(state.decorations, blocks, [
@@ -456,8 +479,8 @@ const handleRequestStart = (
   };
 };
 
-const amendBlockQueriesInFlight = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+const amendBlockQueriesInFlight = <TFilterState, TMatch extends IMatch>(
+  state: IPluginState<TFilterState, TMatch>,
   requestId: string,
   blockId: string,
   categoryIds: string[]
@@ -502,13 +525,14 @@ const amendBlockQueriesInFlight = <TMatch extends IMatch>(
 /**
  * Handle a response, decorating the document with any matches we've received.
  */
-const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatch) => <
+const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
+  TFilterState,
   TMatch extends IMatch
 >(
   tr: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { response } }: ActionRequestMatchesSuccess<TMatch>
-): IPluginState<TMatch> => {
+): IPluginState<TFilterState, TMatch> => {
   if (!response) {
     return state;
   }
@@ -597,9 +621,9 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatch) => <
 /**
  * Handle a matches request error.
  */
-const handleMatchesRequestError = <TMatch extends IMatch>(
+const handleMatchesRequestError = <TFilterState, TMatch extends IMatch>(
   tr: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { matchRequestError } }: ActionRequestError
 ) => {
   const { requestId, blockId, categoryIds } = matchRequestError;
@@ -674,9 +698,9 @@ const handleMatchesRequestError = <TMatch extends IMatch>(
   };
 };
 
-const handleRequestComplete = <TMatch extends IMatch>(
+const handleRequestComplete = <TFilterState, TMatch extends IMatch>(
   _: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { requestId } }: ActionRequestComplete
 ) => {
   const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
@@ -698,9 +722,9 @@ const handleRequestComplete = <TMatch extends IMatch>(
   };
 };
 
-const handleSetConfigValue = <TMatch extends IMatch>(
+const handleSetConfigValue = <TFilterState, TMatch extends IMatch>(
   _: Transaction,
-  state: IPluginState<TMatch>,
+  state: IPluginState<TFilterState, TMatch>,
   { payload: { key, value } }: ActionSetConfigValue
 ) => {
   return {
