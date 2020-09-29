@@ -1,13 +1,13 @@
-import { IPluginState, IIgnoreMatch, includeAllMatches } from "./reducer";
+import { IPluginState, IIgnoreMatchPredicate, includeAllMatches } from "./reducer";
 import { IMatch } from "../interfaces/IMatch";
 import { createDecorationsForMatch } from "../utils/decoration";
 import { DecorationSet } from "prosemirror-view";
 
-export const addMatchesToState = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+export const addMatchesToState = <TFilterState, TMatch extends IMatch>(
+  state: IPluginState<TFilterState, TMatch>,
   doc: any,
   matches: TMatch[],
-  ignoreMatch: IIgnoreMatch = includeAllMatches
+  ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ) => {
   const matchesToApply = matches.filter(match => !ignoreMatch(match));
   const decorations = matchesToApply.reduce(

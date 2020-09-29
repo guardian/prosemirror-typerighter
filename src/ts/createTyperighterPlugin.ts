@@ -2,7 +2,7 @@ import { applyNewDirtiedRanges } from "./state/actions";
 import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
-  IIgnoreMatch,
+  IIgnoreMatchPredicate,
   includeAllMatches
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
@@ -23,16 +23,35 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
+import { startHoverCommand, stopHoverCommand } from "./commands";
 import {
-  startHoverCommand,
-  stopHoverCommand
-} from "./commands";
-import { maybeResetHoverStates } from "./utils/plugin";
+  filterByMatchState,
+  IFilterMatches,
+  IDefaultFilterState,
+  maybeResetHoverStates
+} from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-export interface IPluginOptions<TMatch extends IMatch = IMatch> {
+export interface IFilterOptions<TFilterState> {
+  /**
+   * A function to filter matches given a user-defined filter state.
+   */
+  filterMatches: IFilterMatches<TFilterState>;
+
+  /**
+   * The initial state to pass to the filter predicate.
+   */
+  initialFilterState: TFilterState;
+}
+
+const defaultFilterOptions = {
+  filterMatches: filterByMatchState,
+  initialFilterState: [] as IDefaultFilterState
+};
+
+export interface IPluginOptions<TFilterState = undefined, TMatch extends IMatch = IMatch> {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -49,7 +68,9 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   /**
    * Ignore matches when this predicate returns true.
    */
-  ignoreMatch?: IIgnoreMatch;
+  ignoreMatch?: IIgnoreMatchPredicate;
+
+  filterOptions?: IFilterOptions<TFilterState>;
 
   /**
    * The colours to use for document matches.
@@ -73,12 +94,13 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createTyperighterPlugin = <TMatch extends IMatch>(
-  options: IPluginOptions<TMatch> = {}
+const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
+  options: IPluginOptions<TFilterState, TMatch> = {}
 ) => {
   const {
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
+    filterOptions = defaultFilterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
     isElementPartOfTyperighterUI = () => false
@@ -97,6 +119,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
         const initialState = createInitialState(
           doc,
           matches,
+          filterOptions.initialFilterState,
           ignoreMatch,
           matchColours
         );
