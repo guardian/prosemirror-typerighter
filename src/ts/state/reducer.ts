@@ -41,7 +41,7 @@ import {
   DECORATION_MATCH,
   createDecorationsForMatch,
   createDecorationsForMatches,
-  IMatchColours,
+  IMatchTypeToColourMap,
   defaultMatchColours
 } from "../utils/decoration";
 import {
@@ -94,7 +94,7 @@ export interface IPluginConfig {
   // and expanded ranges.
   debug: boolean;
   // The colours to use when rendering matches
-  matchColours: IMatchColours;
+  matchColours: IMatchTypeToColourMap;
 }
 
 export interface IPluginState<TMatches extends IMatch = IMatch> {
@@ -136,7 +136,7 @@ export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
   ignoreMatch: IIgnoreMatch = includeAllMatches,
-  matchColours: IMatchColours = defaultMatchColours
+  matchColours: IMatchTypeToColourMap = defaultMatchColours
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {

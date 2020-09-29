@@ -3,20 +3,27 @@ import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { IRange, IMatch } from "../interfaces/IMatch";
 
-export interface IMatchColours {
-  unambiguous: string;
-  unambiguousOpacity: string;
-  ambiguous: string;
-  ambiguousOpacity: string;
+export enum MatchType {
+  HAS_REPLACEMENT,
+  ADVISORY,
+  DEFAULT,
+  CORRECT
+}
+
+export interface IMatchTypeToColourMap {
+  hasSuggestion: string;
+  hasSuggestionOpacity: string;
+  default: string;
+  defaultOpacity: string;
   correct: string;
   correctOpacity: string;
 }
 
 export const defaultMatchColours = {
-  unambiguous: "#d90000",
-  unambiguousOpacity: "FF",
-  ambiguous: "#ffa500",
-  ambiguousOpacity: "AD",
+  hasSuggestion: "#d90000",
+  hasSuggestionOpacity: "FF",
+  default: "#ffa500",
+  defaultOpacity: "AD",
   correct: "#228816",
   correctOpacity: "FF"
 };
@@ -89,7 +96,7 @@ export const getNewDecorationsForCurrentMatches = (
   outputs: IMatch[],
   decorationSet: DecorationSet,
   doc: Node,
-  matchColours: IMatchColours = defaultMatchColours
+  matchColours: IMatchTypeToColourMap = defaultMatchColours
 ) => {
   const decorationsToAdd = createDecorationsForMatches(outputs, matchColours);
 
@@ -101,14 +108,18 @@ export const getNewDecorationsForCurrentMatches = (
  */
 export const createDecorationsForMatch = (
   match: IMatch,
-  matchColours: IMatchColours = defaultMatchColours,
+  matchColours: IMatchTypeToColourMap = defaultMatchColours,
   isSelected = false
 ) => {
   const className = isSelected
     ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
     : DecorationClassMap[DECORATION_MATCH];
 
-  const {backgroundColour, borderColour} = getColourForMatch(match, matchColours, isSelected);
+  const { backgroundColour, borderColour } = getColourForMatch(
+    match,
+    matchColours,
+    isSelected
+  );
   const style = `background-color: ${backgroundColour}; border-bottom: 2px solid ${borderColour}`;
 
   const spec = createDecorationSpecFromMatch(match);
@@ -128,44 +139,54 @@ export const createDecorationsForMatch = (
   return decorations;
 };
 
-export const createDecorationSpecFromMatch = (match: IMatch) =>
-  ({
-    type: DECORATION_MATCH,
-    id: match.matchId,
-    categoryId: match.category.id,
-    inclusiveStart: false,
-    inclusiveEnd: false
-  });
+export const createDecorationSpecFromMatch = (match: IMatch) => ({
+  type: DECORATION_MATCH,
+  id: match.matchId,
+  categoryId: match.category.id,
+  inclusiveStart: false,
+  inclusiveEnd: false
+});
+
+export const getMatchType = (match: IMatch): MatchType => {
+  if (match.markAsCorrect) {
+    return MatchType.CORRECT;
+  }
+  if (match.replacement) {
+    return MatchType.HAS_REPLACEMENT;
+  }
+  return MatchType.DEFAULT;
+};
 
 export const getColourForMatch = (
   match: IMatch,
-  matchColours: IMatchColours,
+  matchColours: IMatchTypeToColourMap,
   isSelected: boolean
-) : {backgroundColour: string, borderColour: string} => {
-
+): { backgroundColour: string; borderColour: string } => {
+  const matchType = getMatchType(match);
   const backgroundOpacity = isSelected ? "50" : "07";
 
-  if (match.markAsCorrect) {
-    return {
-      backgroundColour: `${matchColours.correct}${backgroundOpacity}`,
-      borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
-    };
+  switch (matchType) {
+    case MatchType.CORRECT:
+      return {
+        backgroundColour: `${matchColours.correct}${backgroundOpacity}`,
+        borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
+      };
+    case MatchType.HAS_REPLACEMENT:
+      return {
+        backgroundColour: `${matchColours.hasSuggestion}${backgroundOpacity}`,
+        borderColour: `${matchColours.hasSuggestion}${matchColours.hasSuggestionOpacity}`
+      };
+    default:
+      return {
+        backgroundColour: `${matchColours.default}${backgroundOpacity}`,
+        borderColour: `${matchColours.default}${matchColours.defaultOpacity}`
+      };
   }
-  if (match.replacement) {
-    return {
-      backgroundColour: `${matchColours.unambiguous}${backgroundOpacity}`,
-      borderColour: `${matchColours.unambiguous}${matchColours.unambiguousOpacity}`
-    };
-  }
-  return {
-    backgroundColour: `${matchColours.ambiguous}${backgroundOpacity}`,
-    borderColour: `${matchColours.ambiguous}${matchColours.ambiguousOpacity}`
-  };
 };
 
 export const createDecorationsForMatches = (
   matches: IMatch[],
-  matchColours: IMatchColours = defaultMatchColours
+  matchColours: IMatchTypeToColourMap = defaultMatchColours
 ) => flatten(matches.map(_ => createDecorationsForMatch(_, matchColours)));
 
 export const findSingleDecoration = (
@@ -179,6 +200,7 @@ export const findSingleDecoration = (
   return decorations[0];
 };
 
-export const maybeGetDecorationElement = (matchId: string): HTMLElement | null => document.querySelector(
-    `[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`
-  )
+export const maybeGetDecorationElement = (
+  matchId: string
+): HTMLElement | null =>
+  document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
