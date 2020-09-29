@@ -334,8 +334,7 @@ const createHandleNewFocusState = (focusState: "highlightId" | "hoverId") => <
       createDecorationsForMatch(
         output,
         state.config.matchColours,
-        hoverData.isSelected,
-        false
+        hoverData.isSelected
       )
     );
   }, decorations);
