@@ -3,13 +3,13 @@ import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
 export const selectMatchByMatchId = (
-  state: IPluginState<any>,
+  state: IPluginState<unknown>,
   matchId: string
 ): IMatch | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
 export const selectBlockQueriesInFlightForSet = (
-  state: IPluginState,
+  state: IPluginState<unknown>,
   requestId: string
 ): IBlocksInFlightState | undefined => {
   return state.requestsInFlight[requestId];
@@ -65,17 +65,18 @@ export const selectNewBlockInFlight = (
     [] as TSelectRequestInFlight
   );
 
-export const selectPercentRemaining = (
-  state: IPluginState
-) => {
+export const selectPercentRemaining = (state: IPluginState) => {
   const [totalWork, totalRemainingWork] = Object.values(
     state.requestsInFlight
   ).reduce(
     ([totalWorkAcc, remainingWorkAcc], queryState) => {
       const allCategories = queryState.categoryIds.length === 0;
-      const allWork = queryState.totalBlocks * (allCategories ? 1 : queryState.categoryIds.length);
+      const allWork =
+        queryState.totalBlocks *
+        (allCategories ? 1 : queryState.categoryIds.length);
       const remainingWork = queryState.pendingBlocks.reduce(
-        (acc, block) => acc + (allCategories ? 1 : block.pendingCategoryIds.length),
+        (acc, block) =>
+          acc + (allCategories ? 1 : block.pendingCategoryIds.length),
         0
       );
       return [totalWorkAcc + allWork, remainingWorkAcc + remainingWork];
@@ -112,37 +113,34 @@ export const selectAllAutoFixableMatches = <T, TMatch extends IMatch>(
     _ => _.replacement && _.replacement.text === _.message
   );
 
-export const selectHasGeneralError = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): boolean => {
-  const generalErrors = state.requestErrors.filter(_ => _.type === "GENERAL_ERROR");
-  return generalErrors.length > 0};
+export const selectHasGeneralError = (state: IPluginState): boolean => {
+  const generalErrors = state.requestErrors.filter(
+    _ => _.type === "GENERAL_ERROR"
+  );
+  return generalErrors.length > 0;
+};
 
-export const selectHasAuthError = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): boolean => {
+export const selectHasAuthError = (state: IPluginState): boolean => {
   const authErrors = state.requestErrors.filter(_ => _.type === "AUTH_ERROR");
   return authErrors.length > 0;
 };
 
-export const selectRequestsInProgress = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): boolean => !!Object.keys(state.requestsInFlight).length;
+export const selectRequestsInProgress = (state: IPluginState): boolean =>
+  !!Object.keys(state.requestsInFlight).length;
 
 export const selectHasMatches = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+  state: IPluginState<unknown, TMatch>
 ): boolean => !!state.currentMatches && state.currentMatches.length > 0;
 
 export const selectImportanceOrderedMatches = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): IMatch<ISuggestion>[] => sortBy(state.currentMatches, match => {
-  if(match.matchedText == match.replacement?.text){
-    return 2;
-  }
-  else if(!match.replacement){
-    return 1;
-  }
-  else {
-    return 0;
-  }
-});
+  state: IPluginState<unknown, TMatch>
+): Array<IMatch<ISuggestion>> =>
+  sortBy(state.currentMatches, match => {
+    if (match.matchedText === match.replacement?.text) {
+      return 2;
+    } else if (!match.replacement) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });

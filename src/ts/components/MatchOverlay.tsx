@@ -4,12 +4,12 @@ import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
-import Store, { IStoreEvents, STORE_EVENT_NEW_STATE } from "../state/store";
+import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
 
-interface IProps<TMatch extends IMatch> {
-  store: Store<TMatch, IStoreEvents<TMatch>>;
+interface IProps<TPluginState extends IPluginState> {
+  store: Store<TPluginState>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   stopHover: () => void;
   feedbackHref?: string;
@@ -19,13 +19,13 @@ interface IProps<TMatch extends IMatch> {
 /**
  * An overlay to display match tooltips.
  */
-const matchOverlay = <TMatch extends IMatch = IMatch>({
+const matchOverlay = <TPluginState extends IPluginState>({
   applySuggestions,
   feedbackHref,
   onMarkCorrect,
   stopHover,
   store
-}: IProps<TMatch>) => {
+}: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
   );

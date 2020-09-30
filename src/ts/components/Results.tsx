@@ -5,11 +5,10 @@ import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
-import { IMatch } from "../interfaces/IMatch";
 import { Switch } from "@material-ui/core";
 
-interface IProps {
-  store: Store<IMatch>;
+interface IProps<TPluginState extends IPluginState> {
+  store: Store<TPluginState>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
   selectMatch: (matchId: string) => void;
@@ -24,7 +23,7 @@ interface IProps {
  * Displays current matches and allows users to apply suggestions.
  */
 
-  const Results =  ({
+  const Results = <TPluginState extends IPluginState>({
     store,
     applySuggestions,
     selectMatch,
@@ -33,22 +32,22 @@ interface IProps {
     contactHref,
     editorScrollElement,
     getScrollOffset
-  }: IProps) => {
+  }: IProps<TPluginState>) => {
 
-    const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
+    const [pluginState, setPluginState] = useState<TPluginState | undefined>(undefined);
     const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
     const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
 
-    const handleNewState = (pluginState: IPluginState<IMatch>) => {
+    const handleNewState = (incomingState: TPluginState) => {
       setPluginState({
-          ...pluginState,
-          currentMatches: sortBy(pluginState.currentMatches, "from")
-        
+          ...incomingState,
+          currentMatches: sortBy(incomingState.currentMatches, "from")
+
       });
       const oldKeys = pluginState
         ? Object.keys(pluginState.requestsInFlight)
         : [];
-      const newKeys = Object.keys(pluginState.requestsInFlight);
+      const newKeys = Object.keys(incomingState.requestsInFlight);
       if (oldKeys.length && !newKeys.length) {
         setTimeout(maybeResetLoadingBar, 300);
       }
@@ -57,7 +56,7 @@ interface IProps {
       }
     };
 
-    useEffect(() => {   
+    useEffect(() => {
       store.on(STORE_EVENT_NEW_STATE, newState => {
         handleNewState(newState);
       });
@@ -79,7 +78,7 @@ interface IProps {
         setLoadingBarVisible(false);
       }
     };
-    
+
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
     const percentRemaining = getPercentRemaining();
@@ -95,7 +94,7 @@ interface IProps {
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
             <span className="Sidebar__header-sort">
-              Sort by colour 
+              Sort by colour
               <Switch
                 size="small"
                 checked={sortAndGroup}
