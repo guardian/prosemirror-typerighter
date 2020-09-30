@@ -21,6 +21,7 @@ export const REMOVE_MATCH = "REMOVE_MATCH" as const;
 export const REMOVE_ALL_MATCHES = "REMOVE_ALL_MATCHES" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
 export const SET_CONFIG_VALUE = "SET_CONFIG_VALUE" as const;
+export const SET_FILTER_STATE = "SET_FILTER_STATE" as const;
 
 /**
  * Action creators.
@@ -125,6 +126,18 @@ export const removeAllMatches = () => ({
 });
 export type ActionRemoveAllMatches = ReturnType<typeof removeAllMatches>;
 
+export const setFilterState = <TPluginState extends IPluginState>(
+  filterState: TPluginState["filterState"]
+) => ({
+  type: SET_FILTER_STATE,
+  payload: { filterState }
+});
+// tslint:disable-next-line:interface-over-type-literal
+export type ActionSetFilterState<TPluginState extends IPluginState> = {
+  type: typeof SET_FILTER_STATE;
+  payload: { filterState: TPluginState["filterState"] };
+};
+
 export type Action<TPluginState extends IPluginState> =
   | ActionNewHoverIdReceived
   | ActionNewHighlightIdReceived
@@ -137,4 +150,5 @@ export type Action<TPluginState extends IPluginState> =
   | ActionHandleNewDirtyRanges
   | ActionSetConfigValue
   | ActionRemoveMatch
-  | ActionRemoveAllMatches;
+  | ActionRemoveAllMatches
+  | ActionSetFilterState<TPluginState>;

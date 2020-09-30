@@ -10,7 +10,8 @@ import {
   requestMatchesComplete,
   removeMatch,
   removeAllMatches,
-  newHighlightIdReceived, 
+  newHighlightIdReceived,
+  setFilterState
 } from "./state/actions";
 import {
   selectMatchByMatchId,
@@ -23,7 +24,6 @@ import {
 } from "./state/reducer";
 import {
   IMatcherResponse,
-  IMatch,
   TMatchRequestErrorWithDefault
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
@@ -38,9 +38,9 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TMatch extends IMatch> = (
+type GetState<TPluginState extends IPluginState = IPluginState> = (
   state: EditorState
-) => IPluginState<TMatch>;
+) => TPluginState;
 
 /**
  * Requests matches for an entire document.
@@ -151,9 +151,9 @@ export const stopHighlightCommand = (): Command => (state, dispatch) => {
 /**
  * Mark a given match as active.
  */
-export const selectMatchCommand = <TMatch extends IMatch>(
+export const selectMatchCommand = <TPluginState extends IPluginState>(
   matchId: string,
-  getState: GetState<TMatch>
+  getState: GetState<TPluginState>
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const output = selectMatchByMatchId(pluginState, matchId);
@@ -183,6 +183,23 @@ export const setConfigValueCommand = <
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
         setConfigValue(key, value)
+      )
+    );
+  }
+  return true;
+};
+
+/**
+ * Set the current filter state.
+ */
+export const setFilterStateCommand = <TPluginState extends IPluginState>(
+  filterState: TPluginState["filterState"]
+): Command => (state, dispatch) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        setFilterState(filterState)
       )
     );
   }
@@ -254,9 +271,9 @@ export type ApplySuggestionOptions = Array<{
 /**
  * Applies a suggestion from a match to the document.
  */
-export const applySuggestionsCommand = <TMatch extends IMatch>(
+export const applySuggestionsCommand = (
   suggestionOptions: ApplySuggestionOptions,
-  getState: GetState<TMatch>
+  getState: GetState
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const suggestionsToApply = suggestionOptions
@@ -278,8 +295,8 @@ export const applySuggestionsCommand = <TMatch extends IMatch>(
 /**
  * Applies the first suggestion for each rule marked as auto-fixable.
  */
-export const applyAutoFixableSuggestionsCommand = <TMatch extends IMatch>(
-  getState: GetState<TMatch>
+export const applyAutoFixableSuggestionsCommand = (
+  getState: GetState
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(
@@ -299,9 +316,7 @@ export const applyAutoFixableSuggestionsCommand = <TMatch extends IMatch>(
  * Ignore a match, removing it from the plugin state.
  * Returns true if the match was found, false if not.
  */
-export const ignoreMatchCommand = (id: string) => <TMatch extends IMatch>(
-  getState: GetState<TMatch>
-) => (
+export const ignoreMatchCommand = (id: string) => (getState: GetState) => (
   state: EditorState,
   dispatch?: (tr: Transaction<any>) => void
 ): boolean => {
@@ -312,8 +327,8 @@ export const ignoreMatchCommand = (id: string) => <TMatch extends IMatch>(
   return !!match;
 };
 
-export const clearMatchesCommand = () => <TMatch extends IMatch>(
-  _: GetState<TMatch>
+export const clearMatchesCommand = () => <TPluginState extends IPluginState>(
+  _: GetState<TPluginState>
 ) => (
   state: EditorState,
   dispatch?: (tr: Transaction<any>) => void
@@ -369,9 +384,9 @@ const maybeApplySuggestions = (
 /**
  * Create a palette of prosemirror-typerighter commands bound to the given EditorView.
  */
-export const createBoundCommands = <TMatch extends IMatch>(
+export const createBoundCommands = <TPluginState extends IPluginState>(
   view: EditorView,
-  getState: GetState<TMatch>
+  getState: GetState<TPluginState>
 ) => {
   const bindCommand = <CommandArgs extends any[]>(
     action: (...args: CommandArgs) => Command
@@ -400,7 +415,8 @@ export const createBoundCommands = <TMatch extends IMatch>(
     setConfigValue: bindCommand(setConfigValueCommand),
     applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
     applyRequestError: bindCommand(applyRequestErrorCommand),
-    applyRequestComplete: bindCommand(applyRequestCompleteCommand)
+    applyRequestComplete: bindCommand(applyRequestCompleteCommand),
+    setFilterState: bindCommand(setFilterStateCommand)
   };
 };
 
