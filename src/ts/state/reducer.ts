@@ -23,7 +23,9 @@ import {
   SET_CONFIG_VALUE,
   Action,
   ActionRequestComplete,
-  ActionRemoveMatch
+  ActionRemoveMatch,
+  SET_FILTER_STATE,
+  ActionSetFilterState
 } from "./actions";
 import {
   IMatch,
@@ -217,6 +219,8 @@ export const createReducer = <TPluginState extends IPluginState>(
         return handleNewDirtyRanges(tr, state, action);
       case SET_CONFIG_VALUE:
         return handleSetConfigValue(tr, state, action);
+      case SET_FILTER_STATE:
+        return handleSetFilterState(tr, state, action);
       default:
         return state;
     }
@@ -305,10 +309,10 @@ const handleRemoveMatch = <TPluginState extends IPluginState>(
 /**
  * Remove all matches and their decoration from the state.
  */
-const handleRemoveAllMatches = <TMatch extends IMatch>(
+const handleRemoveAllMatches = <TPluginState extends IPluginState>(
   _: unknown,
-  state: IPluginState<TMatch>
-): IPluginState<TMatch> => {
+  state: TPluginState
+): TPluginState => {
   const decorationToRemove = state.decorations.find();
 
   const decorations = decorationToRemove
@@ -732,12 +736,19 @@ const handleSetConfigValue = <TPluginState extends IPluginState>(
   _: Transaction,
   state: TPluginState,
   { payload: { key, value } }: ActionSetConfigValue
-): TPluginState => {
-  return {
-    ...state,
-    config: {
-      ...state.config,
-      [key]: value
-    }
-  };
-};
+): TPluginState => ({
+  ...state,
+  config: {
+    ...state.config,
+    [key]: value
+  }
+});
+
+const handleSetFilterState = <TPluginState extends IPluginState>(
+  _: Transaction,
+  state: TPluginState,
+  { payload: { filterState } }: ActionSetFilterState<TPluginState>
+): TPluginState => ({
+  ...state,
+  filterState
+});

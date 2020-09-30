@@ -3,7 +3,6 @@ import { EditorView } from "prosemirror-view";
 import { PluginKey } from "prosemirror-state";
 import { getMatchType, MatchType } from "./decoration";
 import { IMatch } from "..";
-import { ISuggestion } from "../interfaces/IMatch";
 
 export const pluginKey = new PluginKey("prosemirror-typerighter");
 
@@ -40,11 +39,11 @@ export type IDefaultFilterState = MatchType[];
  */
 export type IFilterMatches<
   TFilterState,
-  TSuggestion extends ISuggestion = ISuggestion
+  TMatch extends IMatch = IMatch
 > = (
   filterState: TFilterState,
-  matches: Array<IMatch<TSuggestion>>
-) => Array<IMatch<TSuggestion>>;
+  matches: TMatch[]
+) => TMatch[];
 
 export const filterByMatchState: IFilterMatches<IDefaultFilterState> = (
   filterState,

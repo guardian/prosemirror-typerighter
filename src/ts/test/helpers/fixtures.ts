@@ -125,7 +125,7 @@ export const createMatch = (
     id: "1",
     name: "Cat",
     colour: "eeeee"
-  }
+  },
 ): IMatch => ({
   matcherType: "regex",
   ruleId: "ruleId",
@@ -177,6 +177,7 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
   return {
     tr,
     state: {
+      filterState: undefined,
       config: {
         debug: false,
         requestMatchesOnDocModified: true,
