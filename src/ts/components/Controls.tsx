@@ -5,7 +5,7 @@ import { Close } from "@material-ui/icons";
 
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
-import { IMatch, ICategory } from "../interfaces/IMatch";
+import { ICategory } from "../interfaces/IMatch";
 import {
   selectHasGeneralError,
   selectHasAuthError,
@@ -14,8 +14,8 @@ import {
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
-interface IProps {
-  store: Store<IMatch>;
+interface IProps<TPluginState extends IPluginState> {
+  store: Store<TPluginState>;
   setDebugState: (debug: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
@@ -27,7 +27,7 @@ interface IProps {
 }
 
 const getErrorFeedbackLink = (
-  pluginState: IPluginState<IMatch> | undefined,
+  pluginState: IPluginState | undefined,
   feedbackHref: string | undefined
 ) => {
   const errorLmit = 10;
@@ -42,15 +42,15 @@ const getErrorFeedbackLink = (
 /**
  * Controls to open and close Typerighter and check document.
  */
-const Controls = ({
+const Controls = <TPluginState extends IPluginState>({
   store,
   requestMatchesForDocument,
   getCurrentCategories,
   feedbackHref,
   onToggleActiveState,
-}: IProps) => {
+}: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<
-    IPluginState<IMatch> | undefined
+    TPluginState | undefined
   >(undefined);
 
   const { telemetryAdapter } = useContext(TelemetryContext);

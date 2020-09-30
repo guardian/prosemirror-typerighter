@@ -51,7 +51,7 @@ import {
   findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
-import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
+import { ExpandRanges } from "../createTyperighterPlugin";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
@@ -63,7 +63,6 @@ import {
 import { Mapping } from "prosemirror-transform";
 import { createBlock } from "../utils/block";
 import { addMatchesToState } from "./helpers";
-import { IDefaultFilterState } from "../utils/plugin";
 
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
@@ -100,7 +99,7 @@ export interface IPluginConfig {
 }
 
 export interface IPluginState<
-  TFilterState = IDefaultFilterState,
+  TFilterState extends unknown = unknown,
   TMatches extends IMatch = IMatch
 > {
   config: IPluginConfig;
@@ -132,16 +131,6 @@ export interface IPluginState<
   // The current state of the filter
   filterState: TFilterState;
 }
-
-type TReducerHandler<
-  TFilterType,
-  TAction extends Action<TMatch>,
-  TMatch extends IMatch = IMatch
-> = (
-  tr: Transaction,
-  state: IPluginState<TFilterType, TMatch>,
-  action: TAction
-) => IPluginState<TFilterType, TMatch>;
 
 // The transaction meta key that namespaces our actions.
 export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
@@ -178,28 +167,25 @@ export const createInitialState = <TFilterState, TMatch extends IMatch>(
     requestErrors: [],
     filterState
   };
-  return addMatchesToState<TFilterState, TMatch>(
-    initialState,
-    doc,
-    matches,
-    ignoreMatch
-  );
+  return addMatchesToState(initialState, doc, matches, ignoreMatch);
 };
 
-export const createReducer = (
+export const createReducer = <TPluginState extends IPluginState>(
   expandRanges: ExpandRanges,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
   );
-  const handleNewHoverId = createHandleNewFocusState("hoverId");
-  const handleNewHighlightId = createHandleNewFocusState("highlightId");
-  return <TFilterState, TMatch extends IMatch>(
+  const handleNewHoverId = createHandleNewFocusState<TPluginState>("hoverId");
+  const handleNewHighlightId = createHandleNewFocusState<TPluginState>(
+    "highlightId"
+  );
+  return (
     tr: Transaction,
-    incomingState: IPluginState<TFilterState, TMatch>,
-    action?: Action<TMatch>
-  ): IPluginState<TFilterState, TMatch> => {
+    incomingState: TPluginState,
+    action?: Action<TPluginState>
+  ): TPluginState => {
     // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
     const state = tr.docChanged
       ? getNewStateFromTransaction(tr, incomingState)
@@ -244,10 +230,10 @@ export const createReducer = (
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
  */
-const getNewStateFromTransaction = <TFilterState, TMatch extends IMatch>(
+const getNewStateFromTransaction = <TPluginState extends IPluginState>(
   tr: Transaction,
-  incomingState: IPluginState<TFilterState, TMatch>
-): IPluginState<TFilterState, TMatch> => {
+  incomingState: TPluginState
+): TPluginState => {
   const mappedRequestsInFlight = Object.entries(
     incomingState.requestsInFlight
   ).reduce((acc, [requestId, requestsInFlight]) => {
@@ -280,11 +266,11 @@ const getNewStateFromTransaction = <TFilterState, TMatch extends IMatch>(
 /**
  * Handle the selection of a hover id.
  */
-const handleSelectMatch = <TFilterState, TMatch extends IMatch>(
+const handleSelectMatch = <TPluginState extends IPluginState>(
   _: unknown,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   action: ActionSelectMatch
-): IPluginState<TFilterState, TMatch> => {
+): TPluginState => {
   return {
     ...state,
     selectedMatch: action.payload.matchId
@@ -294,11 +280,11 @@ const handleSelectMatch = <TFilterState, TMatch extends IMatch>(
 /**
  * Remove a match and its decoration from the state.
  */
-const handleRemoveMatch = <TFilterState, TMatch extends IMatch>(
+const handleRemoveMatch = <TPluginState extends IPluginState>(
   _: unknown,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { id } }: ActionRemoveMatch
-): IPluginState<TFilterState, TMatch> => {
+): TPluginState => {
   const decorationToRemove = state.decorations.find(
     undefined,
     undefined,
@@ -320,13 +306,13 @@ const handleRemoveMatch = <TFilterState, TMatch extends IMatch>(
 /**
  * Handle the receipt of a new focus state.
  */
-const createHandleNewFocusState = <TFilterState, TMatch extends IMatch>(
+const createHandleNewFocusState = <TPluginState extends IPluginState>(
   focusState: "highlightId" | "hoverId"
-): TReducerHandler<
-  TFilterState,
-  ActionNewHoverIdReceived | ActionNewHighlightIdReceived,
-  TMatch
-> => (tr, state, action) => {
+) => (
+  tr: Transaction,
+  state: TPluginState,
+  action: ActionNewHoverIdReceived | ActionNewHighlightIdReceived
+): TPluginState => {
   let decorations = state.decorations;
   const incomingHoverId = action.payload.matchId;
   const currentHoverId = state[focusState];
@@ -369,11 +355,11 @@ const createHandleNewFocusState = <TFilterState, TMatch extends IMatch>(
   };
 };
 
-const handleNewDirtyRanges = <TFilterState, TMatch extends IMatch>(
+const handleNewDirtyRanges = <TPluginState extends IPluginState>(
   tr: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
-) => {
+): TPluginState => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
   let newDecorations = state.config.debug
     ? state.decorations.add(
@@ -407,11 +393,11 @@ const handleNewDirtyRanges = <TFilterState, TMatch extends IMatch>(
  */
 const createHandleMatchesRequestForDirtyRanges = (
   expandRanges: ExpandRanges
-) => <TFilterState, TMatch extends IMatch>(
+) => <TPluginState extends IPluginState>(
   tr: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
-) => {
+): TPluginState => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const blocks: IBlock[] = ranges.map(range =>
     createBlock(tr.doc, range, tr.time)
@@ -422,11 +408,11 @@ const createHandleMatchesRequestForDirtyRanges = (
 /**
  * Handle a matches request for the entire document.
  */
-const handleMatchesRequestForDocument = <TFilterState, TMatch extends IMatch>(
+const handleMatchesRequestForDocument = <TPluginState extends IPluginState>(
   tr: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDocument
-) => {
+): TPluginState => {
   return handleRequestStart(
     requestId,
     getBlocksFromDocument(tr.doc, tr.time),
@@ -441,10 +427,10 @@ const handleRequestStart = (
   requestId: string,
   blocks: IBlock[],
   categoryIds: string[]
-) => <TFilterState, TMatch extends IMatch>(
+) => <TPluginState extends IPluginState>(
   tr: Transaction,
-  state: IPluginState<TFilterState, TMatch>
-): IPluginState<TFilterState, TMatch> => {
+  state: TPluginState
+): TPluginState => {
   // Replace any debug decorations, if they exist.
   const decorations = state.config.debug
     ? removeDecorationsFromRanges(state.decorations, blocks, [
@@ -479,8 +465,8 @@ const handleRequestStart = (
   };
 };
 
-const amendBlockQueriesInFlight = <TFilterState, TMatch extends IMatch>(
-  state: IPluginState<TFilterState, TMatch>,
+const amendBlockQueriesInFlight = (
+  state: IPluginState,
   requestId: string,
   blockId: string,
   categoryIds: string[]
@@ -526,13 +512,13 @@ const amendBlockQueriesInFlight = <TFilterState, TMatch extends IMatch>(
  * Handle a response, decorating the document with any matches we've received.
  */
 const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
-  TFilterState,
-  TMatch extends IMatch
+  TMatch extends IMatch,
+  TPluginState extends IPluginState<unknown, TMatch>
 >(
   tr: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
-  { payload: { response } }: ActionRequestMatchesSuccess<TMatch>
-): IPluginState<TFilterState, TMatch> => {
+  state: TPluginState,
+  { payload: { response } }: ActionRequestMatchesSuccess<TPluginState>
+): TPluginState => {
   if (!response) {
     return state;
   }
@@ -548,7 +534,7 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
   }
 
   // Remove matches superceded by the incoming matches.
-  let currentMatches: TMatch[] = removeOverlappingRanges(
+  let currentMatches = removeOverlappingRanges(
     state.currentMatches,
     requestsInFlight.map(_ => _.block),
     match => !response.categoryIds.includes(match.category.id)
@@ -621,11 +607,11 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
 /**
  * Handle a matches request error.
  */
-const handleMatchesRequestError = <TFilterState, TMatch extends IMatch>(
+const handleMatchesRequestError = <TPluginState extends IPluginState>(
   tr: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { matchRequestError } }: ActionRequestError
-) => {
+): TPluginState => {
   const { requestId, blockId, categoryIds } = matchRequestError;
 
   if (!blockId) {
@@ -698,11 +684,11 @@ const handleMatchesRequestError = <TFilterState, TMatch extends IMatch>(
   };
 };
 
-const handleRequestComplete = <TFilterState, TMatch extends IMatch>(
+const handleRequestComplete = <TPluginState extends IPluginState>(
   _: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { requestId } }: ActionRequestComplete
-) => {
+): TPluginState => {
   const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
   const hasUnfinishedWork =
     requestInFlight &&
@@ -722,11 +708,11 @@ const handleRequestComplete = <TFilterState, TMatch extends IMatch>(
   };
 };
 
-const handleSetConfigValue = <TFilterState, TMatch extends IMatch>(
+const handleSetConfigValue = <TPluginState extends IPluginState>(
   _: Transaction,
-  state: IPluginState<TFilterState, TMatch>,
+  state: TPluginState,
   { payload: { key, value } }: ActionSetConfigValue
-) => {
+): TPluginState => {
   return {
     ...state,
     config: {

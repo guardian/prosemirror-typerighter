@@ -10,11 +10,12 @@ import Sidebar from "./components/Sidebar";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TelemetryContext from "./contexts/TelemetryContext";
 import { EditorView } from "prosemirror-view";
+import { IPluginState } from "./state/reducer";
 
-interface IViewOptions {
+interface IViewOptions<TPluginState extends IPluginState> {
   view: EditorView;
-  store: Store<IMatch>;
-  matcherService: MatcherService<IMatch>;
+  store: Store<TPluginState>;
+  matcherService: MatcherService<TPluginState["filterState"], IMatch>;
   commands: Commands;
   sidebarNode: Element;
   overlayNode: Element;
@@ -40,7 +41,7 @@ interface IViewOptions {
  *  - The plugin configuration pane
  *  - The plugin results pane
  */
-const createView = ({
+const createView = <TPluginState extends IPluginState>({
   view,
   store,
   matcherService,
@@ -54,7 +55,7 @@ const createView = ({
   onMarkCorrect,
   editorScrollElement,
   getScrollOffset = () => 50
-}: IViewOptions) => {
+}: IViewOptions<TPluginState>) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
   overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");

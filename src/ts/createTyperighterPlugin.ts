@@ -117,7 +117,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
   const emptyDecorationSet = new DecorationSet();
-  const reducer = createReducer(expandRanges, ignoreMatch);
+  const reducer = createReducer<TPluginState>(expandRanges, ignoreMatch);
 
   const plugin: Plugin = new Plugin({
     key: pluginKey,

@@ -1,10 +1,9 @@
 import {
   IMatchRequestError,
   IMatcherResponse,
-  IRange,
-  IMatch
+  IRange
 } from "../interfaces/IMatch";
-import { IPluginConfig } from "./reducer";
+import { IPluginConfig, IPluginState } from "./reducer";
 
 /**
  * Action types.
@@ -48,16 +47,18 @@ export type ActionRequestMatchesForDocument = ReturnType<
   typeof requestMatchesForDocument
 >;
 
-export const requestMatchesSuccess = <TBlockMatches extends IMatch>(
-  response: IMatcherResponse<TBlockMatches>
+export const requestMatchesSuccess = <TPluginState extends IPluginState>(
+  response: IMatcherResponse<TPluginState["currentMatches"]>
 ) => ({
   type: REQUEST_SUCCESS,
   payload: { response }
 });
+// We must repeat ourselves here, as ReturnType doesn't play nicely with type parameters.
+// See https://github.com/microsoft/TypeScript/issues/26856
 // tslint:disable-next-line:interface-over-type-literal
-export type ActionRequestMatchesSuccess<TMatch extends IMatch> = {
+export type ActionRequestMatchesSuccess<TPluginState extends IPluginState> = {
   type: "REQUEST_SUCCESS";
-  payload: { response: IMatcherResponse<TMatch> };
+  payload: { response: IMatcherResponse<TPluginState["currentMatches"]> };
 };
 
 export const requestError = (matchRequestError: IMatchRequestError) => ({
@@ -72,22 +73,19 @@ export const requestMatchesComplete = (requestId: string) => ({
 });
 export type ActionRequestComplete = ReturnType<typeof requestMatchesComplete>;
 
-export const newHoverIdReceived = (
-  matchId: string | undefined
-) => ({
+export const newHoverIdReceived = (matchId: string | undefined) => ({
   type: NEW_HOVER_ID,
   payload: { matchId }
 });
 export type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 
-export const newHighlightIdReceived = (
-  matchId: string | undefined
-) => ({
+export const newHighlightIdReceived = (matchId: string | undefined) => ({
   type: NEW_HIGHLIGHT_ID,
   payload: { matchId }
 });
-export type ActionNewHighlightIdReceived = ReturnType<typeof newHighlightIdReceived>;
-
+export type ActionNewHighlightIdReceived = ReturnType<
+  typeof newHighlightIdReceived
+>;
 
 export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
   type: APPLY_NEW_DIRTY_RANGES,
@@ -121,10 +119,10 @@ export const removeMatch = (id: string) => ({
 });
 export type ActionRemoveMatch = ReturnType<typeof removeMatch>;
 
-export type Action<TMatch extends IMatch> =
+export type Action<TPluginState extends IPluginState> =
   | ActionNewHoverIdReceived
   | ActionNewHighlightIdReceived
-  | ActionRequestMatchesSuccess<TMatch>
+  | ActionRequestMatchesSuccess<TPluginState>
   | ActionRequestMatchesForDirtyRanges
   | ActionRequestMatchesForDocument
   | ActionRequestError

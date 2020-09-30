@@ -2,13 +2,13 @@ import { IMatch } from "../interfaces/IMatch";
 import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
 export const selectMatchByMatchId = (
-  state: IPluginState<any>,
+  state: IPluginState<unknown>,
   matchId: string
 ): IMatch | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
 export const selectBlockQueriesInFlightForSet = (
-  state: IPluginState,
+  state: IPluginState<unknown>,
   requestId: string
 ): IBlocksInFlightState | undefined => {
   return state.requestsInFlight[requestId];
@@ -111,23 +111,23 @@ export const selectAllAutoFixableMatches = <T, TMatch extends IMatch>(
     _ => _.replacement && _.replacement.text === _.message
   );
 
-export const selectHasGeneralError = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+export const selectHasGeneralError = (
+  state: IPluginState
 ): boolean => {
   const generalErrors = state.requestErrors.filter(_ => _.type === "GENERAL_ERROR");
   return generalErrors.length > 0};
 
-export const selectHasAuthError = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+export const selectHasAuthError = (
+  state: IPluginState
 ): boolean => {
   const authErrors = state.requestErrors.filter(_ => _.type === "AUTH_ERROR");
   return authErrors.length > 0;
 };
 
-export const selectRequestsInProgress = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+export const selectRequestsInProgress = (
+  state: IPluginState
 ): boolean => !!Object.keys(state.requestsInFlight).length;
 
-export const selectPluginIsActive = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+export const selectPluginIsActive = (
+  state: IPluginState
 ): boolean => state.config.isActive;
