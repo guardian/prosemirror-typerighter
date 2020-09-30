@@ -13,15 +13,18 @@ import createTyperighterPlugin, {
 } from "../createTyperighterPlugin";
 import { createMatch, createMatcherResponse } from "./helpers/fixtures";
 import { createBoundCommands } from "../commands";
-import { IMatcherResponse } from "../interfaces/IMatch";
+import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
-import { createDecorationsForMatches } from "../utils/decoration";
+import { createDecorationsForMatches, MatchType } from "../utils/decoration";
+import { filterByMatchState, IDefaultFilterState } from "../utils/plugin";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
 const matches = [createMatch(1)];
 
-const createPlugin = (opts?: IPluginOptions) => {
+const createPlugin = <TFilterState = unknown>(
+  opts?: IPluginOptions<TFilterState>
+) => {
   const { plugin, getState, store } = createTyperighterPlugin({
     matches,
     ...opts
@@ -100,7 +103,6 @@ describe("createTyperighterPlugin", () => {
     const decorationsSpecsToExpect = getDecorationSpecs(
       createDecorationsForMatches(matches)
     );
-
     expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
   it("should not pass decorations when plugin is inactive", () => {
@@ -151,5 +153,41 @@ describe("createTyperighterPlugin", () => {
 
     const pluginMatches = getState(view.state).currentMatches;
     expect(pluginMatches).toEqual([]);
+  });
+  it("should filter matches with the supplied predicate when the plugin initialises", () => {
+    const correctMatches = [{ ...createMatch(1), markAsCorrect: true }];
+    const { view } = createPlugin<IDefaultFilterState>({
+      matches: correctMatches,
+      filterOptions: {
+        filterMatches: filterByMatchState,
+        initialFilterState: [MatchType.HAS_REPLACEMENT]
+      }
+    });
+    const decorationSpecs = getDecorationSpecsFromDoc(view);
+    const decorationsSpecsToExpect = getDecorationSpecs([]);
+    expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
+  });
+  it("should filter matches with the supplied predicate when the plugin initialises", () => {
+    const matchesWithReplacements: IMatch[] = [
+      {
+        ...createMatch(1),
+        replacement: { text: "replacement text", type: "TEXT_SUGGESTION" }
+      }
+    ];
+    const { view, commands } = createPlugin<IDefaultFilterState>({
+      matches: matchesWithReplacements,
+      filterOptions: {
+        filterMatches: filterByMatchState,
+        initialFilterState: []
+      }
+    });
+
+    commands.setFilterState([MatchType.HAS_REPLACEMENT]);
+
+    const decorationSpecs = getDecorationSpecsFromDoc(view);
+    const decorationsSpecsToExpect = getDecorationSpecs(
+      createDecorationsForMatches(matchesWithReplacements)
+    );
+    expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
 });

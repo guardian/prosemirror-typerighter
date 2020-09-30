@@ -24,12 +24,7 @@ import Store, {
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
 import { startHoverCommand, stopHoverCommand } from "./commands";
-import {
-  filterByMatchState,
-  IFilterMatches,
-  IDefaultFilterState,
-  maybeResetHoverStates
-} from "./utils/plugin";
+import { IFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
@@ -46,12 +41,10 @@ export interface IFilterOptions<TFilterState> {
   initialFilterState: TFilterState;
 }
 
-const defaultFilterOptions = {
-  filterMatches: filterByMatchState,
-  initialFilterState: [] as IDefaultFilterState
-};
-
-export interface IPluginOptions<TFilterState = undefined, TMatch extends IMatch = IMatch> {
+export interface IPluginOptions<
+  TFilterState = undefined,
+  TMatch extends IMatch = IMatch
+> {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -106,13 +99,13 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
     isActive = true,
-    filterOptions = defaultFilterOptions,
+    filterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
     isElementPartOfTyperighterUI = () => false
   } = options;
   // A handy alias to reduce repetition
-  type TPluginState = IPluginState<TMatch>;
+  type TPluginState = IPluginState<TFilterState, TMatch>;
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
@@ -127,7 +120,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           doc,
           matches,
           isActive,
-          filterOptions.initialFilterState,
+          filterOptions?.initialFilterState,
           ignoreMatch,
           matchColours
         );
@@ -181,10 +174,31 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     },
     props: {
       decorations: state => {
-        const pluginState = plugin.getState(state);
-        return pluginState.config.isActive
-          ? pluginState.decorations
+        const {
+          decorations: currentDecorations,
+          filterState,
+          currentMatches,
+          config
+        }: TPluginState = plugin.getState(state);
+
+        const decorations = config.isActive
+          ? currentDecorations
           : emptyDecorationSet;
+
+        const filteredMatchIds = (
+          filterOptions?.filterMatches(filterState, currentMatches) ||
+          currentMatches
+        ).map(match => match.matchId);
+
+        const filteredDecorations = decorations.find(
+          undefined,
+          undefined,
+          spec => !!filteredMatchIds?.includes(spec.id)
+        );
+
+        const decoSet = new DecorationSet();
+
+        return decoSet.add(state.doc, filteredDecorations);
       },
       handleDOMEvents: {
         mouseleave: (view, event) => {
