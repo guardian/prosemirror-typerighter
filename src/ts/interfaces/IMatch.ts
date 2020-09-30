@@ -69,10 +69,10 @@ export interface IBlockResult {
   id: string;
 }
 
-export interface IMatcherResponse<TBlockMatch extends IMatch = IMatch> {
+export interface IMatcherResponse<MatchesType extends IMatch[] = IMatch[]> {
   blocks: IBlock[];
   categoryIds: string[];
-  matches: TBlockMatch[];
+  matches: MatchesType;
   requestId: string;
 }
 

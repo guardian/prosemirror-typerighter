@@ -68,7 +68,7 @@ if (editorElement && sidebarNode) {
   const commands = createBoundCommands(view, getState);
 
 
-  const telemetryService = new TelemetryService("https://example.com") 
+  const telemetryService = new TelemetryService("https://example.com")
   const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
 
   const matcherService = new MatcherService(

@@ -8,9 +8,9 @@ import { IMatch } from ".././interfaces/IMatch";
 import { MatcherService } from "..";
 import { IPluginState } from "../state/reducer";
 
-interface IProps {
-  store: Store<IMatch>;
-  matcherService: MatcherService<IMatch>;
+interface IProps<TPluginState extends IPluginState> {
+  store: Store<TPluginState>;
+  matcherService: MatcherService<TPluginState["filterState"], IMatch>;
   commands: Commands;
   contactHref?: string;
   feedbackHref?: string;
@@ -18,7 +18,7 @@ interface IProps {
   getScrollOffset: () => number;
 }
 
-const Sidebar = ({
+const Sidebar = <TPluginState extends IPluginState>({
   store,
   matcherService,
   commands,
@@ -26,7 +26,7 @@ const Sidebar = ({
   editorScrollElement,
   getScrollOffset,
   feedbackHref
-}: IProps) => {
+}: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
   );

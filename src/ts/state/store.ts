@@ -1,6 +1,6 @@
 import { IPluginState } from "./reducer";
 import { ArgumentTypes } from "../utils/types";
-import { IMatch, IBlock } from "../interfaces/IMatch";
+import { IBlock } from "../interfaces/IMatch";
 
 export const STORE_EVENT_NEW_MATCHES = "STORE_EVENT_NEW_MATCHES";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
@@ -10,27 +10,27 @@ type STORE_EVENT_NEW_MATCHES = typeof STORE_EVENT_NEW_MATCHES;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-export interface IStoreEvents<TMatch extends IMatch> {
+export interface IStoreEvents<TPluginState extends IPluginState> {
   [STORE_EVENT_NEW_MATCHES]: (
     requestId: string,
     blocks: IBlock[]
   ) => void;
-  [STORE_EVENT_NEW_STATE]: (state: IPluginState<TMatch>) => void;
+  [STORE_EVENT_NEW_STATE]: (state: TPluginState) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
-type EventNames = keyof IStoreEvents<IMatch>;
+type EventNames = keyof IStoreEvents<IPluginState>;
 
 /**
  * A store to allow consumers to subscribe to state updates.
  */
 class Store<
-  TMatch extends IMatch,
-  TStoreEvents extends IStoreEvents<TMatch> = IStoreEvents<
-    TMatch
+  TPluginState extends IPluginState,
+  TStoreEvents extends IStoreEvents<TPluginState> = IStoreEvents<
+    TPluginState
   >
 > {
-  private state: IPluginState<TMatch> | undefined;
+  private state: TPluginState | undefined;
   private subscribers: {
     [EventName in EventNames]: Array<TStoreEvents[EventName]>
   } = {
@@ -95,11 +95,9 @@ class Store<
   /**
    * Update the store's reference to the plugin state.
    */
-  private updateState(state: IPluginState<TMatch>) {
+  private updateState(state: TPluginState) {
     this.state = state;
   }
 }
-
-export type IStore<TMatch extends IMatch = IMatch> = Store<TMatch>;
 
 export default Store;
