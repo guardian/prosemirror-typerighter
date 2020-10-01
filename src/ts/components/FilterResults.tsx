@@ -46,6 +46,7 @@ const FilterResults = ({
 
       return (
         <button
+          key={matchType}
           className="Sidebar__filter-toggle"
           title="Show/hide matches of this colour"
           disabled={cannotAddFilter && !isDisabled}
