@@ -167,7 +167,7 @@ describe("createTyperighterPlugin", () => {
     const decorationsSpecsToExpect = getDecorationSpecs([]);
     expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
-  it("should filter matches with the supplied predicate when the plugin initialises", () => {
+  it("should filter matches with the supplied predicate when the filter state changes", () => {
     const matchesWithReplacements: IMatch[] = [
       {
         ...createMatch(1),
@@ -191,3 +191,4 @@ describe("createTyperighterPlugin", () => {
     expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
 });
+

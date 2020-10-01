@@ -29,11 +29,11 @@ import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-export interface IFilterOptions<TFilterState> {
+export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
   /**
    * A function to filter matches given a user-defined filter state.
    */
-  filterMatches: IFilterMatches<TFilterState>;
+  filterMatches: IFilterMatches<TFilterState, TMatch>;
 
   /**
    * The initial state to pass to the filter predicate.
@@ -68,7 +68,7 @@ export interface IPluginOptions<
    */
   ignoreMatch?: IIgnoreMatchPredicate;
 
-  filterOptions?: IFilterOptions<TFilterState>;
+  filterOptions?: IFilterOptions<TFilterState, TMatch>;
 
   /**
    * The colours to use for document matches.
@@ -110,20 +110,24 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
   const emptyDecorationSet = new DecorationSet();
-  const reducer = createReducer<TPluginState>(expandRanges, ignoreMatch);
+  const reducer = createReducer<TPluginState>(
+    expandRanges,
+    ignoreMatch,
+    filterOptions?.filterMatches
+  );
 
   const plugin: Plugin = new Plugin({
     key: pluginKey,
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState(
+        const initialState = createInitialState<TFilterState, TMatch>({
           doc,
           matches,
           isActive,
-          filterOptions?.initialFilterState,
           ignoreMatch,
-          matchColours
-        );
+          matchColours,
+          filterOptions
+        });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },
@@ -176,29 +180,10 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       decorations: state => {
         const {
           decorations: currentDecorations,
-          filterState,
-          currentMatches,
           config
         }: TPluginState = plugin.getState(state);
 
-        const decorations = config.isActive
-          ? currentDecorations
-          : emptyDecorationSet;
-
-        const filteredMatchIds = (
-          filterOptions?.filterMatches(filterState, currentMatches) ||
-          currentMatches
-        ).map(match => match.matchId);
-
-        const filteredDecorations = decorations.find(
-          undefined,
-          undefined,
-          spec => !!filteredMatchIds?.includes(spec.id)
-        );
-
-        const decoSet = new DecorationSet();
-
-        return decoSet.add(state.doc, filteredDecorations);
+        return config.isActive ? currentDecorations : emptyDecorationSet;
       },
       handleDOMEvents: {
         mouseleave: (view, event) => {
