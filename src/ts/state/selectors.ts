@@ -127,3 +127,7 @@ export const selectHasAuthError = <TMatch extends IMatch>(
 export const selectRequestsInProgress = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => !!Object.keys(state.requestsInFlight).length;
+
+export const selectHasMatches = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): boolean => !!state.currentMatches && state.currentMatches.length > 0;

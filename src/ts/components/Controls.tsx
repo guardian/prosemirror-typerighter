@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import IconButton from "@material-ui/core/IconButton";
-import DeleteForever from "@material-ui/icons/DeleteForever";
+import { DeleteForever } from "@material-ui/icons";
 
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
@@ -9,12 +9,14 @@ import { IMatch, ICategory } from "../interfaces/IMatch";
 import {
   selectHasGeneralError,
   selectHasAuthError,
-  selectRequestsInProgress
+  selectRequestsInProgress,
+  selectHasMatches
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   store: Store<IMatch>;
+  clearMatches: () => void;
   setDebugState: (debug: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
@@ -42,6 +44,7 @@ const getErrorFeedbackLink = (
  */
 const Controls = ({
   store,
+  clearMatches,
   requestMatchesForDocument,
   getCurrentCategories,
   feedbackHref
@@ -74,7 +77,7 @@ const Controls = ({
 
   const handleClearButtonClick = (): void => {
     // telemetryAdapter?.typerighterIsClosed({ documentUrl: document.URL });
-    // onToggleActiveState();
+    clearMatches();
   };
 
   const renderErrorMessage = () => {
@@ -129,7 +132,7 @@ const Controls = ({
             size="small"
             aria-label="clear matches"
             onClick={handleClearButtonClick}
-            disabled={pluginState && selectRequestsInProgress(pluginState)}
+            disabled={pluginState && (selectRequestsInProgress(pluginState) || !selectHasMatches(pluginState))}
           >
             <DeleteForever />
           </IconButton>

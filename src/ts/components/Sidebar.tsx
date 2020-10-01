@@ -44,6 +44,7 @@ const Sidebar = ({
         <div className="Sidebar__section">
           <Controls
             store={store}
+            clearMatches={() => commands.clearMatches()}
             setDebugState={value => commands.setConfigValue("debug", value)}
             setRequestOnDocModified={value =>
               commands.setConfigValue("requestMatchesOnDocModified", value)
