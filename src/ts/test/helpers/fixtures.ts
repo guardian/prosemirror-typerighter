@@ -190,6 +190,7 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       decorations: DecorationSet.create(tr.doc, []),
       dirtiedRanges: [],
       currentMatches: [],
+      filteredMatches: [],
       selectedMatch: undefined,
       hoverId: undefined,
       highlightId: undefined,
