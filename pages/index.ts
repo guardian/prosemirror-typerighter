@@ -18,6 +18,8 @@ import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 import TelemetryService from "../src/ts/services/TelemetryService";
+import { MatchType } from "../src/ts/utils/decoration";
+import { filterByMatchState } from "../src/ts/utils/plugin";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -41,7 +43,11 @@ const isElementPartOfTyperighterUI = (element: HTMLElement) =>
   overlayNode.contains(element);
 
 const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
-  isElementPartOfTyperighterUI
+  isElementPartOfTyperighterUI,
+  filterOptions: {
+    filterMatches: filterByMatchState,
+    initialFilterState: [] as MatchType[]
+  }
 });
 
 if (editorElement && sidebarNode) {
@@ -67,9 +73,12 @@ if (editorElement && sidebarNode) {
 
   const commands = createBoundCommands(view, getState);
 
-
-  const telemetryService = new TelemetryService("https://example.com")
-  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
+  const telemetryService = new TelemetryService("https://example.com");
+  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
+    telemetryService,
+    "prosemirror-typerighter",
+    "DEV"
+  );
 
   const matcherService = new MatcherService(
     store,

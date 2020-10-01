@@ -5,11 +5,19 @@ import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
 import { selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
+import {
+  MatchType,
+  getColourForMatchType,
+  IMatchTypeToColourMap,
+  getMatchType
+} from "../utils/decoration";
+import { IMatch } from "..";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   applyAutoFixableSuggestions: () => void;
+  applyFilterState: (filterState: MatchType[]) => void;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (matchId: string, _?: any) => void;
   stopHighlight: () => void;
@@ -22,122 +30,179 @@ interface IProps<TPluginState extends IPluginState> {
  * Displays current matches and allows users to apply suggestions.
  */
 
-  const Results = <TPluginState extends IPluginState>({
-    store,
-    applySuggestions,
-    selectMatch,
-    indicateHighlight,
-    stopHighlight,
-    contactHref,
-    editorScrollElement,
-    getScrollOffset
-  }: IProps<TPluginState>) => {
+const Results = <TPluginState extends IPluginState<MatchType[]>>({
+  store,
+  applySuggestions,
+  selectMatch,
+  indicateHighlight,
+  stopHighlight,
+  contactHref,
+  editorScrollElement,
+  getScrollOffset,
+  applyFilterState
+}: IProps<TPluginState>) => {
+  const [pluginState, setPluginState] = useState<TPluginState | undefined>(
+    undefined
+  );
+  const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
 
-    const [pluginState, setPluginState] = useState<TPluginState | undefined>(undefined);
-    const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+  const handleNewState = (incomingState: TPluginState) => {
+    setPluginState({
+      ...incomingState,
+      filteredMatches: sortBy(incomingState.filteredMatches, "from")
+    });
+    const oldKeys = pluginState
+      ? Object.keys(pluginState.requestsInFlight)
+      : [];
+    const newKeys = Object.keys(incomingState.requestsInFlight);
+    if (oldKeys.length && !newKeys.length) {
+      setTimeout(maybeResetLoadingBar, 300);
+    }
+    if (!loadingBarVisible && newKeys.length) {
+      setLoadingBarVisible(true);
+    }
+  };
 
-    const handleNewState = (incomingState: TPluginState) => {
-      setPluginState({
-          ...incomingState,
-          currentMatches: sortBy(incomingState.currentMatches, "from")
+  useEffect(() => {
+    store.on(STORE_EVENT_NEW_STATE, newState => {
+      handleNewState(newState);
+    });
+    setPluginState(store.getState());
+  }, []);
 
-      });
-      const oldKeys = pluginState
-        ? Object.keys(pluginState.requestsInFlight)
-        : [];
-      const newKeys = Object.keys(incomingState.requestsInFlight);
-      if (oldKeys.length && !newKeys.length) {
-        setTimeout(maybeResetLoadingBar, 300);
-      }
-      if (!loadingBarVisible && newKeys.length) {
-        setLoadingBarVisible(true);
-      }
-    };
+  const getPercentRemaining = () => {
+    if (!pluginState) {
+      return 0;
+    }
+    return selectPercentRemaining(pluginState);
+  };
 
-    useEffect(() => {
-      store.on(STORE_EVENT_NEW_STATE, newState => {
-        handleNewState(newState);
-      });
-      setPluginState(store.getState());
-    }, []);
+  const maybeResetLoadingBar = () => {
+    if (!pluginState || !!Object.keys(pluginState.requestsInFlight)) {
+      setLoadingBarVisible(false);
+    }
+  };
 
-    const getPercentRemaining = () => {
-      if (!pluginState) {
-        return 0;
-      }
-      return selectPercentRemaining(pluginState);
-    };
+  const {
+    currentMatches = [],
+    filteredMatches = [],
+    requestsInFlight,
+    selectedMatch
+  } = pluginState || { selectedMatch: undefined };
+  const hasMatches = !!currentMatches.length;
+  const percentRemaining = getPercentRemaining();
+  const isLoading =
+    !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
+  return (
+    <>
+      <div className="Sidebar__header-container">
+        <div className="Sidebar__header">
+          <div className="Sidebar__results">
+            <div>
+              Results {hasMatches && <span>({filteredMatches.length}) </span>}
+            </div>
+            {pluginState && pluginState.config.matchColours && (
+              <div className="Sidebar__filter-container">
+                {renderFilterElements(
+                  pluginState.filterState,
+                  applyFilterState,
+                  currentMatches,
+                  pluginState.config.matchColours
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        {contactHref && (
+          <div className="Sidebar__header-contact">
+            <a href={contactHref} target="_blank">
+              Issue with Typerighter? Let us know!
+            </a>
+          </div>
+        )}
+        {loadingBarVisible && (
+          <div
+            className="LoadingBar"
+            style={{
+              opacity: isLoading ? 1 : 0,
+              width: `${100 - percentRemaining}%`
+            }}
+          />
+        )}
+      </div>
 
+      <div className="Sidebar__content">
+        {hasMatches && pluginState && (
+          <ul className="Sidebar__list">
+            {filteredMatches.map(match => (
+              <li className="Sidebar__list-item" key={match.matchId}>
+                <SidebarMatch
+                  matchColours={pluginState?.config.matchColours}
+                  match={match}
+                  selectedMatch={selectedMatch}
+                  applySuggestions={applySuggestions}
+                  selectMatch={selectMatch}
+                  indicateHighlight={indicateHighlight}
+                  stopHighlight={stopHighlight}
+                  editorScrollElement={editorScrollElement}
+                  getScrollOffset={getScrollOffset}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+        {!hasMatches && (
+          <div className="Sidebar__awaiting-match">No matches to report.</div>
+        )}
+      </div>
+    </>
+  );
+};
 
-    const maybeResetLoadingBar = () => {
-      if (
-        !pluginState ||
-        !!Object.keys(pluginState.requestsInFlight)
-      ) {
-        setLoadingBarVisible(false);
-      }
-    };
+const filterOrder = Object.values([
+  MatchType.CORRECT,
+  MatchType.DEFAULT,
+  MatchType.HAS_REPLACEMENT
+]);
 
-    const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
-    const hasMatches = !!(currentMatches && currentMatches.length);
-    const percentRemaining = getPercentRemaining();
-    const isLoading =
-      !!requestsInFlight && !!Object.keys(requestsInFlight).length;
+const renderFilterElements = (
+  filterState: MatchType[],
+  applyFilterState: (matchType: MatchType[]) => void,
+  matches: IMatch[],
+  matchColours: IMatchTypeToColourMap
+) =>
+  filterOrder.map(matchType => {
+    const isDisabled = filterState.includes(matchType);
+    const cannotAddFilter = filterState.length >= 2;
+    const { borderColour } = getColourForMatchType(matchType, matchColours);
+
+    const noMatchesOfThisType = matches.filter(
+      match => getMatchType(match) === matchType
+    ).length;
+
+    const toggleFilterValue = () =>
+      applyFilterState(
+        isDisabled
+          ? filterState.filter(currentType => currentType !== matchType)
+          : [...filterState, matchType]
+      );
 
     return (
-      <>
-        <div className="Sidebar__header-container">
-          <div className="Sidebar__header">
-            <span>
-              Results {hasMatches && <span>({currentMatches.length}) </span>}
-            </span>
-
-          </div>
-          {contactHref && (
-            <div className="Sidebar__header-contact">
-              <a href={contactHref} target="_blank">
-                Issue with Typerighter? Let us know!
-              </a>
-            </div>
-          )}
-          {loadingBarVisible && (
-            <div
-              className="LoadingBar"
-              style={{
-                opacity: isLoading ? 1 : 0,
-                width: `${100 - percentRemaining}%`
-              }}
-            />
-          )}
-        </div>
-
-        <div className="Sidebar__content">
-          {hasMatches && pluginState && (
-            <ul className="Sidebar__list">
-              {currentMatches.map(match => (
-                <li className="Sidebar__list-item" key={match.matchId}>
-                  <SidebarMatch
-                    matchColours={pluginState?.config.matchColours}
-                    match={match}
-                    selectedMatch={selectedMatch}
-                    applySuggestions={applySuggestions}
-                    selectMatch={selectMatch}
-                    indicateHighlight={indicateHighlight}
-                    stopHighlight={stopHighlight}
-                    editorScrollElement={editorScrollElement}
-                    getScrollOffset={getScrollOffset}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-          {!hasMatches && (
-            <div className="Sidebar__awaiting-match">No matches to report.</div>
-          )}
-        </div>
-      </>
+      <button
+        className="Sidebar__filter-toggle"
+        title="Show/hide matches of this colour"
+        disabled={cannotAddFilter && !isDisabled}
+        style={{
+          backgroundColor: isDisabled ? "transparent" : borderColour,
+          border: `2px solid ${borderColour}`,
+          color: isDisabled ? borderColour : "white"
+        }}
+        onClick={toggleFilterValue}
+      >
+        {noMatchesOfThisType}
+      </button>
     );
-  }
+  });
 
 export default Results;
