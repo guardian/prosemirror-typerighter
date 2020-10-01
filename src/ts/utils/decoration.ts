@@ -4,10 +4,10 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { IRange, IMatch } from "../interfaces/IMatch";
 
 export enum MatchType {
-  HAS_REPLACEMENT,
-  ADVISORY,
-  DEFAULT,
-  CORRECT
+  HAS_REPLACEMENT = "HAS_REPLACEMENT",
+  ADVISORY = "ADVISORY",
+  DEFAULT = "DEFAULT",
+  CORRECT = "CORRECT",
 }
 
 export interface IMatchTypeToColourMap {
