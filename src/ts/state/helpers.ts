@@ -60,6 +60,7 @@ export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
     newState.filterState,
     newState.currentMatches
   );
+  const filteredMatchIds = filteredMatches.map(_ => _.matchId);
 
   const matchIdsWithDecorations = newState.decorations
     .find()
@@ -77,7 +78,7 @@ export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
   const decorationsToRemove = newState.decorations.find(
     undefined,
     undefined,
-    spec => !filteredMatches.includes(spec.id)
+    spec => !filteredMatchIds.includes(spec.id)
   );
 
   const decorations = newState.decorations
