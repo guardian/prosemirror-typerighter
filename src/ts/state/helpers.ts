@@ -37,14 +37,13 @@ export const shouldFilterDecorations = <TPluginState extends IPluginState>(
   newState: TPluginState,
   filterMatches?: IFilterMatches<TPluginState["filterState"]>
 ): filterMatches is IFilterMatches<TPluginState["filterState"]> => {
-  const matchesChanged = oldState.currentMatches === newState.currentMatches;
-  const filterStateChanged = oldState.filterState === newState.filterState;
+  const matchesChanged = oldState.currentMatches !== newState.currentMatches;
+  const filterStateChanged = oldState.filterState !== newState.filterState;
   const noFilterApplied = !oldState.filterState && !newState.filterState;
 
   return (
     !!filterMatches &&
-    ((!filterStateChanged && !matchesChanged) ||
-      (matchesChanged && !noFilterApplied))
+    (filterStateChanged || (matchesChanged && !noFilterApplied))
   );
 };
 

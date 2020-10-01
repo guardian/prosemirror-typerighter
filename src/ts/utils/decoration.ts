@@ -5,9 +5,8 @@ import { IRange, IMatch } from "../interfaces/IMatch";
 
 export enum MatchType {
   HAS_REPLACEMENT = "HAS_REPLACEMENT",
-  ADVISORY = "ADVISORY",
   DEFAULT = "DEFAULT",
-  CORRECT = "CORRECT",
+  CORRECT = "CORRECT"
 }
 
 export interface IMatchTypeToColourMap {
@@ -162,9 +161,16 @@ export const getColourForMatch = (
   matchColours: IMatchTypeToColourMap,
   isSelected: boolean
 ): { backgroundColour: string; borderColour: string } => {
-  const matchType = getMatchType(match);
   const backgroundOpacity = isSelected ? "50" : "07";
+  const matchType = getMatchType(match);
+  return getColourForMatchType(matchType, matchColours, backgroundOpacity);
+};
 
+export const getColourForMatchType = (
+  matchType: MatchType,
+  matchColours: IMatchTypeToColourMap,
+  backgroundOpacity: string = "99"
+): { backgroundColour: string; borderColour: string } => {
   switch (matchType) {
     case MatchType.CORRECT:
       return {
