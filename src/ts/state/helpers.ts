@@ -1,12 +1,20 @@
-import { IPluginState, IIgnoreMatchPredicate, includeAllMatches } from "./reducer";
-import { IMatch } from "../interfaces/IMatch";
-import { createDecorationsForMatch } from "../utils/decoration";
+import {
+  IPluginState,
+  IIgnoreMatchPredicate,
+  includeAllMatches
+} from "./reducer";
+import {
+  createDecorationsForMatch,
+  createDecorationsForMatches
+} from "../utils/decoration";
 import { DecorationSet } from "prosemirror-view";
+import { IFilterMatches } from "../utils/plugin";
+import { Node } from "prosemirror-model";
 
-export const addMatchesToState = <TFilterState, TMatch extends IMatch>(
-  state: IPluginState<TFilterState, TMatch>,
+export const addMatchesToState = <TPluginState extends IPluginState>(
+  state: TPluginState,
   doc: any,
-  matches: TMatch[],
+  matches: Array<TPluginState["currentMatches"][number]>,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ) => {
   const matchesToApply = matches.filter(match => !ignoreMatch(match));
@@ -17,6 +25,68 @@ export const addMatchesToState = <TFilterState, TMatch extends IMatch>(
   return {
     ...state,
     currentMatches: matchesToApply,
+    decorations
+  };
+};
+
+/**
+ * Should we filter our decorations with the filterMatches predicate?
+ */
+export const shouldFilterDecorations = <TPluginState extends IPluginState>(
+  oldState: TPluginState,
+  newState: TPluginState,
+  filterMatches?: IFilterMatches<TPluginState["filterState"]>
+): filterMatches is IFilterMatches<TPluginState["filterState"]> => {
+  const matchesChanged = oldState.currentMatches === newState.currentMatches;
+  const filterStateChanged = oldState.filterState === newState.filterState;
+  const noFilterApplied = !oldState.filterState && !newState.filterState;
+
+  return (
+    !!filterMatches &&
+    ((!filterStateChanged && !matchesChanged) ||
+      (matchesChanged && !noFilterApplied))
+  );
+};
+
+export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
+  doc: Node,
+  newState: TPluginState,
+  filterMatches: IFilterMatches<
+    TPluginState["filterState"],
+    TPluginState["currentMatches"][number]
+  >
+): TPluginState => {
+  const filteredMatches = filterMatches(
+    newState.filterState,
+    newState.currentMatches
+  );
+
+  const matchIdsWithDecorations = newState.decorations
+    .find()
+    .map(_ => _.spec.id);
+
+  const matchesWithoutDecorations = filteredMatches.filter(
+    match => !matchIdsWithDecorations.includes(match.matchId)
+  );
+
+  const decorationsToAdd = createDecorationsForMatches(
+    matchesWithoutDecorations,
+    newState.config.matchColours
+  );
+
+  const decorationsToRemove = newState.decorations.find(
+    undefined,
+    undefined,
+    spec => !filteredMatches.includes(spec.id)
+  );
+
+  const decorations = newState.decorations
+    .remove(decorationsToRemove)
+    .add(doc, decorationsToAdd);
+
+  return {
+    ...newState,
+    filteredMatches,
     decorations
   };
 };

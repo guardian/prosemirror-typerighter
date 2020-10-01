@@ -54,7 +54,7 @@ import {
   findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
-import { ExpandRanges } from "../createTyperighterPlugin";
+import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
@@ -65,7 +65,12 @@ import {
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import { createBlock } from "../utils/block";
-import { addMatchesToState } from "./helpers";
+import {
+  addMatchesToState,
+  deriveFilteredDecorations,
+  shouldFilterDecorations
+} from "./helpers";
+import { IFilterMatches } from "../utils/plugin";
 
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
@@ -108,6 +113,11 @@ export interface IPluginState<
   decorations: DecorationSet;
   // The current matches for the document.
   currentMatches: TMatches[];
+  // The current matches, filtered by the current filterState and the
+  // supplied filter predicate. This is cached in the state and only
+  // recomputed when necessary – filtering decorations in the plugin
+  // decoration mapping on every transaction is not performant.
+  filteredMatches: TMatches[];
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last request.
   dirtiedRanges: IRange[];
@@ -136,17 +146,34 @@ export interface IPluginState<
 // The transaction meta key that namespaces our actions.
 export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 
+interface IInitialStateOpts<
+  TFilterState extends unknown,
+  TMatch extends IMatch
+> {
+  doc: Node;
+  matches: TMatch[];
+  ignoreMatch: IIgnoreMatchPredicate;
+  matchColours: IMatchTypeToColourMap;
+  filterOptions: IFilterOptions<TFilterState, TMatch> | undefined;
+}
+
 /**
  * Initial state.
  */
-export const createInitialState = <TFilterState, TMatch extends IMatch>(
-  doc: Node,
-  matches: TMatch[] = [],
-  filterState: TFilterState,
-  ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
-  matchColours: IMatchTypeToColourMap = defaultMatchColours
-): IPluginState<TFilterState, TMatch> => {
-  const initialState: IPluginState<TFilterState, TMatch> = {
+export const createInitialState = <
+  TFilterState extends unknown,
+  TMatch extends IMatch
+>({
+  doc,
+  matches = [],
+  ignoreMatch = includeAllMatches,
+  matchColours = defaultMatchColours,
+  filterOptions
+}: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
+  TFilterState,
+  TMatch
+> => {
+  const initialState = {
     config: {
       debug: false,
       requestMatchesOnDocModified: false,
@@ -157,21 +184,42 @@ export const createInitialState = <TFilterState, TMatch extends IMatch>(
       createDecorationsForMatches(matches, matchColours)
     ),
     dirtiedRanges: [],
-    currentMatches: [],
+    currentMatches: [] as TMatch[],
+    filteredMatches: [] as TMatch[],
     selectedMatch: undefined,
     hoverId: undefined,
     highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
     requestErrors: [],
-    filterState
+    filterState: filterOptions?.initialFilterState as TFilterState
   };
-  return addMatchesToState(initialState, doc, matches, ignoreMatch);
+
+  const stateWithMatches = addMatchesToState(
+    initialState,
+    doc,
+    matches,
+    ignoreMatch
+  );
+
+  if (!filterOptions) {
+    return stateWithMatches;
+  }
+
+  return deriveFilteredDecorations(
+    doc,
+    stateWithMatches,
+    filterOptions.filterMatches
+  );
 };
 
 export const createReducer = <TPluginState extends IPluginState>(
   expandRanges: ExpandRanges,
-  ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
+  ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
+  filterMatches?: IFilterMatches<
+    TPluginState["filterState"],
+    TPluginState["currentMatches"][0]
+  >
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges
@@ -194,36 +242,46 @@ export const createReducer = <TPluginState extends IPluginState>(
       return state;
     }
 
-    switch (action.type) {
-      case NEW_HOVER_ID:
-        return handleNewHoverId(tr, state, action);
-      case NEW_HIGHLIGHT_ID:
-        return handleNewHighlightId(tr, state, action);
-      case REQUEST_FOR_DIRTY_RANGES:
-        return handleMatchesRequestForDirtyRanges(tr, state, action);
-      case REQUEST_FOR_DOCUMENT:
-        return handleMatchesRequestForDocument(tr, state, action);
-      case REQUEST_SUCCESS:
-        return handleMatchesRequestSuccess(ignoreMatch)(tr, state, action);
-      case REQUEST_ERROR:
-        return handleMatchesRequestError(tr, state, action);
-      case REQUEST_COMPLETE:
-        return handleRequestComplete(tr, state, action);
-      case SELECT_MATCH:
-        return handleSelectMatch(tr, state, action);
-      case REMOVE_MATCH:
-        return handleRemoveMatch(tr, state, action);
-      case REMOVE_ALL_MATCHES:
-        return handleRemoveAllMatches(tr, state);
-      case APPLY_NEW_DIRTY_RANGES:
-        return handleNewDirtyRanges(tr, state, action);
-      case SET_CONFIG_VALUE:
-        return handleSetConfigValue(tr, state, action);
-      case SET_FILTER_STATE:
-        return handleSetFilterState(tr, state, action);
-      default:
-        return state;
+    const applyNewState = () => {
+      switch (action.type) {
+        case NEW_HOVER_ID:
+          return handleNewHoverId(tr, state, action);
+        case NEW_HIGHLIGHT_ID:
+          return handleNewHighlightId(tr, state, action);
+        case REQUEST_FOR_DIRTY_RANGES:
+          return handleMatchesRequestForDirtyRanges(tr, state, action);
+        case REQUEST_FOR_DOCUMENT:
+          return handleMatchesRequestForDocument(tr, state, action);
+        case REQUEST_SUCCESS:
+          return handleMatchesRequestSuccess(ignoreMatch)(tr, state, action);
+        case REQUEST_ERROR:
+          return handleMatchesRequestError(tr, state, action);
+        case REQUEST_COMPLETE:
+          return handleRequestComplete(tr, state, action);
+        case SELECT_MATCH:
+          return handleSelectMatch(tr, state, action);
+        case REMOVE_MATCH:
+          return handleRemoveMatch(tr, state, action);
+        case REMOVE_ALL_MATCHES:
+          return handleRemoveAllMatches(tr, state);
+        case APPLY_NEW_DIRTY_RANGES:
+          return handleNewDirtyRanges(tr, state, action);
+        case SET_CONFIG_VALUE:
+          return handleSetConfigValue(tr, state, action);
+        case SET_FILTER_STATE:
+          return handleSetFilterState(tr, state, action);
+        default:
+          return state;
+      }
+    };
+
+    const newState = applyNewState();
+
+    if (!shouldFilterDecorations(state, newState, filterMatches)) {
+      return newState;
     }
+
+    return deriveFilteredDecorations(tr.doc, newState, filterMatches);
   };
 };
 

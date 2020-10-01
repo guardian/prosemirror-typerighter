@@ -12,7 +12,7 @@ import {
   IMatchTypeToColourMap,
   defaultMatchColours
 } from "./utils/decoration";
-import { DecorationSet, EditorView } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
@@ -29,11 +29,11 @@ import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-export interface IFilterOptions<TFilterState> {
+export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
   /**
    * A function to filter matches given a user-defined filter state.
    */
-  filterMatches: IFilterMatches<TFilterState>;
+  filterMatches: IFilterMatches<TFilterState, TMatch>;
 
   /**
    * The initial state to pass to the filter predicate.
@@ -63,7 +63,7 @@ export interface IPluginOptions<
    */
   ignoreMatch?: IIgnoreMatchPredicate;
 
-  filterOptions?: IFilterOptions<TFilterState>;
+  filterOptions?: IFilterOptions<TFilterState, TMatch>;
 
   /**
    * The colours to use for document matches.
@@ -103,19 +103,23 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
-  const reducer = createReducer<TPluginState>(expandRanges, ignoreMatch);
+  const reducer = createReducer<TPluginState>(
+    expandRanges,
+    ignoreMatch,
+    filterOptions?.filterMatches
+  );
 
   const plugin: Plugin = new Plugin({
     key: pluginKey,
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState(
+        const initialState = createInitialState<TFilterState, TMatch>({
           doc,
           matches,
-          filterOptions?.initialFilterState,
           ignoreMatch,
-          matchColours
-        );
+          matchColours,
+          filterOptions
+        });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },
@@ -166,28 +170,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     },
     props: {
       decorations: state => {
-        const {
-          decorations: currentDecorations,
-          filterState,
-          currentMatches
-        }: TPluginState = plugin.getState(state);
-
-        const decorations = currentDecorations;
-
-        const filteredMatchIds = (
-          filterOptions?.filterMatches(filterState, currentMatches) ||
-          currentMatches
-        ).map(match => match.matchId);
-
-        const filteredDecorations = decorations.find(
-          undefined,
-          undefined,
-          spec => !!filteredMatchIds?.includes(spec.id)
-        );
-
-        const decoSet = new DecorationSet();
-
-        return decoSet.add(state.doc, filteredDecorations);
+        const { decorations }: TPluginState = plugin.getState(state);
+        return decorations;
       },
       handleDOMEvents: {
         mouseleave: (view, event) => {
