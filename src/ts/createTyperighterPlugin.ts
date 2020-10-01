@@ -12,7 +12,7 @@ import {
   IMatchColours,
   defaultMatchColours
 } from "./utils/decoration";
-import { EditorView, DecorationSet } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
@@ -47,11 +47,6 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   matches?: TMatch[];
 
   /**
-   * Is the plugin active as it starts?
-   */
-  isActive?: boolean;
-
-  /**
    * Ignore matches when this predicate returns true.
    */
   ignoreMatch?: IIgnoreMatch;
@@ -84,7 +79,6 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
   const {
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
-    isActive = true,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
     isElementPartOfTyperighterUI = () => false
@@ -94,7 +88,6 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
-  const emptyDecorationSet = new DecorationSet();
   const reducer = createReducer(expandRanges, ignoreMatch);
 
   const plugin: Plugin = new Plugin({
@@ -104,7 +97,6 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
         const initialState = createInitialState(
           doc,
           matches,
-          isActive,
           ignoreMatch,
           matchColours
         );
@@ -159,9 +151,7 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     props: {
       decorations: state => {
         const pluginState = plugin.getState(state);
-        return pluginState.config.isActive
-          ? pluginState.decorations
-          : emptyDecorationSet;
+        return pluginState.decorations;
       },
       handleDOMEvents: {
         mouseleave: (view, event) => {

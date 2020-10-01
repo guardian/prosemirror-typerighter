@@ -19,6 +19,7 @@ export const NEW_HOVER_ID = "NEW_HOVER_ID" as const;
 export const NEW_HIGHLIGHT_ID = "NEW_HIGHLIGHT_ID" as const;
 export const SELECT_MATCH = "SELECT_MATCH" as const;
 export const REMOVE_MATCH = "REMOVE_MATCH" as const;
+export const REMOVE_ALL_MATCHES = "REMOVE_ALL_MATCHES" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
 export const SET_CONFIG_VALUE = "SET_CONFIG_VALUE" as const;
 
@@ -121,6 +122,11 @@ export const removeMatch = (id: string) => ({
 });
 export type ActionRemoveMatch = ReturnType<typeof removeMatch>;
 
+export const removeAllMatches = () => ({
+  type: REMOVE_ALL_MATCHES
+});
+export type ActionRemoveAllMatches = ReturnType<typeof removeAllMatches>;
+
 export type Action<TMatch extends IMatch> =
   | ActionNewHoverIdReceived
   | ActionNewHighlightIdReceived
@@ -132,4 +138,5 @@ export type Action<TMatch extends IMatch> =
   | ActionSelectMatch
   | ActionHandleNewDirtyRanges
   | ActionSetConfigValue
-  | ActionRemoveMatch;
+  | ActionRemoveMatch
+  | ActionRemoveAllMatches;

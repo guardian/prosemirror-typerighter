@@ -38,18 +38,10 @@ const Sidebar = ({
     };
   }, []);
 
-  const handleToggleActiveState = (): void => {
-    commands.setConfigValue("isActive", !pluginState?.config.isActive);
-  };
-
-  const sidebarClasses = pluginState?.config.isActive
-    ? "Sidebar__section"
-    : "Sidebar__section Sidebar__section--is-closed";
-
   return (
     <>
       {pluginState && (
-        <div className={sidebarClasses}>
+        <div className="Sidebar__section">
           <Controls
             store={store}
             setDebugState={value => commands.setConfigValue("debug", value)}
@@ -61,21 +53,18 @@ const Sidebar = ({
             addCategory={matcherService.addCategory}
             removeCategory={matcherService.removeCategory}
             feedbackHref={feedbackHref}
-            onToggleActiveState={handleToggleActiveState}
           />
-          {pluginState?.config.isActive && (
-            <Results
-              store={store}
-              applySuggestions={commands.applySuggestions}
-              applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
-              selectMatch={commands.selectMatch}
-              indicateHighlight={commands.indicateHighlight}
-              stopHighlight={commands.stopHighlight}
-              contactHref={contactHref}
-              editorScrollElement={editorScrollElement}
-              getScrollOffset={getScrollOffset}
-            />
-          )}
+          <Results
+            store={store}
+            applySuggestions={commands.applySuggestions}
+            applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
+            selectMatch={commands.selectMatch}
+            indicateHighlight={commands.indicateHighlight}
+            stopHighlight={commands.stopHighlight}
+            contactHref={contactHref}
+            editorScrollElement={editorScrollElement}
+            getScrollOffset={getScrollOffset}
+          />
         </div>
       )}
     </>

@@ -33,12 +33,6 @@
   border-bottom: 1px solid $sidebar-border-color;
 }
 
-.Sidebar__header-container--is-closed {
-  border: 0;
-  display: flex;
-  justify-content: flex-end;
-}
-
 .Sidebar__header-contact {
   margin-top: 5px;
   font-size: $font-size-small;
