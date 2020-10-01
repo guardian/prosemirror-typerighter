@@ -48,4 +48,4 @@ export type IFilterMatches<
 export const filterByMatchState: IFilterMatches<IDefaultFilterState> = (
   filterState,
   matches
-) => matches.filter(match => filterState.includes(getMatchType(match)));
+) => matches.filter(match => !filterState.includes(getMatchType(match)));
