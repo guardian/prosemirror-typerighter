@@ -77,14 +77,11 @@ const Suggestion = ({ match, suggestion, applySuggestions }: IProps) => {
       }
     ]);
 
-    telemetryAdapter?.suggestionIsAccepted({
-      documentUrl: document.URL,
-      ruleId: match.ruleId,
-      matchId: match.matchId,
-      matchedText: match.matchedText,
-      matchContext: match.matchContext,
-      suggestion: suggestion.text
-    });
+    telemetryAdapter?.suggestionIsAccepted(
+      match,
+      document.URL,
+      suggestion.text
+    );
   };
   switch (suggestion.type) {
     case "TEXT_SUGGESTION": {

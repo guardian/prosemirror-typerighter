@@ -1,11 +1,9 @@
 import {
   ITyperighterTelemetryEvent,
-  ISuggestionAcceptedEvent,
   TYPERIGHTER_TELEMETRY_TYPE,
-  IMarkAsCorrectEvent,
-  ISidebarClickEvent
 } from "../interfaces/ITelemetryData";
 import TelemetryService from './TelemetryService';
+import { IMatch } from "..";
 
 class TyperighterTelemetryAdapter {
   constructor(
@@ -14,25 +12,32 @@ class TyperighterTelemetryAdapter {
     private stage: string
   ) {}
 
-  public suggestionIsAccepted(tags: ISuggestionAcceptedEvent["tags"]) {
+  public suggestionIsAccepted(match: IMatch, documentUrl: string, suggestion: string) {
     this.telemetryService.addEvent({
       app: this.app,
       stage: this.stage,
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUGGESTION_IS_ACCEPTED,
       value: 1,
       eventTime: new Date().toISOString(),
-      tags
+      tags: {
+        suggestion,
+        documentUrl,
+        ...this.getTelemetryTagsFromMatch(match)
+      }
     });
   }
 
-  public matchIsMarkedAsCorrect(tags: IMarkAsCorrectEvent["tags"]) {
+  public matchIsMarkedAsCorrect(match: IMatch, documentUrl: string) {
     this.telemetryService.addEvent({
       app: this.app,
       stage: this.stage,
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT,
       value: 1,
       eventTime: new Date().toISOString(),
-      tags
+      tags: {
+        documentUrl,
+        ...this.getTelemetryTagsFromMatch(match)
+      }
     });
   }
 
@@ -69,16 +74,43 @@ class TyperighterTelemetryAdapter {
     });
   }
 
-  public sidebarMatchClicked(tags: ISidebarClickEvent["tags"]) {
+  public sidebarMatchClicked(match: IMatch, documentUrl: string) {
     this.telemetryService.addEvent({
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK,
         value: 1,
         eventTime: new Date().toISOString(),
-        tags
+        tags: {
+          documentUrl,
+          ...this.getTelemetryTagsFromMatch(match)
+        }
     });
   }
+
+  public matchFound(match: IMatch, documentUrl: string) {
+    this.telemetryService.addEvent({
+        app: this.app,
+        stage: this.stage,
+        type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_FOUND,
+        value: 1,
+        eventTime: new Date().toISOString(),
+        tags: {
+          documentUrl,
+          ...this.getTelemetryTagsFromMatch(match)
+        }
+    });
+  }
+
+  private getTelemetryTagsFromMatch = (match: IMatch) => ({
+    matcherType: match.matcherType,
+    ruleId: match.ruleId,
+    matchId: match.matchId,
+    matchedText: match.matchedText,
+    matchHasReplacement: match.replacement ? 'true' : 'false',
+    matchIsAdvisory: 'false',
+    matchIsMarkedAsCorrect: match.markAsCorrect ? 'true' : 'false',
+  })
 }
 
 export default TyperighterTelemetryAdapter;

@@ -97,26 +97,12 @@ export const getNewDecorationsForCurrentMatches = (
 };
 
 /**
- * Create a height marker element. Used to determine the height
- * of a single line of inline content, which is useful when we're
- * calculating where to place tooltips as the user hovers over multi-
- * line spans.
- */
-const createHeightMarkerElement = (id: string) => {
-  const element = document.createElement("span");
-  element.setAttribute(DECORATION_ATTRIBUTE_HEIGHT_MARKER_ID, id);
-  element.className = DecorationClassMap[DECORATION_MATCH_HEIGHT_MARKER];
-  return element;
-};
-
-/**
  * Create decorations for the given match.
  */
 export const createDecorationsForMatch = (
   match: IMatch,
   matchColours: IMatchColours = defaultMatchColours,
-  isSelected = false,
-  addWidgetDecorations = true
+  isSelected = false
 ) => {
   const className = isSelected
     ? `${DecorationClassMap[DECORATION_MATCH]} ${DecorationClassMap[DECORATION_MATCH_IS_SELECTED]}`
@@ -139,15 +125,6 @@ export const createDecorationsForMatch = (
     )
   ];
 
-  if (addWidgetDecorations) {
-    decorations.push(
-      Decoration.widget(match.from, createHeightMarkerElement(match.matchId), {
-        type: DECORATION_MATCH_HEIGHT_MARKER,
-        id: match.matchId,
-        categoryId: match.category.id
-      } as any)
-    );
-  }
   return decorations;
 };
 

@@ -89,6 +89,7 @@ export const createMatcherResponse = (
       };
 
       const newMatch = {
+        matcherType: "regex",
         ruleId: "ruleId",
         category,
         matchedText: "block text",
@@ -126,6 +127,7 @@ export const createMatch = (
     colour: "eeeee"
   }
 ): IMatch => ({
+  matcherType: "regex",
   ruleId: "ruleId",
   category,
   matchedText: "block text",
@@ -178,7 +180,6 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       config: {
         debug: false,
         requestMatchesOnDocModified: true,
-        isActive: true,
         matchColours: defaultMatchColours
       },
       currentThrottle: 100,

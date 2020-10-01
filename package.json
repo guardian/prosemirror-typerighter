@@ -1,6 +1,6 @@
 {
   "name": "@guardian/prosemirror-typerighter",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A plugin to represent validation ranges in Prosemirror",
   "main": "dist/index.js",
   "module": "dist/index.m.js",
@@ -26,7 +26,7 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook --disable-emoji || true"
     }
   },
   "devDependencies": {

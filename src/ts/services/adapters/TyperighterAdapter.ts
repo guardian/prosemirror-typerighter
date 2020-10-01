@@ -26,6 +26,7 @@ export const convertTyperighterResponse = (
     matchId: v4(),
     from: fromPos,
     to: toPos,
+    matcherType: rule.matcherType,
     category: rule.category,
     ruleId: rule.id,
     ...match
@@ -52,7 +53,6 @@ class TyperighterAdapter implements IMatcherAdapter {
       const body = {
         requestId,
         blocks: [input],
-        categoryIds
       };
       try {
         const response = await fetch(`${this.url}/check`, {

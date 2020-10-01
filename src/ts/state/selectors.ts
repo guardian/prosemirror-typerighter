@@ -71,9 +71,10 @@ export const selectPercentRemaining = <TMatch extends IMatch>(
     state.requestsInFlight
   ).reduce(
     ([totalWorkAcc, remainingWorkAcc], queryState) => {
-      const allWork = queryState.totalBlocks * queryState.categoryIds.length;
+      const allCategories = queryState.categoryIds.length == 0;
+      const allWork = queryState.totalBlocks * (allCategories ? 1 : queryState.categoryIds.length);
       const remainingWork = queryState.pendingBlocks.reduce(
-        (acc, block) => acc + block.pendingCategoryIds.length,
+        (acc, block) => acc + (allCategories ? 1 : block.pendingCategoryIds.length),
         0
       );
       return [totalWorkAcc + allWork, remainingWorkAcc + remainingWork];
@@ -127,6 +128,6 @@ export const selectRequestsInProgress = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => !!Object.keys(state.requestsInFlight).length;
 
-export const selectPluginIsActive = <TMatch extends IMatch>(
+export const selectHasMatches = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
-): boolean => state.config.isActive;
+): boolean => !!state.currentMatches && state.currentMatches.length > 0;

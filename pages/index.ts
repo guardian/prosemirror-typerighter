@@ -66,16 +66,20 @@ if (editorElement && sidebarNode) {
     editorElement.getBoundingClientRect().height / 2 - menuHeight;
 
   const commands = createBoundCommands(view, getState);
+
+
+  const telemetryService = new TelemetryService("https://example.com") 
+  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
+
   const matcherService = new MatcherService(
     store,
     commands,
-    new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
+    new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk"),
+    typerighterTelemetryAdapter
   );
 
-  const telemetryService = new TelemetryService("https://example.com")
-  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(telemetryService, "prosemirror-typerighter", "DEV");
-
   createView({
+    view,
     store,
     matcherService,
     commands,

@@ -27,18 +27,6 @@ describe("Decoration utils", () => {
               type: "DECORATION_MATCH"
             }
           }
-        },
-        {
-          from: 0,
-          to: 0,
-          type: {
-            side: 0,
-            spec: {
-              categoryId: "1",
-              id: "0-from:0-to:5--match-0",
-              type: "DECORATION_MATCH_HEIGHT_MARKER"
-            }
-          }
         }
       ]);
     });
@@ -62,18 +50,6 @@ describe("Decoration utils", () => {
               inclusiveEnd: false,
               inclusiveStart: false,
               type: "DECORATION_MATCH"
-            }
-          }
-        },
-        {
-          from: 0,
-          to: 0,
-          type: {
-            side: 0,
-            spec: {
-              categoryId: "1",
-              id: "0-from:0-to:5--match-0",
-              type: "DECORATION_MATCH_HEIGHT_MARKER"
             }
           }
         }

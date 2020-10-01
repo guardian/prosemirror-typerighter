@@ -50,6 +50,7 @@ export type TMatchRequestErrorWithDefault = PartialBy<
 >;
 
 export interface IMatch<TSuggestion = ISuggestion> {
+  matcherType: string
   matchId: string;
   from: number;
   to: number;

@@ -9,7 +9,8 @@ import {
   requestMatchesForDirtyRanges,
   requestMatchesComplete,
   removeMatch,
-  newHighlightIdReceived
+  removeAllMatches,
+  newHighlightIdReceived, 
 } from "./state/actions";
 import {
   selectMatchByMatchId,
@@ -311,6 +312,18 @@ export const ignoreMatchCommand = (id: string) => <TMatch extends IMatch>(
   return !!match;
 };
 
+export const clearMatchesCommand = () => <TMatch extends IMatch>(
+  _: GetState<TMatch>
+) => (
+  state: EditorState,
+  dispatch?: (tr: Transaction<any>) => void
+): boolean => {
+  if (dispatch) {
+    dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, removeAllMatches()));
+  }
+  return true;
+};
+
 const maybeApplySuggestions = (
   suggestionsToApply: Array<{
     from: number;
@@ -366,6 +379,7 @@ export const createBoundCommands = <TMatch extends IMatch>(
   return {
     ignoreMatch: (id: string) =>
       ignoreMatchCommand(id)(getState)(view.state, view.dispatch),
+    clearMatches: () => clearMatchesCommand()(getState)(view.state, view.dispatch),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
       applySuggestionsCommand(suggestionOpts, getState)(
         view.state,

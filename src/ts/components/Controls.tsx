@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import IconButton from "@material-ui/core/IconButton";
-import { Close } from "@material-ui/icons";
+import { DeleteForever } from "@material-ui/icons";
 
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
@@ -10,21 +10,20 @@ import {
   selectHasGeneralError,
   selectHasAuthError,
   selectRequestsInProgress,
-  selectPluginIsActive
+  selectHasMatches
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   store: Store<IMatch>;
+  clearMatches: () => void;
   setDebugState: (debug: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
-  fetchCategories: () => Promise<ICategory[]>;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
-  onToggleActiveState: () => void;
 }
 
 const getErrorFeedbackLink = (
@@ -45,43 +44,23 @@ const getErrorFeedbackLink = (
  */
 const Controls = ({
   store,
+  clearMatches,
   requestMatchesForDocument,
-  fetchCategories,
   getCurrentCategories,
-  feedbackHref,
-  onToggleActiveState,
-  addCategory
+  feedbackHref
 }: IProps) => {
   const [pluginState, setPluginState] = useState<
     IPluginState<IMatch> | undefined
   >(undefined);
-  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(
-    false
-  );
 
   const { telemetryAdapter } = useContext(TelemetryContext);
-
-  const fetchAllCategories = async () => {
-    setIsLoadingCategories(true);
-    try {
-      const allCategories = await fetchCategories();
-      allCategories.forEach(category => addCategory(category.id));
-      setIsLoadingCategories(false);
-    } catch (e) {
-      setIsLoadingCategories(false);
-    }
-  };
 
   useEffect(() => {
     store.on(STORE_EVENT_NEW_STATE, newState => {
       setPluginState(newState);
     });
     setPluginState(store.getState());
-
-    fetchAllCategories();
   }, []);
-
-  const pluginIsActive = pluginState && selectPluginIsActive(pluginState);
 
   const requestMatches = () => {
     requestMatchesForDocument(
@@ -91,22 +70,15 @@ const Controls = ({
   };
 
   const handleCheckDocumentButtonClick = (): void => {
-    if (!pluginIsActive) {
-      onToggleActiveState();
-      telemetryAdapter?.typerighterIsOpened({ documentUrl: document.URL });
-    }
+    //telemetryAdapter?.typerighterIsOpened({ documentUrl: document.URL });
     requestMatches();
     telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   };
 
-  const handleCloseButtonClick = (): void => {
-    telemetryAdapter?.typerighterIsClosed({ documentUrl: document.URL });
-    onToggleActiveState();
+  const handleClearButtonClick = (): void => {
+    // telemetryAdapter?.typerighterIsClosed({ documentUrl: document.URL });
+    clearMatches();
   };
-
-  const headerContainerClasses = pluginIsActive
-    ? "Sidebar__header-container"
-    : "Sidebar__header-container Sidebar__header-container--is-closed";
 
   const renderErrorMessage = () => {
     if (!pluginState) {
@@ -146,32 +118,27 @@ const Controls = ({
 
   return (
     <>
-      <div className={headerContainerClasses}>
+      <div className="Sidebar__header-container">
         <div className="Sidebar__header">
           <button
             type="button"
             className="Button"
             onClick={handleCheckDocumentButtonClick}
-            disabled={
-              isLoadingCategories ||
-              (pluginState && selectRequestsInProgress(pluginState))
-            }
+            disabled={pluginState && selectRequestsInProgress(pluginState)}
           >
             Check document
           </button>
-          {pluginIsActive && (
-            <IconButton
-              size="small"
-              aria-label="close Typerighter"
-              onClick={handleCloseButtonClick}
-              disabled={pluginState && selectRequestsInProgress(pluginState)}
-            >
-              <Close />
-            </IconButton>
-          )}
+          <IconButton
+            size="small"
+            aria-label="clear matches"
+            onClick={handleClearButtonClick}
+            disabled={pluginState && (selectRequestsInProgress(pluginState) || !selectHasMatches(pluginState))}
+          >
+            <DeleteForever />
+          </IconButton>
         </div>
       </div>
-      {pluginIsActive && renderErrorMessage()}
+      {renderErrorMessage()}
     </>
   );
 };
