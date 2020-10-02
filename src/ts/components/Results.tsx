@@ -34,9 +34,12 @@ interface IProps {
     getScrollOffset
   }: IProps) => {
 
+    const IMPORTANCE = "importance";
+    const APPEARANCE = "appearance";
+
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
-    const [matchSortBy, setMatchSortBy] = useState<string>("order");
+    const [matchSortBy, setMatchSortBy] = useState<string>(IMPORTANCE);
 
     const handleNewState = (pluginState: IPluginState<IMatch>) => {
       setPluginState({
@@ -70,19 +73,6 @@ interface IProps {
       return selectPercentRemaining(pluginState);
     };
 
-    const orderedMatches= () => {
-      if(!pluginState){
-        return []
-      }
-
-      switch(matchSortBy){
-        case "importance":
-          return selectImportanceOrderedMatches(pluginState);
-        default:
-          return currentMatches;
-      }
-    }
-  
     const maybeResetLoadingBar = () => {
       if (
         !pluginState ||
@@ -95,6 +85,7 @@ interface IProps {
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
     const percentRemaining = getPercentRemaining();
+    const orderedMatches = matchSortBy === IMPORTANCE && pluginState ? selectImportanceOrderedMatches(pluginState) : currentMatches
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
@@ -108,8 +99,8 @@ interface IProps {
             <span className="Sidebar__header-sort">
               Sory By 
               <select className="Sidebar__header-sort-dropdown" value={matchSortBy} onChange={(event) => setMatchSortBy(event.target.value)}>
-                <option value="appearance">Appearance</option>
-                <option value="importance">Importance</option>
+                <option value={IMPORTANCE}>Importance</option>
+                <option value={APPEARANCE}>Appearance</option>
               </select>
             </span>
           </div>
@@ -134,7 +125,7 @@ interface IProps {
         <div className="Sidebar__content">
           {hasMatches && pluginState && (
             <ul className="Sidebar__list">
-              {orderedMatches().map(match => (
+              {orderedMatches.map(match => (
                 <li className="Sidebar__list-item" key={match.matchId}>
                   <SidebarMatch
                     matchColours={pluginState?.config.matchColours}
