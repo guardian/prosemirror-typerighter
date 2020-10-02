@@ -3,7 +3,7 @@ import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
-import { selectPercentRemaining } from "../state/selectors";
+import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
 import { IMatch } from "../interfaces/IMatch";
 
@@ -36,6 +36,7 @@ interface IProps {
 
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+    const [matchSortBy, setMatchSortBy] = useState<string>("order");
 
     const handleNewState = (pluginState: IPluginState<IMatch>) => {
       setPluginState({
@@ -69,7 +70,18 @@ interface IProps {
       return selectPercentRemaining(pluginState);
     };
 
-    
+    const orderedMatches= () => {
+      if(!pluginState){
+        return []
+      }
+
+      switch(matchSortBy){
+        case "importance":
+          return selectImportanceOrderedMatches(pluginState);
+        default:
+          return currentMatches;
+      }
+    }
   
     const maybeResetLoadingBar = () => {
       if (
@@ -93,7 +105,13 @@ interface IProps {
             <span>
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
-
+            <span className="Sidebar__header-sort">
+              Sory By 
+              <select className="Sidebar__header-sort-dropdown" value={matchSortBy} onChange={(event) => setMatchSortBy(event.target.value)}>
+                <option value="appearance">Appearance</option>
+                <option value="importance">Importance</option>
+              </select>
+            </span>
           </div>
           {contactHref && (
             <div className="Sidebar__header-contact">
@@ -116,7 +134,7 @@ interface IProps {
         <div className="Sidebar__content">
           {hasMatches && pluginState && (
             <ul className="Sidebar__list">
-              {currentMatches.map(match => (
+              {orderedMatches().map(match => (
                 <li className="Sidebar__list-item" key={match.matchId}>
                   <SidebarMatch
                     matchColours={pluginState?.config.matchColours}
