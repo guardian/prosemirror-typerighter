@@ -70,14 +70,13 @@ const Controls = ({
   };
 
   const handleCheckDocumentButtonClick = (): void => {
-    //telemetryAdapter?.typerighterIsOpened({ documentUrl: document.URL });
     requestMatches();
     telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   };
 
   const handleClearButtonClick = (): void => {
-    // telemetryAdapter?.typerighterIsClosed({ documentUrl: document.URL });
     clearMatches();
+    telemetryAdapter?.documentIsCleared({ documentUrl: document.URL });
   };
 
   const renderErrorMessage = () => {
