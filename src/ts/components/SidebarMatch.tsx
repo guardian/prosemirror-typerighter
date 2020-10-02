@@ -1,18 +1,15 @@
-import compact from "lodash/compact";
-
-import React, { useState, useContext } from "react";
-
+import React, { useContext, useState } from "react";
 import { IMatch } from "../interfaces/IMatch";
 import {
   IMatchTypeToColourMap,
   getColourForMatch,
   maybeGetDecorationElement
 } from "../utils/decoration";
-import titleCase from "lodash/startCase";
 import { ApplySuggestionOptions } from "../commands";
-import SuggestionList from "./SuggestionList";
 import { getHtmlFromMarkdown } from "../utils/dom";
 import TelemetryContext from "../contexts/TelemetryContext";
+// import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+// import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
 
 interface IProps {
   match: IMatch;
@@ -24,6 +21,9 @@ interface IProps {
   selectedMatch: string | undefined;
   editorScrollElement: Element;
   getScrollOffset: () => number;
+  isGroup: boolean;
+  isSubset: boolean;
+  showAllMatches?: () => JSX.Element;
 }
 
 /**
@@ -33,30 +33,27 @@ interface IProps {
 const SidebarMatch = ({
   match,
   matchColours,
-  applySuggestions,
   indicateHighlight,
   stopHighlight,
   selectedMatch,
   editorScrollElement,
-  getScrollOffset
-}: IProps) => {
+  getScrollOffset,
+  isGroup,
+  isSubset,
+  showAllMatches
+}: IProps) => {  
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
 
   const { telemetryAdapter } = useContext(TelemetryContext);
 
   const color = matchColours
     ? getColourForMatch(match, matchColours, false).borderColour
     : undefined;
-  const hasSuggestions = !!match.suggestions && !!match.suggestions.length;
-  const suggestions = compact([
-    match.replacement,
-    ...(match.suggestions || [])
-  ]);
 
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
-
   const scrollToRange = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -87,6 +84,7 @@ const SidebarMatch = ({
   };
 
   return (
+    <>
     <div
       className={`SidebarMatch__container ${
         selectedMatch === match.matchId
@@ -96,51 +94,43 @@ const SidebarMatch = ({
       style={{ borderLeft: `2px solid ${color}` }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={scrollToRange}
-      title="Click to scroll to this match"
+      onClick={isGroup ? toggleOpen : scrollToRange}
+      title={isGroup ? "Click to see all matches" : "Click to scroll to this match"}
     >
       <div
         className={"SidebarMatch__header"}
-        onClick={hasSuggestions ? toggleOpen : undefined}
       >
         <div className="SidebarMatch__header-label">
           <div>
             <div className="SidebarMatch__header-match-text">
-              {match.matchedText}
+              {isSubset ? "" : match.matchedText}
             </div>
             <div
               className="SidebarMatch__header-description"
               dangerouslySetInnerHTML={{
-                __html: getHtmlFromMarkdown(match.message)
+                // __html: getHtmlFromMarkdown(match.message)
+                __html: isSubset ? getHtmlFromMarkdown(match.matchContext) : getHtmlFromMarkdown(match.message)
               }}
             ></div>
           </div>
           <div className="SidebarMatch__header-meta">
-            <div className="SidebarMatch__header-category">
-              {titleCase(match.category.name)}
-            </div>
-            {hasSuggestions && (
+            {isGroup && (
               <div className="SidebarMatch__header-toggle-status">
                 {isOpen ? "-" : "+"}
+                {/* {isOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />} */}
               </div>
             )}
           </div>
         </div>
       </div>
-      {isOpen && (
-        <div className="SidebarMatch__content">
-          {suggestions.length && (
-            <div className="SidebarMatch__suggestion-list">
-              <SuggestionList
-                applySuggestions={applySuggestions}
-                match={match}
-                suggestions={suggestions}
-              />
-            </div>
-          )}
-        </div>
-      )}
+      
     </div>
+    {isOpen && (
+      <div className="SidebarMatch__content">
+        {(isGroup && showAllMatches) && showAllMatches()}
+      </div>
+    )}
+    </>
   );
 };
 

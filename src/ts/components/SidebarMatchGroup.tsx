@@ -1,0 +1,103 @@
+import { IMatch, ISuggestion } from "../interfaces/IMatch";
+import { IMatchColours } from "../utils/decoration";
+import { ApplySuggestionOptions } from "../commands";
+import SidebarMatch from "./SidebarMatch";
+import React from "react";
+
+interface IProps {
+  matchGroup: Array<IMatch<ISuggestion>>;
+  matchColours: IMatchColours;
+  applySuggestions: (suggestions: ApplySuggestionOptions) => void;
+  selectMatch: (matchId: string) => void;
+  indicateHighlight: (blockId: string, _?: any) => void;
+  stopHighlight: () => void;
+  selectedMatch: string | undefined;
+  editorScrollElement: Element;
+  getScrollOffset: () => number;
+}
+
+/**
+ * Display information for a single match and a group of matches with same ruleId
+ */
+
+const SidebarMatchGroup = ({
+  matchGroup,
+  matchColours,
+  applySuggestions,
+  indicateHighlight,
+  stopHighlight,
+  selectedMatch,
+  editorScrollElement,
+  getScrollOffset,
+  selectMatch
+}: IProps) => {
+  
+  const showGroupMatchSubset = () => (
+    <ul>
+      {matchGroup.map(match => (
+        <li className="Sidebar__list-item" key={match.matchId}>
+          <SidebarMatch
+            matchColours={matchColours}
+            match={match}
+            selectedMatch={selectedMatch}
+            applySuggestions={applySuggestions}
+            selectMatch={selectMatch}
+            indicateHighlight={indicateHighlight}
+            stopHighlight={stopHighlight}
+            editorScrollElement={editorScrollElement}
+            getScrollOffset={getScrollOffset}
+            isGroup={false}
+            isSubset
+          />
+        </li>
+      ))}
+    </ul>
+  );
+
+  return (
+    <>
+      {matchGroup.length === 1 ? (
+        <>
+          <li className="Sidebar__list-item" key={matchGroup[0].matchId}>
+            <SidebarMatch
+              matchColours={matchColours}
+              match={matchGroup[0]}
+              selectedMatch={selectedMatch}
+              applySuggestions={applySuggestions}
+              selectMatch={selectMatch}
+              indicateHighlight={indicateHighlight}
+              stopHighlight={stopHighlight}
+              editorScrollElement={editorScrollElement}
+              getScrollOffset={getScrollOffset}
+              isGroup={false}
+              isSubset={false}
+            />
+          </li>
+        </>
+      ) : (
+        <>
+          <li className="Sidebar__list-item" key={matchGroup[0].ruleId}>
+            <SidebarMatch
+              matchColours={matchColours}
+              match={matchGroup[0]}
+              selectedMatch={selectedMatch}
+              applySuggestions={applySuggestions}
+              selectMatch={selectMatch}
+              indicateHighlight={indicateHighlight}
+              stopHighlight={stopHighlight}
+              editorScrollElement={editorScrollElement}
+              getScrollOffset={getScrollOffset}
+              isGroup
+              isSubset={false}
+              showAllMatches={showGroupMatchSubset}
+              // numberOfGroupedMatches={matchGroup.length}
+            />
+          </li>
+        
+        </>
+      )}
+    </>
+  );
+};
+
+export default SidebarMatchGroup;
