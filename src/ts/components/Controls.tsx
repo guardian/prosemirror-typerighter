@@ -130,7 +130,8 @@ const Controls = ({
           </button>
           <IconButton
             size="small"
-            aria-label="clear matches"
+            aria-label="clear all matches"
+            title="clear all matches"
             onClick={handleClearButtonClick}
             disabled={pluginState && (selectRequestsInProgress(pluginState) || !selectHasMatches(pluginState))}
           >
