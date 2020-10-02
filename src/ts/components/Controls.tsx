@@ -70,14 +70,13 @@ const Controls = ({
   };
 
   const handleCheckDocumentButtonClick = (): void => {
-    //telemetryAdapter?.typerighterIsOpened({ documentUrl: document.URL });
     requestMatches();
     telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   };
 
   const handleClearButtonClick = (): void => {
-    // telemetryAdapter?.typerighterIsClosed({ documentUrl: document.URL });
     clearMatches();
+    telemetryAdapter?.documentIsCleared({ documentUrl: document.URL });
   };
 
   const renderErrorMessage = () => {
@@ -130,7 +129,8 @@ const Controls = ({
           </button>
           <IconButton
             size="small"
-            aria-label="clear matches"
+            aria-label="clear all matches"
+            title="clear all matches"
             onClick={handleClearButtonClick}
             disabled={pluginState && (selectRequestsInProgress(pluginState) || !selectHasMatches(pluginState))}
           >

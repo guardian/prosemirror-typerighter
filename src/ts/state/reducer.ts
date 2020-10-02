@@ -305,13 +305,12 @@ const handleRemoveAllMatches = <TMatch extends IMatch>(
   const decorations = decorationToRemove
     ? state.decorations.remove(decorationToRemove)
     : state.decorations;
-
-  const currentMatches: TMatch[] = [];
   
   return {
     ...state,
     decorations,
-    currentMatches
+    currentMatches: [],
+    requestErrors: []
   };
 };
 

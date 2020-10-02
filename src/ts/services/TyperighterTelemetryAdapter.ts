@@ -52,6 +52,17 @@ class TyperighterTelemetryAdapter {
     });
   }
 
+  public documentIsCleared(tags: ITyperighterTelemetryEvent["tags"]) {
+    this.telemetryService.addEvent({
+      app: this.app,
+      stage: this.stage,
+      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CLEAR_DOCUMENT,
+      value: 1,
+      eventTime: new Date().toISOString(),
+      tags
+    });
+  }
+
   public typerighterIsOpened(tags: ITyperighterTelemetryEvent["tags"]) {
     this.telemetryService.addEvent({
         app: this.app,
