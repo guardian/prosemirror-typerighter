@@ -7,6 +7,9 @@ import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state
 import SidebarMatch from "./SidebarMatch";
 import { IMatch } from "../interfaces/IMatch";
 
+const IMPORTANCE = "importance";
+const APPEARANCE = "appearance";
+
 interface IProps {
   store: Store<IMatch>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
@@ -33,9 +36,6 @@ interface IProps {
     editorScrollElement,
     getScrollOffset
   }: IProps) => {
-
-    const IMPORTANCE = "importance";
-    const APPEARANCE = "appearance";
 
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
