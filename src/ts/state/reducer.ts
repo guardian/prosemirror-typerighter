@@ -18,6 +18,7 @@ import {
   REQUEST_COMPLETE,
   SELECT_MATCH,
   REMOVE_MATCH,
+  REMOVE_ALL_MATCHES,
   APPLY_NEW_DIRTY_RANGES,
   SET_CONFIG_VALUE,
   Action,
@@ -87,8 +88,6 @@ export interface IBlocksInFlightState {
 }
 
 export interface IPluginConfig {
-  // Is the plugin active – e.g. should it display matches and respond to commands?
-  isActive: boolean;
   // Should we trigger a request when the document is modified?
   requestMatchesOnDocModified: boolean;
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
@@ -136,13 +135,11 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 export const createInitialState = <TMatch extends IMatch>(
   doc: Node,
   matches: TMatch[] = [],
-  active: boolean = true,
   ignoreMatch: IIgnoreMatch = includeAllMatches,
   matchColours: IMatchColours = defaultMatchColours
 ): IPluginState<TMatch> => {
   const initialState: IPluginState<TMatch> = {
     config: {
-      isActive: active,
       debug: false,
       requestMatchesOnDocModified: false,
       matchColours
@@ -205,6 +202,8 @@ export const createReducer = (
         return handleSelectMatch(tr, state, action);
       case REMOVE_MATCH:
         return handleRemoveMatch(tr, state, action);
+      case REMOVE_ALL_MATCHES:
+        return handleRemoveAllMatches(tr, state);
       case APPLY_NEW_DIRTY_RANGES:
         return handleNewDirtyRanges(tr, state, action);
       case SET_CONFIG_VALUE:
@@ -291,6 +290,27 @@ const handleRemoveMatch = <TMatch extends IMatch>(
     ...state,
     decorations,
     currentMatches
+  };
+};
+
+/**
+ * Remove all matches and their decoration from the state.
+ */
+const handleRemoveAllMatches = <TMatch extends IMatch>(
+  _: unknown,
+  state: IPluginState<TMatch>
+): IPluginState<TMatch> => {
+  const decorationToRemove = state.decorations.find();
+  
+  const decorations = decorationToRemove
+    ? state.decorations.remove(decorationToRemove)
+    : state.decorations;
+  
+  return {
+    ...state,
+    decorations,
+    currentMatches: [],
+    requestErrors: []
   };
 };
 

@@ -128,6 +128,6 @@ export const selectRequestsInProgress = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => !!Object.keys(state.requestsInFlight).length;
 
-export const selectPluginIsActive = <TMatch extends IMatch>(
+export const selectHasMatches = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
-): boolean => state.config.isActive;
+): boolean => !!state.currentMatches && state.currentMatches.length > 0;
