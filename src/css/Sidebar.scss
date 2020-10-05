@@ -32,8 +32,14 @@
   border-bottom: 1px solid $sidebar-border-color;
 }
 
+.Sidebar__header-bottom {
+  display: flex;
+  margin-top: $gutter-width;
+}
+
 .Sidebar__header-contact {
   margin-top: 5px;
+  margin-left: auto;
   font-size: $font-size-small;
 }
 
@@ -47,12 +53,7 @@
 }
 
 .Sidebar__results {
-  display: flex;
   width: 100%;
-}
-
-.Sidebar__filter-container {
-  margin-left: auto;
 }
 
 .Sidebar__filter-toggle {
@@ -63,7 +64,7 @@
   min-width: 30px;
   font-weight: bold;
   height: 20px;
-  margin-left: $gutter-width / 2;
+  margin-right: $gutter-width / 2;
   cursor: pointer;
   &:focus {
     outline: none;

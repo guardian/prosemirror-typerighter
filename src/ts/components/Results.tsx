@@ -97,25 +97,26 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
             <div>
               Results {hasMatches && <span>({filteredMatches.length}) </span>}
             </div>
-            {pluginState && pluginState.config.matchColours && (
-              <div className="Sidebar__filter-container">
-                <FilterResults
-                  filterState={pluginState.filterState}
-                  applyFilterState={applyFilterState}
-                  matches={currentMatches}
-                  matchColours={pluginState.config.matchColours}
-                />
-              </div>
-            )}
           </div>
         </div>
-        {contactHref && (
-          <div className="Sidebar__header-contact">
-            <a href={contactHref} target="_blank">
-              Issue with Typerighter? Let us know!
-            </a>
-          </div>
-        )}
+        <div className="Sidebar__header-bottom">
+          {pluginState && pluginState.config.matchColours && (
+            <FilterResults
+              filterState={pluginState.filterState}
+              applyFilterState={applyFilterState}
+              matches={currentMatches}
+              matchColours={pluginState.config.matchColours}
+            />
+          )}
+          {contactHref && (
+            <div className="Sidebar__header-contact">
+              <a href={contactHref} target="_blank">
+                Issue with Typerighter? Let us know!
+              </a>
+            </div>
+          )}
+        </div>
+
         {loadingBarVisible && (
           <div
             className="LoadingBar"
