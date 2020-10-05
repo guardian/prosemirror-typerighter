@@ -6,9 +6,7 @@ import { IPluginState } from "../state/reducer";
 import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
 import { IMatch } from "../interfaces/IMatch";
-
-const IMPORTANCE = "importance";
-const APPEARANCE = "appearance";
+import { Switch } from "@material-ui/core";
 
 interface IProps {
   store: Store<IMatch>;
@@ -39,7 +37,7 @@ interface IProps {
 
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
-    const [matchSortBy, setMatchSortBy] = useState<string>(IMPORTANCE);
+    const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
 
     const handleNewState = (pluginState: IPluginState<IMatch>) => {
       setPluginState({
@@ -85,7 +83,7 @@ interface IProps {
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
     const percentRemaining = getPercentRemaining();
-    const orderedMatches = matchSortBy === IMPORTANCE && pluginState ? selectImportanceOrderedMatches(pluginState) : currentMatches
+    const orderedMatches = sortAndGroup && pluginState ? selectImportanceOrderedMatches(pluginState) : currentMatches
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
@@ -97,11 +95,14 @@ interface IProps {
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
             <span className="Sidebar__header-sort">
-              Sort by 
-              <select className="Sidebar__header-sort-dropdown" value={matchSortBy} onChange={(event) => setMatchSortBy(event.target.value)}>
-                <option value={IMPORTANCE}>Importance</option>
-                <option value={APPEARANCE}>Appearance</option>
-              </select>
+              Summary view 
+              <Switch
+                size="small"
+                checked={sortAndGroup}
+                onChange={() => setSortAndGroup(!sortAndGroup)}
+                color="primary"
+                inputProps={{ 'aria-label': 'Summary view' }}
+              />
             </span>
           </div>
           {contactHref && (
