@@ -109,13 +109,6 @@ describe("createTyperighterPlugin", () => {
     );
     expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
-  it("should not pass decorations when plugin is inactive", () => {
-    const { view } = createPlugin({
-      isActive: false
-    });
-    const decorations = getDecorationSpecsFromDoc(view);
-    expect(decorations).toEqual(new Set());
-  });
   it("should add matches and their decorations on init", () => {
     const match = createMatch(1, 2);
     const { view, getState } = createPlugin({ matches: [match] });

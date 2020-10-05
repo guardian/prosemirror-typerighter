@@ -181,7 +181,6 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       config: {
         debug: false,
         requestMatchesOnDocModified: true,
-        isActive: true,
         matchColours: defaultMatchColours
       },
       currentThrottle: 100,

@@ -12,7 +12,7 @@ import {
   IMatchTypeToColourMap,
   defaultMatchColours
 } from "./utils/decoration";
-import { EditorView, DecorationSet } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
 import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
@@ -59,11 +59,6 @@ export interface IPluginOptions<
   matches?: TMatch[];
 
   /**
-   * Is the plugin active as it starts?
-   */
-  isActive?: boolean;
-
-  /**
    * Ignore matches when this predicate returns true.
    */
   ignoreMatch?: IIgnoreMatchPredicate;
@@ -98,7 +93,6 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   const {
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
-    isActive = true,
     filterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
@@ -109,7 +103,6 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
 
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store<TPluginState>();
-  const emptyDecorationSet = new DecorationSet();
   const reducer = createReducer<TPluginState>(
     expandRanges,
     ignoreMatch,
@@ -123,7 +116,6 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
         const initialState = createInitialState<TFilterState, TMatch>({
           doc,
           matches,
-          isActive,
           ignoreMatch,
           matchColours,
           filterOptions
@@ -178,12 +170,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     },
     props: {
       decorations: state => {
-        const {
-          decorations: currentDecorations,
-          config
-        }: TPluginState = plugin.getState(state);
-
-        return config.isActive ? currentDecorations : emptyDecorationSet;
+        const { decorations }: TPluginState = plugin.getState(state);
+        return decorations;
       },
       handleDOMEvents: {
         mouseleave: (view, event) => {

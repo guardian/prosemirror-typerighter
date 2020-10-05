@@ -10,7 +10,8 @@ import {
   requestMatchesSuccess,
   newHoverIdReceived,
   requestMatchesComplete as requestComplete,
-  removeMatch
+  removeMatch, 
+  removeAllMatches
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
 import { createReducer, IPluginState } from "../reducer";
@@ -684,6 +685,72 @@ describe("Action handlers", () => {
       );
       expect(newState.currentMatches).toEqual([]);
       expect(newState.decorations).toEqual(state.decorations);
+    });
+  });
+  describe("removeAllMatches", () => {
+    it("should be a noop when matches aren't present", () => {
+      const { state, tr } = createInitialData();
+      const newState = reducer(tr, state, removeAllMatches());
+      expect(newState.currentMatches).toEqual(state.currentMatches);
+      expect(newState.decorations).toEqual(state.decorations);
+    });
+    it("should remove matches when they're present", () => {
+      const { state, tr } = createInitialData();
+      const matcherResponses = [createMatcherResponse([{ from: 0, to: 5 }]),
+        createMatcherResponse([{ from: 10, to: 15 }]),
+        createMatcherResponse([{ from: 20, to: 25 }])];
+
+      let newState = matcherResponses.reduce((acc, cur) => {
+        return reducer(
+          tr,
+          {
+            ...acc,
+            requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+          },
+          requestMatchesSuccess(cur)
+        );
+      }, state)
+
+      newState = reducer(
+        tr,
+        newState,
+        removeAllMatches()
+      );
+
+      expect(newState.currentMatches).toEqual([]);
+      expect(newState.decorations).toEqual(state.decorations);
+    });
+    it("should remove error messages when they're present", () => {
+      const { state, tr } = createInitialData();
+      const matcherResponses = [createMatcherResponse([{ from: 0, to: 5 }]),
+        createMatcherResponse([{ from: 10, to: 15 }]),
+        createMatcherResponse([{ from: 20, to: 25 }])];
+
+      let newState = matcherResponses.reduce((acc, cur) => {
+        const error: IMatchRequestError = { 
+          requestId: cur.requestId,
+          message: "An error occured",
+          categoryIds: cur.categoryIds,
+          type: "GENERAL_ERROR"
+        }
+        return reducer(
+          tr,
+          {
+            ...acc,
+            requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+          },
+          requestError(error)
+        );
+      }, state)
+
+      newState = reducer(
+        tr,
+        newState,
+        removeAllMatches()
+      );
+      expect(newState.currentMatches).toEqual([]);
+      expect(newState.decorations).toEqual(state.decorations);
+      expect(newState.requestErrors).toEqual(state.requestErrors);
     });
   });
   describe("setConfigValue", () => {

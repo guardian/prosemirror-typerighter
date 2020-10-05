@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import IconButton from "@material-ui/core/IconButton";
-import { Close } from "@material-ui/icons";
+import { DeleteForever } from "@material-ui/icons";
 
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
@@ -10,12 +10,13 @@ import {
   selectHasGeneralError,
   selectHasAuthError,
   selectRequestsInProgress,
-  selectPluginIsActive
+  selectHasMatches
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
+  clearMatches: () => void;
   setDebugState: (debug: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
@@ -23,7 +24,6 @@ interface IProps<TPluginState extends IPluginState> {
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
-  onToggleActiveState: () => void;
 }
 
 const getErrorFeedbackLink = (
@@ -44,10 +44,10 @@ const getErrorFeedbackLink = (
  */
 const Controls = <TPluginState extends IPluginState>({
   store,
+  clearMatches,
   requestMatchesForDocument,
   getCurrentCategories,
-  feedbackHref,
-  onToggleActiveState,
+  feedbackHref
 }: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<
     TPluginState | undefined
@@ -62,8 +62,6 @@ const Controls = <TPluginState extends IPluginState>({
     setPluginState(store.getState());
   }, []);
 
-  const pluginIsActive = pluginState && selectPluginIsActive(pluginState);
-
   const requestMatches = () => {
     requestMatchesForDocument(
       v4(),
@@ -72,22 +70,14 @@ const Controls = <TPluginState extends IPluginState>({
   };
 
   const handleCheckDocumentButtonClick = (): void => {
-    if (!pluginIsActive) {
-      onToggleActiveState();
-      telemetryAdapter?.typerighterIsOpened({ documentUrl: document.URL });
-    }
     requestMatches();
     telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   };
 
-  const handleCloseButtonClick = (): void => {
-    telemetryAdapter?.typerighterIsClosed({ documentUrl: document.URL });
-    onToggleActiveState();
+  const handleClearButtonClick = (): void => {
+    clearMatches();
+    telemetryAdapter?.documentIsCleared({ documentUrl: document.URL });
   };
-
-  const headerContainerClasses = pluginIsActive
-    ? "Sidebar__header-container"
-    : "Sidebar__header-container Sidebar__header-container--is-closed";
 
   const renderErrorMessage = () => {
     if (!pluginState) {
@@ -127,7 +117,7 @@ const Controls = <TPluginState extends IPluginState>({
 
   return (
     <>
-      <div className={headerContainerClasses}>
+      <div className="Sidebar__header-container">
         <div className="Sidebar__header">
           <button
             type="button"
@@ -137,19 +127,18 @@ const Controls = <TPluginState extends IPluginState>({
           >
             Check document
           </button>
-          {pluginIsActive && (
-            <IconButton
-              size="small"
-              aria-label="close Typerighter"
-              onClick={handleCloseButtonClick}
-              disabled={pluginState && selectRequestsInProgress(pluginState)}
-            >
-              <Close />
-            </IconButton>
-          )}
+          <IconButton
+            size="small"
+            aria-label="clear all matches"
+            title="clear all matches"
+            onClick={handleClearButtonClick}
+            disabled={pluginState && (selectRequestsInProgress(pluginState) || !selectHasMatches(pluginState))}
+          >
+            <DeleteForever />
+          </IconButton>
         </div>
       </div>
-      {pluginIsActive && renderErrorMessage()}
+      {renderErrorMessage()}
     </>
   );
 };
