@@ -97,7 +97,7 @@ interface IProps {
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
             <span className="Sidebar__header-sort">
-              Sory By 
+              Sort by 
               <select className="Sidebar__header-sort-dropdown" value={matchSortBy} onChange={(event) => setMatchSortBy(event.target.value)}>
                 <option value={IMPORTANCE}>Importance</option>
                 <option value={APPEARANCE}>Appearance</option>
