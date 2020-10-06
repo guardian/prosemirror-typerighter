@@ -37,7 +37,7 @@ export type IDefaultFilterState = MatchType[];
  * A function that, receiving a filter state, returns a filtered list of matches.
  * Generic to allow plugin consumers to apply their own filter behaviour.
  */
-export type IFilterMatches<
+export type TFilterMatches<
   TFilterState,
   TMatch extends IMatch = IMatch
 > = (
@@ -45,7 +45,7 @@ export type IFilterMatches<
   matches: TMatch[]
 ) => TMatch[];
 
-export const filterByMatchState: IFilterMatches<IDefaultFilterState> = (
+export const filterByMatchState: TFilterMatches<IDefaultFilterState> = (
   filterState,
   matches
 ) => matches.filter(match => !filterState.includes(getMatchType(match)));

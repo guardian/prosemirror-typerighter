@@ -24,7 +24,7 @@ import Store, {
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
 import { startHoverCommand, stopHoverCommand } from "./commands";
-import { IFilterMatches, maybeResetHoverStates } from "./utils/plugin";
+import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
@@ -33,7 +33,7 @@ export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
   /**
    * A function to filter matches given a user-defined filter state.
    */
-  filterMatches: IFilterMatches<TFilterState, TMatch>;
+  filterMatches: TFilterMatches<TFilterState, TMatch>;
 
   /**
    * The initial state to pass to the filter predicate.

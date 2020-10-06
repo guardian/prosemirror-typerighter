@@ -3,10 +3,11 @@ import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
-import { selectPercentRemaining } from "../state/selectors";
+import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
-import { MatchType } from "../utils/decoration";
+import { Switch } from "@material-ui/core";
 import FilterResults from "./FilterResults";
+import { MatchType } from "../utils/decoration";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
@@ -25,52 +26,46 @@ interface IProps<TPluginState extends IPluginState> {
  * Displays current matches and allows users to apply suggestions.
  */
 
-const Results = <TPluginState extends IPluginState<MatchType[]>>({
-  store,
-  applySuggestions,
-  selectMatch,
-  indicateHighlight,
-  stopHighlight,
-  contactHref,
-  editorScrollElement,
-  getScrollOffset,
-  applyFilterState
-}: IProps<TPluginState>) => {
-  const [pluginState, setPluginState] = useState<TPluginState | undefined>(
-    undefined
-  );
-  const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+  const Results = <TPluginState extends IPluginState<MatchType[]>>({
+    store,
+    applySuggestions,
+    selectMatch,
+    indicateHighlight,
+    stopHighlight,
+    contactHref,
+    editorScrollElement,
+    getScrollOffset,
+    applyFilterState
+  }: IProps<TPluginState>) => {
 
-  const handleNewState = (incomingState: TPluginState) => {
-    setPluginState({
-      ...incomingState,
-      filteredMatches: sortBy(incomingState.filteredMatches, "from")
-    });
-    const oldKeys = pluginState
-      ? Object.keys(pluginState.requestsInFlight)
-      : [];
-    const newKeys = Object.keys(incomingState.requestsInFlight);
-    if (oldKeys.length && !newKeys.length) {
-      setTimeout(maybeResetLoadingBar, 300);
-    }
-    if (!loadingBarVisible && newKeys.length) {
-      setLoadingBarVisible(true);
-    }
-  };
+    const [pluginState, setPluginState] = useState<TPluginState | undefined>(undefined);
+    const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+    const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
 
-  useEffect(() => {
-    store.on(STORE_EVENT_NEW_STATE, newState => {
-      handleNewState(newState);
-    });
-    setPluginState(store.getState());
-  }, []);
+    const handleNewState = (incomingState: TPluginState) => {
+      setPluginState({
+          ...incomingState,
+          currentMatches: sortBy(incomingState.currentMatches, "from")
 
-  const getPercentRemaining = () => {
-    if (!pluginState) {
-      return 0;
-    }
-    return selectPercentRemaining(pluginState);
-  };
+      });
+      const oldKeys = pluginState
+        ? Object.keys(pluginState.requestsInFlight)
+        : [];
+      const newKeys = Object.keys(incomingState.requestsInFlight);
+      if (oldKeys.length && !newKeys.length) {
+        setTimeout(maybeResetLoadingBar, 300);
+      }
+      if (!loadingBarVisible && newKeys.length) {
+        setLoadingBarVisible(true);
+      }
+    };
+
+    useEffect(() => {
+      store.on(STORE_EVENT_NEW_STATE, newState => {
+        handleNewState(newState);
+      });
+      setPluginState(store.getState());
+    }, []);
 
   const maybeResetLoadingBar = () => {
     if (!pluginState || !!Object.keys(pluginState.requestsInFlight)) {
@@ -85,7 +80,8 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     selectedMatch
   } = pluginState || { selectedMatch: undefined };
   const hasMatches = !!currentMatches.length;
-  const percentRemaining = getPercentRemaining();
+  const percentRemaining = selectPercentRemaining(pluginState);
+  const orderedMatches = sortAndGroup && pluginState ? selectImportanceOrderedMatches(pluginState) : currentMatches
   const isLoading =
     !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
@@ -94,9 +90,19 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
       <div className="Sidebar__header-container">
         <div className="Sidebar__header">
           <div className="Sidebar__results">
-            <div>
+            <span>
               Results {hasMatches && <span>({filteredMatches.length}) </span>}
-            </div>
+            </span>
+            <span className="Sidebar__header-sort">
+              Sort by colour
+              <Switch
+                size="small"
+                checked={sortAndGroup}
+                onChange={() => setSortAndGroup(!sortAndGroup)}
+                color="primary"
+                inputProps={{ 'aria-label': 'Summary view' }}
+              />
+            </span>
           </div>
         </div>
         <div className="Sidebar__header-bottom">
@@ -116,7 +122,6 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
             </div>
           )}
         </div>
-
         {loadingBarVisible && (
           <div
             className="LoadingBar"
@@ -131,7 +136,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
       <div className="Sidebar__content">
         {hasMatches && pluginState && (
           <ul className="Sidebar__list">
-            {filteredMatches.map(match => (
+            {orderedMatches.map(match => (
               <li className="Sidebar__list-item" key={match.matchId}>
                 <SidebarMatch
                   matchColours={pluginState?.config.matchColours}

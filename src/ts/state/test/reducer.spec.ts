@@ -10,7 +10,7 @@ import {
   requestMatchesSuccess,
   newHoverIdReceived,
   requestMatchesComplete as requestComplete,
-  removeMatch, 
+  removeMatch,
   removeAllMatches
 } from "../actions";
 import { selectBlockQueriesInFlightForSet } from "../selectors";
@@ -34,36 +34,11 @@ import {
   createInitialData,
   defaultDoc,
   createMatch,
-  ICreateMatcherResponseSpec
+  createStateWithMatches
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
-import { getBlocksFromDocument } from "../../utils/prosemirror";
 
 const reducer = createReducer(expandRangesToParentBlockNode);
-
-/**
- * Create a plugin state, creating the given matches and
- * their decorations from the given spec.
- */
-const createStateWithMatches = (
-  localReducer: ReturnType<typeof createReducer>,
-  matches: ICreateMatcherResponseSpec[]
-): { state: IPluginState; matches: IMatch[] } => {
-  const docTime = 1337;
-  const { state, tr } = createInitialData(defaultDoc, docTime);
-
-  let localState = localReducer(
-    tr,
-    state,
-    requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
-  );
-  const block = getBlocksFromDocument(defaultDoc, docTime)[0];
-  const matchesWithBlock = matches.map(match => ({ ...match, block }));
-  const response = createMatcherResponse(matchesWithBlock, exampleRequestId);
-  localState = localReducer(tr, localState, requestMatchesSuccess(response));
-
-  return { matches: response.matches, state: localState };
-};
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -727,7 +702,7 @@ describe("Action handlers", () => {
         createMatcherResponse([{ from: 20, to: 25 }])];
 
       let newState = matcherResponses.reduce((acc, cur) => {
-        const error: IMatchRequestError = { 
+        const error: IMatchRequestError = {
           requestId: cur.requestId,
           message: "An error occured",
           categoryIds: cur.categoryIds,

@@ -8,7 +8,7 @@ import {
   createDecorationsForMatches
 } from "../utils/decoration";
 import { DecorationSet } from "prosemirror-view";
-import { IFilterMatches } from "../utils/plugin";
+import { TFilterMatches } from "../utils/plugin";
 import { Node } from "prosemirror-model";
 
 export const addMatchesToState = <TPluginState extends IPluginState>(
@@ -30,13 +30,13 @@ export const addMatchesToState = <TPluginState extends IPluginState>(
 };
 
 /**
- * Should we filter our decorations with the filterMatches predicate?
+ * Is the current filter state stale, given the incoming state?
  */
-export const shouldFilterDecorations = <TPluginState extends IPluginState>(
+export const isFilterStateStale = <TPluginState extends IPluginState>(
   oldState: TPluginState,
   newState: TPluginState,
-  filterMatches?: IFilterMatches<TPluginState["filterState"]>
-): filterMatches is IFilterMatches<TPluginState["filterState"]> => {
+  filterMatches?: TFilterMatches<TPluginState["filterState"]>
+): filterMatches is TFilterMatches<TPluginState["filterState"]> => {
   const matchesChanged = oldState.currentMatches !== newState.currentMatches;
   const filterStateChanged = oldState.filterState !== newState.filterState;
   const noFilterApplied = !oldState.filterState && !newState.filterState;
@@ -50,7 +50,7 @@ export const shouldFilterDecorations = <TPluginState extends IPluginState>(
 export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
   doc: Node,
   newState: TPluginState,
-  filterMatches: IFilterMatches<
+  filterMatches: TFilterMatches<
     TPluginState["filterState"],
     TPluginState["currentMatches"][number]
   >

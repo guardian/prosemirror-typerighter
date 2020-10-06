@@ -68,9 +68,9 @@ import { createBlock } from "../utils/block";
 import {
   addMatchesToState,
   deriveFilteredDecorations,
-  shouldFilterDecorations
+  isFilterStateStale
 } from "./helpers";
-import { IFilterMatches } from "../utils/plugin";
+import { TFilterMatches } from "../utils/plugin";
 
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
@@ -216,7 +216,7 @@ export const createInitialState = <
 export const createReducer = <TPluginState extends IPluginState>(
   expandRanges: ExpandRanges,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
-  filterMatches?: IFilterMatches<
+  filterMatches?: TFilterMatches<
     TPluginState["filterState"],
     TPluginState["currentMatches"][0]
   >
@@ -277,7 +277,7 @@ export const createReducer = <TPluginState extends IPluginState>(
 
     const newState = applyNewState();
 
-    if (!shouldFilterDecorations(state, newState, filterMatches)) {
+    if (!isFilterStateStale(state, newState, filterMatches)) {
       return newState;
     }
 
