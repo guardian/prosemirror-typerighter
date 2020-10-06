@@ -3,7 +3,7 @@ import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
-import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state/selectors";
+import { selectMatches, selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
 import { Switch } from "@material-ui/core";
 import FilterResults from "./FilterResults";
@@ -26,46 +26,46 @@ interface IProps<TPluginState extends IPluginState> {
  * Displays current matches and allows users to apply suggestions.
  */
 
-  const Results = <TPluginState extends IPluginState<MatchType[]>>({
-    store,
-    applySuggestions,
-    selectMatch,
-    indicateHighlight,
-    stopHighlight,
-    contactHref,
-    editorScrollElement,
-    getScrollOffset,
-    applyFilterState
-  }: IProps<TPluginState>) => {
+const Results = <TPluginState extends IPluginState<MatchType[]>>({
+  store,
+  applySuggestions,
+  selectMatch,
+  indicateHighlight,
+  stopHighlight,
+  contactHref,
+  editorScrollElement,
+  getScrollOffset,
+  applyFilterState
+}: IProps<TPluginState>) => {
+  const [pluginState, setPluginState] = useState<TPluginState | undefined>(
+    undefined
+  );
+  const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+  const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
 
-    const [pluginState, setPluginState] = useState<TPluginState | undefined>(undefined);
-    const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
-    const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
+  const handleNewState = (incomingState: TPluginState) => {
+    setPluginState({
+      ...incomingState,
+      currentMatches: sortBy(incomingState.currentMatches, "from")
+    });
+    const oldKeys = pluginState
+      ? Object.keys(pluginState.requestsInFlight)
+      : [];
+    const newKeys = Object.keys(incomingState.requestsInFlight);
+    if (oldKeys.length && !newKeys.length) {
+      setTimeout(maybeResetLoadingBar, 300);
+    }
+    if (!loadingBarVisible && newKeys.length) {
+      setLoadingBarVisible(true);
+    }
+  };
 
-    const handleNewState = (incomingState: TPluginState) => {
-      setPluginState({
-          ...incomingState,
-          currentMatches: sortBy(incomingState.currentMatches, "from")
-
-      });
-      const oldKeys = pluginState
-        ? Object.keys(pluginState.requestsInFlight)
-        : [];
-      const newKeys = Object.keys(incomingState.requestsInFlight);
-      if (oldKeys.length && !newKeys.length) {
-        setTimeout(maybeResetLoadingBar, 300);
-      }
-      if (!loadingBarVisible && newKeys.length) {
-        setLoadingBarVisible(true);
-      }
-    };
-
-    useEffect(() => {
-      store.on(STORE_EVENT_NEW_STATE, newState => {
-        handleNewState(newState);
-      });
-      setPluginState(store.getState());
-    }, []);
+  useEffect(() => {
+    store.on(STORE_EVENT_NEW_STATE, newState => {
+      handleNewState(newState);
+    });
+    setPluginState(store.getState());
+  }, []);
 
   const maybeResetLoadingBar = () => {
     if (!pluginState || !!Object.keys(pluginState.requestsInFlight)) {
@@ -81,7 +81,9 @@ interface IProps<TPluginState extends IPluginState> {
   } = pluginState || { selectedMatch: undefined };
   const hasMatches = !!currentMatches.length;
   const percentRemaining = selectPercentRemaining(pluginState);
-  const orderedMatches = sortAndGroup && pluginState ? selectImportanceOrderedMatches(pluginState) : currentMatches
+  const orderedMatches = pluginState
+    ? selectMatches(pluginState, sortAndGroup)
+    : [];
   const isLoading =
     !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
@@ -89,21 +91,19 @@ interface IProps<TPluginState extends IPluginState> {
     <>
       <div className="Sidebar__header-container">
         <div className="Sidebar__header">
-          <div className="Sidebar__results">
-            <span>
-              Results {hasMatches && <span>({filteredMatches.length}) </span>}
-            </span>
-            <span className="Sidebar__header-sort">
-              Sort by colour
-              <Switch
-                size="small"
-                checked={sortAndGroup}
-                onChange={() => setSortAndGroup(!sortAndGroup)}
-                color="primary"
-                inputProps={{ 'aria-label': 'Summary view' }}
-              />
-            </span>
-          </div>
+          <span>
+            Results {hasMatches && <span>({filteredMatches.length}) </span>}
+          </span>
+          <span className="Sidebar__header-sort">
+            Sort by colour
+            <Switch
+              size="small"
+              checked={sortAndGroup}
+              onChange={() => setSortAndGroup(!sortAndGroup)}
+              color="primary"
+              inputProps={{ "aria-label": "Summary view" }}
+            />
+          </span>
         </div>
         <div className="Sidebar__header-bottom">
           {pluginState && pluginState.config.matchColours && (
