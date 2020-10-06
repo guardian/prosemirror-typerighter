@@ -7,6 +7,7 @@ import { Commands } from ".././commands";
 import { IMatch } from ".././interfaces/IMatch";
 import { MatcherService } from "..";
 import { IPluginState } from "../state/reducer";
+import { MatchType } from "../utils/decoration";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
@@ -18,7 +19,7 @@ interface IProps<TPluginState extends IPluginState> {
   getScrollOffset: () => number;
 }
 
-const Sidebar = <TPluginState extends IPluginState>({
+const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
   store,
   matcherService,
   commands,
@@ -59,6 +60,7 @@ const Sidebar = <TPluginState extends IPluginState>({
             store={store}
             applySuggestions={commands.applySuggestions}
             applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
+            applyFilterState={commands.setFilterState}
             selectMatch={commands.selectMatch}
             indicateHighlight={commands.indicateHighlight}
             stopHighlight={commands.stopHighlight}

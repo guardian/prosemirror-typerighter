@@ -32,8 +32,14 @@
   border-bottom: 1px solid $sidebar-border-color;
 }
 
+.Sidebar__header-bottom {
+  display: flex;
+  margin-top: $gutter-width;
+}
+
 .Sidebar__header-contact {
   margin-top: 5px;
+  margin-left: auto;
   font-size: $font-size-small;
 }
 
@@ -46,6 +52,24 @@
   justify-content: space-between;
 }
 
+.Sidebar__filter-toggle {
+  display: inline-block;
+  padding: 1px 2px;
+  vertical-align: middle;
+  border-radius: $base-border-radius;
+  min-width: 30px;
+  font-weight: bold;
+  height: 20px;
+  margin-right: $gutter-width / 2;
+  cursor: pointer;
+  &:focus {
+    outline: none;
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
 .Sidebar__header-sort {
   font-weight: normal;
 }
@@ -54,7 +78,6 @@
   margin-left: 5px;
 }
 
-
 .Sidebar__list {
   margin: 0;
   padding: 0;
@@ -62,7 +85,7 @@
 }
 
 .Sidebar__awaiting-match {
-  padding: $gutter-width ;
+  padding: $gutter-width;
   color: gray;
 }
 

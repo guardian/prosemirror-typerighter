@@ -1,5 +1,6 @@
 import { sortBy } from "lodash";
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
+import { getMatchType, MatchType } from "../utils/decoration";
 import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
 export const selectMatchByMatchId = (
@@ -65,7 +66,12 @@ export const selectNewBlockInFlight = (
     [] as TSelectRequestInFlight
   );
 
-export const selectPercentRemaining = (state: IPluginState) => {
+export const selectPercentRemaining = <TPluginState extends IPluginState>(
+  state?: TPluginState
+) => {
+  if (!state) {
+    return 0;
+  }
   const [totalWork, totalRemainingWork] = Object.values(
     state.requestsInFlight
   ).reduce(
@@ -132,15 +138,37 @@ export const selectHasMatches = <TMatch extends IMatch>(
   state: IPluginState<unknown, TMatch>
 ): boolean => !!state.currentMatches && state.currentMatches.length > 0;
 
+const getSortOrderForMatchType = (match: IMatch) => {
+  const matchType = getMatchType(match);
+  if (matchType === MatchType.HAS_REPLACEMENT) {
+    return 0;
+  } else if (matchType === MatchType.CORRECT) {
+    return 2;
+  } else {
+    return 1;
+  }
+};
+
+const getSortOrderForMatchAppearance = (match: IMatch) => match.from;
+
+export const selectDocumentOrderedMatches = <TMatch extends IMatch>(
+  state: IPluginState<unknown, TMatch>
+): Array<IMatch<ISuggestion>> =>
+  sortBy(state.filteredMatches, getSortOrderForMatchAppearance);
+
 export const selectImportanceOrderedMatches = <TMatch extends IMatch>(
   state: IPluginState<unknown, TMatch>
 ): Array<IMatch<ISuggestion>> =>
-  sortBy(state.currentMatches, match => {
-    if (match.matchedText === match.replacement?.text) {
-      return 2;
-    } else if (!match.replacement) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
+  sortBy(
+    state.filteredMatches,
+    getSortOrderForMatchType,
+    getSortOrderForMatchAppearance
+  );
+
+export const selectMatches = <TMatch extends IMatch>(
+  state: IPluginState<unknown, TMatch>,
+  sortByImportance: boolean
+): Array<IMatch<ISuggestion>> =>
+  sortByImportance
+    ? selectImportanceOrderedMatches(state)
+    : selectDocumentOrderedMatches(state);

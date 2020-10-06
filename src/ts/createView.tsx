@@ -11,6 +11,7 @@ import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter"
 import TelemetryContext from "./contexts/TelemetryContext";
 import { EditorView } from "prosemirror-view";
 import { IPluginState } from "./state/reducer";
+import { MatchType } from "./utils/decoration";
 
 interface IViewOptions<TPluginState extends IPluginState> {
   view: EditorView;
@@ -41,7 +42,7 @@ interface IViewOptions<TPluginState extends IPluginState> {
  *  - The plugin configuration pane
  *  - The plugin results pane
  */
-const createView = <TPluginState extends IPluginState>({
+const createView = <TPluginState extends IPluginState<MatchType[]>>({
   view,
   store,
   matcherService,
