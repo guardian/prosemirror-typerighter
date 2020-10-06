@@ -95,7 +95,7 @@ interface IProps {
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
             <span className="Sidebar__header-sort">
-              Summary view 
+              Sort by colour 
               <Switch
                 size="small"
                 checked={sortAndGroup}
