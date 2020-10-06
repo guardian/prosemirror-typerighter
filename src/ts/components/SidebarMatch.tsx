@@ -4,7 +4,7 @@ import React, { useState, useContext } from "react";
 
 import { IMatch } from "../interfaces/IMatch";
 import {
-  IMatchColours,
+  IMatchTypeToColourMap,
   getColourForMatch,
   maybeGetDecorationElement
 } from "../utils/decoration";
@@ -16,7 +16,7 @@ import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
   match: IMatch;
-  matchColours: IMatchColours;
+  matchColours?: IMatchTypeToColourMap;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;
@@ -44,7 +44,9 @@ const SidebarMatch = ({
 
   const { telemetryAdapter } = useContext(TelemetryContext);
 
-  const color = getColourForMatch(match, matchColours, false).borderColour;
+  const color = matchColours
+    ? getColourForMatch(match, matchColours, false).borderColour
+    : undefined;
   const hasSuggestions = !!match.suggestions && !!match.suggestions.length;
   const suggestions = compact([
     match.replacement,

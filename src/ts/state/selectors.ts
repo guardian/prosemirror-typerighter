@@ -2,21 +2,21 @@ import { sortBy } from "lodash";
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
-export const selectMatchByMatchId = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+export const selectMatchByMatchId = (
+  state: IPluginState<unknown>,
   matchId: string
 ): IMatch | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
-export const selectBlockQueriesInFlightForSet = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+export const selectBlockQueriesInFlightForSet = (
+  state: IPluginState<unknown>,
   requestId: string
 ): IBlocksInFlightState | undefined => {
   return state.requestsInFlight[requestId];
 };
 
-export const selectSingleBlockInFlightById = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+export const selectSingleBlockInFlightById = (
+  state: IPluginState,
   requestId: string,
   blockId: string
 ): IBlockInFlight | undefined => {
@@ -27,8 +27,8 @@ export const selectSingleBlockInFlightById = <TMatch extends IMatch>(
   return blocksInFlight.pendingBlocks.find(_ => _.block.id === blockId);
 };
 
-export const selectBlockQueriesInFlightById = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+export const selectBlockQueriesInFlightById = (
+  state: IPluginState,
   requestId: string,
   blockIds: string[]
 ): IBlockInFlight[] =>
@@ -36,8 +36,8 @@ export const selectBlockQueriesInFlightById = <TMatch extends IMatch>(
     .map(blockId => selectSingleBlockInFlightById(state, requestId, blockId))
     .filter(_ => !!_) as IBlockInFlight[];
 
-export const selectAllBlockQueriesInFlight = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+export const selectAllBlockQueriesInFlight = (
+  state: IPluginState
 ): IBlockInFlight[] =>
   Object.values(state.requestsInFlight).reduce(
     (acc, value) => acc.concat(value.pendingBlocks),
@@ -50,9 +50,9 @@ type TSelectRequestInFlight = Array<
   }
 >;
 
-export const selectNewBlockInFlight = <TMatch extends IMatch>(
-  oldState: IPluginState<TMatch>,
-  newState: IPluginState<TMatch>
+export const selectNewBlockInFlight = (
+  oldState: IPluginState,
+  newState: IPluginState
 ): TSelectRequestInFlight =>
   Object.keys(newState.requestsInFlight).reduce(
     (acc, requestId) =>
@@ -65,17 +65,18 @@ export const selectNewBlockInFlight = <TMatch extends IMatch>(
     [] as TSelectRequestInFlight
   );
 
-export const selectPercentRemaining = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-) => {
+export const selectPercentRemaining = (state: IPluginState) => {
   const [totalWork, totalRemainingWork] = Object.values(
     state.requestsInFlight
   ).reduce(
     ([totalWorkAcc, remainingWorkAcc], queryState) => {
-      const allCategories = queryState.categoryIds.length == 0;
-      const allWork = queryState.totalBlocks * (allCategories ? 1 : queryState.categoryIds.length);
+      const allCategories = queryState.categoryIds.length === 0;
+      const allWork =
+        queryState.totalBlocks *
+        (allCategories ? 1 : queryState.categoryIds.length);
       const remainingWork = queryState.pendingBlocks.reduce(
-        (acc, block) => acc + (allCategories ? 1 : block.pendingCategoryIds.length),
+        (acc, block) =>
+          acc + (allCategories ? 1 : block.pendingCategoryIds.length),
         0
       );
       return [totalWorkAcc + allWork, remainingWorkAcc + remainingWork];
@@ -85,8 +86,8 @@ export const selectPercentRemaining = <TMatch extends IMatch>(
   return totalRemainingWork ? (totalRemainingWork / totalWork) * 100 : 0;
 };
 
-export const selectSuggestionAndRange = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>,
+export const selectSuggestionAndRange = (
+  state: IPluginState,
   matchId: string,
   suggestionIndex: number
 ) => {
@@ -105,44 +106,41 @@ export const selectSuggestionAndRange = <TMatch extends IMatch>(
   };
 };
 
-export const selectAllAutoFixableMatches = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+export const selectAllAutoFixableMatches = <T, TMatch extends IMatch>(
+  state: IPluginState<T, TMatch>
 ): TMatch[] =>
   state.currentMatches.filter(
     _ => _.replacement && _.replacement.text === _.message
   );
 
-export const selectHasGeneralError = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): boolean => {
-  const generalErrors = state.requestErrors.filter(_ => _.type === "GENERAL_ERROR");
-  return generalErrors.length > 0};
+export const selectHasGeneralError = (state: IPluginState): boolean => {
+  const generalErrors = state.requestErrors.filter(
+    _ => _.type === "GENERAL_ERROR"
+  );
+  return generalErrors.length > 0;
+};
 
-export const selectHasAuthError = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): boolean => {
+export const selectHasAuthError = (state: IPluginState): boolean => {
   const authErrors = state.requestErrors.filter(_ => _.type === "AUTH_ERROR");
   return authErrors.length > 0;
 };
 
-export const selectRequestsInProgress = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): boolean => !!Object.keys(state.requestsInFlight).length;
+export const selectRequestsInProgress = (state: IPluginState): boolean =>
+  !!Object.keys(state.requestsInFlight).length;
 
 export const selectHasMatches = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
+  state: IPluginState<unknown, TMatch>
 ): boolean => !!state.currentMatches && state.currentMatches.length > 0;
 
 export const selectImportanceOrderedMatches = <TMatch extends IMatch>(
-  state: IPluginState<TMatch>
-): IMatch<ISuggestion>[] => sortBy(state.currentMatches, match => {
-  if(match.matchedText == match.replacement?.text){
-    return 2;
-  }
-  else if(!match.replacement){
-    return 1;
-  }
-  else {
-    return 0;
-  }
-});
+  state: IPluginState<unknown, TMatch>
+): Array<IMatch<ISuggestion>> =>
+  sortBy(state.currentMatches, match => {
+    if (match.matchedText === match.replacement?.text) {
+      return 2;
+    } else if (!match.replacement) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
