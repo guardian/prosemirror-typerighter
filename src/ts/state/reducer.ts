@@ -68,7 +68,7 @@ import { createBlock } from "../utils/block";
 import {
   addMatchesToState,
   deriveFilteredDecorations,
-  shouldFilterDecorations
+  isFilterStateStale
 } from "./helpers";
 import { TFilterMatches } from "../utils/plugin";
 
@@ -168,7 +168,7 @@ export const createInitialState = <
   matches = [],
   ignoreMatch = includeAllMatches,
   matchColours = defaultMatchColours,
-  filterOptions
+  filterOptions = undefined
 }: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
   TFilterState,
   TMatch
@@ -277,7 +277,7 @@ export const createReducer = <TPluginState extends IPluginState>(
 
     const newState = applyNewState();
 
-    if (!shouldFilterDecorations(state, newState, filterMatches)) {
+    if (!isFilterStateStale(state, newState, filterMatches)) {
       return newState;
     }
 

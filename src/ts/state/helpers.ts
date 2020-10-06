@@ -30,9 +30,9 @@ export const addMatchesToState = <TPluginState extends IPluginState>(
 };
 
 /**
- * Should we filter our decorations with the filterMatches predicate?
+ * Is the current filter state stale, given the incoming state?
  */
-export const shouldFilterDecorations = <TPluginState extends IPluginState>(
+export const isFilterStateStale = <TPluginState extends IPluginState>(
   oldState: TPluginState,
   newState: TPluginState,
   filterMatches?: TFilterMatches<TPluginState["filterState"]>
