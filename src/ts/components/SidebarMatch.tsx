@@ -8,8 +8,7 @@ import {
 import { ApplySuggestionOptions } from "../commands";
 import { getHtmlFromMarkdown } from "../utils/dom";
 import TelemetryContext from "../contexts/TelemetryContext";
-// import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-// import ArrowDropUpIcon from '@material-ui/icons/ArrowDropUp';
+import { ArrowDropDown, ArrowDropUp } from "@material-ui/icons";
 
 interface IProps {
   match: IMatch;
@@ -24,6 +23,7 @@ interface IProps {
   isGroup: boolean;
   isSubset: boolean;
   showAllMatches?: () => JSX.Element;
+  numberOfGroupedMatches?: number;
 }
 
 /**
@@ -40,10 +40,10 @@ const SidebarMatch = ({
   getScrollOffset,
   isGroup,
   isSubset,
-  showAllMatches
-}: IProps) => {  
+  showAllMatches,
+  numberOfGroupedMatches
+}: IProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
 
   const { telemetryAdapter } = useContext(TelemetryContext);
 
@@ -83,53 +83,63 @@ const SidebarMatch = ({
     stopHighlight();
   };
 
+  const getTitleText = (): string => {
+    if (isGroup) {
+      if (isOpen) {
+        return "Click to hide all matches for this rule";
+      } else {
+        return "Click to show all matches for this rule";
+      }
+    } else {
+      return "Click to scroll to this match";
+    }
+  };
+
   return (
     <>
-    <div
-      className={`SidebarMatch__container ${
-        selectedMatch === match.matchId
-          ? "SidebarMatch__container--is-selected"
-          : ""
-      }`}
-      style={{ borderLeft: `2px solid ${color}` }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={isGroup ? toggleOpen : scrollToRange}
-      title={isGroup ? "Click to see all matches" : "Click to scroll to this match"}
-    >
       <div
-        className={"SidebarMatch__header"}
+        className={`SidebarMatch__container ${
+          selectedMatch === match.matchId
+            ? "SidebarMatch__container--is-selected"
+            : ""
+        }`}
+        style={{ borderLeft: `2px solid ${color}` }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={isGroup ? toggleOpen : scrollToRange}
+        title={getTitleText()}
       >
-        <div className="SidebarMatch__header-label">
-          <div>
-            <div className="SidebarMatch__header-match-text">
-              {isSubset ? "" : match.matchedText}
+        <div className={"SidebarMatch__header"}>
+          <div className="SidebarMatch__header-label">
+            <div>
+              <div className="SidebarMatch__header-match-text">
+                {isSubset ? "" : match.matchedText}
+              </div>
+              <div
+                className="SidebarMatch__header-description"
+                dangerouslySetInnerHTML={{
+                  // __html: getHtmlFromMarkdown(match.message)
+                  __html: isSubset
+                    ? getHtmlFromMarkdown(match.matchContext)
+                    : getHtmlFromMarkdown(match.message)
+                }}
+              ></div>
             </div>
-            <div
-              className="SidebarMatch__header-description"
-              dangerouslySetInnerHTML={{
-                // __html: getHtmlFromMarkdown(match.message)
-                __html: isSubset ? getHtmlFromMarkdown(match.matchContext) : getHtmlFromMarkdown(match.message)
-              }}
-            ></div>
-          </div>
-          <div className="SidebarMatch__header-meta">
+
             {isGroup && (
-              <div className="SidebarMatch__header-toggle-status">
-                {isOpen ? "-" : "+"}
-                {/* {isOpen ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />} */}
+              <div className="SidebarMatch__header-group">
+                ({numberOfGroupedMatches && <div>{numberOfGroupedMatches}</div>}) 
+                <div>{isOpen ? <ArrowDropUp /> : <ArrowDropDown />}</div>
               </div>
             )}
           </div>
         </div>
       </div>
-      
-    </div>
-    {isOpen && (
-      <div className="SidebarMatch__content">
-        {(isGroup && showAllMatches) && showAllMatches()}
-      </div>
-    )}
+      {isOpen && (
+        <div className="SidebarMatch__content">
+          {isGroup && showAllMatches && showAllMatches()}
+        </div>
+      )}
     </>
   );
 };

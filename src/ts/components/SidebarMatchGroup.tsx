@@ -33,9 +33,9 @@ const SidebarMatchGroup = ({
 }: IProps) => {
   
   const showGroupMatchSubset = () => (
-    <ul>
+    <ul className="Sidebar__list">
       {matchGroup.map(match => (
-        <li className="Sidebar__list-item" key={match.matchId}>
+        <li className="SidebarMatch__subset-list" key={`${match.ruleId}_${match.matchId}`}>
           <SidebarMatch
             matchColours={matchColours}
             match={match}
@@ -90,7 +90,7 @@ const SidebarMatchGroup = ({
               isGroup
               isSubset={false}
               showAllMatches={showGroupMatchSubset}
-              // numberOfGroupedMatches={matchGroup.length}
+              numberOfGroupedMatches={matchGroup.length}
             />
           </li>
         

@@ -30,8 +30,9 @@
   color: $text-color-secondary
 }
 
-.SidebarMatch__header-meta {
+.SidebarMatch__header-group {
   margin-left: auto;
+  display: flex;
 }
 
 .SidebarMatch__header-range,
@@ -71,4 +72,8 @@
 .SidebarMatch__list-title {
   font-style: italic;
   margin-bottom: ($gutter-width / 2) ;
+}
+
+.SidebarMatch__subset-list {
+  margin-left: 10px;
 }
