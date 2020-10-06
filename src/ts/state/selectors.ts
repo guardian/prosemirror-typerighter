@@ -1,4 +1,5 @@
-import { IMatch } from "../interfaces/IMatch";
+import { sortBy } from "lodash";
+import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
 export const selectMatchByMatchId = <TMatch extends IMatch>(
@@ -131,3 +132,17 @@ export const selectRequestsInProgress = <TMatch extends IMatch>(
 export const selectHasMatches = <TMatch extends IMatch>(
   state: IPluginState<TMatch>
 ): boolean => !!state.currentMatches && state.currentMatches.length > 0;
+
+export const selectImportanceOrderedMatches = <TMatch extends IMatch>(
+  state: IPluginState<TMatch>
+): IMatch<ISuggestion>[] => sortBy(state.currentMatches, match => {
+  if(match.matchedText == match.replacement?.text){
+    return 2;
+  }
+  else if(!match.replacement){
+    return 1;
+  }
+  else {
+    return 0;
+  }
+});

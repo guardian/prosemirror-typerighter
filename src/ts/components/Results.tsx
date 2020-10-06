@@ -3,9 +3,10 @@ import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { IPluginState } from "../state/reducer";
-import { selectPercentRemaining } from "../state/selectors";
+import { selectImportanceOrderedMatches, selectPercentRemaining } from "../state/selectors";
 import SidebarMatch from "./SidebarMatch";
 import { IMatch } from "../interfaces/IMatch";
+import { Switch } from "@material-ui/core";
 
 interface IProps {
   store: Store<IMatch>;
@@ -36,6 +37,7 @@ interface IProps {
 
     const [pluginState, setPluginState] = useState<IPluginState<IMatch> | undefined>(undefined);
     const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
+    const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
 
     const handleNewState = (pluginState: IPluginState<IMatch>) => {
       setPluginState({
@@ -69,8 +71,6 @@ interface IProps {
       return selectPercentRemaining(pluginState);
     };
 
-    
-  
     const maybeResetLoadingBar = () => {
       if (
         !pluginState ||
@@ -83,6 +83,7 @@ interface IProps {
     const { currentMatches = [], requestsInFlight, selectedMatch } = pluginState || { selectedMatch: undefined };
     const hasMatches = !!(currentMatches && currentMatches.length);
     const percentRemaining = getPercentRemaining();
+    const orderedMatches = sortAndGroup && pluginState ? selectImportanceOrderedMatches(pluginState) : currentMatches
     const isLoading =
       !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
@@ -93,7 +94,16 @@ interface IProps {
             <span>
               Results {hasMatches && <span>({currentMatches.length}) </span>}
             </span>
-
+            <span className="Sidebar__header-sort">
+              Sort by colour 
+              <Switch
+                size="small"
+                checked={sortAndGroup}
+                onChange={() => setSortAndGroup(!sortAndGroup)}
+                color="primary"
+                inputProps={{ 'aria-label': 'Summary view' }}
+              />
+            </span>
           </div>
           {contactHref && (
             <div className="Sidebar__header-contact">
@@ -116,7 +126,7 @@ interface IProps {
         <div className="Sidebar__content">
           {hasMatches && pluginState && (
             <ul className="Sidebar__list">
-              {currentMatches.map(match => (
+              {orderedMatches.map(match => (
                 <li className="Sidebar__list-item" key={match.matchId}>
                   <SidebarMatch
                     matchColours={pluginState?.config.matchColours}
