@@ -1,12 +1,12 @@
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
-import { IMatchColours } from "../utils/decoration";
+import { IMatchTypeToColourMap } from "../utils/decoration";
 import { ApplySuggestionOptions } from "../commands";
 import SidebarMatch from "./SidebarMatch";
 import React from "react";
 
 interface IProps {
   matchGroup: Array<IMatch<ISuggestion>>;
-  matchColours: IMatchColours;
+  matchColours?: IMatchTypeToColourMap;
   applySuggestions: (suggestions: ApplySuggestionOptions) => void;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;
