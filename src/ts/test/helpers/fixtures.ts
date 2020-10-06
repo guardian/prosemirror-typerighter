@@ -7,13 +7,15 @@ import {
   ICategory
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
-import { IPluginState, IBlocksInFlightState } from "../../state/reducer";
+import { IPluginState, IBlocksInFlightState, createReducer } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
 import { DecorationSet } from "prosemirror-view";
 import { createDoc, p } from "./prosemirror";
 import { defaultMatchColours } from "../../utils/decoration";
+import { requestMatchesForDocument, requestMatchesSuccess } from "../../state/actions";
+import { getBlocksFromDocument } from "../../utils/prosemirror";
 
 export const matchLibrary: IMatchLibrary = [
   [
@@ -201,4 +203,29 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       filterState: undefined
     } as IPluginState
   };
+};
+
+
+/**
+ * Create a plugin state, creating the given matches and
+ * their decorations from the given spec.
+ */
+export const createStateWithMatches = (
+  localReducer: ReturnType<typeof createReducer>,
+  matches: ICreateMatcherResponseSpec[]
+): { state: IPluginState; matches: IMatch[] } => {
+  const docTime = 1337;
+  const { state, tr } = createInitialData(defaultDoc, docTime);
+
+  let localState = localReducer(
+    tr,
+    state,
+    requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
+  );
+  const block = getBlocksFromDocument(defaultDoc, docTime)[0];
+  const matchesWithBlock = matches.map(match => ({ ...match, block }));
+  const response = createMatcherResponse(matchesWithBlock, exampleRequestId);
+  localState = localReducer(tr, localState, requestMatchesSuccess(response));
+
+  return { matches: response.matches, state: localState };
 };

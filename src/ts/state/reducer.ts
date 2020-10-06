@@ -168,7 +168,7 @@ export const createInitialState = <
   matches = [],
   ignoreMatch = includeAllMatches,
   matchColours = defaultMatchColours,
-  filterOptions = undefined
+  filterOptions
 }: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
   TFilterState,
   TMatch
