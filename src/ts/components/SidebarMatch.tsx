@@ -30,7 +30,7 @@ interface IProps {
  * Display information for a single match
  */
 
-const SidebarMatch : React.StatelessComponent<IProps> = ({
+const SidebarMatch = ({
   match,
   matchColours,
   indicateHighlight,
@@ -124,6 +124,8 @@ const SidebarMatch : React.StatelessComponent<IProps> = ({
           selectedMatch === match.matchId
             ? "SidebarMatch__container--is-selected"
             : ""
+        } ${
+          isGroup && !isSubset && "SidebarMatch__group-container"
         }`}
         style={{ borderLeft: `2px solid ${color}` }}
         onMouseEnter={handleMouseEnter}
@@ -149,9 +151,9 @@ const SidebarMatch : React.StatelessComponent<IProps> = ({
           </div>
         </div>
       </div>
-      {isOpen && (
+      {isOpen && isGroup && (
         <div className="SidebarMatch__content">
-          {isGroup && children}
+          {children}
         </div>
       )}
     </>
