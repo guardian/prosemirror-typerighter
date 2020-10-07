@@ -97,7 +97,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     : [];
   const isLoading =
     !!requestsInFlight && !!Object.keys(requestsInFlight).length;
-    const groupedCurrentMatches = chain(orderedMatches)
+  const groupedCurrentMatches = chain(orderedMatches)
     .groupBy("ruleId")
     .map((matches, _) => matches)
     .value();
@@ -152,37 +152,37 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
       <div className="Sidebar__content">
         {hasMatches && pluginState && (
           <ul className="Sidebar__list">
-            {sortAndGroup ? groupedCurrentMatches.map(group => (
-              <SidebarMatchGroup
-                matchColours={pluginState?.config.matchColours}
-                matchGroup={group}
-                selectedMatch={selectedMatch}
-                applySuggestions={applySuggestions}
-                selectMatch={selectMatch}
-                indicateHighlight={indicateHighlight}
-                stopHighlight={stopHighlight}
-                editorScrollElement={editorScrollElement}
-                getScrollOffset={getScrollOffset}
-              />
-            )) : 
-            orderedMatches.map(match => (
-              <li className="Sidebar__list-item" key={match.matchId}>
-                <SidebarMatch
-                  matchColours={pluginState?.config.matchColours}
-                  match={match}
-                  selectedMatch={selectedMatch}
-                  selectMatch={selectMatch}
-                  applySuggestions={applySuggestions}
-                  indicateHighlight={indicateHighlight}
-                  stopHighlight={stopHighlight}
-                  editorScrollElement={editorScrollElement}
-                  getScrollOffset={getScrollOffset}
-                  isGroup={false}
-                  isSubset={false}
-                />
-              </li>
-            ))}
-
+            {sortAndGroup
+              ? groupedCurrentMatches.map(group => (
+                  <SidebarMatchGroup
+                    matchColours={pluginState?.config.matchColours}
+                    matchGroup={group}
+                    selectedMatch={selectedMatch}
+                    applySuggestions={applySuggestions}
+                    selectMatch={selectMatch}
+                    indicateHighlight={indicateHighlight}
+                    stopHighlight={stopHighlight}
+                    editorScrollElement={editorScrollElement}
+                    getScrollOffset={getScrollOffset}
+                  />
+                ))
+              : orderedMatches.map(match => (
+                  <li className="Sidebar__list-item" key={match.matchId}>
+                    <SidebarMatch
+                      matchColours={pluginState?.config.matchColours}
+                      match={match}
+                      selectedMatch={selectedMatch}
+                      selectMatch={selectMatch}
+                      applySuggestions={applySuggestions}
+                      indicateHighlight={indicateHighlight}
+                      stopHighlight={stopHighlight}
+                      editorScrollElement={editorScrollElement}
+                      getScrollOffset={getScrollOffset}
+                      isGroup={false}
+                      isSubset={false}
+                    />
+                  </li>
+                ))}
           </ul>
         )}
         {!hasMatches && (

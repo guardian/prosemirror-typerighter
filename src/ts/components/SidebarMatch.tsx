@@ -30,7 +30,7 @@ interface IProps {
  * Display information for a single match
  */
 
-const SidebarMatch = ({
+const SidebarMatch : React.StatelessComponent<IProps> = ({
   match,
   matchColours,
   indicateHighlight,
@@ -40,9 +40,10 @@ const SidebarMatch = ({
   getScrollOffset,
   isGroup,
   isSubset,
-  showAllMatches,
+  children,
   numberOfGroupedMatches
-}: IProps) => {
+}: React.PropsWithChildren<IProps>) => {
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const { telemetryAdapter } = useContext(TelemetryContext);
@@ -150,7 +151,7 @@ const SidebarMatch = ({
       </div>
       {isOpen && (
         <div className="SidebarMatch__content">
-          {isGroup && showAllMatches && showAllMatches()}
+          {isGroup && children}
         </div>
       )}
     </>
