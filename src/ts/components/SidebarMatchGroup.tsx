@@ -35,7 +35,7 @@ const SidebarMatchGroup = ({
   const showGroupMatchSubset = () => (
     <ul className="Sidebar__list">
       {matchGroup.map(match => (
-        <li className="SidebarMatch__subset-list" key={`${match.ruleId}_${match.matchId}`}>
+        <li className="SidebarMatch__subset-list Sidebar__list-item" key={`${match.ruleId}_${match.matchId}`}>
           <SidebarMatch
             matchColours={matchColours}
             match={match}

@@ -95,6 +95,27 @@ const SidebarMatch = ({
     }
   };
 
+  const emboldenMatchInMatchContext = (text: string): string => {
+    return text.replace("[", "<strong>").replace("]", "</strong>");
+  };
+
+  const getDescription = () => {
+    return isSubset ? (
+      <div
+        dangerouslySetInnerHTML={{
+          __html: emboldenMatchInMatchContext(match.matchContext)
+        }}
+      ></div>
+    ) : (
+      <div
+        className="SidebarMatch__header-description"
+        dangerouslySetInnerHTML={{
+          __html: getHtmlFromMarkdown(match.message)
+        }}
+      ></div>
+    );
+  };
+
   return (
     <>
       <div
@@ -115,21 +136,13 @@ const SidebarMatch = ({
               <div className="SidebarMatch__header-match-text">
                 {isSubset ? "" : match.matchedText}
               </div>
-              <div
-                className="SidebarMatch__header-description"
-                dangerouslySetInnerHTML={{
-                  // __html: getHtmlFromMarkdown(match.message)
-                  __html: isSubset
-                    ? getHtmlFromMarkdown(match.matchContext)
-                    : getHtmlFromMarkdown(match.message)
-                }}
-              ></div>
+              {getDescription()}
             </div>
 
             {isGroup && (
               <div className="SidebarMatch__header-group">
-                ({numberOfGroupedMatches && <div>{numberOfGroupedMatches}</div>}) 
-                <div>{isOpen ? <ArrowDropUp /> : <ArrowDropDown />}</div>
+                ({numberOfGroupedMatches && <div>{numberOfGroupedMatches}</div>}
+                )<div>{isOpen ? <ArrowDropUp /> : <ArrowDropDown />}</div>
               </div>
             )}
           </div>
