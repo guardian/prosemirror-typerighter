@@ -75,6 +75,12 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     }
   };
 
+  const toggleSortAndGroup = () => {
+    const newValue = !sortAndGroup;
+    telemetryAdapter?.summaryViewToggled(newValue, { documentUrl: document.URL })
+    setSortAndGroup(newValue)
+  }
+
   const {
     currentMatches = [],
     filteredMatches = [],
@@ -89,11 +95,6 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
   const isLoading =
     !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
-  const toggleSortAndGroup = () => {
-    const newValue = !sortAndGroup;
-    telemetryAdapter?.summaryViewToggeled(newValue, { documentUrl: document.URL })
-    setSortAndGroup(newValue)
-  }
 
   return (
     <>

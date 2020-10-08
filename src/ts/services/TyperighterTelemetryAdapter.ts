@@ -1,4 +1,12 @@
 import {
+  ICheckDocumentEvent,
+  IClearDocumentEvent,
+  IMarkAsCorrectEvent,
+  IMatchFoundEvent,
+  IOpenTyperighterEvent,
+  ISidebarClickEvent,
+  ISuggestionAcceptedEvent,
+  ISummaryToggleEvent,
   ITyperighterTelemetryEvent,
   TYPERIGHTER_TELEMETRY_TYPE,
 } from "../interfaces/ITelemetryData";
@@ -24,7 +32,7 @@ class TyperighterTelemetryAdapter {
         documentUrl,
         ...this.getTelemetryTagsFromMatch(match)
       }
-    });
+    } as ISuggestionAcceptedEvent);
   }
 
   public matchIsMarkedAsCorrect(match: IMatch, documentUrl: string) {
@@ -38,7 +46,7 @@ class TyperighterTelemetryAdapter {
         documentUrl,
         ...this.getTelemetryTagsFromMatch(match)
       }
-    });
+    } as IMarkAsCorrectEvent);
   }
 
   public documentIsChecked(tags: ITyperighterTelemetryEvent["tags"]) {
@@ -49,7 +57,7 @@ class TyperighterTelemetryAdapter {
       value: 1,
       eventTime: new Date().toISOString(),
       tags
-    });
+    } as ICheckDocumentEvent);
   }
 
   public documentIsCleared(tags: ITyperighterTelemetryEvent["tags"]) {
@@ -60,7 +68,7 @@ class TyperighterTelemetryAdapter {
       value: 1,
       eventTime: new Date().toISOString(),
       tags
-    });
+    } as IClearDocumentEvent);
   }
 
   public typerighterIsOpened(tags: ITyperighterTelemetryEvent["tags"]) {
@@ -71,7 +79,7 @@ class TyperighterTelemetryAdapter {
         value: 1,
         eventTime: new Date().toISOString(),
         tags
-    });
+    } as IOpenTyperighterEvent);
   }
 
   public typerighterIsClosed(tags: ITyperighterTelemetryEvent["tags"]) {
@@ -82,7 +90,7 @@ class TyperighterTelemetryAdapter {
         value: 0,
         eventTime: new Date().toISOString(),
         tags
-    });
+     } as IOpenTyperighterEvent);
   }
 
   public sidebarMatchClicked(match: IMatch, documentUrl: string) {
@@ -96,7 +104,7 @@ class TyperighterTelemetryAdapter {
           documentUrl,
           ...this.getTelemetryTagsFromMatch(match)
         }
-    });
+    } as ISidebarClickEvent);
   }
 
   public matchFound(match: IMatch, documentUrl: string) {
@@ -110,18 +118,18 @@ class TyperighterTelemetryAdapter {
           documentUrl,
           ...this.getTelemetryTagsFromMatch(match)
         }
-    });
+    } as IMatchFoundEvent);
   }
 
-  public summaryViewToggeled(on: boolean, tags: ITyperighterTelemetryEvent["tags"]) {
+  public summaryViewToggled(toggledOn: boolean, tags: ITyperighterTelemetryEvent["tags"]) {
     this.telemetryService.addEvent({
         app: this.app,
         stage: this.stage,
         type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED,
-        value: on ? 1 : 0,
+        value: toggledOn ? 1 : 0,
         eventTime: new Date().toISOString(),
         tags
-    });
+    } as ISummaryToggleEvent);
   }
 
   private getTelemetryTagsFromMatch = (match: IMatch) => ({

@@ -92,6 +92,11 @@ export interface ICheckDocumentEvent extends ITyperighterTelemetryEvent {
   value: 1;
 }
 
+export interface IClearDocumentEvent extends ITyperighterTelemetryEvent {
+  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CLEAR_DOCUMENT;
+  value: 1;
+}
+
 export interface IOpenTyperighterEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED;
   value: 0 | 1;
