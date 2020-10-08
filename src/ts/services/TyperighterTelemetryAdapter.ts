@@ -113,6 +113,17 @@ class TyperighterTelemetryAdapter {
     });
   }
 
+  public summaryViewToggeled(on: boolean, tags: ITyperighterTelemetryEvent["tags"]) {
+    this.telemetryService.addEvent({
+        app: this.app,
+        stage: this.stage,
+        type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED,
+        value: on ? 1 : 0,
+        eventTime: new Date().toISOString(),
+        tags
+    });
+  }
+
   private getTelemetryTagsFromMatch = (match: IMatch) => ({
     matcherType: match.matcherType,
     ruleId: match.ruleId,
