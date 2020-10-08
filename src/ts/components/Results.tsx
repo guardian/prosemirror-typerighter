@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
@@ -8,6 +8,7 @@ import SidebarMatch from "./SidebarMatch";
 import { Switch } from "@material-ui/core";
 import FilterResults from "./FilterResults";
 import { MatchType } from "../utils/decoration";
+import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
@@ -42,6 +43,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
   );
   const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
   const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
+  const { telemetryAdapter } = useContext(TelemetryContext);
 
   const handleNewState = (incomingState: TPluginState) => {
     setPluginState({
@@ -73,6 +75,12 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     }
   };
 
+  const toggleSortAndGroup = () => {
+    const newValue = !sortAndGroup;
+    telemetryAdapter?.summaryViewToggled(newValue, { documentUrl: document.URL })
+    setSortAndGroup(newValue)
+  }
+
   const {
     currentMatches = [],
     filteredMatches = [],
@@ -87,6 +95,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
   const isLoading =
     !!requestsInFlight && !!Object.keys(requestsInFlight).length;
 
+
   return (
     <>
       <div className="Sidebar__header-container">
@@ -99,7 +108,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
             <Switch
               size="small"
               checked={sortAndGroup}
-              onChange={() => setSortAndGroup(!sortAndGroup)}
+              onChange={toggleSortAndGroup}
               color="primary"
               inputProps={{ "aria-label": "Summary view" }}
             />

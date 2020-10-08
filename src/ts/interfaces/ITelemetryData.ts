@@ -42,7 +42,8 @@ export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_CHECK_DOCUMENT = "TYPERIGHTER_CHECK_DOCUMENT",
   TYPERIGHTER_CLEAR_DOCUMENT = "TYPERIGHTER_CLEAR_DOCUMENT",
   TYPERIGHTER_OPEN_STATE_CHANGED = "TYPERIGHTER_OPEN_STATE_CHANGED",
-  TYPERIGHTER_SIDEBAR_MATCH_CLICK = "TYPERIGHTER_SIDEBAR_MATCH_CLICK"
+  TYPERIGHTER_SIDEBAR_MATCH_CLICK = "TYPERIGHTER_SIDEBAR_MATCH_CLICK",
+  TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED = "TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED"
 }
 
 export interface ITyperighterTelemetryEvent extends ITelemetryEvent {
@@ -91,6 +92,11 @@ export interface ICheckDocumentEvent extends ITyperighterTelemetryEvent {
   value: 1;
 }
 
+export interface IClearDocumentEvent extends ITyperighterTelemetryEvent {
+  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CLEAR_DOCUMENT;
+  value: 1;
+}
+
 export interface IOpenTyperighterEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_OPEN_STATE_CHANGED;
   value: 0 | 1;
@@ -100,4 +106,9 @@ export interface ISidebarClickEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
+}
+
+export interface ISummaryToggleEvent extends ITyperighterTelemetryEvent {
+  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED;
+  value: 0 | 1;
 }
