@@ -58,7 +58,6 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
           />
           <Results
             store={store}
-            applySuggestions={commands.applySuggestions}
             applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
             applyFilterState={commands.setFilterState}
             selectMatch={commands.selectMatch}
