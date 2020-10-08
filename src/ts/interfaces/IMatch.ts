@@ -62,6 +62,8 @@ export interface IMatch<TSuggestion = ISuggestion> {
   replacement?: TSuggestion;
   markAsCorrect?: boolean;
   matchContext: string;
+  precedingText: string;
+  subsequentText: string;
 }
 
 export interface IBlockResult {

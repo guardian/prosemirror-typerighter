@@ -14,8 +14,18 @@ interface IProps {
   editorScrollElement: Element;
 }
 
-const emboldenMatchInMatchContext = (text: string): string => {
-  return text.replace("[[", "<strong>").replace("]]", "</strong>");
+const getMatchContext = (match: IMatch) => {
+
+    const { matchedText, subsequentText, precedingText} = match
+
+    const matchLength = matchedText.length;
+    const maxLength = 50;
+    const contextLength = (maxLength - matchLength) / 2;
+
+    const before = `${precedingText.length > contextLength ? "..." : ""}${precedingText.substr(precedingText.length - contextLength)}`;
+    const after = `${subsequentText.substr(0, contextLength)}${subsequentText.length > contextLength ? "..." : ""}`;
+
+    return `${before}<strong>${matchedText}</strong>${after}`;
 };
 
 const MatchSnippet = ({
@@ -62,7 +72,7 @@ const MatchSnippet = ({
                 <div
                   className="SidebarMatch__header-description"
                   dangerouslySetInnerHTML={{
-                    __html: emboldenMatchInMatchContext(match.matchContext)
+                    __html: getMatchContext(match)
                   }}
                 ></div>
               </div>

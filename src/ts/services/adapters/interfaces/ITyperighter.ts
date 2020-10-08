@@ -25,6 +25,8 @@ export interface ITypeRighterMatch {
   suggestions: ISuggestion[];
   markAsCorrect: boolean;
   matchContext: string;
+  precedingText: string;
+  subsequentText: string;
 }
 
 export interface ITypeRighterReplacement {
