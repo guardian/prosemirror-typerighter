@@ -35,7 +35,7 @@ const SidebarMatchGroup = ({
     <>
       {matchGroup.length === 1 ? (
         <>
-          <li className="Sidebar__list-item" key={matchGroup[0].matchId}>
+          <li className="Sidebar__list-item">
             <SidebarMatch
               matchColours={matchColours}
               match={matchGroup[0]}
@@ -53,7 +53,7 @@ const SidebarMatchGroup = ({
         </>
       ) : (
         <>
-          <li className="Sidebar__list-item" key={matchGroup[0].ruleId}>
+          <li className="Sidebar__list-item">
             <SidebarMatch
               matchColours={matchColours}
               match={matchGroup[0]}

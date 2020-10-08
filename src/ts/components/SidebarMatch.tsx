@@ -97,12 +97,13 @@ const SidebarMatch = ({
   };
 
   const emboldenMatchInMatchContext = (text: string): string => {
-    return text.replace("[", "<strong>").replace("]", "</strong>");
+    return text.replace("[[", "<strong>").replace("]]", "</strong>");
   };
 
   const getDescription = () => {
     return isSubset ? (
       <div
+        className="SidebarMatch__header-description"
         dangerouslySetInnerHTML={{
           __html: emboldenMatchInMatchContext(match.matchContext)
         }}

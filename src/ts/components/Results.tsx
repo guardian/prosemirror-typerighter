@@ -153,7 +153,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
         {hasMatches && pluginState && (
           <ul className="Sidebar__list">
             {sortAndGroup
-              ? groupedCurrentMatches.map(group => (
+              ? groupedCurrentMatches.map((group, index) => (
                   <SidebarMatchGroup
                     matchColours={pluginState?.config.matchColours}
                     matchGroup={group}
@@ -164,6 +164,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
                     stopHighlight={stopHighlight}
                     editorScrollElement={editorScrollElement}
                     getScrollOffset={getScrollOffset}
+                    key={index}
                   />
                 ))
               : orderedMatches.map(match => (
