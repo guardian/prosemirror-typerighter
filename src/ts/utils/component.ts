@@ -1,23 +1,28 @@
 import { IMatch, TyperighterTelemetryAdapter } from "..";
 import { maybeGetDecorationElement } from "../utils/decoration";
 
-export const createScrollToRangeHandler = (match: IMatch, getScrollOffset: () => number, editorScrollElement: Element, telemetryAdapter?: TyperighterTelemetryAdapter) => (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-e.preventDefault();
-e.stopPropagation();
+export const createScrollToRangeHandler = (
+  match: IMatch,
+  getScrollOffset: () => number,
+  editorScrollElement: Element,
+  telemetryAdapter?: TyperighterTelemetryAdapter
+) => (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  e.preventDefault();
+  e.stopPropagation();
 
-telemetryAdapter?.sidebarMatchClicked(match, document.URL);
+  telemetryAdapter?.sidebarMatchClicked(match, document.URL);
 
-if (!editorScrollElement) {
+  if (!editorScrollElement) {
     return;
-}
+  }
 
-const decorationElement = maybeGetDecorationElement(match.matchId);
+  const decorationElement = maybeGetDecorationElement(match.matchId);
 
-if (decorationElement) {
+  if (decorationElement) {
     const scrollToYCoord = decorationElement.offsetTop - getScrollOffset();
     editorScrollElement.scrollTo({
-    top: scrollToYCoord,
-    behavior: "smooth"
+      top: scrollToYCoord,
+      behavior: "smooth"
     });
-}
+  }
 };

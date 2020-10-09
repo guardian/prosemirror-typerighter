@@ -59,53 +59,51 @@ const SidebarMatchGroup = ({
   };
 
   return (
-    <>
-      <li className="Sidebar__list-item">
-        <SidebarMatchContainer
-          className="SidebarMatch__group-container"
-          style={{ borderLeft: `2px solid ${color}` }}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onClick={toggleOpen}
-          title={getTitleText()}
-          isSelected={selectedMatch === firstMatch.matchId}
-        >
-          <div className={"SidebarMatch__header"}>
-            <div className="SidebarMatch__header-label">
-              <div>
-                <div className="SidebarMatch__header-match-text">
-                  {firstMatch.matchedText}
-                </div>
-                <div
-                  className="SidebarMatch__header-description"
-                  dangerouslySetInnerHTML={{
-                    __html: getHtmlFromMarkdown(firstMatch.message)
-                  }}
-                ></div>
+    <li className="Sidebar__list-item">
+      <SidebarMatchContainer
+        className="SidebarMatch__group-container"
+        style={{ borderLeft: `2px solid ${color}` }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={toggleOpen}
+        title={getTitleText()}
+        isSelected={selectedMatch === firstMatch.matchId}
+      >
+        <div className={"SidebarMatch__header"}>
+          <div className="SidebarMatch__header-label">
+            <div>
+              <div className="SidebarMatch__header-match-text">
+                {firstMatch.matchedText}
               </div>
-              <div className="SidebarMatch__header-group">
-                <div>({matchGroup.length})</div>
-                <div>{isOpen ? <ArrowDropUp /> : <ArrowDropDown />}</div>
-              </div>
+              <div
+                className="SidebarMatch__header-description"
+                dangerouslySetInnerHTML={{
+                  __html: getHtmlFromMarkdown(firstMatch.message)
+                }}
+              ></div>
+            </div>
+            <div className="SidebarMatch__header-group">
+              <div>({matchGroup.length})</div>
+              <div>{isOpen ? <ArrowDropUp /> : <ArrowDropDown />}</div>
             </div>
           </div>
-        </SidebarMatchContainer>
-        {isOpen && (
-          <ul className="Sidebar__list">
-            {matchGroup.map(match => (
-              <MatchSnippet
-                match={match}
-                matchColours={matchColours}
-                indicateHighlight={indicateHighlight}
-                stopHighlight={stopHighlight}
-                getScrollOffset={getScrollOffset}
-                editorScrollElement={editorScrollElement}
-              />
-            ))}
-          </ul>
-        )}
-      </li>
-    </>
+        </div>
+      </SidebarMatchContainer>
+      {isOpen && (
+        <ul className="Sidebar__list">
+          {matchGroup.map(match => (
+            <MatchSnippet
+              match={match}
+              matchColours={matchColours}
+              indicateHighlight={indicateHighlight}
+              stopHighlight={stopHighlight}
+              getScrollOffset={getScrollOffset}
+              editorScrollElement={editorScrollElement}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
   );
 };
 
