@@ -99,6 +99,7 @@ const SidebarMatchGroup = ({
               stopHighlight={stopHighlight}
               getScrollOffset={getScrollOffset}
               editorScrollElement={editorScrollElement}
+              key={match.matchId}
             />
           ))}
         </ul>
