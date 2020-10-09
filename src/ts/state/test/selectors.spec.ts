@@ -149,7 +149,9 @@ describe("selectors", () => {
             colour: "eeeeee"
           },
           matchedText: "hai",
-          matchContext: "oh [hai]"
+          matchContext: "oh [[hai]]",
+          precedingText: "oh ",
+          subsequentText: ""
         }
       ];
       expect(
@@ -186,7 +188,9 @@ describe("selectors", () => {
             colour: "eeeeee"
           },
           matchedText: "hai",
-          matchContext: "Oh [hai]"
+          matchContext: "Oh [[hai]]",
+          precedingText: "oh ",
+          subsequentText: ""
         }
       ];
       expect(

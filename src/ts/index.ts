@@ -7,6 +7,7 @@ import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter"
 import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
 import { createBoundCommands } from "./commands";
 import { getBlocksFromDocument } from './utils/prosemirror';
+import { filterByMatchState } from './utils/plugin';
 import createView from "./createView";
 import '../css/index.scss';
 
@@ -20,6 +21,7 @@ export {
   createBoundCommands,
   createView,
   createTyperighterPlugin,
+  filterByMatchState,
   IMatch,
   IBlock,
   Store

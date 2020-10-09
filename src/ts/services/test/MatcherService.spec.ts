@@ -40,7 +40,9 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
     },
     suggestions: [],
     markAsCorrect: false,
-    matchContext: "whatever"
+    matchContext: "whatever",
+    precedingText: "whatever",
+    subsequentText: ""
   }))
 });
 

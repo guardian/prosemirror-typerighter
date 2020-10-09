@@ -38,9 +38,9 @@
 }
 
 .Sidebar__header-contact {
-  margin-top: 5px;
   margin-left: auto;
   font-size: $font-size-small;
+  max-width: 130px;
 }
 
 .Sidebar__header {
@@ -72,10 +72,6 @@
 
 .Sidebar__header-sort {
   font-weight: normal;
-}
-
-.Sidebar__header-sort-dropdown {
-  margin-left: 5px;
 }
 
 .Sidebar__list {
