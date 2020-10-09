@@ -76,7 +76,9 @@ describe("createTyperighterPlugin", () => {
             name: "Category 1",
             colour: "puce"
           },
-          matchContext: "bigger block of text"
+          matchContext: "bigger block of text",
+          precedingText: "bigger block of text",
+          subsequentText: ""
         }
       ],
       requestId: "reqId"

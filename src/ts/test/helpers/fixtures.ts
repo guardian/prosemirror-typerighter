@@ -100,7 +100,9 @@ export const createMatcherResponse = (
         to: wordTo,
         matchId: createMatchId(0, wordFrom, wordTo, 0),
         suggestions,
-        matchContext: "here is a [block text] match"
+        matchContext: "here is a [[block text]] match",
+        precedingText: "here is a ",
+        subsequentText: " match"
       };
 
       return {
@@ -138,7 +140,9 @@ export const createMatch = (
   to,
   matchId: createMatchId(0, from, to, 0),
   suggestions,
-  matchContext: "here is a [block text] match"
+  matchContext: "here is a [[block text]] match",
+  precedingText: "here is a ",
+  subsequentText: " match"
 });
 
 export const exampleCategoryIds = ["example-category"];
