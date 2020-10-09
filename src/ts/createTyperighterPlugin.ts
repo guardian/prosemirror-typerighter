@@ -2,14 +2,14 @@ import { applyNewDirtiedRanges } from "./state/actions";
 import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
-  IIgnoreMatch,
+  IIgnoreMatchPredicate,
   includeAllMatches
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import { selectNewBlockInFlight } from "./state/selectors";
 import {
   DECORATION_ATTRIBUTE_ID,
-  IMatchColours,
+  IMatchTypeToColourMap,
   defaultMatchColours
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
@@ -23,16 +23,28 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
-import {
-  startHoverCommand,
-  stopHoverCommand
-} from "./commands";
-import { maybeResetHoverStates } from "./utils/plugin";
+import { startHoverCommand, stopHoverCommand } from "./commands";
+import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-export interface IPluginOptions<TMatch extends IMatch = IMatch> {
+export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
+  /**
+   * A function to filter matches given a user-defined filter state.
+   */
+  filterMatches: TFilterMatches<TFilterState, TMatch>;
+
+  /**
+   * The initial state to pass to the filter predicate.
+   */
+  initialFilterState: TFilterState;
+}
+
+export interface IPluginOptions<
+  TFilterState = undefined,
+  TMatch extends IMatch = IMatch
+> {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -49,12 +61,14 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
   /**
    * Ignore matches when this predicate returns true.
    */
-  ignoreMatch?: IIgnoreMatch;
+  ignoreMatch?: IIgnoreMatchPredicate;
+
+  filterOptions?: IFilterOptions<TFilterState, TMatch>;
 
   /**
    * The colours to use for document matches.
    */
-  matchColours?: IMatchColours;
+  matchColours?: IMatchTypeToColourMap;
 
   /**
    * Is the given element part of the typerighter UI, but not
@@ -73,33 +87,39 @@ export interface IPluginOptions<TMatch extends IMatch = IMatch> {
  * @param {IPluginOptions} options The plugin options object.
  * @returns {{plugin: Plugin, commands: ICommands}}
  */
-const createTyperighterPlugin = <TMatch extends IMatch>(
-  options: IPluginOptions<TMatch> = {}
+const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
+  options: IPluginOptions<TFilterState, TMatch> = {}
 ) => {
   const {
     expandRanges = expandRangesToParentBlockNode,
     matches = [],
+    filterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
     isElementPartOfTyperighterUI = () => false
   } = options;
   // A handy alias to reduce repetition
-  type TPluginState = IPluginState<TMatch>;
+  type TPluginState = IPluginState<TFilterState, TMatch>;
 
   // Set up our store, which we'll use to notify consumer code of state updates.
-  const store = new Store();
-  const reducer = createReducer(expandRanges, ignoreMatch);
+  const store = new Store<TPluginState>();
+  const reducer = createReducer<TPluginState>(
+    expandRanges,
+    ignoreMatch,
+    filterOptions?.filterMatches
+  );
 
   const plugin: Plugin = new Plugin({
     key: pluginKey,
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState(
+        const initialState = createInitialState<TFilterState, TMatch>({
           doc,
           matches,
           ignoreMatch,
-          matchColours
-        );
+          matchColours,
+          filterOptions
+        });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },
@@ -150,8 +170,8 @@ const createTyperighterPlugin = <TMatch extends IMatch>(
     },
     props: {
       decorations: state => {
-        const pluginState = plugin.getState(state);
-        return pluginState.decorations;
+        const { decorations }: TPluginState = plugin.getState(state);
+        return decorations;
       },
       handleDOMEvents: {
         mouseleave: (view, event) => {

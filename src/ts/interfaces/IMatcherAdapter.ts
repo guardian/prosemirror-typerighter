@@ -34,7 +34,7 @@ export declare class IMatcherAdapter<
 
 export type TMatchesReceivedCallback<
   TMatch extends IMatch = IMatch
-> = (response: IMatcherResponse<TMatch>) => void;
+> = (response: IMatcherResponse<TMatch[]>) => void;
 
 export type TRequestErrorCallback = (
   matchRequestError: TMatchRequestErrorWithDefault

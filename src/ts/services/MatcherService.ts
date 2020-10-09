@@ -11,19 +11,20 @@ import { Commands } from "../commands";
 import { selectAllBlockQueriesInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
+import { IPluginState } from "../state/reducer";
 
 /**
  * A matcher service to manage the interaction between the prosemirror-typerighter plugin
  * and the remote matching service.
  */
-class MatcherService<TMatch extends IMatch> {
+class MatcherService<TFilterState, TMatch extends IMatch> {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
   private currentCategories = [] as ICategory[];
   private allCategories = [] as ICategory[];
   private requestPending = false;
   constructor(
-    private store: Store<TMatch>,
+    private store: Store<IPluginState<TFilterState, TMatch>>,
     private commands: Commands,
     private adapter: IMatcherAdapter<TMatch>,
     private telemetryAdapter?: TyperighterTelemetryAdapter,

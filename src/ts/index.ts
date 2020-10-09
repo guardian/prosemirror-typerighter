@@ -1,5 +1,5 @@
 import { IMatch, IBlock } from './interfaces/IMatch'
-import { IStore } from './state/store';
+import Store from './state/store';
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
 import TelemetryService from "./services/TelemetryService";
@@ -22,5 +22,5 @@ export {
   createTyperighterPlugin,
   IMatch,
   IBlock,
-  IStore
+  Store
 };

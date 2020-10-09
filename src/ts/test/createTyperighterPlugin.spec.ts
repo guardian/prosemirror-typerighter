@@ -13,15 +13,22 @@ import createTyperighterPlugin, {
 } from "../createTyperighterPlugin";
 import { createMatch, createMatcherResponse } from "./helpers/fixtures";
 import { createBoundCommands } from "../commands";
-import { IMatcherResponse } from "../interfaces/IMatch";
+import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
-import { createDecorationsForMatches } from "../utils/decoration";
+import { createDecorationsForMatches, MatchType } from "../utils/decoration";
+import { filterByMatchState, IDefaultFilterState } from "../utils/plugin";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
 const matches = [createMatch(1)];
+const matchWithReplacement: IMatch = {
+  ...createMatch(5),
+  replacement: { text: "replacement text", type: "TEXT_SUGGESTION" }
+};
 
-const createPlugin = (opts?: IPluginOptions) => {
+const createPlugin = <TFilterState = unknown>(
+  opts?: IPluginOptions<TFilterState>
+) => {
   const { plugin, getState, store } = createTyperighterPlugin({
     matches,
     ...opts
@@ -100,7 +107,6 @@ describe("createTyperighterPlugin", () => {
     const decorationsSpecsToExpect = getDecorationSpecs(
       createDecorationsForMatches(matches)
     );
-
     expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
   });
   it("should add matches and their decorations on init", () => {
@@ -144,5 +150,55 @@ describe("createTyperighterPlugin", () => {
 
     const pluginMatches = getState(view.state).currentMatches;
     expect(pluginMatches).toEqual([]);
+  });
+  describe("filtering matchers", () => {
+    const filterOptions = {
+      filterMatches: filterByMatchState,
+      initialFilterState: [MatchType.CORRECT]
+    };
+    it("should filter matches with the supplied predicate when the plugin initialises – remove matches", () => {
+      const correctMatches = [{ ...createMatch(1), markAsCorrect: true }];
+      const { view } = createPlugin<IDefaultFilterState>({
+        matches: correctMatches,
+        filterOptions
+      });
+      const decorationSpecs = getDecorationSpecsFromDoc(view);
+      const decorationsSpecsToExpect = getDecorationSpecs([]);
+      expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
+    });
+    it("should filter matches with the supplied predicate when the plugin initialises – retain matches", () => {
+      const correctMatches = [
+        { ...createMatch(1), markAsCorrect: true },
+        matchWithReplacement
+      ];
+      const { view } = createPlugin<IDefaultFilterState>({
+        matches: correctMatches,
+        filterOptions
+      });
+      const decorationSpecs = getDecorationSpecsFromDoc(view);
+      const decorationsSpecsToExpect = getDecorationSpecs(
+        createDecorationsForMatches([matchWithReplacement])
+      );
+      expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
+    });
+    it("should filter matches with the supplied predicate when the plugin initialises", () => {
+      const matchesWithReplacements: IMatch[] = [
+        matchWithReplacement,
+        createMatch(2),
+        createMatch(3)
+      ];
+      const { view, commands } = createPlugin<IDefaultFilterState>({
+        matches: matchesWithReplacements,
+        filterOptions
+      });
+
+      commands.setFilterState([MatchType.DEFAULT]);
+
+      const decorationSpecs = getDecorationSpecsFromDoc(view);
+      const decorationsSpecsToExpect = getDecorationSpecs(
+        createDecorationsForMatches([matchesWithReplacements[0]])
+      );
+      expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
+    });
   });
 });
