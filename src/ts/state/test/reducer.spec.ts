@@ -495,7 +495,9 @@ describe("Action handlers", () => {
           name: "cat",
           colour: "eeeeee"
         },
-        matchContext: "some more text"
+        matchContext: "some more text",
+        precedingText: "some more text",
+        subsequentText: ""        
       };
       const localState = {
         ...state,
@@ -530,7 +532,9 @@ describe("Action handlers", () => {
           name: "cat",
           colour: "eeeeee"
         },
-        matchContext: "bigger block of text"
+        matchContext: "bigger block of text",
+        precedingText: "bigger block of text",
+        subsequentText: ""        
       };
       const localState = {
         ...state,
@@ -571,7 +575,9 @@ describe("Action handlers", () => {
             colour: "eeeeee"
           },
           markAsCorrect: true,
-          matchContext: "bigger block of text"
+          matchContext: "bigger block of text",
+          precedingText: "bigger block of text",
+          subsequentText: ""        
         }
       ];
       const stateWithCurrentMatchesAndDecorations = {
@@ -619,7 +625,9 @@ describe("Action handlers", () => {
               colour: "eeeeee"
             },
             id: "exampleId",
-            matchContext: "bigger block of text"
+            matchContext: "bigger block of text",
+            precedingText: "bigger block of text",
+            subsequentText: ""        
           }
         ]
       };
