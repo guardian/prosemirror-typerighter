@@ -23,6 +23,7 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
+import { doNotIgnoreRanges, TGetIgnoredRanges } from "./utils/block";
 import { startHoverCommand, stopHoverCommand } from "./commands";
 import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
@@ -71,6 +72,14 @@ export interface IPluginOptions<
   matchColours?: IMatchTypeToColourMap;
 
   /**
+   * Given a node, return an array of ranges to ignore. Useful when e.g
+   * your CMS allows users to exclude ranges that we don't want to check,
+   * but do want to accommodate as part of the document.
+   */
+  getIgnoredRanges?: TGetIgnoredRanges;
+
+  /**
+   * The colours to use for document matches.
    * Is the given element part of the typerighter UI, but not
    * part of the Prosemirror editor? This helps us avoid resetting
    * hover or highlight states when we're hoving over e.g. tooltips
@@ -92,6 +101,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
 ) => {
   const {
     expandRanges = expandRangesToParentBlockNode,
+    getIgnoredRanges = doNotIgnoreRanges,
     matches = [],
     filterOptions,
     ignoreMatch = includeAllMatches,
@@ -106,7 +116,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   const reducer = createReducer<TPluginState>(
     expandRanges,
     ignoreMatch,
-    filterOptions?.filterMatches
+    filterOptions?.filterMatches,
+    getIgnoredRanges
   );
 
   const plugin: Plugin = new Plugin({
