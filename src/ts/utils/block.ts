@@ -1,7 +1,7 @@
 import { Node } from "prosemirror-model";
 import { IRange, IBlock } from "../interfaces/IMatch";
 
-export type TGetIgnoredRanges = (node: Node) => Range[] | undefined;
+export type TGetIgnoredRanges = (node: Node, from: number, to: number) => IRange[] | undefined;
 export const doNotIgnoreRanges: TGetIgnoredRanges = () => undefined
 
 export const createBlock = (doc: Node, range: IRange, time = 0, getIgnoredRangesFromNode: TGetIgnoredRanges): IBlock => {
@@ -10,7 +10,7 @@ export const createBlock = (doc: Node, range: IRange, time = 0, getIgnoredRanges
   // The final argument of 'textBetween' here adds a newline character to represent
   // a non-text leaf node.
   const text = doc.textBetween(range.from, range.to, undefined, "\n");
-  const ignoredRanges = getIgnoredRangesFromNode(doc)
+  const ignoredRanges = getIgnoredRangesFromNode(doc, range.from, range.to)
   return {
     text,
     ...range,

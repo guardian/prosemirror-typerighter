@@ -1,9 +1,9 @@
-import { Node, Mark, Schema } from "prosemirror-model";
+import { Node, Mark, Schema, MarkType } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
 import * as jsDiff from "diff";
 
-import { IBlock } from "../interfaces/IMatch";
+import { IBlock, IRange } from "../interfaces/IMatch";
 import { createBlock, TGetIgnoredRanges } from "./block";
 
 export const MarkTypes = {
@@ -222,9 +222,70 @@ export const applyPatchToTransaction = (
   patch: ISuggestionPatch
 ) => {
   if (patch.type === "INSERT") {
-    const marks = patch.getMarks(tr)
+    const marks = patch.getMarks(tr);
     const node = schema.text(patch.text, marks);
     return tr.insert(patch.from, node);
   }
   tr.delete(patch.from, patch.to);
+};
+
+/**
+ * Return the positions of the given map.
+ */
+export const findMarkPositions = (
+  docNode: Node,
+  from: number,
+  to: number,
+  mark: MarkType | Mark
+): IRange[] => {
+  const matched: Array<{
+    from: number;
+    to: number;
+    step?: number;
+    style?: Mark;
+  }> = [];
+  let step = 0;
+  docNode.nodesBetween(from, to, (node, pos) => {
+    if (!node.isInline) {
+      return;
+    }
+    step++;
+    let toRemove = null;
+    if (mark instanceof MarkType) {
+      const found = mark.isInSet(node.marks);
+      if (found) {
+        toRemove = [found];
+      }
+    } else if (mark) {
+      if (mark.isInSet(node.marks)) {
+        toRemove = [mark];
+      }
+    } else {
+      toRemove = node.marks;
+    }
+    if (toRemove && toRemove.length) {
+      const end = Math.min(pos + node.nodeSize, to);
+      for (let i = 0; i < toRemove.length; i++) {
+        const style = toRemove[i];
+        let found;
+        for (let j = 0; j < matched.length; j++) {
+          const m = matched[j];
+          if (
+            m.step === step - 1 &&
+            matched[j].style &&
+            style.eq(matched[j].style!)
+          ) {
+            found = m;
+          }
+        }
+        if (found) {
+          found.to = end;
+          found.step = step;
+        } else {
+          matched.push({ from: Math.max(pos, from), to: end - 1 });
+        }
+      }
+    }
+  });
+  return matched.map(match => ({ from: match.from, to: match.to }));
 };
