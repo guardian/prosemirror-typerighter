@@ -1,3 +1,5 @@
+import { MatchType } from "../utils/decoration";
+
 type TelemetryBool = "true" | "false";
 
 export interface ITelemetryEvent {
@@ -43,7 +45,8 @@ export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_CLEAR_DOCUMENT = "TYPERIGHTER_CLEAR_DOCUMENT",
   TYPERIGHTER_OPEN_STATE_CHANGED = "TYPERIGHTER_OPEN_STATE_CHANGED",
   TYPERIGHTER_SIDEBAR_MATCH_CLICK = "TYPERIGHTER_SIDEBAR_MATCH_CLICK",
-  TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED = "TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED"
+  TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED = "TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED",
+  TYPERIGHTER_FILTER_STATE_CHANGED = "TYPERIGHTER_FILTER_STATE_CHANGED"
 }
 
 export interface ITyperighterTelemetryEvent extends ITelemetryEvent {
@@ -111,4 +114,10 @@ export interface ISidebarClickEvent extends ITyperighterTelemetryEvent {
 export interface ISummaryToggleEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED;
   value: 0 | 1;
+}
+
+export interface IFilterToggleEvent extends ITyperighterTelemetryEvent {
+  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_FILTER_STATE_CHANGED;
+  value: 0 | 1;
+  tags: ITyperighterTelemetryEvent["tags"] & { matchType: MatchType };
 }
