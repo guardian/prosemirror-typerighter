@@ -6,6 +6,7 @@ import {
 import { Transaction } from "prosemirror-state";
 import { schema } from "prosemirror-schema-basic";
 import { flatten } from "prosemirror-utils";
+import { doNotSkipRanges } from "../block";
 
 const { doc, p, ul, li } = builder;
 
@@ -17,7 +18,7 @@ describe("Prosemirror utils", () => {
         p("Paragraph 2"),
         p(ul(li("List item 1"), li("List item 2")))
       );
-      expect(getBlocksFromDocument(node, 0)).toEqual([
+      expect(getBlocksFromDocument(node, 0, doNotSkipRanges)).toEqual([
         { from: 1, to: 13, text: "Paragraph 1", id: "0-from:1-to:13" },
         { from: 14, to: 26, text: "Paragraph 2", id: "0-from:14-to:26" },
         {

@@ -4,7 +4,7 @@ import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
 import * as jsDiff from "diff";
 
 import { IBlock, IRange } from "../interfaces/IMatch";
-import { createBlock, TGetSkippedRanges } from "./block";
+import { createBlock, doNotSkipRanges, TGetSkippedRanges } from "./block";
 
 export const MarkTypes = {
   legal: "legal",
@@ -43,7 +43,7 @@ export const findChildren = (
 export const getBlocksFromDocument = (
   doc: Node,
   time = 0,
-  getIgnoredRanges: TGetSkippedRanges
+  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
 ): IBlock[] => {
   const ranges = [] as IBlock[];
   doc.descendants((descNode, pos) => {
