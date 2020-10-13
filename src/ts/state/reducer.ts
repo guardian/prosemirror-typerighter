@@ -66,8 +66,8 @@ import {
 import { Mapping } from "prosemirror-transform";
 import {
   createBlock,
-  doNotIgnoreRanges,
-  TGetIgnoredRanges
+  doNotSkipRanges,
+  TGetSkippedRanges
 } from "../utils/block";
 import {
   addMatchesToState,
@@ -224,7 +224,7 @@ export const createReducer = <TPluginState extends IPluginState>(
     TPluginState["filterState"],
     TPluginState["currentMatches"][0]
   >,
-  getIgnoredRanges: TGetIgnoredRanges = doNotIgnoreRanges
+  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges,
@@ -484,7 +484,7 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
  */
 const createHandleMatchesRequestForDirtyRanges = (
   expandRanges: ExpandRanges,
-  getIgnoredRanges: TGetIgnoredRanges
+  getIgnoredRanges: TGetSkippedRanges
 ) => <TPluginState extends IPluginState>(
   tr: Transaction,
   state: TPluginState,
@@ -501,7 +501,7 @@ const createHandleMatchesRequestForDirtyRanges = (
  * Handle a matches request for the entire document.
  */
 const createHandleMatchesRequestForDocument = (
-  getIgnoredRanges: TGetIgnoredRanges
+  getIgnoredRanges: TGetSkippedRanges
 ) => <TPluginState extends IPluginState>(
   tr: Transaction,
   state: TPluginState,

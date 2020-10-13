@@ -4,7 +4,7 @@ import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
 import * as jsDiff from "diff";
 
 import { IBlock, IRange } from "../interfaces/IMatch";
-import { createBlock, TGetIgnoredRanges } from "./block";
+import { createBlock, TGetSkippedRanges } from "./block";
 
 export const MarkTypes = {
   legal: "legal",
@@ -43,7 +43,7 @@ export const findChildren = (
 export const getBlocksFromDocument = (
   doc: Node,
   time = 0,
-  getIgnoredRanges: TGetIgnoredRanges
+  getIgnoredRanges: TGetSkippedRanges
 ): IBlock[] => {
   const ranges = [] as IBlock[];
   doc.descendants((descNode, pos) => {
@@ -230,7 +230,7 @@ export const applyPatchToTransaction = (
 };
 
 /**
- * Return the positions of the given map.
+ * Return the ranges covered by the given mark.
  */
 export const findMarkPositions = (
   docNode: Node,

@@ -23,7 +23,7 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
-import { doNotIgnoreRanges, TGetIgnoredRanges } from "./utils/block";
+import { doNotSkipRanges, TGetSkippedRanges } from "./utils/block";
 import { startHoverCommand, stopHoverCommand } from "./commands";
 import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
@@ -76,7 +76,7 @@ export interface IPluginOptions<
    * your CMS allows users to exclude ranges that we don't want to check,
    * but do want to accommodate as part of the document.
    */
-  getIgnoredRanges?: TGetIgnoredRanges;
+  getSkippedRanges?: TGetSkippedRanges;
 
   /**
    * The colours to use for document matches.
@@ -101,7 +101,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
 ) => {
   const {
     expandRanges = expandRangesToParentBlockNode,
-    getIgnoredRanges = doNotIgnoreRanges,
+    getSkippedRanges = doNotSkipRanges,
     matches = [],
     filterOptions,
     ignoreMatch = includeAllMatches,
@@ -117,7 +117,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     expandRanges,
     ignoreMatch,
     filterOptions?.filterMatches,
-    getIgnoredRanges
+    getSkippedRanges
   );
 
   const plugin: Plugin = new Plugin({

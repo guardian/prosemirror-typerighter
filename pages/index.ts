@@ -50,7 +50,7 @@ const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
     filterMatches: filterByMatchState,
     initialFilterState: [] as MatchType[]
   },
-  getIgnoredRanges: (node, from, to) => findMarkPositions(node, from, to, mySchema.marks.code)
+  getSkippedRanges: (node, from, to) => findMarkPositions(node, from, to, mySchema.marks.code)
 });
 
 if (editorElement && sidebarNode) {
