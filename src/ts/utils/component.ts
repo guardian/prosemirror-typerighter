@@ -16,7 +16,7 @@ export const createScrollToRangeHandler = (
     return;
   }
 
-  const scrollToYCoord = getMatchOffset(match.matchId) - getScrollOffset();
+  const scrollToYCoord = getMatchOffset(match.matchId, editorScrollElement) - getScrollOffset();
   editorScrollElement.scrollTo({
     top: scrollToYCoord,
     behavior: "smooth"

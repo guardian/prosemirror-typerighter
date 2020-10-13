@@ -211,19 +211,20 @@ export const maybeGetDecorationElement = (
 ): HTMLElement | null =>
   document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
 
-const getProseMirrorOffsetValue = (element: HTMLElement): number => {
+const getProseMirrorOffsetValue = (element: HTMLElement, scrollElement: Element): number => {
   var offset = element.offsetTop;
 
-  if(element.offsetParent && !element.offsetParent.className.includes("ProseMirror")){
-    return offset += getProseMirrorOffsetValue(element.offsetParent as HTMLElement);
+  if(element.offsetParent && !element.isEqualNode(scrollElement)){
+    return offset += getProseMirrorOffsetValue(element.offsetParent as HTMLElement, scrollElement);
   }
 
   return offset;
 }
 
 export const getMatchOffset = (
-  matchId: string
+  matchId: string,
+  scrollElement: Element
 ): number => {
   const element = document.querySelector<HTMLElement>(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
-  return element ? getProseMirrorOffsetValue(element) : 0;
+  return element ? getProseMirrorOffsetValue(element, scrollElement) : 0;
 }
