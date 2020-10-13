@@ -210,3 +210,20 @@ export const maybeGetDecorationElement = (
   matchId: string
 ): HTMLElement | null =>
   document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
+
+const getProseMirrorOffsetValue = (element: HTMLElement): number => {
+  var offset = element.offsetTop;
+
+  if(element.offsetParent && !element.offsetParent.className.includes("ProseMirror")){
+    return offset += getProseMirrorOffsetValue(element.offsetParent as HTMLElement);
+  }
+
+  return offset;
+}
+
+export const getMatchOffset = (
+  matchId: string
+): number => {
+  const element = document.querySelector<HTMLElement>(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
+  return element ? getProseMirrorOffsetValue(element) : 0;
+}

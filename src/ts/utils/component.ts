@@ -1,5 +1,5 @@
 import { IMatch, TyperighterTelemetryAdapter } from "..";
-import { maybeGetDecorationElement } from "../utils/decoration";
+import { getMatchOffset } from "../utils/decoration";
 
 export const createScrollToRangeHandler = (
   match: IMatch,
@@ -16,13 +16,10 @@ export const createScrollToRangeHandler = (
     return;
   }
 
-  const decorationElement = maybeGetDecorationElement(match.matchId);
+  const scrollToYCoord = getMatchOffset(match.matchId) - getScrollOffset();
+  editorScrollElement.scrollTo({
+    top: scrollToYCoord,
+    behavior: "smooth"
+  });
 
-  if (decorationElement) {
-    const scrollToYCoord = decorationElement.offsetTop - getScrollOffset();
-    editorScrollElement.scrollTo({
-      top: scrollToYCoord,
-      behavior: "smooth"
-    });
-  }
 };
