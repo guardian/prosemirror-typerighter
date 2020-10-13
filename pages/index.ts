@@ -20,6 +20,7 @@ import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetry
 import TelemetryService from "../src/ts/services/TelemetryService";
 import { MatchType } from "../src/ts/utils/decoration";
 import { filterByMatchState } from "../src/ts/utils/plugin";
+import { findMarkPositions } from "../src/ts/utils/prosemirror";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -42,12 +43,14 @@ document.body.append(overlayNode);
 const isElementPartOfTyperighterUI = (element: HTMLElement) =>
   overlayNode.contains(element);
 
+
 const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
   isElementPartOfTyperighterUI,
   filterOptions: {
     filterMatches: filterByMatchState,
     initialFilterState: [] as MatchType[]
-  }
+  },
+  getSkippedRanges: (node, from, to) => findMarkPositions(node, from, to, mySchema.marks.code)
 });
 
 if (editorElement && sidebarNode) {

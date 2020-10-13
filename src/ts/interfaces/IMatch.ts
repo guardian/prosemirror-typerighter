@@ -16,6 +16,7 @@ export interface IBlock {
   text: string;
   from: number;
   to: number;
+  skipRanges?: IRange[]
 }
 
 export type ISuggestion = ITextSuggestion | IWikiSuggestion;

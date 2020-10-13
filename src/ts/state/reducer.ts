@@ -64,7 +64,11 @@ import {
   selectBlockQueriesInFlightById
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
-import { createBlock } from "../utils/block";
+import {
+  createBlock,
+  doNotSkipRanges,
+  TGetSkippedRanges
+} from "../utils/block";
 import {
   addMatchesToState,
   deriveFilteredDecorations,
@@ -219,10 +223,15 @@ export const createReducer = <TPluginState extends IPluginState>(
   filterMatches?: TFilterMatches<
     TPluginState["filterState"],
     TPluginState["currentMatches"][0]
-  >
+  >,
+  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
-    expandRanges
+    expandRanges,
+    getIgnoredRanges
+  );
+  const handleMatchesRequestForDocument = createHandleMatchesRequestForDocument(
+    getIgnoredRanges
   );
   const handleNewHoverId = createHandleNewFocusState<TPluginState>("hoverId");
   const handleNewHighlightId = createHandleNewFocusState<TPluginState>(
@@ -474,7 +483,8 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
  * Handle a matches request for the current set of dirty ranges.
  */
 const createHandleMatchesRequestForDirtyRanges = (
-  expandRanges: ExpandRanges
+  expandRanges: ExpandRanges,
+  getIgnoredRanges: TGetSkippedRanges
 ) => <TPluginState extends IPluginState>(
   tr: Transaction,
   state: TPluginState,
@@ -482,7 +492,7 @@ const createHandleMatchesRequestForDirtyRanges = (
 ): TPluginState => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const blocks: IBlock[] = ranges.map(range =>
-    createBlock(tr.doc, range, tr.time)
+    createBlock(tr.doc, range, tr.time, getIgnoredRanges)
   );
   return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
@@ -490,14 +500,16 @@ const createHandleMatchesRequestForDirtyRanges = (
 /**
  * Handle a matches request for the entire document.
  */
-const handleMatchesRequestForDocument = <TPluginState extends IPluginState>(
+const createHandleMatchesRequestForDocument = (
+  getIgnoredRanges: TGetSkippedRanges
+) => <TPluginState extends IPluginState>(
   tr: Transaction,
   state: TPluginState,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDocument
 ): TPluginState => {
   return handleRequestStart(
     requestId,
-    getBlocksFromDocument(tr.doc, tr.time),
+    getBlocksFromDocument(tr.doc, tr.time, getIgnoredRanges),
     categoryIds
   )(tr, state);
 };
