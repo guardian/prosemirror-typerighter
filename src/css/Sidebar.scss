@@ -59,9 +59,9 @@
   border-radius: $base-border-radius;
   min-width: 30px;
   font-weight: bold;
-  height: 20px;
+  height: fit-content;
   margin-right: $gutter-width / 2;
-  font-size: 14px;
+  font-size: $font-size-base;
   cursor: pointer;
   &:focus {
     outline: none;
