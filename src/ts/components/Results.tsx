@@ -136,7 +136,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
               opacity: isLoading ? 1 : 0,
               // We always display a sliver of loading bar to let
               // users know that a check has started
-              width: `${100 - Math.min(percentRemaining, 0.99)}%`
+              width: `${100 - Math.min(percentRemaining, 99)}%`
             }}
           >
             <div className="LoadingBar__animated-background"></div>
