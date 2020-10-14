@@ -89,7 +89,7 @@ export const selectPercentRemaining = <TPluginState extends IPluginState>(
     },
     [0, 0]
   );
-  return totalRemainingWork ? Math.min(totalRemainingWork / totalWork, 0.99) * 100 : 0;
+  return totalRemainingWork ? (totalRemainingWork / totalWork) * 100 : 0;
 };
 
 export const selectSuggestionAndRange = (
