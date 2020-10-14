@@ -102,11 +102,34 @@
   border-top: 1px solid $sidebar-border-color;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
+.LoadingBar {
+  position: absolute;
+  height: 3px;
+  left: 0;
+  bottom: 0;
+  background-color: #01adee;
+  width: 100%;
+  transition: width 0.3s, opacity 0.3s;
+}
+
+.LoadingBar__animated-background {
+  animation-duration: 1.25s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: placeHolderShimmer;
+  animation-timing-function: linear;
+  background: linear-gradient(to right, rgba(255,255,255,0) 10%, rgba(255,255,255,0.5) 18%, rgba(255,255,255,0) 33%);
+  background-size: 800px 104px;
+  height: 100%;
+  position: relative;
+}
+
+@keyframes placeHolderShimmer{
+  0%{
+      background-position: -468px 0
   }
-  to {
-    transform: rotate(360deg);
+  100%{
+      background-position: 468px 0
   }
 }
+
