@@ -87,6 +87,7 @@ if (editorElement && sidebarNode) {
     store,
     commands,
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk"),
+    "example-document-id",
     typerighterTelemetryAdapter
   );
 

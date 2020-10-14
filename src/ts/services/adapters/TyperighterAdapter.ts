@@ -2,13 +2,12 @@ import throttle from "lodash/throttle";
 import uniqBy from "lodash/uniqBy";
 import uniq from "lodash/uniq";
 import { v4 } from "uuid";
-import { IBlock, IMatcherResponse } from "../../interfaces/IMatch";
+import { IMatcherResponse } from "../../interfaces/IMatch";
 import { ITypeRighterResponse } from "./interfaces/ITyperighter";
 import {
   IMatcherAdapter,
   TMatchesReceivedCallback,
-  TRequestErrorCallback,
-  TRequestCompleteCallback
+  IFetchMatchesOptions
 } from "../../interfaces/IMatcherAdapter";
 
 /**
@@ -41,18 +40,19 @@ class TyperighterAdapter implements IMatcherAdapter {
 
   protected responseBuffer: ITypeRighterResponse[] = [];
 
-  public fetchMatches = async (
-    requestId: string,
-    inputs: IBlock[],
-    categoryIds: string[],
-    onMatchesReceived: TMatchesReceivedCallback,
-    onRequestError: TRequestErrorCallback,
-    _: TRequestCompleteCallback
-  ) => {
-    inputs.map(async input => {
+  public fetchMatches = async ({
+    requestId,
+    blocks,
+    categoryIds,
+    documentUrl,
+    onMatchesReceived,
+    onRequestError
+  }: IFetchMatchesOptions) => {
+    blocks.map(async block => {
       const body = {
         requestId,
-        blocks: [input],
+        documentUrl,
+        blocks: [block]
       };
       try {
         const response = await fetch(`${this.url}/check`, {
@@ -66,7 +66,7 @@ class TyperighterAdapter implements IMatcherAdapter {
         if (response.status === 401 || response.status === 419) {
           return onRequestError({
             requestId,
-            blockId: input.id,
+            blockId: block.id,
             message: `${response.status}: ${response.statusText}`,
             categoryIds,
             type: "AUTH_ERROR"
@@ -81,7 +81,7 @@ class TyperighterAdapter implements IMatcherAdapter {
       } catch (e) {
         onRequestError({
           requestId,
-          blockId: input.id,
+          blockId: block.id,
           message: e.message,
           categoryIds,
           type: "GENERAL_ERROR"

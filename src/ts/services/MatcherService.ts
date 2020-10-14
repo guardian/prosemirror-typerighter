@@ -27,6 +27,7 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
     private store: Store<IPluginState<TFilterState, TMatch>>,
     private commands: Commands,
     private adapter: IMatcherAdapter<TMatch>,
+    private documentUrl?: string,
     private telemetryAdapter?: TyperighterTelemetryAdapter,
     // The initial throttle duration for pending requests.
     private initialThrottle = 2000
@@ -78,14 +79,15 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
       this.sendMatchTelemetryEvents(response.matches);
       this.commands.applyMatcherResponse(response);
     };
-    this.adapter.fetchMatches(
+    this.adapter.fetchMatches({
       requestId,
       blocks,
-      this.currentCategories.map(_ => _.id),
-      applyMatcherResponse,
-      this.commands.applyRequestError,
-      this.commands.applyRequestComplete
-    );
+      documentUrl: this.documentUrl,
+      categoryIds: this.currentCategories.map(_ => _.id),
+      onMatchesReceived: applyMatcherResponse,
+      onRequestError: this.commands.applyRequestError,
+      onRequestComplete: this.commands.applyRequestComplete
+    });
   }
 
   /**
