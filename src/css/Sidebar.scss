@@ -1,6 +1,6 @@
 #Sidebar {
   border-radius: 4px;
-  border: 1px solid #ddd;
+  border: 1px solid $sidebar-border-color;
 }
 
 .Sidebar__container {
@@ -15,8 +15,6 @@
   display: flex;
   flex-direction: column;
   background-color: white;
-  border-radius: 4px;
-  border: 1px solid $sidebar-border-color;
   max-height: 100%;
   overflow: hidden;
   font-size: $font-size-base;
@@ -78,7 +76,6 @@
 
 .Sidebar__header-sort {
   font-weight: normal;
-  font-size: $font-size-small;
 }
 
 .Sidebar__list {
@@ -118,18 +115,22 @@
   animation-iteration-count: infinite;
   animation-name: placeHolderShimmer;
   animation-timing-function: linear;
-  background: linear-gradient(to right, rgba(255,255,255,0) 10%, rgba(255,255,255,0.5) 18%, rgba(255,255,255,0) 33%);
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 10%,
+    rgba(255, 255, 255, 0.5) 15%,
+    rgba(255, 255, 255, 0) 20%
+  );
   background-size: 800px 104px;
   height: 100%;
   position: relative;
 }
 
-@keyframes placeHolderShimmer{
-  0%{
-      background-position: -468px 0
+@keyframes placeHolderShimmer {
+  0% {
+    background-position: -468px 0;
   }
-  100%{
-      background-position: 468px 0
+  100% {
+    background-position: 468px 0;
   }
 }
-

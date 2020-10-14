@@ -23,12 +23,3 @@
   font-size: $font-size-small;
 }
 
-.LoadingBar {
-  position: absolute;
-  height: 3px;
-  left: 0;
-  bottom: 0;
-  background-color: #01adee;
-  width: 100%;
-  transition: width 0.3s, opacity 0.3s;
-}
