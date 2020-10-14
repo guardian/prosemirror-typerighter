@@ -110,7 +110,7 @@
 }
 
 .LoadingBar__animated-background {
-  animation-duration: 1.25s;
+  animation-duration: 1.75s;
   animation-fill-mode: forwards;
   animation-iteration-count: infinite;
   animation-name: placeHolderShimmer;
@@ -128,9 +128,9 @@
 
 @keyframes placeHolderShimmer {
   0% {
-    background-position: -468px 0;
+    background-position: -200px 0;
   }
   100% {
-    background-position: 468px 0;
+    background-position: 400px 0;
   }
 }
