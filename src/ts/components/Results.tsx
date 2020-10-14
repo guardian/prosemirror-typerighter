@@ -134,25 +134,28 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
             className="LoadingBar"
             style={{
               opacity: isLoading ? 1 : 0,
-              width: `${100 - percentRemaining}%`
+              // We always display a sliver of loading bar to let
+              // users know that a check has started
+              width: `${100 - Math.min(percentRemaining, 0.99)}%`
             }}
-          />
+          >
+            <div className="LoadingBar__animated-background"></div>
+          </div>
         )}
       </div>
 
       <div className="Sidebar__content">
-          <SidebarMatches
-            matches={orderedMatches}
-            matchColours={pluginState?.config.matchColours}
-            selectedMatch={selectedMatch}
-            selectMatch={selectMatch}
-            indicateHighlight={indicateHighlight}
-            stopHighlight={stopHighlight}
-            editorScrollElement={editorScrollElement}
-            getScrollOffset={getScrollOffset}
-            isSummaryView={sortAndGroup}
-          />
-
+        <SidebarMatches
+          matches={orderedMatches}
+          matchColours={pluginState?.config.matchColours}
+          selectedMatch={selectedMatch}
+          selectMatch={selectMatch}
+          indicateHighlight={indicateHighlight}
+          stopHighlight={stopHighlight}
+          editorScrollElement={editorScrollElement}
+          getScrollOffset={getScrollOffset}
+          isSummaryView={sortAndGroup}
+        />
         {!hasMatches && (
           <div className="Sidebar__awaiting-match">No matches to report.</div>
         )}

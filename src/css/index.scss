@@ -82,8 +82,12 @@ hr {
   cursor: pointer;
 }
 
-.Button:hover {
+.Button:hover, .Button:disabled {
   background-color: #eee;
+}
+
+.Button:disabled {
+  color: #888;
 }
 
 .Button:active,
