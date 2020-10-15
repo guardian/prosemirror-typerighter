@@ -172,3 +172,8 @@ export const selectMatches = <TMatch extends IMatch>(
   sortByImportance
     ? selectImportanceOrderedMatches(state)
     : selectDocumentOrderedMatches(state);
+
+
+export const selectDocumentHasChanged = (state: IPluginState): boolean => {
+  return state.docChangedSinceCheck;
+};

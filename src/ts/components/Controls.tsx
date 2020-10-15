@@ -10,7 +10,8 @@ import {
   selectHasGeneralError,
   selectHasAuthError,
   selectRequestsInProgress,
-  selectHasMatches
+  selectHasMatches,
+  selectDocumentHasChanged
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
@@ -115,6 +116,23 @@ const Controls = <TPluginState extends IPluginState>({
     );
   };
 
+  const renderChangedIcon = () => {
+    if (!pluginState) {
+      return;
+    }
+    
+    const docHasChanged = selectDocumentHasChanged(pluginState);
+    // const docHasChanged = selectDocumentHasChanged();
+
+    if (!docHasChanged) {
+      return;
+    }
+
+    return (
+      <div className="Sidebar__header-change-indicator"></div>
+    )
+  };
+
   return (
     <>
       <div className="Sidebar__header-container">
@@ -127,6 +145,7 @@ const Controls = <TPluginState extends IPluginState>({
           >
             Check document
           </button>
+          {renderChangedIcon()}
           <IconButton
             size="small"
             aria-label="clear all matches"

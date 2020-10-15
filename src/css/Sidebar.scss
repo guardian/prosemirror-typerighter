@@ -55,6 +55,19 @@
   justify-content: space-between;
 }
 
+.Sidebar__header-change-indicator {
+  position: absolute;
+  left: 126px;
+  bottom: 24px;
+  width: 10px;
+  height: 10px;
+  background-image: radial-gradient(closest-corner at 4px 4px,
+  $match-color 0%, $sidebar-highlight-color 100%);
+  border-radius: 50%;
+  display: inline-block;
+  z-index: 1;
+}
+
 .Sidebar__filter-toggle {
   display: inline-block;
   padding: 1px 2px;
@@ -104,7 +117,7 @@
   height: 3px;
   left: 0;
   bottom: 0;
-  background-color: #01adee;
+  background-color: $sidebar-highlight-color;
   width: 100%;
   transition: width 0.3s, opacity 0.3s;
 }
