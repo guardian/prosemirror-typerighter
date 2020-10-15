@@ -55,10 +55,14 @@
   justify-content: space-between;
 }
 
+.Sidebar__header-button-container {
+  position: relative;  
+}
+
 .Sidebar__header-change-indicator {
   position: absolute;
-  left: -4px;
-  bottom: 23px;
+  right: -4px;
+  bottom: 22px;
   width: 10px;
   height: 10px;
   background-image: radial-gradient(closest-corner at 4px 4px,
