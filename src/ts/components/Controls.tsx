@@ -117,12 +117,6 @@ const Controls = <TPluginState extends IPluginState>({
   };
 
   const renderCheckDocumentButton = () => {
-    if (!pluginState) {
-      return;
-    }
-
-    const docHasChanged = selectDocumentHasChanged(pluginState);
-
     const plainButton = (
       <button
         type="button"
@@ -133,6 +127,12 @@ const Controls = <TPluginState extends IPluginState>({
         Check document
       </button>
     );
+
+    if (!pluginState) {
+      return plainButton;
+    }
+
+    const docHasChanged = selectDocumentHasChanged(pluginState);
 
     if (!docHasChanged) {
       return plainButton;
