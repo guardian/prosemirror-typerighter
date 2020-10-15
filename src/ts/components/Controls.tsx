@@ -119,17 +119,16 @@ const Controls = <TPluginState extends IPluginState>({
   const renderChangedIcon = () => {
     if (!pluginState) {
       return;
-    }
-    
+    }    
+
     const docHasChanged = selectDocumentHasChanged(pluginState);
-    // const docHasChanged = selectDocumentHasChanged();
 
     if (!docHasChanged) {
       return;
     }
 
     return (
-      <div className="Sidebar__header-change-indicator"></div>
+      <div title="Changes made since last check" className="Sidebar__header-change-indicator"></div>
     )
   };
 
