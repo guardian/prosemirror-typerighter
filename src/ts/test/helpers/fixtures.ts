@@ -203,7 +203,8 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       trHistory: [tr],
       requestsInFlight: {},
       requestPending: false,
-      requestErrors: []
+      requestErrors: [],
+      docChangedSinceCheck: false
     } as IPluginState
   };
 };

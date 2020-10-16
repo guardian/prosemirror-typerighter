@@ -10,7 +10,8 @@ import {
   selectHasGeneralError,
   selectHasAuthError,
   selectRequestsInProgress,
-  selectHasMatches
+  selectHasMatches,
+  selectDocumentHasChanged
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
@@ -49,9 +50,9 @@ const Controls = <TPluginState extends IPluginState>({
   getCurrentCategories,
   feedbackHref
 }: IProps<TPluginState>) => {
-  const [pluginState, setPluginState] = useState<
-    TPluginState | undefined
-  >(undefined);
+  const [pluginState, setPluginState] = useState<TPluginState | undefined>(
+    undefined
+  );
 
   const { telemetryAdapter } = useContext(TelemetryContext);
 
@@ -115,24 +116,54 @@ const Controls = <TPluginState extends IPluginState>({
     );
   };
 
+  const renderCheckDocumentButton = () => {
+    const plainButton = (
+      <button
+        type="button"
+        className="Button"
+        onClick={handleCheckDocumentButtonClick}
+        disabled={pluginState && selectRequestsInProgress(pluginState)}
+      >
+        Check document
+      </button>
+    );
+
+    if (!pluginState) {
+      return plainButton;
+    }
+
+    const docHasChanged = selectDocumentHasChanged(pluginState);
+
+    if (!docHasChanged) {
+      return plainButton;
+    }
+
+    return (
+      <div
+        className="Sidebar__header-button-container"
+        title="Changes were made since last check"
+      >
+        {plainButton}
+        <div className="Sidebar__header-change-indicator"></div>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="Sidebar__header-container">
         <div className="Sidebar__header">
-          <button
-            type="button"
-            className="Button"
-            onClick={handleCheckDocumentButtonClick}
-            disabled={pluginState && selectRequestsInProgress(pluginState)}
-          >
-            Check document
-          </button>
+          {renderCheckDocumentButton()}
           <IconButton
             size="small"
             aria-label="clear all matches"
             title="clear all matches"
             onClick={handleClearButtonClick}
-            disabled={pluginState && (selectRequestsInProgress(pluginState) || !selectHasMatches(pluginState))}
+            disabled={
+              pluginState &&
+              (selectRequestsInProgress(pluginState) ||
+                !selectHasMatches(pluginState))
+            }
           >
             <DeleteForever />
           </IconButton>

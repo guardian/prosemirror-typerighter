@@ -145,6 +145,8 @@ export interface IPluginState<
   requestErrors: IMatchRequestError[];
   // The current state of the filter
   filterState: TFilterState;
+  // Has the document changed since the last document check?
+  docChangedSinceCheck: boolean;
 }
 
 // The transaction meta key that namespaces our actions.
@@ -196,7 +198,8 @@ export const createInitialState = <
     requestsInFlight: {},
     requestPending: false,
     requestErrors: [],
-    filterState: filterOptions?.initialFilterState as TFilterState
+    filterState: filterOptions?.initialFilterState as TFilterState,
+    docChangedSinceCheck: false
   };
 
   const stateWithMatches = addMatchesToState(
@@ -325,7 +328,8 @@ const getNewStateFromTransaction = <TPluginState extends IPluginState>(
     decorations: incomingState.decorations.map(tr.mapping, tr.doc),
     dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
     currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
-    requestsInFlight: mappedRequestsInFlight
+    requestsInFlight: mappedRequestsInFlight,
+    docChangedSinceCheck: true
   };
 };
 
@@ -555,7 +559,8 @@ const handleRequestStart = (
         mapping: tr.mapping,
         categoryIds
       }
-    }
+    },
+    docChangedSinceCheck: false
   };
 };
 
