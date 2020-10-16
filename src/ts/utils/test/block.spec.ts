@@ -3,13 +3,13 @@ import { removeSkippedRanges } from "../block";
 describe("Block utils", () => {
   describe("removeSkippedRanges", () => {
     it("should remove the passed skipped range from the block text", () => {
-      const skippedRanges = [{ from: 18, to: 25 }];
+      const skipRanges = [{ from: 18, to: 25 }];
       const block = {
         id: "id",
         text: "Example [noted ]text",
         from: 10,
         to: 28,
-        skippedRanges
+        skipRanges
       };
       const newBlock = removeSkippedRanges(block);
       expect(newBlock.text).toBe("Example text");
@@ -18,7 +18,7 @@ describe("Block utils", () => {
     });
 
     it("should remove multiple adjacent skipped ranges from the block text", () => {
-      const skippedRanges = [
+      const skipRanges = [
         { from: 18, to: 25 },
         { from: 26, to: 32 }
       ];
@@ -27,7 +27,7 @@ describe("Block utils", () => {
         text: "Example [noted][noted ]text",
         from: 10,
         to: 37,
-        skippedRanges
+        skipRanges
       };
       const newBlock = removeSkippedRanges(block);
 
@@ -37,7 +37,7 @@ describe("Block utils", () => {
     });
 
     it("should remove multiple non-adjacent skipped ranges from the block text - 1", () => {
-      const skippedRanges = [
+      const skipRanges = [
         { from: 18, to: 25 },
         { from: 41, to: 48 }
       ];
@@ -46,7 +46,7 @@ describe("Block utils", () => {
         text: "Example [noted ]text with more [noted ]text",
         from: 10,
         to: 52,
-        skippedRanges
+        skipRanges
       };
       const newBlock = removeSkippedRanges(block);
       expect(newBlock.text).toBe("Example text with more text");
@@ -55,7 +55,7 @@ describe("Block utils", () => {
     });
 
     it("should remove multiple non-adjacent skipped ranges from the block text - 2", () => {
-      const skippedRanges = [
+      const skipRanges = [
         { from: 40, to: 42 },
         { from: 44, to: 45 },
         { from: 47, to: 48 }
@@ -65,7 +65,7 @@ describe("Block utils", () => {
         text: "ABCDEFGHIJ",
         from: 40,
         to: 47,
-        skippedRanges
+        skipRanges
       };
       const newBlock = removeSkippedRanges(block);
 
@@ -75,7 +75,7 @@ describe("Block utils", () => {
     });
 
     it("should not care about order", () => {
-      const skippedRanges = [
+      const skipRanges = [
         { from: 24, to: 31 },
         { from: 18, to: 24 }
       ];
@@ -84,7 +84,7 @@ describe("Block utils", () => {
         text: "Example [noted][noted ]text",
         from: 10,
         to: 37,
-        skippedRanges
+        skipRanges
       };
       const newBlock = removeSkippedRanges(block);
       expect(newBlock.text).toBe("Example text");

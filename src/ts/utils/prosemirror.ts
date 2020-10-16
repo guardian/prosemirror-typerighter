@@ -3,7 +3,7 @@ import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
 import * as jsDiff from "diff";
 
-import { IBlock, IRange } from "../interfaces/IMatch";
+import { IBlockWithSkippedRanges, IRange } from "../interfaces/IMatch";
 import { createBlock, doNotSkipRanges, TGetSkippedRanges } from "./block";
 
 export const MarkTypes = {
@@ -44,8 +44,8 @@ export const getBlocksFromDocument = (
   doc: Node,
   time = 0,
   getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
-): IBlock[] => {
-  const ranges = [] as IBlock[];
+): IBlockWithSkippedRanges[] => {
+  const ranges = [] as IBlockWithSkippedRanges[];
   doc.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push(
@@ -97,7 +97,7 @@ interface IBaseSuggestionPatch {
 }
 
 interface ISuggestionPatchDelete extends IBaseSuggestionPatch {
-  type: "DELETE"
+  type: "DELETE";
 }
 
 interface ISuggestionPatchInsert extends IBaseSuggestionPatch {
@@ -110,7 +110,7 @@ interface ISuggestionPatchInsert extends IBaseSuggestionPatch {
   getMarks: (tr: Transaction) => Array<Mark<any>>;
 }
 
-type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete
+type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete;
 
 /**
  * Generates a minimal array of replacement nodes and ranges from two pieces of text.
@@ -168,7 +168,8 @@ export const getPatchesFromReplacementText = (
       }
 
       const prevFragment = currentFragments[currentFragments.length - 1];
-      const isInsertionThatFollowsUnalteredRange = !!prevFragment && (prevFragment.to || 0) < newFrom;
+      const isInsertionThatFollowsUnalteredRange =
+        !!prevFragment && (prevFragment.to || 0) < newFrom;
 
       let getMarks;
       if (isInsertionThatFollowsUnalteredRange) {
@@ -176,7 +177,7 @@ export const getPatchesFromReplacementText = (
         // from the character that precedes this patch. This ensures that text that expands
         // upon an existing range shares the existing range's style.
         getMarks = (localTr: Transaction) => {
-          const $newFrom = localTr.doc.resolve(newFrom)
+          const $newFrom = localTr.doc.resolve(newFrom);
           const $lastCharFrom = localTr.doc.resolve(newFrom - 1);
           return $lastCharFrom.marksAcross($newFrom) || Mark.none;
         };
@@ -184,9 +185,9 @@ export const getPatchesFromReplacementText = (
         // If this patch is a replacement, find all of the marks
         // that span the text we're replacing, and copy them across.
         getMarks = (localTr: Transaction) => {
-          const $newTo = localTr.doc.resolve(newTo)
+          const $newTo = localTr.doc.resolve(newTo);
           return localTr.doc.resolve(newFrom).marksAcross($newTo) || Mark.none;
-        }
+        };
       }
 
       const newFragment: ISuggestionPatchInsert = {

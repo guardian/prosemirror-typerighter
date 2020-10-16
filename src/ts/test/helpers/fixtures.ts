@@ -4,7 +4,9 @@ import {
   ISuggestion,
   IBlock,
   IMatcherResponse,
-  ICategory
+  ICategory,
+  IBlockWithSkippedRanges,
+  IRange
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
 import { IPluginState, IBlocksInFlightState, createReducer } from "../../state/reducer";
@@ -45,12 +47,14 @@ export const matchLibrary: IMatchLibrary = [
 export const createBlock = (
   from: number,
   to: number,
-  text = "str"
-): IBlock => ({
+  text = "str",
+  skipRanges: IRange[] = []
+): IBlockWithSkippedRanges => ({
   text,
   from,
   to,
-  id: `0-from:${from}-to:${to}`
+  id: `0-from:${from}-to:${to}`,
+  skipRanges
 });
 
 export interface ICreateMatcherResponseSpec {
@@ -150,7 +154,7 @@ export const exampleCategoryIds = ["example-category"];
 export const exampleRequestId = "set-id";
 
 export const createBlockQueriesInFlight = (
-  blockQueries: IBlock[],
+  blockQueries: IBlockWithSkippedRanges[],
   setId = exampleRequestId,
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
@@ -160,8 +164,8 @@ export const createBlockQueriesInFlight = (
     totalBlocks: total || blockQueries.length,
     mapping: new Mapping(),
     categoryIds,
-    pendingBlocks: blockQueries.map(input => ({
-      block: input,
+    pendingBlocks: blockQueries.map(block => ({
+      block,
       pendingCategoryIds
     }))
   }

@@ -68,7 +68,8 @@ describe("Action handlers", () => {
             from: 1,
             text: "Example text to check",
             to: 23,
-            id: "0-from:1-to:23"
+            id: "0-from:1-to:23",
+            skipRanges: []
           }
         ])
       });
@@ -104,7 +105,8 @@ describe("Action handlers", () => {
             text: "Example text to check",
             from: 1,
             to: 22,
-            id: "0-from:1-to:22"
+            id: "0-from:1-to:22",
+            skipRanges: []
           }
         ])
       });
@@ -301,7 +303,8 @@ describe("Action handlers", () => {
               from: 0,
               id: firstBlock.id,
               text: "Example text to check",
-              to: 15
+              to: 15,
+              skipRanges: []
             },
             pendingCategoryIds: ["this-category-should-remain"]
           },
@@ -310,7 +313,8 @@ describe("Action handlers", () => {
               from: 16,
               id: secondBlock.id,
               text: "Another block of text",
-              to: 37
+              to: 37,
+              skipRanges: []
             },
             pendingCategoryIds: ["1", "this-category-should-remain"]
           }
@@ -498,7 +502,7 @@ describe("Action handlers", () => {
         },
         matchContext: "some more text",
         precedingText: "some more text",
-        subsequentText: ""        
+        subsequentText: ""
       };
       const localState = {
         ...state,
@@ -536,7 +540,7 @@ describe("Action handlers", () => {
         },
         matchContext: "bigger block of text",
         precedingText: "bigger block of text",
-        subsequentText: ""        
+        subsequentText: ""
       };
       const localState = {
         ...state,
@@ -580,7 +584,7 @@ describe("Action handlers", () => {
           markAsCorrect: true,
           matchContext: "bigger block of text",
           precedingText: "bigger block of text",
-          subsequentText: ""        
+          subsequentText: ""
         }
       ];
       const stateWithCurrentMatchesAndDecorations = {
@@ -630,7 +634,7 @@ describe("Action handlers", () => {
             id: "exampleId",
             matchContext: "bigger block of text",
             precedingText: "bigger block of text",
-            subsequentText: ""        
+            subsequentText: ""
           }
         ]
       };

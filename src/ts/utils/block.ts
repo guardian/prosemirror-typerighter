@@ -1,5 +1,6 @@
+import { omit } from "lodash";
 import { Node } from "prosemirror-model";
-import { IRange, IBlock } from "../interfaces/IMatch";
+import { IRange, IBlock, IBlockWithSkippedRanges } from "../interfaces/IMatch";
 import { mapRemovedRange } from "./range";
 
 export type TGetSkippedRanges = (
@@ -14,13 +15,13 @@ export const createBlock = (
   range: IRange,
   time = 0,
   getSkippedRangesFromNode: TGetSkippedRanges
-): IBlock => {
+): IBlockWithSkippedRanges => {
   // Carriage returns are removed by textBetween, but they're one character
   // long, so if we strip them any position beyond them will be incorrectly offset.
   // The final argument of 'textBetween' here adds a newline character to represent
   // a non-text leaf node.
   const text = doc.textBetween(range.from, range.to, undefined, "\n");
-  const skipRanges = getSkippedRangesFromNode(doc, range.from, range.to);
+  const skipRanges = getSkippedRangesFromNode(doc, range.from, range.to) || [];
   return {
     text,
     ...range,
@@ -42,7 +43,7 @@ export const createMatchId = (
 /**
  * Remove the given ranges from the block text, adjusting the block range accordingly.
  */
-export const removeSkippedRanges = (block: IBlock): IBlock => {
+export const removeSkippedRanges = (block: IBlockWithSkippedRanges): IBlock => {
   const skipRanges = block.skipRanges || [];
   if (skipRanges.length === 0) {
     return block;
@@ -50,7 +51,7 @@ export const removeSkippedRanges = (block: IBlock): IBlock => {
   const [newBlock] = skipRanges.reduce(
     ([accBlock, rangesAlreadyApplied], range) => {
       const mappedRange = rangesAlreadyApplied.reduce(
-        (acc, incomingRange) => mapRemovedRange(incomingRange, acc),
+        (acc, rangeToRemove) => mapRemovedRange(acc, rangeToRemove),
         range
       );
       const snipFrom = mappedRange.from - accBlock.from;
@@ -63,15 +64,16 @@ export const removeSkippedRanges = (block: IBlock): IBlock => {
       const newText =
         accBlock.text.slice(0, snipRange.from) +
         accBlock.text.slice(snipRange.to, accBlock.text.length);
+
       const mappedBlock = {
-        ...accBlock,
+        ...omit(accBlock, 'skipRanges'),
         text: newText,
         to: accBlock.from + newText.length
       };
 
       return [mappedBlock, rangesAlreadyApplied.concat(mappedRange)];
     },
-    [block, [] as IRange[]]
+    [block as IBlock, [] as IRange[]]
   );
   return newBlock;
 };

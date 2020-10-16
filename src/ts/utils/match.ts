@@ -1,6 +1,5 @@
 import { IMatch } from "..";
-import { IBlock, IRange } from "../interfaces/IMatch";
-import { removeSkippedRanges } from "./block";
+import { IBlockWithSkippedRanges, IRange } from "../interfaces/IMatch";
 import { mapAddedRange } from "./range";
 
 /**
@@ -40,7 +39,7 @@ export const mapThroughSkippedRanges = <TMatch extends IMatch>(
  */
 export const mapMatchThroughBlocks = <TMatch extends IMatch>(
   match: TMatch,
-  blocks: IBlock[]
+  blocks: IBlockWithSkippedRanges[]
 ): TMatch => {
   const maybeBlockForThisMatch = blocks.find(
     block => match.from >= block.from && match.to <= block.to

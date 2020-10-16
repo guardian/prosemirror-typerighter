@@ -8,7 +8,10 @@ import { ITypeRighterResponse } from "../adapters/interfaces/ITyperighter";
 import { createBlockId } from "../../utils/block";
 import { IMatchRequestError } from "../../interfaces/IMatch";
 
-const createResponse = (strs: string[]): ITypeRighterResponse => ({
+const createResponse = (
+  strs: string[],
+  fromPos: number = 0
+): ITypeRighterResponse => ({
   requestId: "set-id",
   categoryIds: ["numberCat"],
   blocks: [
@@ -20,8 +23,8 @@ const createResponse = (strs: string[]): ITypeRighterResponse => ({
     }
   ],
   matches: strs.map(str => ({
-    fromPos: 0,
-    toPos: str.length,
+    fromPos,
+    toPos: fromPos + str.length,
     id: createBlockId(0, 0, 5),
     matchedText: str,
     message: "It's just a bunch of numbers, mate",
@@ -50,7 +53,8 @@ const block = {
   from: 0,
   to: 10,
   text: "1234567890",
-  id: "0-from:0-to:10"
+  id: "0-from:0-to:10",
+  skipRanges: []
 };
 
 const commands = {
@@ -60,8 +64,21 @@ const commands = {
 };
 
 const requestId = "set-id";
-
 const store = new Store();
+const endpoint = "http://typerighter-service-endpoint.rad";
+const createMatcherService = () =>
+  new MatcherService(store, commands as any, new TyperighterAdapter(endpoint));
+const getLastRequest = () => {
+  try {
+    const [, request] = fetchMock.lastCall()!;
+    const requestBody = JSON.parse(request!.body!.toString());
+    return requestBody;
+  } catch (e) {
+    throw new Error(
+      `Error parsing last request made to fetchMock: ${e.message}`
+    );
+  }
+};
 
 jest.mock("uuid", () => ({ v4: () => "id" }));
 
@@ -71,13 +88,9 @@ describe("MatcherService", () => {
     commands.applyMatcherResponse.mockReset();
   });
   it("should issue a fetch given a block, resolving with matches and broadcasting the correct event", done => {
-    const service = new MatcherService(
-      store,
-      commands as any,
-      new TyperighterAdapter("http://endpoint")
-    );
+    const service = createMatcherService();
     const response = createResponse(["1234567890"]);
-    fetchMock.post("http://endpoint/check", response);
+    fetchMock.post(`${endpoint}/check`, response);
 
     expect.assertions(1);
 
@@ -92,25 +105,69 @@ describe("MatcherService", () => {
     });
   });
   it("should handle request errors", done => {
-    const service = new MatcherService(
-      store,
-      commands as any,
-      new TyperighterAdapter("http://endpoint")
-    );
-    fetchMock.post("http://endpoint/check", 400);
+    const service = createMatcherService();
+    fetchMock.post(`${endpoint}/check`, 400);
 
     service.requestFetchMatches();
     store.emit("STORE_EVENT_NEW_MATCHES", requestId, [block]);
     setTimeout(() => {
       expect(commands.applyRequestError.mock.calls[0][0]).toEqual({
-        message:
-          "400: Bad Request",
+        message: "400: Bad Request",
         blockId: "0-from:0-to:10",
         requestId: "set-id",
         categoryIds: [],
         type: "GENERAL_ERROR"
       } as IMatchRequestError);
       done();
+    });
+  });
+
+  describe("handling skipRanges", () => {
+    const blockText = "ABCDEF";
+    const outgoingText = "BDF";
+    const blockWithSkipRanges = {
+      id: "id",
+      from: 0,
+      to: 6,
+      text: blockText,
+      skipRanges: [
+        { from: 0, to: 0 },
+        { from: 2, to: 2 },
+        { from: 4, to: 4 }
+      ]
+    };
+    it("should remove the skipped ranges from block text as they're passed to the Typerighter service", done => {
+      const service = createMatcherService();
+      fetchMock.post(`${endpoint}/check`, 400);
+      service.requestFetchMatches();
+
+      store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithSkipRanges]);
+      setTimeout(() => {
+        const { blocks } = getLastRequest();
+        const expectedBlocks = [
+          {
+            id: "id",
+            from: 0,
+            to: 3,
+            text: outgoingText
+          }
+        ];
+        expect(blocks).toEqual(expectedBlocks);
+        done();
+      });
+    });
+
+    it("On receipt of matches, map matches that succeed skipped ranges through those ranges to ensure they're correct", done => {
+      const service = createMatcherService();
+      // const response = createResponse(['F'], 2);
+      fetchMock.post(`${endpoint}/check`, 400);
+      service.requestFetchMatches();
+
+      store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithSkipRanges]);
+      setTimeout(() => {
+        // @todo
+        done();
+      });
     });
   });
 });
