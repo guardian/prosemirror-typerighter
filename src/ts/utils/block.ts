@@ -42,14 +42,12 @@ export const createMatchId = (
 /**
  * Remove the given ranges from the block text, adjusting the block range accordingly.
  */
-export const removeSkippedRanges = (
-  block: IBlock,
-  rangesToSkip: IRange[]
-): IBlock => {
-  if (rangesToSkip.length === 0) {
+export const removeSkippedRanges = (block: IBlock): IBlock => {
+  const skipRanges = block.skipRanges || [];
+  if (skipRanges.length === 0) {
     return block;
   }
-  const [newBlock] = rangesToSkip.reduce(
+  const [newBlock] = skipRanges.reduce(
     ([accBlock, rangesAlreadyApplied], range) => {
       const mappedRange = rangesAlreadyApplied.reduce(
         (acc, incomingRange) => mapRemovedRange(incomingRange, acc),

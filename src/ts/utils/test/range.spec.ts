@@ -3,7 +3,10 @@ import {
   findOverlappingRangeIndex,
   mergeRanges,
   removeOverlappingRanges,
-  getRangesOfParentBlockNodes
+  getRangesOfParentBlockNodes,
+  mapRemovedRange,
+  getIntersection,
+  mapAddedRange
 } from "../range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
 
@@ -33,7 +36,10 @@ describe("Range utils", () => {
     it("should handle multiple ranges for the same node", () => {
       expect(
         getRangesOfParentBlockNodes(
-          [{ from: 1, to: 2 }, { from: 10, to: 12 }],
+          [
+            { from: 1, to: 2 },
+            { from: 10, to: 12 }
+          ],
           doc
         )
       ).toEqual([
@@ -46,7 +52,11 @@ describe("Range utils", () => {
     it("should handle multiple ranges for different nodes", () => {
       expect(
         getRangesOfParentBlockNodes(
-          [{ from: 1, to: 2 }, { from: 30, to: 32 }, { from: 50, to: 55 }],
+          [
+            { from: 1, to: 2 },
+            { from: 30, to: 32 },
+            { from: 50, to: 55 }
+          ],
           doc
         )
       ).toEqual([
@@ -336,6 +346,92 @@ describe("Range utils", () => {
           to: 7
         }
       ]);
+    });
+  });
+  describe("mapAddedRange", () => {
+    it("should account for a range added before the given range", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const addedRange = { from: 0, to: 5 };
+      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+        from: 16,
+        to: 21
+      });
+    });
+
+    it("should account for a range added within the given range", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const addedRange = { from: 10, to: 15 };
+      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+        from: 16,
+        to: 21
+      });
+    });
+
+    it("should account for a range added partially within the given range – left hand side", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const addedRange = { from: 5, to: 12 };
+      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+        from: 18,
+        to: 23
+      });
+    });
+
+    it("should account for a range added partially the given range – right hand side", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const addedRange = { from: 13, to: 20 };
+      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+        from: 10,
+        to: 23
+      });
+    });
+  });
+  describe("mapRemovedRange", () => {
+    it("should account for a range removed before the given range", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const removedRange = { from: 0, to: 5 };
+      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+        from: 4,
+        to: 9
+      });
+    });
+
+    it("should account for a range completely removed within the given range", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const removedRange = { from: 10, to: 15 };
+      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+        from: 10,
+        to: 10
+      });
+    });
+    it("should account for a range partially removed within the given range – left hand side", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const removedRange = { from: 5, to: 12 };
+      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+        from: 4,
+        to: 7
+      });
+    });
+
+    it("should account for a range partially within the given range – right hand side", () => {
+      const incomingRange = { from: 10, to: 15 };
+      const removedRange = { from: 13, to: 20 };
+      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+        from: 10,
+        to: 13
+      });
+    });
+  });
+  describe("getIntersectionOfRanges", () => {
+    it("should return an option containing a new range representing the intersection of two ranges", () => {
+      const rangeA = { from: 0, to: 5 };
+      const rangeB = { from: 4, to: 6 };
+      expect(getIntersection(rangeA, rangeB)).toEqual({ from: 4, to: 5 });
+    });
+
+    it("should not return a range if there is no intersection", () => {
+      const rangeA = { from: 0, to: 3 };
+      const rangeB = { from: 4, to: 6 };
+      expect(getIntersection(rangeA, rangeB)).toEqual(undefined);
     });
   });
 });
