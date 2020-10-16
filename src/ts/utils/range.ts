@@ -67,18 +67,15 @@ export const mergeRange = <Range extends IRange>(
 });
 
 export const mergeRanges = <Range extends IRange>(ranges: Range[]): Range[] =>
-  ranges.reduce(
-    (acc, range) => {
-      const index = findOverlappingRangeIndex(range, acc);
-      if (index === -1) {
-        return acc.concat(range);
-      }
-      const newRange = acc.slice();
-      newRange.splice(index, 1, mergeRange(range, acc[index]));
-      return newRange;
-    },
-    [] as Range[]
-  );
+  ranges.reduce((acc, range) => {
+    const index = findOverlappingRangeIndex(range, acc);
+    if (index === -1) {
+      return acc.concat(range);
+    }
+    const newRange = acc.slice();
+    newRange.splice(index, 1, mergeRange(range, acc[index]));
+    return newRange;
+  }, [] as Range[]);
 
 /**
  * Return the first set of ranges with any overlaps removed.
@@ -89,40 +86,37 @@ export const diffRanges = (
 ): IRange[] => {
   const firstRangesMerged = mergeRanges(firstRanges);
   const secondRangesMerged = mergeRanges(secondRanges);
-  return firstRangesMerged.reduce(
-    (acc, range) => {
-      const overlap = findOverlappingRangeIndex(range, secondRangesMerged);
-      if (overlap === -1) {
-        return acc.concat(range);
-      }
-      const overlappingRange = secondRangesMerged[overlap];
-      const firstShortenedRange = {
-        from: range.from,
-        to: secondRangesMerged[overlap].from
-      };
-      // If the compared range overlaps our range completely, chop the end off...
-      if (overlappingRange.to >= range.to) {
-        // (ranges of 0 aren't valid)
-        return firstShortenedRange.from === firstShortenedRange.to
-          ? acc
-          : acc.concat(firstShortenedRange);
-      }
-      // ... else, split the range and diff the latter segment recursively.
-      return acc.concat(
-        firstShortenedRange,
-        diffRanges(
-          [
-            {
-              from: overlappingRange.to + 1,
-              to: range.to
-            }
-          ],
-          secondRangesMerged
-        )
-      );
-    },
-    [] as IRange[]
-  );
+  return firstRangesMerged.reduce((acc, range) => {
+    const overlap = findOverlappingRangeIndex(range, secondRangesMerged);
+    if (overlap === -1) {
+      return acc.concat(range);
+    }
+    const overlappingRange = secondRangesMerged[overlap];
+    const firstShortenedRange = {
+      from: range.from,
+      to: secondRangesMerged[overlap].from
+    };
+    // If the compared range overlaps our range completely, chop the end off...
+    if (overlappingRange.to >= range.to) {
+      // (ranges of 0 aren't valid)
+      return firstShortenedRange.from === firstShortenedRange.to
+        ? acc
+        : acc.concat(firstShortenedRange);
+    }
+    // ... else, split the range and diff the latter segment recursively.
+    return acc.concat(
+      firstShortenedRange,
+      diffRanges(
+        [
+          {
+            from: overlappingRange.to + 1,
+            to: range.to
+          }
+        ],
+        secondRangesMerged
+      )
+    );
+  }, [] as IRange[]);
 };
 
 export const blockToRange = (input: IBlock): IRange => ({
@@ -159,27 +153,103 @@ export const expandRangeToParentBlockNode = (
  * Expand the given ranges to include their ancestor block nodes.
  */
 export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
-  const matchRanges = ranges.reduce(
-    (acc, range: IRange) => {
-      const expandedRange = expandRangeToParentBlockNode(
-        { from: range.from, to: range.to },
-        doc
-      );
-      return acc.concat(
-        expandedRange
-          ? [
-              {
-                from: expandedRange.from,
-                to: clamp(expandedRange.to, doc.content.size)
-              }
-            ]
-          : []
-      );
-    },
-    [] as IRange[]
-  );
+  const matchRanges = ranges.reduce((acc, range: IRange) => {
+    const expandedRange = expandRangeToParentBlockNode(
+      { from: range.from, to: range.to },
+      doc
+    );
+    return acc.concat(
+      expandedRange
+        ? [
+            {
+              from: expandedRange.from,
+              to: clamp(expandedRange.to, doc.content.size)
+            }
+          ]
+        : []
+    );
+  }, [] as IRange[]);
   return mergeRanges(matchRanges);
 };
 
 export const expandRangesToParentBlockNode = (ranges: IRange[], doc: Node) =>
   getRangesOfParentBlockNodes(ranges, doc);
+
+const getCharsRemovedBeforeFrom = (
+  incomingRange: IRange,
+  removedRange: IRange
+) => {
+  if (removedRange.from >= incomingRange.from) {
+    return 0;
+  }
+
+  const rangeBetweenRemovedStartAndIncomingStart = {
+    from: removedRange.from,
+    to: incomingRange.from
+  };
+  const intersection = getIntersection(
+    rangeBetweenRemovedStartAndIncomingStart,
+    removedRange
+  );
+  if (intersection) {
+    return intersection.to - intersection.from + 1;
+  }
+  return 1; // If there's no intersection, this is range from (n,n)
+};
+
+/**
+ * Map a from and to position through the given removed range.
+ */
+export const mapRemovedRange = (
+  incomingRange: IRange,
+  removedRange: IRange
+): IRange => {
+  const charsRemovedBeforeFrom = getCharsRemovedBeforeFrom(
+    incomingRange,
+    removedRange
+  );
+
+  const intersection = getIntersection(incomingRange, removedRange);
+  const charsRemovedBeforeTo = intersection
+    ? charsRemovedBeforeFrom + (intersection.to - intersection.from)
+    : charsRemovedBeforeFrom;
+
+  const from = incomingRange.from - charsRemovedBeforeFrom;
+  const to = incomingRange.to - charsRemovedBeforeTo;
+
+  return { from, to };
+};
+
+/**
+ * Map a from and to position through the given added range.
+ */
+export const mapAddedRange = (
+  incomingRange: IRange,
+  addedRange: IRange
+): IRange => {
+  // We add one to our lengths here to ensure the to value
+  // is placed beyond the last position the range occupies.
+  const lengthOfAddedRange = addedRange.to - addedRange.from;
+  const charsAddedBeforeFrom =
+    addedRange.from <= incomingRange.from ? lengthOfAddedRange + 1 : 0;
+  const intersection = getIntersection(incomingRange, addedRange);
+  const charsAddedBeforeTo = intersection
+    ? lengthOfAddedRange + 1
+    : charsAddedBeforeFrom;
+
+  const from = incomingRange.from + charsAddedBeforeFrom;
+  const to = incomingRange.to + charsAddedBeforeTo;
+
+  return { from, to };
+};
+
+export const getIntersection = (
+  rangeA: IRange,
+  rangeB: IRange
+): IRange | undefined => {
+  const range = {
+    from: Math.max(rangeA.from, rangeB.from),
+    to: Math.min(rangeA.to, rangeB.to)
+  };
+  return range.from < range.to ? range : undefined;
+};
