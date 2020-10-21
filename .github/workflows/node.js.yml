@@ -6,7 +6,7 @@ name: Node.js CI
 on:
   push:
     branches:
-      - master
+      - main
       - beta
   pull_request:
     branches:
@@ -34,7 +34,7 @@ jobs:
       with:
         branches: |
           [
-            'master',
+            'main',
             {
               name: 'beta',
               prerelease: true

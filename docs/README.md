@@ -2,7 +2,7 @@
 
 # @guardian/prosemirror-typerighter
 
-![](https://travis-ci.org/guardian/prosemirror-typerighter.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/guardian/prosemirror-typerighter/badge.svg?branch=master)](https://coveralls.io/github/guardian/prosemirror-typerighter?branch=master)
+![](https://travis-ci.org/guardian/prosemirror-typerighter.svg?branch=main) [![Coverage Status](https://coveralls.io/repos/github/guardian/prosemirror-typerighter/badge.svg?branch=main)](https://coveralls.io/github/guardian/prosemirror-typerighter?branch=main)
 
 This Prosemirror plugin adds the ability to validate a document by sending it, or some parts of it, to an external service for validation. Once instantiated, it provides a store object that allows consumer code to subscribe to state updates for UI updates etc.
 
@@ -30,7 +30,7 @@ To update the project readme, edit the README.md in ./build and run `build:doc`.
 
 ## Commiting and publishing new versions
 
-This repository uses [semantic-release](https://github.com/semantic-release/semantic-release) to publish new versions of this package when PRs are merged to `master`, and prelease versions when code is pushed to `beta`.
+This repository uses [semantic-release](https://github.com/semantic-release/semantic-release) to publish new versions of this package when PRs are merged to `main`, and prelease versions when code is pushed to `beta`.
 
 Version numbers are determined by the commit history, and so to trigger a release you'll need to use the [commitizen](https://github.com/commitizen-tools/commitizen) format when writing commits.
 
