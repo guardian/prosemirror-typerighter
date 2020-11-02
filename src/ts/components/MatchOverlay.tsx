@@ -1,5 +1,5 @@
 import Match from "./Match";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
@@ -7,6 +7,7 @@ import { maybeGetDecorationElement } from "../utils/decoration";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
+import { debounce } from "lodash"
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
@@ -40,6 +41,8 @@ const matchOverlay = <TPluginState extends IPluginState>({
     null
   );
   const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null);
+  const [showMatch, setShowMatch] = useState<boolean>(false);
+  const debounceShowMatch = useRef(debounce(setShowMatch, 200))
 
   useEffect(() => {
     // Subscribe to the plugin state. We keep a separate reference to the
@@ -57,10 +60,13 @@ const matchOverlay = <TPluginState extends IPluginState>({
     // If we've got a new match tooltip to display, get the reference to
     // the current decoration and set the state.
     if (!currentMatchId) {
+      debounceShowMatch.current.cancel();
+      setShowMatch(false);
       return;
     }
     const matchElement = maybeGetDecorationElement(currentMatchId);
     setReferenceElement(matchElement as any);
+    debounceShowMatch.current(true)
   }, [currentMatchId]);
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
@@ -76,7 +82,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
     ]
   });
 
-  if (!pluginState) {
+  if (!pluginState || !showMatch) {
     return null;
   }
 
