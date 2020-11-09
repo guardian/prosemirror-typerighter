@@ -1,13 +1,14 @@
-import Match from "./Match";
+
 import React, { useState, useEffect, useRef } from "react";
 import { IPluginState } from "../state/reducer";
-import { selectMatchByMatchId } from "../state/selectors";
+
 import { IMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
 import { debounce } from "lodash"
+import { ModifierArguments, Options } from "@popperjs/core";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
@@ -21,9 +22,6 @@ interface IProps<TPluginState extends IPluginState> {
  * An overlay to display match tooltips.
  */
 const matchOverlay = <TPluginState extends IPluginState>({
-  applySuggestions,
-  feedbackHref,
-  onMarkCorrect,
   stopHover,
   store
 }: IProps<TPluginState>) => {
@@ -31,6 +29,9 @@ const matchOverlay = <TPluginState extends IPluginState>({
     undefined
   );
   const [currentMatchId, setCurrentMatchId] = useState<string | undefined>(
+    undefined
+  );
+  const [currentRectIndex, setCurrentRectIndex] = useState<number | undefined>(
     undefined
   );
   const [
@@ -51,6 +52,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
     store.on(STORE_EVENT_NEW_STATE, newState => {
       setPluginState(newState);
       setCurrentMatchId(newState.hoverId);
+      setCurrentRectIndex(newState.hoverRectIndex);
     });
     return () =>
       store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
@@ -62,6 +64,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
     if (!currentMatchId) {
       debounceShowMatch.current.cancel();
       setShowMatch(false);
+      console.log(showMatch)
       return;
     }
     const matchElement = maybeGetDecorationElement(currentMatchId);
@@ -69,9 +72,33 @@ const matchOverlay = <TPluginState extends IPluginState>({
     debounceShowMatch.current(true)
   }, [currentMatchId]);
 
+  const customModifier = React.useMemo(
+    () => ({
+      name: 'topLogger',
+      enabled: true,
+      phase: "read" as const,
+      fn: ({ state }: ModifierArguments<Options>) => {
+        if(currentRectIndex === undefined){
+          return state;
+        }
+        const rects = (state.elements.reference as Element).getClientRects();
+        var offset = state.modifiersData.popperOffsets;
+        if(offset){
+          const thing = rects[currentRectIndex];
+          console.log(thing, offset)
+          offset.x = thing.x;
+          offset.y = offset.y - thing.height * (rects.length - currentRectIndex - 1)
+        }
+        return state;
+      },
+    }),
+    [currentRectIndex]
+  );
+
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'bottom-start',
     modifiers: [
+      customModifier,
       { name: "arrow", options: { element: arrowElement } },
       // We provide a negative offset here to ensure there's an overlap
       // between the decoration triggering the tooltip and the tooltip.
@@ -82,17 +109,17 @@ const matchOverlay = <TPluginState extends IPluginState>({
     ]
   });
 
-  if (!pluginState || !showMatch) {
+  if (!pluginState) {
     return null;
   }
 
-  const maybeMatch =
-    pluginState.hoverId &&
-    selectMatchByMatchId(pluginState, pluginState.hoverId);
+  // const maybeMatch =
+  //   pluginState.hoverId &&
+  //   selectMatchByMatchId(pluginState, pluginState.hoverId);
 
-  if (!maybeMatch) {
-    return null;
-  }
+  // if (!maybeMatch) {
+  //   return null;
+  // }
 
   return (
     <div
@@ -103,13 +130,15 @@ const matchOverlay = <TPluginState extends IPluginState>({
       onMouseLeave={stopHover}
     >
       <div ref={setArrowElement} style={styles.arrow as any} />
-      <Match
+      Hello
+      Hello
+      {/* <Match
         match={maybeMatch}
         matchColours={pluginState.config.matchColours}
         applySuggestions={applySuggestions}
         feedbackHref={feedbackHref}
         onMarkCorrect={onMarkCorrect}
-      />
+      /> */}
     </div>
   );
 };

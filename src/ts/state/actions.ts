@@ -75,9 +75,9 @@ export const requestMatchesComplete = (requestId: string) => ({
 });
 export type ActionRequestComplete = ReturnType<typeof requestMatchesComplete>;
 
-export const newHoverIdReceived = (matchId: string | undefined) => ({
+export const newHoverIdReceived = (matchId: string | undefined, rectIndex: number | undefined) => ({
   type: NEW_HOVER_ID,
-  payload: { matchId }
+  payload: { matchId, rectIndex }
 });
 export type ActionNewHoverIdReceived = ReturnType<typeof newHoverIdReceived>;
 

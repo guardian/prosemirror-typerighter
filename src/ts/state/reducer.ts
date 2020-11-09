@@ -130,6 +130,8 @@ export interface IPluginState<
   // The id of the match the user is currently hovering over –
   // e.g. to display a tooltip.
   hoverId: string | undefined;
+  //The clientRectIndex of the hover mouseover event.
+  hoverRectIndex: number | undefined;
   // The id of the match the user is currently highlighting –
   // triggers a focus state on the match decoration.
   highlightId: string | undefined;
@@ -194,6 +196,7 @@ export const createInitialState = <
     filteredMatches: [] as TMatch[],
     selectedMatch: undefined,
     hoverId: undefined,
+    hoverRectIndex: undefined,
     highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
@@ -443,9 +446,16 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
     );
   }, decorations);
 
+  var hoverRectIndex = undefined;
+
+  if(action.type == "NEW_HOVER_ID"){
+    hoverRectIndex = action.payload.rectIndex
+  }
+
   return {
     ...state,
     decorations,
+    hoverRectIndex,
     [focusState]: action.payload.matchId
   };
 };
