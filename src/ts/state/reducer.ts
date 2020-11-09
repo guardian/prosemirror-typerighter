@@ -52,7 +52,8 @@ import {
   mapAndMergeRanges,
   mapRanges,
   findOverlappingRangeIndex,
-  removeOverlappingRanges
+  removeOverlappingRanges,
+  findAbuttingRangeIndex
 } from "../utils/range";
 import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
 import { getBlocksFromDocument } from "../utils/prosemirror";
@@ -467,7 +468,9 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
   // touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.filter(
-    output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
+    output =>
+      findOverlappingRangeIndex(output, dirtiedRanges) === -1 &&
+      findAbuttingRangeIndex(output, dirtiedRanges) === -1
   );
 
   return {

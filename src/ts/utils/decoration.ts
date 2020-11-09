@@ -68,8 +68,8 @@ export const removeDecorationsFromRanges = (
   decorationSet: DecorationSet,
   ranges: IRange[],
   types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]
-) =>
-  ranges.reduce((acc, range) => {
+) =>{
+  return ranges.reduce((acc, range) => {
     const predicate = (spec: { [key: string]: any }) =>
       types.indexOf(spec.type) !== -1;
     const decorations = decorationSet.find(range.from, range.to, predicate);
@@ -86,6 +86,8 @@ export const removeDecorationsFromRanges = (
     );
     return acc.remove(decorationsToRemove);
   }, decorationSet);
+}
+
 
 /**
  * Given a matcher response and the current decoration set,
