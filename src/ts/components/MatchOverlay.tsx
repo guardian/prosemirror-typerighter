@@ -1,6 +1,8 @@
+import Match from "./Match";
 
 import React, { useState, useEffect, useRef } from "react";
 import { IPluginState } from "../state/reducer";
+import { selectMatchByMatchId } from "../state/selectors";
 
 import { IMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
@@ -22,6 +24,9 @@ interface IProps<TPluginState extends IPluginState> {
  * An overlay to display match tooltips.
  */
 const matchOverlay = <TPluginState extends IPluginState>({
+  applySuggestions,
+  feedbackHref,
+  onMarkCorrect,
   stopHover,
   store
 }: IProps<TPluginState>) => {
@@ -72,9 +77,9 @@ const matchOverlay = <TPluginState extends IPluginState>({
     debounceShowMatch.current(true)
   }, [currentMatchId]);
 
-  const customModifier = React.useMemo(
+  const hoverOverRect = React.useMemo(
     () => ({
-      name: 'topLogger',
+      name: 'hoverOverRect',
       enabled: true,
       phase: "read" as const,
       fn: ({ state }: ModifierArguments<Options>) => {
@@ -84,10 +89,9 @@ const matchOverlay = <TPluginState extends IPluginState>({
         const rects = (state.elements.reference as Element).getClientRects();
         var offset = state.modifiersData.popperOffsets;
         if(offset){
-          const thing = rects[currentRectIndex];
-          console.log(thing, offset)
-          offset.x = thing.x;
-          offset.y = offset.y - thing.height * (rects.length - currentRectIndex - 1)
+          const hoverRect = rects[currentRectIndex];
+          offset.x = hoverRect.x;
+          offset.y = offset.y - hoverRect.height * (rects.length - currentRectIndex - 1)
         }
         return state;
       },
@@ -98,7 +102,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'bottom-start',
     modifiers: [
-      customModifier,
+      hoverOverRect,
       { name: "arrow", options: { element: arrowElement } },
       // We provide a negative offset here to ensure there's an overlap
       // between the decoration triggering the tooltip and the tooltip.
@@ -109,17 +113,17 @@ const matchOverlay = <TPluginState extends IPluginState>({
     ]
   });
 
-  if (!pluginState) {
+  if (!pluginState || !showMatch) {
     return null;
   }
 
-  // const maybeMatch =
-  //   pluginState.hoverId &&
-  //   selectMatchByMatchId(pluginState, pluginState.hoverId);
+  const maybeMatch =
+    pluginState.hoverId &&
+    selectMatchByMatchId(pluginState, pluginState.hoverId);
 
-  // if (!maybeMatch) {
-  //   return null;
-  // }
+  if (!maybeMatch) {
+    return null;
+  }
 
   return (
     <div
@@ -130,15 +134,13 @@ const matchOverlay = <TPluginState extends IPluginState>({
       onMouseLeave={stopHover}
     >
       <div ref={setArrowElement} style={styles.arrow as any} />
-      Hello
-      Hello
-      {/* <Match
+      <Match
         match={maybeMatch}
         matchColours={pluginState.config.matchColours}
         applySuggestions={applySuggestions}
         feedbackHref={feedbackHref}
         onMarkCorrect={onMarkCorrect}
-      /> */}
+      />
     </div>
   );
 };
