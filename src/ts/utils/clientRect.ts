@@ -1,4 +1,5 @@
 const topBuffer = 2;
+const leftBuffer = 2;
 
 export const getClientRectIndex = (event: Event): number | undefined => {
 
@@ -16,7 +17,7 @@ export const getClientRectIndex = (event: Event): number | undefined => {
         const {left, right, top, bottom} = rects[i];
         const {pageX, pageY} = event;
 
-        if(pageX >= left && pageX <= right && pageY >= top - topBuffer && pageY <= bottom){
+        if(pageX >= left - leftBuffer && pageX <= right && pageY >= top - topBuffer && pageY <= bottom){
             return i;
         }
     }

@@ -10,7 +10,8 @@ import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
 import { debounce } from "lodash"
-import { ModifierArguments, Options } from "@popperjs/core";
+import { ModifierArguments, Options, Placement} from "@popperjs/core";
+
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
@@ -69,7 +70,6 @@ const matchOverlay = <TPluginState extends IPluginState>({
     if (!currentMatchId) {
       debounceShowMatch.current.cancel();
       setShowMatch(false);
-      console.log(showMatch)
       return;
     }
     const matchElement = maybeGetDecorationElement(currentMatchId);
@@ -82,7 +82,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
       name: 'hoverOverRect',
       enabled: true,
       phase: "read" as const,
-      fn: ({ state }: ModifierArguments<Options>) => {
+      fn: ({state}: ModifierArguments<Options>) => {
         if(currentRectIndex === undefined){
           return state;
         }
@@ -91,13 +91,36 @@ const matchOverlay = <TPluginState extends IPluginState>({
         if(offset){
           const hoverRect = rects[currentRectIndex];
           offset.x = hoverRect.x;
-          offset.y = offset.y - hoverRect.height * (rects.length - currentRectIndex - 1)
         }
         return state;
       },
     }),
     [currentRectIndex]
   );
+
+  // const offsetOptions = React.useMemo(() : [ number, number ] => {
+  //   if(referenceElement && currentRectIndex != undefined){
+  //     const rects = referenceElement?.getClientRects();
+  //     const hoverRect = rects[currentRectIndex];
+  //     const heightMultiplier = Math.max(0, rects.length - 1 - currentRectIndex);
+  //     const y =  hoverRect.height * heightMultiplier;
+
+  //     return [0, -y - 3]
+  //   }
+
+  //   return [0, -3]
+  // }, [currentRectIndex]);
+
+  const getOffsets = React.useMemo(() => ({ placement }: {placement: Placement}): [number?, number?] => {
+    if(referenceElement && currentRectIndex != undefined){
+      const rects = referenceElement?.getClientRects();
+      const hoverRect = rects[currentRectIndex];
+      const heightMultiplier = placement.indexOf("bottom") >= 0 ? Math.max(0, rects.length - 1 - currentRectIndex) : currentRectIndex;
+      const y =  -hoverRect.height * heightMultiplier;
+      return [0, y - 3]
+    }
+    return [0, -3]
+  }, [referenceElement, currentRectIndex])
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'bottom-start',
@@ -109,7 +132,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
       // If there's a gap, the tooltip library detects a `mouseleave` event
       // and closes the tooltip prematurely. We account for this with
       // padding on the tooltip container – see the styling for MatchWidget.
-      { name: "offset", options: { offset: [0, -3] } }
+      { name: "offset", options: { offset: getOffsets } }
     ]
   });
 
