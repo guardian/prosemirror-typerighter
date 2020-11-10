@@ -52,8 +52,7 @@ import {
   mapAndMergeRanges,
   mapRanges,
   findOverlappingRangeIndex,
-  removeOverlappingRanges,
-  findAbuttingRangeIndex
+  removeOverlappingRanges
 } from "../utils/range";
 import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
 import { getBlocksFromDocument } from "../utils/prosemirror";
@@ -457,20 +456,19 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
 ): TPluginState => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
-  let newDecorations = state.config.debug
+  const newDecorations = state.config.debug
     ? state.decorations.add(
         tr.doc,
         dirtiedRanges.map(range => createDebugDecorationFromRange(range))
       )
     : state.decorations;
 
-  // Remove any matches and associated decorations
-  // touched by the dirtied ranges from the doc
-  newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
-  const currentMatches = state.currentMatches.filter(
-    output =>
-      findOverlappingRangeIndex(output, dirtiedRanges) === -1 &&
-      findAbuttingRangeIndex(output, dirtiedRanges) === -1
+  // Remove any matches and associated decorations touched by the dirtied ranges from the doc
+  // We are providing a from offset of -1 as the range provides a cursor position,
+  // and we need to ensure that the range includes the cursor position before it.
+
+  const currentMatches = state.currentMatches.filter(output =>
+    findOverlappingRangeIndex(output, dirtiedRanges, -1)
   );
 
   return {

@@ -7,30 +7,22 @@ import { IBlock } from "../interfaces/IMatch";
 import { Mapping } from "prosemirror-transform";
 
 /**
- * Find the index of the first range in the given range array that overlaps with the given range.
+ * Find the index of the first range in the given range array that overlaps/abuts with the given range.
  */
-export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
+export const findOverlappingRangeIndex = (
+  range: IRange,
+  ranges: IRange[],
+  fromOffset: number = 0
+) => {
+  const offsetRangeFrom = range.from + fromOffset;
   return ranges.findIndex(
     localRange =>
-      // Overlaps to the left of the range
-      (localRange.from <= range.from && localRange.to >= range.from) ||
+      // Overlaps (or abuts if an offset of -1 is given) to the left of the range
+      (localRange.from <= range.from && localRange.to >= offsetRangeFrom) ||
       // Overlaps within the range
       (localRange.to >= range.to && localRange.from <= range.to) ||
       // Overlaps to the right of the range
       (localRange.from >= range.from && localRange.to <= range.to)
-  );
-};
-
-/**
- * Find the index of the first range in the given range array that abuts the left side of the given range.
- * (Abutting to the right is taken care of by findOverlappingRangeIndex.)
- */
-export const findAbuttingRangeIndex = (
-  decoratedRange: IRange,
-  dirtiedRanges: IRange[]
-) => {
-  return dirtiedRanges.findIndex(
-    dirtiedRange => dirtiedRange.to === decoratedRange.from - 1
   );
 };
 
