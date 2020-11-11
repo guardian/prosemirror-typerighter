@@ -24,11 +24,6 @@
     "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
     "build:doc": "typedoc --options ./build/typedoc.js ./src/ts/index.ts"
   },
-  "husky": {
-    "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook --disable-emoji || true"
-    }
-  },
   "devDependencies": {
     "@babel/core": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
@@ -59,7 +54,6 @@
     "eslint": "^4.13.1",
     "fetch-mock": "^7.3.3",
     "git-cz": "^4.7.1",
-    "husky": "^4.3.0",
     "jest": "^23.6.0",
     "node-fetch": "^2.2.1",
     "prettier": "^1.9.2",
