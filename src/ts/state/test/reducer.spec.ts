@@ -477,6 +477,7 @@ describe("Action handlers", () => {
       ).toEqual({
         ...state,
         hoverId: "exampleHoverId",
+        hoverRectIndex: undefined,
         hoverInfo: undefined
       });
     });
@@ -507,13 +508,14 @@ describe("Action handlers", () => {
           createDecorationsForMatch(output, defaultMatchColours, false)
         )
       };
-      expect(reducer(tr, localState, newHoverIdReceived("match-id", undefined))).toEqual({
+      expect(reducer(tr, localState, newHoverIdReceived("match-id", 1))).toEqual({
         ...localState,
         decorations: new DecorationSet().add(
           tr.doc,
           createDecorationsForMatch(output, defaultMatchColours, true)
         ),
         hoverId: "match-id",
+        hoverRectIndex: 1,
         hoverInfo: undefined
       });
     });
@@ -553,6 +555,7 @@ describe("Action handlers", () => {
           ...createDecorationsForMatch(output, defaultMatchColours, false)
         ]),
         hoverId: undefined,
+        hoverRectIndex: undefined,
         hoverInfo: undefined
       });
     });
