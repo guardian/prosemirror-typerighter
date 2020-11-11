@@ -135,7 +135,6 @@ export interface IPluginState<
   // By indicating which clientRect we're closest to, we can position our match
   // popup next to the correct section of the span.
   // See https://developer.mozilla.org/en-US/docs/Web/API/Element/getClientRects.
-  //This index used to know where to display a match popup
   hoverRectIndex: number | undefined;
   // The id of the match the user is currently highlighting –
   // triggers a focus state on the match decoration.
