@@ -198,6 +198,7 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       filteredMatches: [],
       selectedMatch: undefined,
       hoverId: undefined,
+      hoverRectIndex: undefined,
       highlightId: undefined,
       hoverInfo: undefined,
       trHistory: [tr],

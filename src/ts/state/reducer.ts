@@ -130,7 +130,8 @@ export interface IPluginState<
   // The id of the match the user is currently hovering over –
   // e.g. to display a tooltip.
   hoverId: string | undefined;
-  //The clientRectIndex of the hover mouseover event.
+  //The clientRectIndex of the hover mouseover event. 
+  //This index used to know where to display a match popup
   hoverRectIndex: number | undefined;
   // The id of the match the user is currently highlighting –
   // triggers a focus state on the match decoration.

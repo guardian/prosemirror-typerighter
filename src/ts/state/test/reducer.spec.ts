@@ -472,7 +472,7 @@ describe("Action handlers", () => {
         reducer(
           new Transaction(createDoc),
           state,
-          newHoverIdReceived("exampleHoverId")
+          newHoverIdReceived("exampleHoverId", undefined)
         )
       ).toEqual({
         ...state,
@@ -507,7 +507,7 @@ describe("Action handlers", () => {
           createDecorationsForMatch(output, defaultMatchColours, false)
         )
       };
-      expect(reducer(tr, localState, newHoverIdReceived("match-id"))).toEqual({
+      expect(reducer(tr, localState, newHoverIdReceived("match-id", undefined))).toEqual({
         ...localState,
         decorations: new DecorationSet().add(
           tr.doc,
@@ -546,7 +546,7 @@ describe("Action handlers", () => {
         hoverInfo: undefined
       };
       expect(
-        reducer(tr, localState, newHoverIdReceived(undefined))
+        reducer(tr, localState, newHoverIdReceived(undefined, undefined))
       ).toEqual({
         ...localState,
         decorations: new DecorationSet().add(tr.doc, [
