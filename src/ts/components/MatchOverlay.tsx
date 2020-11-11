@@ -8,7 +8,7 @@ import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
 import { debounce } from "lodash"
-import { Placement} from "@popperjs/core";
+import { Placement } from "@popperjs/core";
 
 
 interface IProps<TPluginState extends IPluginState> {
@@ -75,30 +75,34 @@ const matchOverlay = <TPluginState extends IPluginState>({
     debounceShowMatch.current(true)
   }, [currentMatchId]);
 
-  const getOffsets = React.useMemo(() => ({ placement }: {placement: Placement}): [number | null | undefined, number | null | undefined] => {
+  const getOffsets = React.useMemo(() => ({ placement }: { placement: Placement }): [number | null | undefined, number | null | undefined] => {
+    // We provide a negative offset here to ensure there's an overlap
+    // between the decoration triggering the tooltip and the tooltip.
+    // If there's a gap, the tooltip library detects a `mouseleave` event
+    // and closes the tooltip prematurely. We account for this with
+    // padding on the tooltip container – see the styling for MatchWidget.
+    const yOffset = -3;
     const isTop = placement.indexOf("top") >= 0;
     const isBottom = placement.indexOf("bottom") >= 0
-    if(referenceElement && currentRectIndex !== undefined && (isTop || isBottom)){
+    if (referenceElement && currentRectIndex !== undefined && (isTop || isBottom)) {
       const rects = referenceElement?.getClientRects();
       const hoverRect = rects[currentRectIndex];
-      const lastRect = rects[rects.length-1]
-      const heightMultiplier = isBottom ? Math.max(0, rects.length - 1 - currentRectIndex) : currentRectIndex;
-      const y =  -hoverRect.height * heightMultiplier;
+      const lastRect = rects[rects.length - 1]
+      //Determine the X offset as the difference between the last rect (bottom left) and the current rect.
       const x = hoverRect.left - lastRect.left
-      return [x, y - 3]
+      //Determine the Y offset by taking the rect height and multiplying by the number of rects (lines)
+      //This adjustment depends on if the popup is displayed above or below the content.
+      const heightMultiplier = isBottom ? Math.max(0, rects.length - 1 - currentRectIndex) : currentRectIndex;
+      const y = -hoverRect.height * heightMultiplier;
+      return [x, y + yOffset]
     }
-    return [0, -3]
+    return [0, yOffset]
   }, [referenceElement, currentRectIndex])
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'bottom-start',
     modifiers: [
       { name: "arrow", options: { element: arrowElement } },
-      // We provide a negative offset here to ensure there's an overlap
-      // between the decoration triggering the tooltip and the tooltip.
-      // If there's a gap, the tooltip library detects a `mouseleave` event
-      // and closes the tooltip prematurely. We account for this with
-      // padding on the tooltip container – see the styling for MatchWidget.
       { name: "offset", options: { offset: getOffsets } }
     ]
   });
