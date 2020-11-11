@@ -1,16 +1,14 @@
 import Match from "./Match";
-
 import React, { useState, useEffect, useRef } from "react";
 import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
-
 import { IMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
 import { debounce } from "lodash"
-import { ModifierArguments, Options, Placement} from "@popperjs/core";
+import { Placement} from "@popperjs/core";
 
 
 interface IProps<TPluginState extends IPluginState> {
@@ -77,47 +75,17 @@ const matchOverlay = <TPluginState extends IPluginState>({
     debounceShowMatch.current(true)
   }, [currentMatchId]);
 
-  const hoverOverRect = React.useMemo(
-    () => ({
-      name: 'hoverOverRect',
-      enabled: true,
-      phase: "read" as const,
-      fn: ({state}: ModifierArguments<Options>) => {
-        if(currentRectIndex === undefined){
-          return state;
-        }
-        const rects = (state.elements.reference as Element).getClientRects();
-        var offset = state.modifiersData.popperOffsets;
-        if(offset){
-          const hoverRect = rects[currentRectIndex];
-          offset.x = hoverRect.x;
-        }
-        return state;
-      },
-    }),
-    [currentRectIndex]
-  );
-
-  // const offsetOptions = React.useMemo(() : [ number, number ] => {
-  //   if(referenceElement && currentRectIndex != undefined){
-  //     const rects = referenceElement?.getClientRects();
-  //     const hoverRect = rects[currentRectIndex];
-  //     const heightMultiplier = Math.max(0, rects.length - 1 - currentRectIndex);
-  //     const y =  hoverRect.height * heightMultiplier;
-
-  //     return [0, -y - 3]
-  //   }
-
-  //   return [0, -3]
-  // }, [currentRectIndex]);
-
-  const getOffsets = React.useMemo(() => ({ placement }: {placement: Placement}): [number?, number?] => {
-    if(referenceElement && currentRectIndex != undefined){
+  const getOffsets = React.useMemo(() => ({ placement }: {placement: Placement}): [number | null | undefined, number | null | undefined] => {
+    const isTop = placement.indexOf("top") >= 0;
+    const isBottom = placement.indexOf("bottom") >= 0
+    if(referenceElement && currentRectIndex != undefined && (isTop || isBottom)){
       const rects = referenceElement?.getClientRects();
       const hoverRect = rects[currentRectIndex];
-      const heightMultiplier = placement.indexOf("bottom") >= 0 ? Math.max(0, rects.length - 1 - currentRectIndex) : currentRectIndex;
+      const lastRect = rects[rects.length-1]
+      const heightMultiplier = isBottom ? Math.max(0, rects.length - 1 - currentRectIndex) : currentRectIndex;
       const y =  -hoverRect.height * heightMultiplier;
-      return [0, y - 3]
+      const x = hoverRect.left - lastRect.left
+      return [x, y - 3]
     }
     return [0, -3]
   }, [referenceElement, currentRectIndex])
@@ -125,7 +93,6 @@ const matchOverlay = <TPluginState extends IPluginState>({
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'bottom-start',
     modifiers: [
-      hoverOverRect,
       { name: "arrow", options: { element: arrowElement } },
       // We provide a negative offset here to ensure there's an overlap
       // between the decoration triggering the tooltip and the tooltip.

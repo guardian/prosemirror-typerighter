@@ -446,7 +446,7 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
     );
   }, decorations);
 
-  var hoverRectIndex = undefined;
+  var hoverRectIndex = state.hoverRectIndex;
 
   if(action.type == "NEW_HOVER_ID"){
     hoverRectIndex = action.payload.rectIndex
