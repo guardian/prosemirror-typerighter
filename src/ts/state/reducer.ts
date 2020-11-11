@@ -468,7 +468,7 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
   // and we need to ensure that the range includes the cursor position before it.
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.filter(
-    output => findOverlappingRangeIndex(output, dirtiedRanges, -1) !== -1
+    output => findOverlappingRangeIndex(output, dirtiedRanges, -1) === -1
   );
 
   return {
