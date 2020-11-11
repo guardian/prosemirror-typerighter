@@ -78,7 +78,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
   const getOffsets = React.useMemo(() => ({ placement }: {placement: Placement}): [number | null | undefined, number | null | undefined] => {
     const isTop = placement.indexOf("top") >= 0;
     const isBottom = placement.indexOf("bottom") >= 0
-    if(referenceElement && currentRectIndex != undefined && (isTop || isBottom)){
+    if(referenceElement && currentRectIndex !== undefined && (isTop || isBottom)){
       const rects = referenceElement?.getClientRects();
       const hoverRect = rects[currentRectIndex];
       const lastRect = rects[rects.length-1]
