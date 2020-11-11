@@ -68,8 +68,8 @@ export const removeDecorationsFromRanges = (
   decorationSet: DecorationSet,
   ranges: IRange[],
   types = [DECORATION_MATCH, DECORATION_MATCH_HEIGHT_MARKER]
-) =>{
-  return ranges.reduce((acc, range) => {
+) =>
+  ranges.reduce((acc, range) => {
     const predicate = (spec: { [key: string]: any }) =>
       types.indexOf(spec.type) !== -1;
     const decorations = decorationSet.find(range.from, range.to, predicate);
@@ -86,8 +86,6 @@ export const removeDecorationsFromRanges = (
     );
     return acc.remove(decorationsToRemove);
   }, decorationSet);
-}
-
 
 /**
  * Given a matcher response and the current decoration set,
@@ -213,20 +211,28 @@ export const maybeGetDecorationElement = (
 ): HTMLElement | null =>
   document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
 
-const getProseMirrorOffsetValue = (element: HTMLElement, scrollElement: Element): number => {
+const getProseMirrorOffsetValue = (
+  element: HTMLElement,
+  scrollElement: Element
+): number => {
   var offset = element.offsetTop;
 
-  if(element.offsetParent && !element.isEqualNode(scrollElement)){
-    return offset += getProseMirrorOffsetValue(element.offsetParent as HTMLElement, scrollElement);
+  if (element.offsetParent && !element.isEqualNode(scrollElement)) {
+    return (offset += getProseMirrorOffsetValue(
+      element.offsetParent as HTMLElement,
+      scrollElement
+    ));
   }
 
   return offset;
-}
+};
 
 export const getMatchOffset = (
   matchId: string,
   scrollElement: Element
 ): number => {
-  const element = document.querySelector<HTMLElement>(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
+  const element = document.querySelector<HTMLElement>(
+    `[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`
+  );
   return element ? getProseMirrorOffsetValue(element, scrollElement) : 0;
-}
+};
