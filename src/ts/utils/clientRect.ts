@@ -1,6 +1,11 @@
 const topBuffer = 2;
 const leftBuffer = 2;
 
+/**
+ * A function which takes a mouseover event and determines which part of the 
+ * div was hovered over by doing some basic collision detection. 
+ * The index of the hovered over rect from the getClientRects function is returned.
+ */
 export const getClientRectIndex = (event: Event): number | undefined => {
 
     if (!event.target || !(event.target instanceof HTMLElement) || !(event instanceof MouseEvent)) {

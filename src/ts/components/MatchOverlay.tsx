@@ -87,16 +87,18 @@ const matchOverlay = <TPluginState extends IPluginState>({
     if (referenceElement && currentRectIndex !== undefined && (isTop || isBottom)) {
       const rects = referenceElement?.getClientRects();
       const hoverRect = rects[currentRectIndex];
-      const lastRect = rects[rects.length - 1]
+      const lastRect = rects[rects.length - 1];
       //Determine the X offset as the difference between the last rect (bottom left) and the current rect.
-      const x = hoverRect.left - lastRect.left
+      //This will only work if the placement is set to the "bottom-start". If we wanted to change this we
+      //would need to build more flexibility into how this is calculated. 
+      const x = hoverRect.left - lastRect.left;
       //Determine the Y offset by taking the rect height and multiplying by the number of rects (lines)
       //This adjustment depends on if the popup is displayed above or below the content.
       const heightMultiplier = isBottom ? Math.max(0, rects.length - 1 - currentRectIndex) : currentRectIndex;
       const y = -hoverRect.height * heightMultiplier;
-      return [x, y + yOffset]
+      return [x, y + yOffset];
     }
-    return [0, yOffset]
+    return [0, yOffset];
   }, [referenceElement, currentRectIndex])
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
