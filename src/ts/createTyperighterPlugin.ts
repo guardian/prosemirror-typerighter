@@ -27,6 +27,7 @@ import { doNotSkipRanges, TGetSkippedRanges } from "./utils/block";
 import { startHoverCommand, stopHoverCommand } from "./commands";
 import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
+import { getClientRectIndex } from "./utils/clientRect";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -217,7 +218,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           }
 
           if (newMatchId) {
-            startHoverCommand(newMatchId)(view.state, view.dispatch);
+            startHoverCommand(newMatchId, getClientRectIndex(event))(view.state, view.dispatch);
           } else {
             stopHoverCommand()(view.state, view.dispatch);
           }

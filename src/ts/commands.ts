@@ -82,7 +82,7 @@ export const requestMatchesForDirtyRangesCommand = (
 /**
  * Indicate the user is hovering over a match.
  */
-export const startHoverCommand = (matchId: string): Command => (
+export const startHoverCommand = (matchId: string, rectIndex: number | undefined): Command => (
   state,
   dispatch
 ) => {
@@ -90,7 +90,7 @@ export const startHoverCommand = (matchId: string): Command => (
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
-        newHoverIdReceived(matchId)
+        newHoverIdReceived(matchId, rectIndex)
       )
     );
   }
@@ -105,7 +105,7 @@ export const stopHoverCommand = (): Command => (state, dispatch) => {
     dispatch(
       state.tr.setMeta(
         PROSEMIRROR_TYPERIGHTER_ACTION,
-        newHoverIdReceived(undefined)
+        newHoverIdReceived(undefined, undefined)
       )
     );
   }

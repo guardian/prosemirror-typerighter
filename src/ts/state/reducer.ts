@@ -130,6 +130,12 @@ export interface IPluginState<
   // The id of the match the user is currently hovering over –
   // e.g. to display a tooltip.
   hoverId: string | undefined;
+  // The index of the clientRect closest to the hover mouseover event.
+  // Spans can contain multiple clientRects when they're broken across lines.
+  // By indicating which clientRect we're closest to, we can position our match
+  // popup next to the correct section of the span.
+  // See https://developer.mozilla.org/en-US/docs/Web/API/Element/getClientRects.
+  hoverRectIndex: number | undefined;
   // The id of the match the user is currently highlighting –
   // triggers a focus state on the match decoration.
   highlightId: string | undefined;
@@ -194,6 +200,7 @@ export const createInitialState = <
     filteredMatches: [] as TMatch[],
     selectedMatch: undefined,
     hoverId: undefined,
+    hoverRectIndex: undefined,
     highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
@@ -443,9 +450,16 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
     );
   }, decorations);
 
+  var hoverRectIndex = state.hoverRectIndex;
+
+  if(action.type == "NEW_HOVER_ID"){
+    hoverRectIndex = action.payload.rectIndex
+  }
+
   return {
     ...state,
     decorations,
+    hoverRectIndex,
     [focusState]: action.payload.matchId
   };
 };
