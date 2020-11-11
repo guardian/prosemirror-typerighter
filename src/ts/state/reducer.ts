@@ -130,7 +130,11 @@ export interface IPluginState<
   // The id of the match the user is currently hovering over –
   // e.g. to display a tooltip.
   hoverId: string | undefined;
-  //The clientRectIndex of the hover mouseover event. 
+  // The index of the clientRect closest to hover mouseover event.
+  // Spans can contain multiple clientRects when they're broken across lines.
+  // By indicating which clientRect we're closest to, we can position our match
+  // popup next to the correct section of the span.
+  // See https://developer.mozilla.org/en-US/docs/Web/API/Element/getClientRects.
   //This index used to know where to display a match popup
   hoverRectIndex: number | undefined;
   // The id of the match the user is currently highlighting –
