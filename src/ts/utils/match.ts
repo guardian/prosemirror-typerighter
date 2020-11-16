@@ -46,6 +46,5 @@ export const mapMatchThroughBlocks = <TMatch extends IMatch>(
   if (!maybeBlockForThisMatch) {
     return match;
   }
-  const skipRangesForThisBlock = maybeBlockForThisMatch.skipRanges || []
-  return mapThroughSkippedRanges(match, skipRangesForThisBlock);
+  return mapThroughSkippedRanges(match, maybeBlockForThisMatch.skipRanges);
 };
