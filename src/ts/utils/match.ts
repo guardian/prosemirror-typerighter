@@ -1,5 +1,4 @@
-import { IMatch } from "..";
-import { IBlockWithSkippedRanges, IRange } from "../interfaces/IMatch";
+import { IBlockWithSkippedRanges, IMatch, IRange } from "../interfaces/IMatch";
 import { mapAddedRange } from "./range";
 
 /**

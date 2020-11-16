@@ -41,7 +41,23 @@ export const createMatchId = (
 ) => `${createBlockId(time, from, to)}--match-${index}`;
 
 /**
- * Remove the given ranges from the block text, adjusting the block range accordingly.
+ * For a block, remove the text covered by the given ranges, adjusting
+ * the block range accordingly.
+ *
+ * For example, with the block ```{
+ *  from: 0,
+ *  to: 2
+ *  text: `ABC`,
+ *  skipRanges: `[{ from: 1, to: 1 }]`
+ * }```
+ *
+ * We produce a new block with `B` removed and the range reduced by 1:
+ *
+ * ```{
+ *  from: 0,
+ *  to: 1
+ *  text: `AC`,
+ * }```
  */
 export const removeSkippedRanges = (block: IBlockWithSkippedRanges): IBlock => {
   const skipRanges = block.skipRanges || [];
