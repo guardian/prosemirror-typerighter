@@ -15,7 +15,7 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
-import { getReplaceStepRangesFromTransaction } from "./utils/prosemirror";
+import { getDirtiedRangesFromTransaction } from "./utils/prosemirror";
 import { IRange, IMatch } from "./interfaces/IMatch";
 import { Node } from "prosemirror-model";
 import Store, {
@@ -148,10 +148,10 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       const oldPluginState: TPluginState = plugin.getState(oldState);
       const newPluginState: TPluginState = plugin.getState(newState);
 
-      const tr = newState.tr;
+      const newTr = newState.tr;
 
       const newDirtiedRanges = trs.reduce(
-        (acc, range) => acc.concat(getReplaceStepRangesFromTransaction(range)),
+        (acc, tr) => acc.concat(getDirtiedRangesFromTransaction(oldState.doc, tr)),
         [] as IRange[]
       );
       if (newDirtiedRanges.length) {
@@ -161,7 +161,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           // @todo -- this is a bit of a hack, it can be done better.
           setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
         }
-        return tr.setMeta(
+        return newTr.setMeta(
           PROSEMIRROR_TYPERIGHTER_ACTION,
           applyNewDirtiedRanges(newDirtiedRanges)
         );

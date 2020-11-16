@@ -1,5 +1,6 @@
 declare module "prosemirror-test-builder";
 declare module "prosemirror-example-setup";
+declare module "prosemirror-changeset";
 // Taken from https://github.com/developit/snarkdown/blob/master/snarkdown.d.ts –
 // at time of writing the typescript definition file is not yet in the npm release.
 declare module "snarkdown" {

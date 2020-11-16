@@ -1,12 +1,11 @@
 import builder from "prosemirror-test-builder";
 import {
   getBlocksFromDocument,
-  getReplaceStepRangesFromTransaction
+  getDirtiedRangesFromTransaction
 } from "../prosemirror";
-import { Transaction } from "prosemirror-state";
-import { schema } from "prosemirror-schema-basic";
 import { flatten } from "prosemirror-utils";
 import { doNotSkipRanges } from "../block";
+import { createEditor } from "../../test/helpers/createEditor";
 
 const { doc, p, ul, li } = builder;
 
@@ -36,18 +35,31 @@ describe("Prosemirror utils", () => {
       ]);
     });
   });
-  describe("getReplaceStepRangesFromTransaction", () => {
-    it("should get ranges from any replace steps in the transaction", () => {
-      const node = doc(
-        p("Paragraph 1"),
-        p("Paragraph 2"),
-        p(ul(li("List item 1"), li("List item 2")))
-      );
-      const tr = new Transaction(node);
-      tr.doc = node;
+  describe("getDirtiedRangesFromTransaction", () => {
+    it("should get ranges from any replaced text in the transaction", () => {
+      const { view, schema } = createEditor(
+       `<p>Paragraph 1</p>
+        <p>Paragraph 2</p>
+        <p><ul><li>List item 1</li><li>List item 2</li></ul></p>`
+      )
+
+      const tr = view.state.tr
       tr.replaceWith(1, 5, schema.text("Replacement text"));
-      expect(getReplaceStepRangesFromTransaction(tr)).toEqual([
+      expect(getDirtiedRangesFromTransaction(view.state.doc, tr)).toEqual([
         { from: 1, to: 5 }
+      ]);
+    });
+    it("should get the ranges (with a to value that's the same as the from value) from any deleted text in the transaction", () => {
+      const { view } = createEditor(
+        `<p>Paragraph 1</p>
+         <p>Paragraph 2</p>`
+       )
+      const tr = view.state.tr
+      tr.deleteRange(1, 2);
+      // Deletions are always represented by a range of length 0, as they have
+      // no length in document to which they've been applied.
+      expect(getDirtiedRangesFromTransaction(view.state.doc, tr)).toEqual([
+        { from: 1, to: 1 }
       ]);
     });
   });

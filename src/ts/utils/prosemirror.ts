@@ -1,6 +1,7 @@
 import { Node, Mark, Schema, MarkType } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
 import { ReplaceAroundStep, ReplaceStep } from "prosemirror-transform";
+import { ChangeSet } from 'prosemirror-changeset';
 import * as jsDiff from "diff";
 
 import { IBlock, IRange } from "../interfaces/IMatch";
@@ -68,21 +69,15 @@ export const getBlocksFromDocument = (
 /**
  * Get all of the ranges of any replace steps in the given transaction.
  */
-export const getReplaceStepRangesFromTransaction = (tr: Transaction) =>
-  getReplaceTransactions(tr).map((step: ReplaceStep | ReplaceAroundStep) => {
-    return {
-      from: (step as any).from,
-      to: (step as any).to
-    };
-  });
+export const getDirtiedRangesFromTransaction = (oldDoc: Node, tr: Transaction) => {
 
-/**
- * Get all of the ranges of any replace steps in the given transaction.
- */
-export const getReplaceTransactions = (tr: Transaction) =>
-  tr.steps.filter(
-    step => step instanceof ReplaceStep || step instanceof ReplaceAroundStep
-  );
+    const changeSet = ChangeSet.create(oldDoc).addSteps(tr.doc, tr.mapping.maps);
+    console.log(changeSet.changes);
+    return {
+      from: 0,
+      to: 0
+    };
+  }
 
 /**
  * A patch representing part, or all, of a suggestion, to apply to the document.
