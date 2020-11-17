@@ -350,36 +350,36 @@ describe("Range utils", () => {
   });
   describe("mapAddedRange", () => {
     it("should account for a range added before the given range", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const addedRange = { from: 0, to: 5 };
-      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+      expect(mapAddedRange(currentRange, addedRange)).toEqual({
         from: 16,
         to: 21
       });
     });
 
     it("should account for a range added within the given range", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const addedRange = { from: 10, to: 15 };
-      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+      expect(mapAddedRange(currentRange, addedRange)).toEqual({
         from: 16,
         to: 21
       });
     });
 
     it("should account for a range added partially within the given range – left hand side", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const addedRange = { from: 5, to: 12 };
-      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+      expect(mapAddedRange(currentRange, addedRange)).toEqual({
         from: 18,
         to: 23
       });
     });
 
     it("should account for a range added partially the given range – right hand side", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const addedRange = { from: 13, to: 20 };
-      expect(mapAddedRange(incomingRange, addedRange)).toEqual({
+      expect(mapAddedRange(currentRange, addedRange)).toEqual({
         from: 10,
         to: 23
       });
@@ -387,35 +387,35 @@ describe("Range utils", () => {
   });
   describe("mapRemovedRange", () => {
     it("should account for a range removed before the given range", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const removedRange = { from: 0, to: 5 };
-      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+      expect(mapRemovedRange(currentRange, removedRange)).toEqual({
         from: 4,
         to: 9
       });
     });
 
     it("should account for a range completely removed within the given range", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const removedRange = { from: 10, to: 15 };
-      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+      expect(mapRemovedRange(currentRange, removedRange)).toEqual({
         from: 10,
         to: 10
       });
     });
     it("should account for a range partially removed within the given range – left hand side", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const removedRange = { from: 5, to: 12 };
-      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+      expect(mapRemovedRange(currentRange, removedRange)).toEqual({
         from: 4,
         to: 7
       });
     });
 
     it("should account for a range partially within the given range – right hand side", () => {
-      const incomingRange = { from: 10, to: 15 };
+      const currentRange = { from: 10, to: 15 };
       const removedRange = { from: 13, to: 20 };
-      expect(mapRemovedRange(incomingRange, removedRange)).toEqual({
+      expect(mapRemovedRange(currentRange, removedRange)).toEqual({
         from: 10,
         to: 13
       });
