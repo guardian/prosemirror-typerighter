@@ -192,9 +192,11 @@ const getCharsRemovedBeforeFrom = (
     removedRange
   );
   if (intersection) {
+    // The number of chars covered by the intersection is one larger than its length,
+    // so for example (1, 2) will cover chars 1 and 2 – hence we add one to `from`.
     return intersection.to - intersection.from + 1;
   }
-  return 1; // If there's no intersection, this is range from (n,n)
+  return 1; // If there's no intersection, this is a range from (n, n), which is one char long
 };
 
 /**

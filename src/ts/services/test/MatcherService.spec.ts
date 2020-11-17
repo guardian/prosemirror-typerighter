@@ -159,13 +159,18 @@ describe("MatcherService", () => {
 
     it("On receipt of matches, map matches that succeed skipped ranges through those ranges to ensure they're correct", done => {
       const service = createMatcherService();
-      // const response = createResponse(['F'], 2);
-      fetchMock.post(`${endpoint}/check`, 400);
+      // We send the text "BDF", and create a match for the "F" at position 2
+      const response = createResponse(["F"], 2);
+      fetchMock.post(`${endpoint}/check`, response);
       service.requestFetchMatches();
 
       store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithSkipRanges]);
       setTimeout(() => {
-        // @todo
+        // We map our match (position 2) back through three skipRanges of
+        // one char each, pushing range into (5, 6).
+        const matches = commands.applyMatcherResponse.mock.calls[0][0].matches[0]
+        expect(matches.from).toBe(5);
+        expect(matches.to).toBe(6)
         done();
       });
     });
