@@ -91,5 +91,54 @@ describe("Block utils", () => {
       expect(newBlock.from).toBe(10);
       expect(newBlock.to).toBe(22);
     });
+    it("should yield the same result if the skipped ranges overlap", () => {
+      const skipRanges = [
+        { from: 24, to: 31 },
+        { from: 18, to: 26 }
+      ];
+      const block = {
+        id: "id",
+        text: "Example [noted][noted ]text",
+        from: 10,
+        to: 37,
+        skipRanges
+      };
+      const newBlock = removeSkippedRanges(block);
+      expect(newBlock.text).toBe("Example text");
+      expect(newBlock.from).toBe(10);
+      expect(newBlock.to).toBe(22);
+    });
+    it("should trim to the end of the text if the skipped ranges go beyond the block", () => {
+      const skipRanges = [
+        { from: 17, to: 1000 }
+      ];
+      const block = {
+        id: "id",
+        text: "Example[ text",
+        from: 10,
+        to: 23,
+        skipRanges
+      };
+      const newBlock = removeSkippedRanges(block);
+      expect(newBlock.text).toBe("Example");
+      expect(newBlock.from).toBe(10);
+      expect(newBlock.to).toBe(17);
+    });
+    it("should trim to the beginning of the text if the skipped ranges precede the block", () => {
+      const skipRanges = [
+        { from: 0, to: 18 }
+      ];
+      const block = {
+        id: "id",
+        text: "Example] text",
+        from: 10,
+        to: 23,
+        skipRanges
+      };
+      const newBlock = removeSkippedRanges(block);
+      expect(newBlock.text).toBe("text");
+      expect(newBlock.from).toBe(10);
+      expect(newBlock.to).toBe(14);
+    });
   });
 });
