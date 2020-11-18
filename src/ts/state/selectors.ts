@@ -3,10 +3,10 @@ import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { getMatchType, MatchType } from "../utils/decoration";
 import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
 
-export const selectMatchByMatchId = (
-  state: IPluginState<unknown>,
+export const selectMatchByMatchId = <TPluginState extends IPluginState>(
+  state: TPluginState,
   matchId: string
-): IMatch | undefined =>
+): TPluginState['currentMatches'][number] | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
 export const selectBlockQueriesInFlightForSet = (

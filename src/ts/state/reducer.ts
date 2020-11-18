@@ -450,11 +450,10 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
     );
   }, decorations);
 
-  var hoverRectIndex = state.hoverRectIndex;
-
-  if(action.type == "NEW_HOVER_ID"){
-    hoverRectIndex = action.payload.rectIndex
-  }
+  const hoverRectIndex =
+    action.type === "NEW_HOVER_ID"
+      ? action.payload.rectIndex
+      : state.hoverRectIndex;
 
   return {
     ...state,

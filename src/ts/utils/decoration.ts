@@ -211,11 +211,8 @@ export const maybeGetDecorationElement = (
 ): HTMLElement | null =>
   document.querySelector(`[${DECORATION_ATTRIBUTE_ID}="${matchId}"]`);
 
-const getProseMirrorOffsetValue = (
-  element: HTMLElement,
-  scrollElement: Element
-): number => {
-  var offset = element.offsetTop;
+const getProseMirrorOffsetValue = (element: HTMLElement, scrollElement: Element): number => {
+  let offset = element.offsetTop;
 
   if (element.offsetParent && !element.isEqualNode(scrollElement)) {
     return (offset += getProseMirrorOffsetValue(
@@ -226,6 +223,15 @@ const getProseMirrorOffsetValue = (
 
   return offset;
 };
+
+export const maybeGetDecorationMatchIdFromEvent = (event: Event): string | undefined => {
+  if (!event.target || !(event.target instanceof HTMLElement)) {
+    return undefined;
+  }
+  const target = event.target;
+  const targetAttr = target.getAttribute(DECORATION_ATTRIBUTE_ID);
+  return targetAttr ? targetAttr : undefined;
+}
 
 export const getMatchOffset = (
   matchId: string,
