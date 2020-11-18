@@ -3,6 +3,7 @@ import {
   IClearDocumentEvent,
   IFilterToggleEvent,
   IMarkAsCorrectEvent,
+  IMatchDecorationClickedEvent,
   IMatchFoundEvent,
   IOpenTyperighterEvent,
   ISidebarClickEvent,
@@ -47,6 +48,17 @@ class TyperighterTelemetryAdapter {
         ...this.getTelemetryTagsFromMatch(match)
       }
     } as IMarkAsCorrectEvent);
+  }
+
+  public matchDecorationClicked(match: IMatch, documentUrl: string) {
+    this.addEvent({
+      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_DECORATION_CLICKED,
+      value: 1,
+      tags: {
+        documentUrl,
+        ...this.getTelemetryTagsFromMatch(match)
+      }
+    } as IMatchDecorationClickedEvent);
   }
 
   public documentIsChecked(tags: ITyperighterTelemetryEvent["tags"]) {

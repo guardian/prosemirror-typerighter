@@ -38,6 +38,7 @@ export interface ITelemetryEvent {
 }
 
 export enum TYPERIGHTER_TELEMETRY_TYPE {
+  TYPERIGHTER_MATCH_DECORATION_CLICKED = "TYPERIGHTER_MATCH_DECORATION_CLICKED",
   TYPERIGHTER_SUGGESTION_IS_ACCEPTED = "TYPERIGHTER_SUGGESTION_IS_ACCEPTED",
   TYPERIGHTER_MARK_AS_CORRECT = "TYPERIGHTER_MARK_AS_CORRECT",
   TYPERIGHTER_MATCH_FOUND = "TYPERIGHTER_MATCH_FOUND",
@@ -86,6 +87,12 @@ export interface ISuggestionAcceptedEvent extends ITyperighterTelemetryEvent {
 
 export interface IMarkAsCorrectEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT;
+  value: 1;
+  tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
+}
+
+export interface IMatchDecorationClickedEvent extends ITyperighterTelemetryEvent {
+  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_DECORATION_CLICKED;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
 }

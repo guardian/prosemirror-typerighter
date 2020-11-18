@@ -80,26 +80,31 @@ export interface IPluginOptions<
   getSkippedRanges?: TGetSkippedRanges;
 
   /**
-   * The colours to use for document matches.
    * Is the given element part of the typerighter UI, but not
    * part of the Prosemirror editor? This helps us avoid resetting
    * hover or highlight states when we're hoving over e.g. tooltips
    * or other overlay nodes that are mounted outside of the editor.
    */
   isElementPartOfTyperighterUI?: (el: HTMLElement) => boolean;
+
+  /**
+   * Called when a match decoration is clicked.
+   */
+  onMatchDecorationClicked?: (match: TMatch) => void
 }
 
 /**
  * Creates the prosemirror-typerighter plugin. Responsible for issuing requests when the
  * document is changed via the supplied servier, decorating the document with matches
  * when they are are returned, and applying suggestions to the document.
- *
- * @param {IPluginOptions} options The plugin options object.
- * @returns {{plugin: Plugin, commands: ICommands}}
  */
 const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   options: IPluginOptions<TFilterState, TMatch> = {}
-) => {
+): {
+  plugin: Plugin<IPluginState<TFilterState, TMatch>>,
+  store: Store<IPluginState<TFilterState, TMatch>>,
+  getState: (state: EditorState) => IPluginState<TFilterState, TMatch>;
+} => {
   const {
     expandRanges = expandRangesToParentBlockNode,
     getSkippedRanges = doNotSkipRanges,
