@@ -1,6 +1,6 @@
 import { Node, Mark, Schema, MarkType } from "prosemirror-model";
 import { Transaction } from "prosemirror-state";
-import { ChangeSet } from "prosemirror-changeset";
+import { Change, ChangeSet } from "prosemirror-changeset";
 import * as jsDiff from "diff";
 
 import { IBlock, IRange } from "../interfaces/IMatch";
@@ -72,8 +72,8 @@ export const getDirtiedRangesFromTransaction = (
   oldDoc: Node,
   tr: Transaction
 ) => {
-  const changeSet = ChangeSet.create(oldDoc).addSteps(tr.doc, tr.mapping.maps);
-  return changeSet.changes.map((change: any) => ({
+  const changeSet: ChangeSet = ChangeSet.create(oldDoc).addSteps(tr.doc, tr.mapping.maps, null);
+  return changeSet.changes.map((change: Change) => ({
     from: change.fromB,
     to: change.toB
   }));
