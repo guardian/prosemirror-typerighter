@@ -19,7 +19,7 @@ export default [
       format: "cjs"
     },
     plugins,
-    external: ["snarkdown"]
+    external: ["snarkdown", "prosemirror-changeset"]
   },
   {
     input: "src/ts/index.ts",
@@ -28,6 +28,6 @@ export default [
       format: "es"
     },
     plugins,
-    external: ["snarkdown"]
+    external: ["snarkdown", "prosemirror-changeset"]
   }
 ];
