@@ -12,19 +12,16 @@ import { Mapping } from "prosemirror-transform";
 export const findOverlappingRangeIndex = (
   range: IRange,
   ranges: IRange[],
-  fromOffset: number = 0
-) => {
-  const offsetRangeFrom = range.from + fromOffset;
-  return ranges.findIndex(
+) => ranges.findIndex(
     localRange =>
-      // Overlaps (or abuts if an offset of -1 is given) to the left of the range
-      (localRange.from <= range.from && localRange.to >= offsetRangeFrom) ||
+      // Overlaps or abuts to the left of the range
+      (localRange.from <= range.from && localRange.to >= range.from) ||
       // Overlaps within the range
       (localRange.to >= range.to && localRange.from <= range.to) ||
-      // Overlaps to the right of the range
+      // Overlaps or abuts to the right of the range
       (localRange.from >= range.from && localRange.to <= range.to)
   );
-};
+
 
 export const mapAndMergeRanges = <Range extends IRange>(
   ranges: Range[],

@@ -46,7 +46,7 @@ describe("Prosemirror utils", () => {
       const tr = view.state.tr
       tr.replaceWith(1, 5, schema.text("Replacement text"));
       expect(getDirtiedRangesFromTransaction(view.state.doc, tr)).toEqual([
-        { from: 1, to: 5 }
+        { from: 1, to: 17 }
       ]);
     });
     it("should get the ranges (with a to value that's the same as the from value) from any deleted text in the transaction", () => {
@@ -60,6 +60,20 @@ describe("Prosemirror utils", () => {
       // no length in document to which they've been applied.
       expect(getDirtiedRangesFromTransaction(view.state.doc, tr)).toEqual([
         { from: 1, to: 1 }
+      ]);
+    });
+    it("should get ranges from multiple steps", () => {
+      const { view } = createEditor(
+        `<p>Paragraph 1</p>
+         <p>Paragraph 2</p>`
+       )
+      const tr = view.state.tr
+      tr.deleteRange(1, 2);
+      tr.deleteRange(5, 6);
+
+      expect(getDirtiedRangesFromTransaction(view.state.doc, tr)).toEqual([
+        { from: 1, to: 1 },
+        { from: 5, to: 5 }
       ]);
     });
   });

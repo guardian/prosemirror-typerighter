@@ -87,7 +87,7 @@ describe("createTyperighterPlugin", () => {
       const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
 
       const tr = view.state.tr
-      tr.insertText("A", 1);
+      tr.insertText("A", 2);
       view.dispatch(tr);
 
       const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;

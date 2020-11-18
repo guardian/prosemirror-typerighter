@@ -464,11 +464,9 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
     : state.decorations;
 
   // Remove any matches and associated decorations touched by the dirtied ranges from the doc
-  // We are providing a from offset of -1 as the range provides a cursor position,
-  // and we need to ensure that the range includes the cursor position before it.
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.filter(
-    output => findOverlappingRangeIndex(output, dirtiedRanges, -1) === -1
+    output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
   );
 
   return {
