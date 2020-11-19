@@ -1,4 +1,4 @@
-import { IBlock, IMatch, ICategory } from "../interfaces/IMatch";
+import { IMatch, ICategory, IBlockWithSkippedRanges } from "../interfaces/IMatch";
 import {
   IMatcherAdapter,
   TMatchesReceivedCallback
@@ -12,6 +12,8 @@ import { selectAllBlockQueriesInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
 import { IPluginState } from "../state/reducer";
+import { removeSkippedRanges } from "../utils/block";
+import { mapMatchThroughBlocks } from "../utils/match";
 
 /**
  * A matcher service to manage the interaction between the prosemirror-typerighter plugin
@@ -72,15 +74,27 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
 
   /**
    * Fetch matches for a set of blocks.
+   *
+   * We transform the blocks to remove their skipped ranges before they are sent
+   * to the server, and map matches back through their owner blocks' skipped ranges
+   * as they return. Doing this in the MatcherService ensures that this transform
+   * happens as close to the point of range egress/ingress as possible.
    */
-  public async fetchMatches(requestId: string, blocks: IBlock[]) {
+  public async fetchMatches(requestId: string, blocks: IBlockWithSkippedRanges[]) {
     const applyMatcherResponse: TMatchesReceivedCallback<TMatch> = response => {
       this.sendMatchTelemetryEvents(response.matches);
-      this.commands.applyMatcherResponse(response);
+      // For matches, map through skipped ranges on the way in
+      const transformedMatches = response.matches.map(match => mapMatchThroughBlocks(match, blocks))
+      const transformedResponse = { ...response, matches: transformedMatches }
+      this.commands.applyMatcherResponse(transformedResponse);
     };
+
+    // For blocks, remove skipped ranges on the way out
+    const transformedBlocks = blocks.map(removeSkippedRanges)
+
     this.adapter.fetchMatches(
       requestId,
-      blocks,
+      transformedBlocks,
       this.currentCategories.map(_ => _.id),
       applyMatcherResponse,
       this.commands.applyRequestError,

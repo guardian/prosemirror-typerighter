@@ -176,3 +176,84 @@ export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
 
 export const expandRangesToParentBlockNode = (ranges: IRange[], doc: Node) =>
   getRangesOfParentBlockNodes(ranges, doc);
+
+const getCharsRemovedBeforeFrom = (
+  currentRange: IRange,
+  removedRange: IRange
+) => {
+  if (removedRange.from >= currentRange.from) {
+    return 0;
+  }
+
+  const rangeBetweenRemovedStartAndIncomingStart = {
+    from: removedRange.from,
+    to: currentRange.from
+  };
+  const intersection = getIntersection(
+    rangeBetweenRemovedStartAndIncomingStart,
+    removedRange
+  );
+  if (intersection) {
+    // The number of chars covered by the intersection is one larger than its length,
+    // so for example (1, 2) will cover chars 1 and 2 – hence we add one to `from`.
+    return intersection.to - intersection.from + 1;
+  }
+  return 1; // If there's no intersection, this is a range from (n, n), which is one char long
+};
+
+/**
+ * Map a from and to position through the given removed range.
+ */
+export const mapRemovedRange = (
+  currentRange: IRange,
+  removedRange: IRange
+): IRange => {
+  const charsRemovedBeforeFrom = getCharsRemovedBeforeFrom(
+    currentRange,
+    removedRange
+  );
+
+  const intersection = getIntersection(currentRange, removedRange);
+  const charsRemovedBeforeTo = intersection
+    ? charsRemovedBeforeFrom + (intersection.to - intersection.from)
+    : charsRemovedBeforeFrom;
+
+  const from = currentRange.from - charsRemovedBeforeFrom;
+  const to = currentRange.to - charsRemovedBeforeTo;
+
+  return { from, to };
+};
+
+/**
+ * Map a from and to position through the given added range.
+ */
+export const mapAddedRange = (
+  currentRange: IRange,
+  addedRange: IRange
+): IRange => {
+  // We add one to our lengths here to ensure the to value
+  // is placed beyond the last position the range occupies.
+  const lengthOfAddedRange = addedRange.to - addedRange.from;
+  const charsAddedBeforeFrom =
+    addedRange.from <= currentRange.from ? lengthOfAddedRange + 1 : 0;
+  const intersection = getIntersection(currentRange, addedRange);
+  const charsAddedBeforeTo = intersection
+    ? lengthOfAddedRange + 1
+    : charsAddedBeforeFrom;
+
+  const from = currentRange.from + charsAddedBeforeFrom;
+  const to = currentRange.to + charsAddedBeforeTo;
+
+  return { from, to };
+};
+
+export const getIntersection = (
+  rangeA: IRange,
+  rangeB: IRange
+): IRange | undefined => {
+  const range = {
+    from: Math.max(rangeA.from, rangeB.from),
+    to: Math.min(rangeA.to, rangeB.to)
+  };
+  return range.from < range.to ? range : undefined;
+};

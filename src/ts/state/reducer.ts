@@ -29,9 +29,9 @@ import {
 } from "./actions";
 import {
   IMatch,
-  IBlock,
   IRange,
-  IMatchRequestError
+  IMatchRequestError,
+  IBlockWithSkippedRanges
 } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
@@ -79,7 +79,7 @@ import { TFilterMatches } from "../utils/plugin";
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
-  block: IBlock;
+  block: IBlockWithSkippedRanges;
 }
 
 /**
@@ -508,7 +508,7 @@ const createHandleMatchesRequestForDirtyRanges = (
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ): TPluginState => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const blocks: IBlock[] = ranges.map(range =>
+  const blocks = ranges.map(range =>
     createBlock(tr.doc, range, tr.time, getIgnoredRanges)
   );
   return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
@@ -536,7 +536,7 @@ const createHandleMatchesRequestForDocument = (
  */
 const handleRequestStart = (
   requestId: string,
-  blocks: IBlock[],
+  blocks: IBlockWithSkippedRanges[],
   categoryIds: string[]
 ) => <TPluginState extends IPluginState>(
   tr: Transaction,

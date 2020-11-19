@@ -152,13 +152,15 @@ describe("createTyperighterPlugin", () => {
           from: 1,
           id: "1337-from:1-to:23",
           text: "Example text to check",
-          to: 23
+          to: 23,
+          skipRanges: []
         },
         {
           from: 24,
           id: "1337-from:24-to:43",
           text: "More text to check",
-          to: 43
+          to: 43,
+          skipRanges: []
         }
       ]
     ]);

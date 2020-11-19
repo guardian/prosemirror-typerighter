@@ -15,8 +15,12 @@ export interface IBlock {
   id: string;
   text: string;
   from: number;
-  to: number;
-  skipRanges?: IRange[]
+  to: number
+}
+
+
+export interface IBlockWithSkippedRanges extends IBlock {
+  skipRanges: IRange[]
 }
 
 export type ISuggestion = ITextSuggestion | IWikiSuggestion;

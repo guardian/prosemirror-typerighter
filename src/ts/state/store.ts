@@ -1,6 +1,6 @@
 import { IPluginState } from "./reducer";
 import { ArgumentTypes } from "../utils/types";
-import { IBlock } from "../interfaces/IMatch";
+import { IBlockWithSkippedRanges } from "../interfaces/IMatch";
 
 export const STORE_EVENT_NEW_MATCHES = "STORE_EVENT_NEW_MATCHES";
 export const STORE_EVENT_NEW_STATE = "STORE_EVENT_NEW_STATE";
@@ -13,7 +13,7 @@ type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 export interface IStoreEvents<TPluginState extends IPluginState> {
   [STORE_EVENT_NEW_MATCHES]: (
     requestId: string,
-    blocks: IBlock[]
+    blocks: IBlockWithSkippedRanges[]
   ) => void;
   [STORE_EVENT_NEW_STATE]: (state: TPluginState) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;

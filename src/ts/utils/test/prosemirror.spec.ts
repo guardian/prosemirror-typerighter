@@ -18,19 +18,33 @@ describe("Prosemirror utils", () => {
         p(ul(li("List item 1"), li("List item 2")))
       );
       expect(getBlocksFromDocument(node, 0, doNotSkipRanges)).toEqual([
-        { from: 1, to: 13, text: "Paragraph 1", id: "0-from:1-to:13" },
-        { from: 14, to: 26, text: "Paragraph 2", id: "0-from:14-to:26" },
+        {
+          from: 1,
+          to: 13,
+          text: "Paragraph 1",
+          id: "0-from:1-to:13",
+          skipRanges: []
+        },
+        {
+          from: 14,
+          to: 26,
+          text: "Paragraph 2",
+          id: "0-from:14-to:26",
+          skipRanges: []
+        },
         {
           from: 29,
           to: 41,
           text: "List item 1",
-          id: "0-from:29-to:41"
+          id: "0-from:29-to:41",
+          skipRanges: []
         },
         {
           from: 42,
           to: 54,
           text: "List item 2",
-          id: "0-from:42-to:54"
+          id: "0-from:42-to:54",
+          skipRanges: []
         }
       ]);
     });
