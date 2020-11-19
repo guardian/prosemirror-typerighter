@@ -7,19 +7,21 @@ import { IBlock } from "../interfaces/IMatch";
 import { Mapping } from "prosemirror-transform";
 
 /**
- * Find the index of the first range in the given range array that overlaps with the given range.
+ * Find the index of the first range in the given range array that overlaps/abuts with the given range.
  */
-export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) => {
-  return ranges.findIndex(
+export const findOverlappingRangeIndex = (
+  range: IRange,
+  ranges: IRange[],
+) => ranges.findIndex(
     localRange =>
-      // Overlaps to the left of the range
+      // Overlaps or abuts to the left of the range
       (localRange.from <= range.from && localRange.to >= range.from) ||
       // Overlaps within the range
       (localRange.to >= range.to && localRange.from <= range.to) ||
-      // Overlaps to the right of the range
+      // Overlaps or abuts to the right of the range
       (localRange.from >= range.from && localRange.to <= range.to)
   );
-};
+
 
 export const mapAndMergeRanges = <Range extends IRange>(
   ranges: Range[],
@@ -67,18 +69,15 @@ export const mergeRange = <Range extends IRange>(
 });
 
 export const mergeRanges = <Range extends IRange>(ranges: Range[]): Range[] =>
-  ranges.reduce(
-    (acc, range) => {
-      const index = findOverlappingRangeIndex(range, acc);
-      if (index === -1) {
-        return acc.concat(range);
-      }
-      const newRange = acc.slice();
-      newRange.splice(index, 1, mergeRange(range, acc[index]));
-      return newRange;
-    },
-    [] as Range[]
-  );
+  ranges.reduce((acc, range) => {
+    const index = findOverlappingRangeIndex(range, acc);
+    if (index === -1) {
+      return acc.concat(range);
+    }
+    const newRange = acc.slice();
+    newRange.splice(index, 1, mergeRange(range, acc[index]));
+    return newRange;
+  }, [] as Range[]);
 
 /**
  * Return the first set of ranges with any overlaps removed.
@@ -89,40 +88,37 @@ export const diffRanges = (
 ): IRange[] => {
   const firstRangesMerged = mergeRanges(firstRanges);
   const secondRangesMerged = mergeRanges(secondRanges);
-  return firstRangesMerged.reduce(
-    (acc, range) => {
-      const overlap = findOverlappingRangeIndex(range, secondRangesMerged);
-      if (overlap === -1) {
-        return acc.concat(range);
-      }
-      const overlappingRange = secondRangesMerged[overlap];
-      const firstShortenedRange = {
-        from: range.from,
-        to: secondRangesMerged[overlap].from
-      };
-      // If the compared range overlaps our range completely, chop the end off...
-      if (overlappingRange.to >= range.to) {
-        // (ranges of 0 aren't valid)
-        return firstShortenedRange.from === firstShortenedRange.to
-          ? acc
-          : acc.concat(firstShortenedRange);
-      }
-      // ... else, split the range and diff the latter segment recursively.
-      return acc.concat(
-        firstShortenedRange,
-        diffRanges(
-          [
-            {
-              from: overlappingRange.to + 1,
-              to: range.to
-            }
-          ],
-          secondRangesMerged
-        )
-      );
-    },
-    [] as IRange[]
-  );
+  return firstRangesMerged.reduce((acc, range) => {
+    const overlap = findOverlappingRangeIndex(range, secondRangesMerged);
+    if (overlap === -1) {
+      return acc.concat(range);
+    }
+    const overlappingRange = secondRangesMerged[overlap];
+    const firstShortenedRange = {
+      from: range.from,
+      to: secondRangesMerged[overlap].from
+    };
+    // If the compared range overlaps our range completely, chop the end off...
+    if (overlappingRange.to >= range.to) {
+      // (ranges of 0 aren't valid)
+      return firstShortenedRange.from === firstShortenedRange.to
+        ? acc
+        : acc.concat(firstShortenedRange);
+    }
+    // ... else, split the range and diff the latter segment recursively.
+    return acc.concat(
+      firstShortenedRange,
+      diffRanges(
+        [
+          {
+            from: overlappingRange.to + 1,
+            to: range.to
+          }
+        ],
+        secondRangesMerged
+      )
+    );
+  }, [] as IRange[]);
 };
 
 export const blockToRange = (input: IBlock): IRange => ({
@@ -159,25 +155,22 @@ export const expandRangeToParentBlockNode = (
  * Expand the given ranges to include their ancestor block nodes.
  */
 export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
-  const matchRanges = ranges.reduce(
-    (acc, range: IRange) => {
-      const expandedRange = expandRangeToParentBlockNode(
-        { from: range.from, to: range.to },
-        doc
-      );
-      return acc.concat(
-        expandedRange
-          ? [
-              {
-                from: expandedRange.from,
-                to: clamp(expandedRange.to, doc.content.size)
-              }
-            ]
-          : []
-      );
-    },
-    [] as IRange[]
-  );
+  const matchRanges = ranges.reduce((acc, range: IRange) => {
+    const expandedRange = expandRangeToParentBlockNode(
+      { from: range.from, to: range.to },
+      doc
+    );
+    return acc.concat(
+      expandedRange
+        ? [
+            {
+              from: expandedRange.from,
+              to: clamp(expandedRange.to, doc.content.size)
+            }
+          ]
+        : []
+    );
+  }, [] as IRange[]);
   return mergeRanges(matchRanges);
 };
 

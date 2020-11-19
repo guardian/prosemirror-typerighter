@@ -12,6 +12,7 @@ import createTyperighterPlugin, {
   IPluginOptions
 } from "../createTyperighterPlugin";
 import { createMatch, createMatcherResponse } from "./helpers/fixtures";
+import { createEditor } from "./helpers/createEditor";
 import { createBoundCommands } from "../commands";
 import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
@@ -55,6 +56,65 @@ describe("createTyperighterPlugin", () => {
   it("should add matches passed to the plugin to the plugin state when the plugin is constructed", () => {
     const { getState, view } = createPlugin();
     expect(getState(view.state).currentMatches).toEqual(matches);
+  });
+  describe("Match persistence/removal", () => {
+    it("should add matches to the document by default", () => {
+      const { editorElement } = createEditor("123456", [createMatch(2, 4)]);
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBeTruthy()
+    });
+    it("should remove matches when the user makes an edit that overlaps them", () => {
+      const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
+
+      const tr = view.state.tr
+      tr.delete(3, 5)
+      view.dispatch(tr);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBe(null)   
+    });
+    it("should remove matches when the user makes an insert that abuts them – rhs", () => {
+      const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
+
+      const tr = view.state.tr
+      tr.insertText("A", 4);
+      view.dispatch(tr);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBe(null)
+    });
+    it("should remove matches when the user makes an insert that abuts them - lhs", () => {
+      const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
+
+      const tr = view.state.tr
+      tr.insertText("A", 2);
+      view.dispatch(tr);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBe(null);
+    });
+    it("should not remove matches when the user makes an edit that doesn't overlap or abut them", () => {
+      const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
+
+      const tr = view.state.tr
+      tr.insertText("A", 5);
+      view.dispatch(tr);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBeTruthy()
+    });
+    it("should not remove matches when the user makes a deletion to the left hand side of the match that doesn't cover its range", () => {
+      // @todo – this fails at the moment, as our change detection overestimates
+      // the range affected by delete operations.
+      const { editorElement, view } = createEditor("123456", [createMatch(3, 5)]);
+
+      const tr = view.state.tr
+      tr.delete(1, 2);
+      view.dispatch(tr);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBeTruthy()
+    });
   });
   it("should trigger onMatches when matches are found in the document", () => {
     const { store, commands } = createPlugin();

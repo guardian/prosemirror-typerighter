@@ -58,5 +58,5 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
     new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk")
   );
 
-  return { editorElement, view, commands };
+  return { editorElement, view, commands, schema: mySchema };
 };
