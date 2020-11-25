@@ -63,13 +63,14 @@ const matchOverlay = <TPluginState extends IPluginState>({
   }, []);
 
   useEffect(() => {
-    // If we've got a new match tooltip to display, get the reference to
-    // the current decoration and set the state.
     if (!currentMatchId) {
       debounceShowMatch.current.cancel();
       setShowMatch(false);
       return;
     }
+
+    // If we've got a new match tooltip to display, get the reference to
+    // the current decoration and set the state.
     const matchElement = maybeGetDecorationElement(currentMatchId);
     setReferenceElement(matchElement as any);
     debounceShowMatch.current(true)

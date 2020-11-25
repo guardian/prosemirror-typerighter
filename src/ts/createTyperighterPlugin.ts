@@ -6,11 +6,14 @@ import {
   includeAllMatches
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
-import { selectNewBlockInFlight } from "./state/selectors";
 import {
-  DECORATION_ATTRIBUTE_ID,
+  selectMatchByMatchId,
+  selectNewBlockInFlight
+} from "./state/selectors";
+import {
   IMatchTypeToColourMap,
-  defaultMatchColours
+  defaultMatchColours,
+  maybeGetDecorationMatchIdFromEvent
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
@@ -80,26 +83,31 @@ export interface IPluginOptions<
   getSkippedRanges?: TGetSkippedRanges;
 
   /**
-   * The colours to use for document matches.
    * Is the given element part of the typerighter UI, but not
    * part of the Prosemirror editor? This helps us avoid resetting
    * hover or highlight states when we're hoving over e.g. tooltips
    * or other overlay nodes that are mounted outside of the editor.
    */
   isElementPartOfTyperighterUI?: (el: HTMLElement) => boolean;
+
+  /**
+   * Called when a match decoration is clicked.
+   */
+  onMatchDecorationClicked?: (match: TMatch) => void;
 }
 
 /**
  * Creates the prosemirror-typerighter plugin. Responsible for issuing requests when the
  * document is changed via the supplied servier, decorating the document with matches
  * when they are are returned, and applying suggestions to the document.
- *
- * @param {IPluginOptions} options The plugin options object.
- * @returns {{plugin: Plugin, commands: ICommands}}
  */
 const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   options: IPluginOptions<TFilterState, TMatch> = {}
-) => {
+): {
+  plugin: Plugin<IPluginState<TFilterState, TMatch>>;
+  store: Store<IPluginState<TFilterState, TMatch>>;
+  getState: (state: EditorState) => IPluginState<TFilterState, TMatch>;
+} => {
   const {
     expandRanges = expandRangesToParentBlockNode,
     getSkippedRanges = doNotSkipRanges,
@@ -107,6 +115,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     filterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
+    onMatchDecorationClicked = () => undefined,
     isElementPartOfTyperighterUI = () => false
   } = options;
   // A handy alias to reduce repetition
@@ -121,7 +130,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     getSkippedRanges
   );
 
-  const plugin: Plugin = new Plugin({
+  const plugin: Plugin<TPluginState> = new Plugin({
     key: pluginKey,
     state: {
       init: (_, { doc }) => {
@@ -190,38 +199,32 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           maybeResetHoverStates(view, isElementPartOfTyperighterUI, event);
           return false;
         },
+        click: (view: EditorView, event: Event) => {
+          const matchId = maybeGetDecorationMatchIdFromEvent(event);
+          const match =
+            matchId &&
+            selectMatchByMatchId(plugin.getState(view.state), matchId);
+          if (match) {
+            onMatchDecorationClicked(match);
+          }
+
+          return false;
+        },
         mouseover: (view: EditorView, event: Event) => {
-          if (!event.target || !(event.target instanceof HTMLElement)) {
-            return false;
-          }
-          const target = event.target;
-          const targetAttr = target.getAttribute(DECORATION_ATTRIBUTE_ID);
-          const newMatchId = targetAttr ? targetAttr : undefined;
-          if (newMatchId === plugin.getState(view.state).hoverId) {
-            return false;
-          }
+          const matchId = maybeGetDecorationMatchIdFromEvent(event);
 
-          // Get our height marker, which tells us the height of a single line
-          // for the given match.
-          const matchDecoration = document.querySelector(
-            `[${DECORATION_ATTRIBUTE_ID}="${newMatchId}"]`
-          );
-          if (
-            newMatchId &&
-            (!matchDecoration || !(matchDecoration instanceof HTMLElement))
-          ) {
-            // tslint:disable-next-line no-console
-            console.warn(
-              `No height marker found for id ${newMatchId}, or the returned marker is not an HTML element. This is odd - a height marker should be present. It's probably a bug.`
-            );
-            return false;
-          }
-
-          if (newMatchId) {
-            startHoverCommand(newMatchId, getClientRectIndex(event))(view.state, view.dispatch);
-          } else {
+          if (!matchId) {
             stopHoverCommand()(view.state, view.dispatch);
           }
+
+          if (!matchId || matchId === plugin.getState(view.state).hoverId) {
+            return false;
+          }
+
+          startHoverCommand(matchId, getClientRectIndex(event))(
+            view.state,
+            view.dispatch
+          );
 
           return false;
         }

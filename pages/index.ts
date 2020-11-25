@@ -43,6 +43,12 @@ document.body.append(overlayNode);
 const isElementPartOfTyperighterUI = (element: HTMLElement) =>
   overlayNode.contains(element);
 
+const telemetryService = new TelemetryService("https://example.com");
+const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
+  telemetryService,
+  "prosemirror-typerighter",
+  "DEV"
+);
 
 const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
   isElementPartOfTyperighterUI,
@@ -50,7 +56,10 @@ const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
     filterMatches: filterByMatchState,
     initialFilterState: [] as MatchType[]
   },
-  getSkippedRanges: (node, from, to) => findMarkPositions(node, from, to, mySchema.marks.code)
+  getSkippedRanges: (node, from, to) =>
+    findMarkPositions(node, from, to, mySchema.marks.code),
+  onMatchDecorationClicked: match =>
+    typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL)
 });
 
 if (editorElement && sidebarNode) {
@@ -75,13 +84,6 @@ if (editorElement && sidebarNode) {
     editorElement.getBoundingClientRect().height / 2 - menuHeight;
 
   const commands = createBoundCommands(view, getState);
-
-  const telemetryService = new TelemetryService("https://example.com");
-  const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
-    telemetryService,
-    "prosemirror-typerighter",
-    "DEV"
-  );
 
   const matcherService = new MatcherService(
     store,
