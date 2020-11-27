@@ -1,11 +1,11 @@
-import React, { useContext } from "react";
+import React, { useContext, memo } from "react";
 
 import { IMatch } from "../interfaces/IMatch";
 import { IMatchTypeToColourMap, getColourForMatch } from "../utils/decoration";
-import { getHtmlFromMarkdown } from "../utils/dom";
 import TelemetryContext from "../contexts/TelemetryContext";
 import SidebarMatchContainer from "./SidebarMatchContainer";
 import { createScrollToRangeHandler } from "../utils/component";
+import Markdown from "./Markdown";
 
 interface IProps {
   match: IMatch;
@@ -69,12 +69,9 @@ const SidebarMatch = ({
               <div className="SidebarMatch__header-match-text">
                 {match.matchedText}
               </div>
-              <div
-                className="SidebarMatch__header-description"
-                dangerouslySetInnerHTML={{
-                  __html: getHtmlFromMarkdown(match.message)
-                }}
-              ></div>
+              <div className="SidebarMatch__header-description">
+                <Markdown markdown={match.message} />
+              </div>
             </div>
           </div>
         </div>
@@ -83,4 +80,4 @@ const SidebarMatch = ({
   );
 };
 
-export default SidebarMatch;
+export default memo(SidebarMatch);
