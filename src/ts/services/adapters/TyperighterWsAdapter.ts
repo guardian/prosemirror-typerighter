@@ -9,22 +9,22 @@ import {
   TRequestCompleteCallback
 } from "../../interfaces/IMatcherAdapter";
 
-const MATCHER_RESPONSE = "MATCHER_RESPONSE" as const;
-const REQUEST_ERROR = "REQUEST_ERROR" as const;
-const REQUEST_COMPLETE = "REQUEST_COMPLETE" as const;
+const CHECK_RESPONSE = "CHECK_RESPONSE" as const;
+const CHECK_ERROR = "CHECK_ERROR" as const;
+const CHECK_COMPLETE = "CHECK_COMPLETE" as const;
 
 interface ISocketResponse extends ITypeRighterResponse {
-  type: typeof MATCHER_RESPONSE;
+  type: typeof CHECK_RESPONSE;
 }
 
 interface ISocketError {
-  type: typeof REQUEST_ERROR;
+  type: typeof CHECK_ERROR;
   id: string | undefined;
   message: string;
 }
 
 interface ISocketWorkComplete {
-  type: typeof REQUEST_COMPLETE;
+  type: typeof CHECK_COMPLETE;
 }
 
 type TSocketMessage = ISocketResponse | ISocketError | ISocketWorkComplete;
@@ -92,7 +92,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
     try {
       const socketMessage: TSocketMessage = JSON.parse(message.data);
       switch (socketMessage.type) {
-        case REQUEST_ERROR: {
+        case CHECK_ERROR: {
           return onRequestError({
             requestId,
             blockId: socketMessage.id,
@@ -100,11 +100,11 @@ class TyperighterWsAdapter extends TyperighterAdapter
             categoryIds: []
           });
         }
-        case MATCHER_RESPONSE: {
+        case CHECK_RESPONSE: {
           this.responseBuffer.push(socketMessage);
           return this.throttledHandleResponse(requestId, onMatchesReceived);
         }
-        case REQUEST_COMPLETE: {
+        case CHECK_COMPLETE: {
           this.flushResponseBuffer(requestId, onMatchesReceived);
           return onRequestComplete(requestId);
         }
