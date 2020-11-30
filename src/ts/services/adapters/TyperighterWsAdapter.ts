@@ -44,7 +44,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
     onRequestComplete: TRequestCompleteCallback
   ) => {
     const url = new URL(this.url)
-    const socket = new WebSocket(`ws://${url.host}/checkStream`);
+    const socket = new WebSocket(`wss://${url.host}/ws/check`);
     const blocks = inputs.map(input => ({
       id: input.id,
       text: input.text,

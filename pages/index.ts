@@ -15,12 +15,12 @@ import createTyperighterPlugin from "../src/ts/createTyperighterPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
-import { TyperighterAdapter } from "../src/ts";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 import TelemetryService from "../src/ts/services/TelemetryService";
 import { MatchType } from "../src/ts/utils/decoration";
 import { filterByMatchState } from "../src/ts/utils/plugin";
 import { findMarkPositions } from "../src/ts/utils/prosemirror";
+import TyperighterWsAdapter from "../src/ts/services/adapters/TyperighterWsAdapter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -88,7 +88,7 @@ if (editorElement && sidebarNode) {
   const matcherService = new MatcherService(
     store,
     commands,
-    new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk"),
+    new TyperighterWsAdapter("https://api.typerighter.local.dev-gutools.co.uk"),
     typerighterTelemetryAdapter
   );
 
