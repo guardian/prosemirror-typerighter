@@ -12,7 +12,7 @@ import SidebarMatchContainer from "./SidebarMatchContainer";
 import { createScrollToRangeHandler } from "../utils/component";
 import Markdown from "./Markdown";
 import { css, SerializedStyles } from "@emotion/react";
-import { getSquiggleAsUri } from "./icons";
+import { getSquiggleAsUri } from "../utils/squiggle";
 
 interface IProps {
   match: IMatch;

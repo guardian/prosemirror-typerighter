@@ -2,7 +2,7 @@ import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { IRange, IMatch } from "../interfaces/IMatch";
-import { getSquiggleAsUri } from '../components/icons';
+import { getSquiggleAsUri } from "./squiggle";
 
 export enum MatchType {
   HAS_REPLACEMENT = "HAS_REPLACEMENT",
