@@ -53,6 +53,7 @@ const FilterResults = ({ filterState, applyFilterState, matches }: IProps) => {
 
         return (
           <span
+            key={matchType}
             css={css`
               margin-right: ${space[2]}px;
             `}
@@ -60,7 +61,6 @@ const FilterResults = ({ filterState, applyFilterState, matches }: IProps) => {
             <Checkbox
               value={matchType}
               defaultChecked={true}
-              key={matchType}
               title="Show/hide matches of this colour"
               disabled={cannotAddFilter && !isDisabled}
               onClick={toggleFilterValue}

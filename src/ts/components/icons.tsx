@@ -7,8 +7,8 @@ export const warningIcon = (colour: string) => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
+      fillRule="evenodd"
+      clipRule="evenodd"
       d="M4.76426 0L0.599976 6.82286L0.867118 7.2H9.13283L9.39997 6.82286L5.23569 0H4.76426ZM4.73875 4.87111H5.26122L5.50962 2.10455L5.16701 1.81333H4.83296L4.49036 2.10455L4.73875 4.87111ZM4.99999 5.38074C5.28028 5.38074 5.50962 5.61008 5.50962 5.89037C5.50962 6.17067 5.28028 6.4 4.99999 6.4C4.71969 6.4 4.49036 6.17067 4.49036 5.89037C4.49036 5.61008 4.71969 5.38074 4.99999 5.38074Z"
       fill={colour}
     />
@@ -39,8 +39,8 @@ export const tickIcon = (colour: string) => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
+      fillRule="evenodd"
+      clipRule="evenodd"
       d="M0.399999 3.90998L0 4.30998L1.99999 7.10997H2.18999L7.90997 1.18999L7.50997 0.799988L2.18999 5.61997L0.399999 3.90998Z"
       fill={colour}
     />
