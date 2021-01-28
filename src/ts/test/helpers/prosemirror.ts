@@ -35,7 +35,7 @@ export const getDecorationSpecsFromDoc = (
   getDecorationSpecsFromSet(view.someProp("decorations", f => f(view.state)));
 
 export const getDecorationSpecsFromMatches = (matches: IMatch[], doc: Node) => {
-  const decorationSet = getNewDecorationsForCurrentMatches(matches, new DecorationSet(), doc)
+  const decorationSet = getNewDecorationsForCurrentMatches(matches, DecorationSet.empty, doc)
   return getDecorationSpecsFromSet(decorationSet);
 }
 

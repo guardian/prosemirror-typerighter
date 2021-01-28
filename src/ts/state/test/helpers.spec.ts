@@ -82,7 +82,7 @@ describe("State helpers", () => {
         filterByMatchState
       );
       expect(filteredMatches).toEqual([]);
-      expect(decorations).toEqual(new DecorationSet());
+      expect(decorations).toEqual(DecorationSet.empty);
     });
     it("should handle a no-op filter state, adding matches to the filtered state", () => {
       const matches = [createMatch(1, 4), createMatch(4, 7)];
@@ -98,7 +98,7 @@ describe("State helpers", () => {
       );
       expect(filteredMatches).toEqual(currentMatches);
       expect(decorations).toEqual(
-        getNewDecorationsForCurrentMatches(matches, new DecorationSet(), tr.doc)
+        getNewDecorationsForCurrentMatches(matches, DecorationSet.empty, tr.doc)
       );
     });
     it("should remove matches when they don't pass the filter", () => {
@@ -116,7 +116,7 @@ describe("State helpers", () => {
 
       expect(currentMatches).toEqual(matches);
       expect(filteredMatches).toEqual([]);
-      expect(decorations).toEqual(new DecorationSet());
+      expect(decorations).toEqual(DecorationSet.empty);
     });
   });
 });
