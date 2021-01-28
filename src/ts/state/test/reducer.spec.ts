@@ -3,7 +3,6 @@ import { DecorationSet } from "prosemirror-view";
 import {
   selectMatch,
   setConfigValue,
-  applyNewDirtiedRanges,
   requestMatchesForDocument,
   requestError,
   requestMatchesForDirtyRanges,
@@ -41,12 +40,6 @@ import { createBlockId } from "../../utils/block";
 const reducer = createReducer(expandRangesToParentBlockNode);
 
 describe("Action handlers", () => {
-  describe("No action", () => {
-    it("should just return the state", () => {
-      const { state, tr } = createInitialData();
-      expect(reducer(tr, state)).toEqual(state);
-    });
-  });
   describe("Unknown action", () => {
     const { state, tr } = createInitialData();
     expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toEqual(
@@ -190,11 +183,7 @@ describe("Action handlers", () => {
     });
     it("should add incoming matches to the state", () => {
       const { state, tr } = createInitialData();
-      let localState = reducer(
-        tr,
-        state,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
+      let localState = { ...state, dirtiedRanges: [{ from: 1, to: 3 }]}
       localState = reducer(
         tr,
         localState,
@@ -337,32 +326,22 @@ describe("Action handlers", () => {
     });
     it("should not apply matches if the ranges they apply to have since been dirtied", () => {
       const { state, tr } = createInitialData(defaultDoc, 1337);
-      let localState = reducer(
-        tr,
-        state,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
+      let localState = { ...state, dirtiedRanges: [{ from: 1, to: 3 }]}
       localState = reducer(
         tr,
         localState,
         requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
-      localState = reducer(
-        tr,
-        localState,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
       expect(
         reducer(
           tr,
-          localState,
+          { ...localState, dirtiedRanges: [{ from: 1, to: 3 }]},
           requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
         )
       ).toEqual({
         ...localState,
         dirtiedRanges: [{ from: 1, to: 3 }],
-        currentMatches: [],
-        requestPending: true
+        currentMatches: []
       });
     });
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {
@@ -561,52 +540,6 @@ describe("Action handlers", () => {
         hoverId: undefined,
         hoverRectIndex: undefined,
         hoverInfo: undefined
-      });
-    });
-  });
-  describe("handleNewDirtyRanges", () => {
-    it("should remove any decorations and matches that touch the passed ranges", () => {
-      const { state } = createInitialData();
-      const currentMatches: IMatch[] = [
-        {
-          matcherType: "regex",
-          ruleId: "ruleId",
-          matchId: "match-id",
-          from: 1,
-          to: 7,
-          matchedText: "block text",
-          message: "Annotation",
-          category: {
-            id: "1",
-            name: "cat",
-            colour: "eeeeee"
-          },
-          markAsCorrect: true,
-          matchContext: "bigger block of text",
-          precedingText: "bigger block of text",
-          subsequentText: ""
-        }
-      ];
-      const stateWithCurrentMatchesAndDecorations = {
-        ...state,
-        currentMatches,
-        decorations: getNewDecorationsForCurrentMatches(
-          currentMatches,
-          state.decorations,
-          defaultDoc,
-          defaultMatchColours
-        )
-      };
-      expect(
-        reducer(
-          new Transaction(defaultDoc),
-          stateWithCurrentMatchesAndDecorations,
-          applyNewDirtiedRanges([{ from: 1, to: 2 }])
-        )
-      ).toEqual({
-        ...state,
-        requestPending: true,
-        dirtiedRanges: [{ from: 1, to: 2 }]
       });
     });
   });

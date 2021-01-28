@@ -1,7 +1,6 @@
 import {
   IMatchRequestError,
-  IMatcherResponse,
-  IRange
+  IMatcherResponse
 } from "../interfaces/IMatch";
 import { IPluginConfig, IPluginState } from "./reducer";
 
@@ -89,14 +88,6 @@ export type ActionNewHighlightIdReceived = ReturnType<
   typeof newHighlightIdReceived
 >;
 
-export const applyNewDirtiedRanges = (ranges: IRange[]) => ({
-  type: APPLY_NEW_DIRTY_RANGES,
-  payload: { ranges }
-});
-export type ActionHandleNewDirtyRanges = ReturnType<
-  typeof applyNewDirtiedRanges
->;
-
 export const selectMatch = (matchId: string) => ({
   type: SELECT_MATCH,
   payload: { matchId }
@@ -147,7 +138,6 @@ export type Action<TPluginState extends IPluginState> =
   | ActionRequestError
   | ActionRequestComplete
   | ActionSelectMatch
-  | ActionHandleNewDirtyRanges
   | ActionSetConfigValue
   | ActionRemoveMatch
   | ActionRemoveAllMatches

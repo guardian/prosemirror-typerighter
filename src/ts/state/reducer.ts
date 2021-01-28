@@ -1,11 +1,10 @@
-import { Transaction } from "prosemirror-state";
+import { EditorState, Transaction } from "prosemirror-state";
 import {
   ActionSetConfigValue,
   ActionRequestError,
   ActionRequestMatchesSuccess,
   ActionRequestMatchesForDocument,
   ActionRequestMatchesForDirtyRanges,
-  ActionHandleNewDirtyRanges,
   ActionNewHoverIdReceived,
   ActionNewHighlightIdReceived,
   ActionSelectMatch,
@@ -19,7 +18,6 @@ import {
   SELECT_MATCH,
   REMOVE_MATCH,
   REMOVE_ALL_MATCHES,
-  APPLY_NEW_DIRTY_RANGES,
   SET_CONFIG_VALUE,
   Action,
   ActionRequestComplete,
@@ -55,7 +53,10 @@ import {
   removeOverlappingRanges
 } from "../utils/range";
 import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
-import { getBlocksFromDocument } from "../utils/prosemirror";
+import {
+  getBlocksFromDocument,
+  getDirtiedRangesFromTransaction
+} from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
   selectSingleBlockInFlightById,
@@ -249,18 +250,9 @@ export const createReducer = <TPluginState extends IPluginState>(
   );
   return (
     tr: Transaction,
-    incomingState: TPluginState,
-    action?: Action<TPluginState>
+    state: TPluginState,
+    action: Action<TPluginState>
   ): TPluginState => {
-    // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
-    const state = tr.docChanged
-      ? getNewStateFromTransaction(tr, incomingState)
-      : incomingState;
-
-    if (!action) {
-      return state;
-    }
-
     const applyNewState = () => {
       switch (action.type) {
         case NEW_HOVER_ID:
@@ -283,8 +275,6 @@ export const createReducer = <TPluginState extends IPluginState>(
           return handleRemoveMatch(tr, state, action);
         case REMOVE_ALL_MATCHES:
           return handleRemoveAllMatches(tr, state);
-        case APPLY_NEW_DIRTY_RANGES:
-          return handleNewDirtyRanges(tr, state, action);
         case SET_CONFIG_VALUE:
           return handleSetConfigValue(tr, state, action);
         case SET_FILTER_STATE:
@@ -310,12 +300,18 @@ export const createReducer = <TPluginState extends IPluginState>(
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
  */
-const getNewStateFromTransaction = <TPluginState extends IPluginState>(
+export const getNewStateFromTransaction = <TPluginState extends IPluginState>(
+  oldState: EditorState,
   tr: Transaction,
-  incomingState: TPluginState
+  pluginState: TPluginState
 ): TPluginState => {
+  const newDirtiedRanges = getDirtiedRangesFromTransaction(oldState.doc, tr);
+  const newPluginState = newDirtiedRanges.length
+    ? applyNewDirtyRanges(tr, pluginState, newDirtiedRanges)
+    : pluginState;
+
   const mappedRequestsInFlight = Object.entries(
-    incomingState.requestsInFlight
+    newPluginState.requestsInFlight
   ).reduce((acc, [requestId, requestsInFlight]) => {
     // We create a new mapping here to preserve state immutability, as
     // appendMapping mutates an existing mapping.
@@ -330,11 +326,12 @@ const getNewStateFromTransaction = <TPluginState extends IPluginState>(
       }
     };
   }, {});
+
   return {
-    ...incomingState,
-    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
+    ...newPluginState,
+    decorations: newPluginState.decorations.map(tr.mapping, tr.doc),
+    dirtiedRanges: mapAndMergeRanges(newPluginState.dirtiedRanges, tr.mapping),
+    currentMatches: mapRanges(newPluginState.currentMatches, tr.mapping),
     requestsInFlight: mappedRequestsInFlight,
     docChangedSinceCheck: true
   };
@@ -463,10 +460,10 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
   };
 };
 
-const handleNewDirtyRanges = <TPluginState extends IPluginState>(
+const applyNewDirtyRanges = <TPluginState extends IPluginState>(
   tr: Transaction,
   state: TPluginState,
-  { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
+  dirtiedRanges: IRange[]
 ): TPluginState => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
   let newDecorations = state.config.debug

@@ -1,9 +1,9 @@
-import { applyNewDirtiedRanges } from "./state/actions";
 import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IIgnoreMatchPredicate,
-  includeAllMatches
+  includeAllMatches,
+  getNewStateFromTransaction
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import {
@@ -18,7 +18,6 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
 import { expandRangesToParentBlockNode } from "./utils/range";
-import { getDirtiedRangesFromTransaction } from "./utils/prosemirror";
 import { IRange, IMatch } from "./interfaces/IMatch";
 import { Node } from "prosemirror-model";
 import Store, {
@@ -144,9 +143,16 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },
-      apply(tr: Transaction, state: TPluginState): TPluginState {
+      apply(tr: Transaction, pluginState: TPluginState, oldState): TPluginState {
+        // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
+        const newState = tr.docChanged
+          ? getNewStateFromTransaction(oldState, tr, pluginState)
+          : pluginState;
+
+        const action = tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION);
+
         // We use the reducer pattern to handle state transitions.
-        return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));
+        return action ? reducer(tr, newState, action) : newState;
       }
     },
 
@@ -154,27 +160,12 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
      * We use appendTransaction to handle side effects and dispatch actions
      * in response to state transitions.
      */
-    appendTransaction(trs: Transaction[], oldState, newState) {
+    appendTransaction(_: Transaction[], oldState, newState) {
       const oldPluginState: TPluginState = plugin.getState(oldState);
       const newPluginState: TPluginState = plugin.getState(newState);
 
-      const newTr = newState.tr;
-
-      const newDirtiedRanges = trs.reduce(
-        (acc, tr) => acc.concat(getDirtiedRangesFromTransaction(oldState.doc, tr)),
-        [] as IRange[]
-      );
-      if (newDirtiedRanges.length) {
-        if (newPluginState.config.requestMatchesOnDocModified) {
-          // We wait a tick here, as applyNewDirtiedRanges must run
-          // before the newly dirtied range is available in the state.
-          // @todo -- this is a bit of a hack, it can be done better.
-          setTimeout(() => store.emit(STORE_EVENT_NEW_DIRTIED_RANGES));
-        }
-        return newTr.setMeta(
-          PROSEMIRROR_TYPERIGHTER_ACTION,
-          applyNewDirtiedRanges(newDirtiedRanges)
-        );
+      if (oldPluginState.dirtiedRanges !== newPluginState.dirtiedRanges) {
+        store.emit(STORE_EVENT_NEW_DIRTIED_RANGES);
       }
 
       const blockStates = selectNewBlockInFlight(
