@@ -191,10 +191,7 @@ export const createInitialState = <
       requestMatchesOnDocModified: false,
       matchColours
     },
-    decorations: DecorationSet.create(
-      doc,
-      createDecorationsForMatches(matches, matchColours)
-    ),
+    decorations: DecorationSet.empty,
     dirtiedRanges: [],
     currentMatches: [] as TMatch[],
     filteredMatches: [] as TMatch[],
