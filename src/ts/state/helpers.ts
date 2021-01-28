@@ -20,7 +20,7 @@ export const addMatchesToState = <TPluginState extends IPluginState>(
   const matchesToApply = matches.filter(match => !ignoreMatch(match));
   const decorations = matchesToApply.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
-    new DecorationSet()
+    DecorationSet.empty
   );
   return {
     ...state,

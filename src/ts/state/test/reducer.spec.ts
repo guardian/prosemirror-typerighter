@@ -96,7 +96,7 @@ describe("Action handlers", () => {
           debug: true
         },
         dirtiedRanges: [],
-        decorations: new DecorationSet().add(tr.doc, [
+        decorations: DecorationSet.empty.add(tr.doc, [
           createDebugDecorationFromRange({ from: 1, to: 22 }, false)
         ]),
         requestPending: false,
@@ -119,7 +119,7 @@ describe("Action handlers", () => {
           ...state,
           config: { ...state.config, debug: true },
           dirtiedRanges: [{ from: 5, to: 10 }],
-          decorations: new DecorationSet().add(tr.doc, [
+          decorations: DecorationSet.empty.add(tr.doc, [
             createDebugDecorationFromRange({ from: 1, to: 3 })
           ]),
           requestPending: true
@@ -127,7 +127,7 @@ describe("Action handlers", () => {
         requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
       expect(newState.decorations).toEqual(
-        new DecorationSet().add(tr.doc, [
+        DecorationSet.empty.add(tr.doc, [
           createDebugDecorationFromRange({ from: 1, to: 22 }, false)
         ])
       );
@@ -147,7 +147,7 @@ describe("Action handlers", () => {
             { from: 5, to: 10 },
             { from: 28, to: 35 }
           ],
-          decorations: new DecorationSet(),
+          decorations: DecorationSet.empty,
           requestPending: true
         },
         requestMatchesForDirtyRanges("id", exampleCategoryIds)
@@ -219,7 +219,7 @@ describe("Action handlers", () => {
         requestMatchesSuccess(createMatcherResponse([{ from: 5, to: 10 }]))
       );
       const newMatch = newState.currentMatches[0];
-      const newDecorations = new DecorationSet().add(
+      const newDecorations = DecorationSet.empty.add(
         tr.doc,
         createDecorationsForMatch(newMatch)
       );
@@ -278,7 +278,7 @@ describe("Action handlers", () => {
         );
 
         expect(newState.decorations).toEqual(
-          new DecorationSet().add(tr.doc, [
+          DecorationSet.empty.add(tr.doc, [
             ...createDecorationsForMatch(matcherResponse2.matches[0]),
             ...createDecorationsForMatch(matcherResponse3.matches[0])
           ])
@@ -384,7 +384,7 @@ describe("Action handlers", () => {
       const currentMatches = matches.slice(0, 1);
       const decorations = getNewDecorationsForCurrentMatches(
         currentMatches,
-        new DecorationSet(),
+        DecorationSet.empty,
         defaultDoc
       );
 
@@ -425,7 +425,7 @@ describe("Action handlers", () => {
             to: 25
           }
         ],
-        decorations: new DecorationSet(),
+        decorations: DecorationSet.empty,
         requestErrors: [
           {
             requestId: exampleRequestId,
@@ -507,14 +507,14 @@ describe("Action handlers", () => {
       const localState = {
         ...state,
         currentMatches: [output],
-        decorations: new DecorationSet().add(
+        decorations: DecorationSet.empty.add(
           tr.doc,
           createDecorationsForMatch(output, defaultMatchColours, false)
         )
       };
       expect(reducer(tr, localState, newHoverIdReceived("match-id", 1))).toEqual({
         ...localState,
-        decorations: new DecorationSet().add(
+        decorations: DecorationSet.empty.add(
           tr.doc,
           createDecorationsForMatch(output, defaultMatchColours, true)
         ),
@@ -544,7 +544,7 @@ describe("Action handlers", () => {
       };
       const localState = {
         ...state,
-        decorations: new DecorationSet().add(tr.doc, [
+        decorations: DecorationSet.empty.add(tr.doc, [
           ...createDecorationsForMatch(output, defaultMatchColours, true)
         ]),
         currentMatches: [output],
@@ -555,7 +555,7 @@ describe("Action handlers", () => {
         reducer(tr, localState, newHoverIdReceived(undefined, undefined))
       ).toEqual({
         ...localState,
-        decorations: new DecorationSet().add(tr.doc, [
+        decorations: DecorationSet.empty.add(tr.doc, [
           ...createDecorationsForMatch(output, defaultMatchColours, false)
         ]),
         hoverId: undefined,
