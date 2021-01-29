@@ -355,8 +355,8 @@ describe("Action handlers", () => {
         { from: 4, to: 6 }
       ];
       const { state, matches } = createStateWithMatches(
-        ignoreMatchReducer,
-        matchSpecs
+        matchSpecs,
+        ignoreMatchReducer
       );
 
       // We expect only the first match from the response to be applied.

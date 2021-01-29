@@ -93,6 +93,11 @@ describe("createTyperighterPlugin", () => {
       const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
       expect(maybeMatchElement).toBe(null);
     });
+    it("should remove matches when they cover a range of 0 on initialisation", () => {
+      const { view, getPluginState } = createEditor("123456", [createMatch(4, 4)]);
+
+      expect(getPluginState(view.state).currentMatches).toEqual([])
+    });
     it("should not remove matches when the user makes an edit that doesn't overlap or abut them", () => {
       const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
 
@@ -104,8 +109,6 @@ describe("createTyperighterPlugin", () => {
       expect(maybeMatchElement).toBeTruthy()
     });
     it("should not remove matches when the user makes a deletion to the left hand side of the match that doesn't cover its range", () => {
-      // @todo – this fails at the moment, as our change detection overestimates
-      // the range affected by delete operations.
       const { editorElement, view } = createEditor("123456", [createMatch(3, 5)]);
 
       const tr = view.state.tr
