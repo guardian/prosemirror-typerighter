@@ -71,7 +71,7 @@ describe("createTyperighterPlugin", () => {
       view.dispatch(tr);
 
       const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
-      expect(maybeMatchElement).toBe(null)   
+      expect(maybeMatchElement).toBe(null)
     });
     it("should remove matches when the user makes an insert that abuts them – rhs", () => {
       const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);

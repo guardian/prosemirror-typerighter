@@ -1,4 +1,4 @@
-import { EditorState, Transaction } from "prosemirror-state";
+import { Transaction } from "prosemirror-state";
 import {
   ActionSetConfigValue,
   ActionRequestError,
@@ -47,16 +47,11 @@ import {
 import {
   mergeRanges,
   blockToRange,
-  mapAndMergeRanges,
   mapRanges,
-  findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
 import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
-import {
-  getBlocksFromDocument,
-  getDirtiedRangesFromTransaction
-} from "../utils/prosemirror";
+import { getBlocksFromDocument } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
   selectSingleBlockInFlightById,
@@ -295,49 +290,6 @@ export const createReducer = <TPluginState extends IPluginState>(
 };
 
 /**
- * Get a new plugin state from the incoming transaction.
- *
- * We need to respond to each transaction in our reducer, whether or not there's
- * an action present, in order to maintain mappings and respond to user input.
- */
-export const getNewStateFromTransaction = <TPluginState extends IPluginState>(
-  oldState: EditorState,
-  tr: Transaction,
-  pluginState: TPluginState
-): TPluginState => {
-  const newDirtiedRanges = getDirtiedRangesFromTransaction(oldState.doc, tr);
-  const newPluginState = newDirtiedRanges.length
-    ? applyNewDirtyRanges(tr, pluginState, newDirtiedRanges)
-    : pluginState;
-
-  const mappedRequestsInFlight = Object.entries(
-    newPluginState.requestsInFlight
-  ).reduce((acc, [requestId, requestsInFlight]) => {
-    // We create a new mapping here to preserve state immutability, as
-    // appendMapping mutates an existing mapping.
-    const mapping = new Mapping();
-    mapping.appendMapping(requestsInFlight.mapping);
-    mapping.appendMapping(tr.mapping);
-    return {
-      ...acc,
-      [requestId]: {
-        ...requestsInFlight,
-        mapping
-      }
-    };
-  }, {});
-
-  return {
-    ...newPluginState,
-    decorations: newPluginState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(newPluginState.dirtiedRanges, tr.mapping),
-    currentMatches: mapRanges(newPluginState.currentMatches, tr.mapping),
-    requestsInFlight: mappedRequestsInFlight,
-    docChangedSinceCheck: true
-  };
-};
-
-/**
  * Action handlers.
  */
 
@@ -457,38 +409,6 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
     decorations,
     hoverRectIndex,
     [focusState]: action.payload.matchId
-  };
-};
-
-const applyNewDirtyRanges = <TPluginState extends IPluginState>(
-  tr: Transaction,
-  state: TPluginState,
-  dirtiedRanges: IRange[]
-): TPluginState => {
-  // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
-  let newDecorations = state.config.debug
-    ? state.decorations.add(
-        tr.doc,
-        dirtiedRanges.map(range => createDebugDecorationFromRange(range))
-      )
-    : state.decorations;
-
-  // Remove any matches and associated decorations touched by the dirtied ranges from the doc
-  newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
-  const currentMatches = state.currentMatches.filter(
-    output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
-  );
-
-  return {
-    ...state,
-    currentMatches,
-    decorations: newDecorations,
-    // We only care about storing dirtied ranges if we're validating
-    // in response to user edits.
-    requestPending: state.config.requestMatchesOnDocModified ? true : false,
-    dirtiedRanges: state.config.requestMatchesOnDocModified
-      ? state.dirtiedRanges.concat(dirtiedRanges)
-      : []
   };
 };
 

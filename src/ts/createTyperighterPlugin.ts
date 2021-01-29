@@ -2,8 +2,7 @@ import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IIgnoreMatchPredicate,
-  includeAllMatches,
-  getNewStateFromTransaction
+  includeAllMatches
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import {
@@ -30,6 +29,7 @@ import { startHoverCommand, stopHoverCommand } from "./commands";
 import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 import { getClientRectIndex } from "./utils/clientRect";
+import { getNewStateFromTransaction } from "./state/helpers";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -145,14 +145,11 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       },
       apply(tr: Transaction, pluginState: TPluginState, oldState): TPluginState {
         // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
-        const newState = tr.docChanged
-          ? getNewStateFromTransaction(oldState, tr, pluginState)
-          : pluginState;
-
-        const action = tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION);
+        const newPluginState = getNewStateFromTransaction(tr, pluginState, oldState);
 
         // We use the reducer pattern to handle state transitions.
-        return action ? reducer(tr, newState, action) : newState;
+        const action = tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION);
+        return action ? reducer(tr, newPluginState, action) : newPluginState;
       }
     },
 

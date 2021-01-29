@@ -18,6 +18,7 @@ import { createDoc, p } from "./prosemirror";
 import { defaultMatchColours } from "../../utils/decoration";
 import { requestMatchesForDocument, requestMatchesSuccess } from "../../state/actions";
 import { getBlocksFromDocument } from "../../utils/prosemirror";
+import { expandRangesToParentBlockNode } from "../../utils/range";
 
 export const matchLibrary: IMatchLibrary = [
   [
@@ -220,8 +221,8 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
  * their decorations from the given spec.
  */
 export const createStateWithMatches = (
-  localReducer: ReturnType<typeof createReducer>,
-  matches: ICreateMatcherResponseSpec[]
+  matches: ICreateMatcherResponseSpec[],
+  localReducer: ReturnType<typeof createReducer> = createReducer(expandRangesToParentBlockNode),
 ): { state: IPluginState; matches: IMatch[] } => {
   const docTime = 1337;
   const { state, tr } = createInitialData(defaultDoc, docTime);
