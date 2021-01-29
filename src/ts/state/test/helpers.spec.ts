@@ -12,8 +12,8 @@ import {
   getNewDecorationsForCurrentMatches,
   MatchType
 } from "../../utils/decoration";
-import { filterByMatchState, IDefaultFilterState } from "../../utils/plugin";
-import { deriveFilteredDecorations, getNewStateFromTransaction, isFilterStateStale } from "../helpers";
+import { filterByMatchState } from "../../utils/plugin";
+import { deriveFilteredDecorations, getNewStateFromTransaction } from "../helpers";
 import { IPluginState } from "../reducer";
 
 const getStateWithFilter = <TFilterState extends unknown>(
@@ -33,50 +33,12 @@ const getStateWithFilter = <TFilterState extends unknown>(
 };
 
 describe("State helpers", () => {
-
-  describe("isFilterStateStale", () => {
-    it("should report fresh when the filter state is undefined", () => {
-      const matches = [] as IMatch[];
-      const { state: oldState } = getStateWithFilter(matches, undefined);
-      const { state: newState } = getStateWithFilter(matches, undefined);
-      const isStale = isFilterStateStale(oldState, newState, identity);
-      expect(isStale).toBe(false);
-    });
-    it("should report fresh when the filter state is undefined and the matches change", () => {
-      const { state: oldState } = getStateWithFilter([] as IMatch[], undefined);
-      const { state: newState } = getStateWithFilter(
-        [createMatch(1, 2)],
-        undefined
-      );
-      const isStale = isFilterStateStale(oldState, newState, identity);
-      expect(isStale).toBe(false);
-    });
-    it("should report stale when the filter state changes", () => {
-      const oldFilterState = [] as MatchType[];
-      const newFilterState = [MatchType.CORRECT];
-      const matches = [] as IMatch[];
-      const { state: oldState } = getStateWithFilter(matches, oldFilterState);
-      const { state: newState } = getStateWithFilter(matches, newFilterState);
-      const isStale = isFilterStateStale(oldState, newState, identity);
-      expect(isStale).toBe(true);
-    });
-    it("should report stale when the matches change and the filter state remains the same", () => {
-      const filterState = [] as MatchType[];
-      const oldMatches = [] as IMatch[];
-      const newMatches = [createMatch(1, 2)];
-      const { state: oldState } = getStateWithFilter(oldMatches, filterState);
-      const { state: newState } = getStateWithFilter(newMatches, filterState);
-      const isStale = isFilterStateStale(oldState, newState, identity);
-      expect(isStale).toBe(true);
-    });
-  });
-
   describe("deriveFilterDecorations", () => {
     it("should handle empty filters and matches", () => {
       const { tr, state } = getStateWithFilter([], []);
       const { filteredMatches, decorations } = deriveFilteredDecorations(
         tr.doc,
-        state as IPluginState<IDefaultFilterState>,
+        state,
         filterByMatchState
       );
       expect(filteredMatches).toEqual([]);
@@ -91,7 +53,7 @@ describe("State helpers", () => {
         decorations
       } = deriveFilteredDecorations(
         tr.doc,
-        state as IPluginState<IDefaultFilterState>,
+        state,
         filterByMatchState
       );
       expect(filteredMatches).toEqual(currentMatches);
@@ -108,7 +70,7 @@ describe("State helpers", () => {
         decorations
       } = deriveFilteredDecorations(
         tr.doc,
-        state as IPluginState<IDefaultFilterState>,
+        state,
         filterByMatchState
       );
 

@@ -29,7 +29,7 @@ import { startHoverCommand, stopHoverCommand } from "./commands";
 import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 import { getClientRectIndex } from "./utils/clientRect";
-import { getNewStateFromTransaction } from "./state/helpers";
+import { deriveFilteredDecorations, getNewStateFromTransaction } from "./state/helpers";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -125,7 +125,6 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   const reducer = createReducer<TPluginState>(
     expandRanges,
     ignoreMatch,
-    filterOptions?.filterMatches,
     getSkippedRanges
   );
 
@@ -145,11 +144,14 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       },
       apply(tr: Transaction, pluginState: TPluginState, oldState): TPluginState {
         // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
-        const newPluginState = getNewStateFromTransaction(tr, pluginState, oldState);
+        let newPluginState = getNewStateFromTransaction(tr, pluginState, oldState);
 
         // We use the reducer pattern to handle state transitions.
         const action = tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION);
-        return action ? reducer(tr, newPluginState, action) : newPluginState;
+        newPluginState = action ? reducer(tr, newPluginState, action) : newPluginState;
+
+        // Finally, we sync our decorations and filtered matches with our current matches.
+        return deriveFilteredDecorations(tr.doc, newPluginState, filterOptions?.filterMatches);
       }
     },
 
@@ -160,8 +162,10 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     appendTransaction(_: Transaction[], oldState, newState) {
       const oldPluginState: TPluginState = plugin.getState(oldState);
       const newPluginState: TPluginState = plugin.getState(newState);
+      const hasNewDirtyRanges = newPluginState.dirtiedRanges.length
+        && oldPluginState.dirtiedRanges !== newPluginState.dirtiedRanges;
 
-      if (oldPluginState.dirtiedRanges !== newPluginState.dirtiedRanges) {
+      if (hasNewDirtyRanges) {
         store.emit(STORE_EVENT_NEW_DIRTIED_RANGES);
       }
 
@@ -221,8 +225,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     view(view) {
       return {
         // Update our store with the new state.
-        update: _ =>
-          store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
+        update: _ => store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state))
       };
     }
   });

@@ -15,7 +15,11 @@ import {
 } from "../utils/decoration";
 import { TFilterMatches } from "../utils/plugin";
 import { getDirtiedRangesFromTransaction } from "../utils/prosemirror";
-import { findOverlappingRangeIndex, mapAndMergeRanges, mapRanges } from "../utils/range";
+import {
+  findOverlappingRangeIndex,
+  mapAndMergeRanges,
+  mapRanges
+} from "../utils/range";
 import { IMatch, IRange } from "../interfaces/IMatch";
 
 export const addMatchesToState = <TPluginState extends IPluginState>(
@@ -24,7 +28,9 @@ export const addMatchesToState = <TPluginState extends IPluginState>(
   matches: Array<TPluginState["currentMatches"][number]>,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ) => {
-  const matchesToApply = matches.filter(match => !ignoreMatch(match) && isMatchValid(match));
+  const matchesToApply = matches.filter(
+    match => !ignoreMatch(match) && isMatchValid(match)
+  );
   const decorations = matchesToApply.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
     DecorationSet.empty
@@ -36,26 +42,7 @@ export const addMatchesToState = <TPluginState extends IPluginState>(
   };
 };
 
-export const isMatchValid = (match: IMatch) => match.from < match.to;
-
-/**
- * Is the current filter state stale, given the incoming state?
- */
-export const isFilterStateStale = <TPluginState extends IPluginState>(
-  oldState: TPluginState,
-  newState: TPluginState,
-  filterMatches?: TFilterMatches<TPluginState["filterState"]>
-): filterMatches is TFilterMatches<TPluginState["filterState"]> => {
-  const matchesChanged = oldState.currentMatches !== newState.currentMatches;
-  const filterStateChanged = oldState.filterState !== newState.filterState;
-  const noFilterApplied = !oldState.filterState && !newState.filterState;
-
-  return (
-    !!filterMatches &&
-    (filterStateChanged || (matchesChanged && !noFilterApplied))
-  );
-};
-
+export const isMatchValid = (match: IMatch) => match.from < match.to
 
 /**
  * Get a new plugin state from the incoming transaction.
@@ -104,6 +91,7 @@ export const getNewStateFromTransaction = <TPluginState extends IPluginState>(
   };
 };
 
+const defaultDirtiedRanges: IRange[] = [];
 
 const applyNewDirtyRanges = <TPluginState extends IPluginState>(
   tr: Transaction,
@@ -121,8 +109,9 @@ const applyNewDirtyRanges = <TPluginState extends IPluginState>(
   // Remove any matches and associated decorations touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.filter(
-    match => findOverlappingRangeIndex(match, dirtiedRanges) === -1
-      && isMatchValid(match)
+    match =>
+      findOverlappingRangeIndex(match, dirtiedRanges) === -1 &&
+      isMatchValid(match)
   );
 
   return {
@@ -134,22 +123,21 @@ const applyNewDirtyRanges = <TPluginState extends IPluginState>(
     requestPending: state.config.requestMatchesOnDocModified ? true : false,
     dirtiedRanges: state.config.requestMatchesOnDocModified
       ? state.dirtiedRanges.concat(dirtiedRanges)
-      : []
+      : defaultDirtiedRanges
   };
 };
 
 export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
   doc: Node,
   newState: TPluginState,
-  filterMatches: TFilterMatches<
+  filterMatches?: TFilterMatches<
     TPluginState["filterState"],
     TPluginState["currentMatches"][number]
   >
 ): TPluginState => {
-  const filteredMatches = filterMatches(
-    newState.filterState,
-    newState.currentMatches
-  );
+  const filteredMatches = filterMatches
+    ? filterMatches(newState.filterState, newState.currentMatches)
+    : newState.currentMatches || [];
   const filteredMatchIds = filteredMatches.map(_ => _.matchId);
 
   const matchIdsWithDecorations = newState.decorations

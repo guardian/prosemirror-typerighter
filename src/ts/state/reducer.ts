@@ -67,10 +67,8 @@ import {
 } from "../utils/block";
 import {
   addMatchesToState,
-  deriveFilteredDecorations,
-  isFilterStateStale
+  deriveFilteredDecorations
 } from "./helpers";
-import { TFilterMatches } from "../utils/plugin";
 
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
@@ -226,10 +224,6 @@ export const createInitialState = <
 export const createReducer = <TPluginState extends IPluginState>(
   expandRanges: ExpandRanges,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
-  filterMatches?: TFilterMatches<
-    TPluginState["filterState"],
-    TPluginState["currentMatches"][0]
-  >,
   getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
@@ -248,44 +242,34 @@ export const createReducer = <TPluginState extends IPluginState>(
     state: TPluginState,
     action: Action<TPluginState>
   ): TPluginState => {
-    const applyNewState = () => {
-      switch (action.type) {
-        case NEW_HOVER_ID:
-          return handleNewHoverId(tr, state, action);
-        case NEW_HIGHLIGHT_ID:
-          return handleNewHighlightId(tr, state, action);
-        case REQUEST_FOR_DIRTY_RANGES:
-          return handleMatchesRequestForDirtyRanges(tr, state, action);
-        case REQUEST_FOR_DOCUMENT:
-          return handleMatchesRequestForDocument(tr, state, action);
-        case REQUEST_SUCCESS:
-          return handleMatchesRequestSuccess(ignoreMatch)(tr, state, action);
-        case REQUEST_ERROR:
-          return handleMatchesRequestError(tr, state, action);
-        case REQUEST_COMPLETE:
-          return handleRequestComplete(tr, state, action);
-        case SELECT_MATCH:
-          return handleSelectMatch(tr, state, action);
-        case REMOVE_MATCH:
-          return handleRemoveMatch(tr, state, action);
-        case REMOVE_ALL_MATCHES:
-          return handleRemoveAllMatches(tr, state);
-        case SET_CONFIG_VALUE:
-          return handleSetConfigValue(tr, state, action);
-        case SET_FILTER_STATE:
-          return handleSetFilterState(tr, state, action);
-        default:
-          return state;
-      }
+    switch (action.type) {
+      case NEW_HOVER_ID:
+        return handleNewHoverId(tr, state, action);
+      case NEW_HIGHLIGHT_ID:
+        return handleNewHighlightId(tr, state, action);
+      case REQUEST_FOR_DIRTY_RANGES:
+        return handleMatchesRequestForDirtyRanges(tr, state, action);
+      case REQUEST_FOR_DOCUMENT:
+        return handleMatchesRequestForDocument(tr, state, action);
+      case REQUEST_SUCCESS:
+        return handleMatchesRequestSuccess(ignoreMatch)(tr, state, action);
+      case REQUEST_ERROR:
+        return handleMatchesRequestError(tr, state, action);
+      case REQUEST_COMPLETE:
+        return handleRequestComplete(tr, state, action);
+      case SELECT_MATCH:
+        return handleSelectMatch(tr, state, action);
+      case REMOVE_MATCH:
+        return handleRemoveMatch(tr, state, action);
+      case REMOVE_ALL_MATCHES:
+        return handleRemoveAllMatches(tr, state);
+      case SET_CONFIG_VALUE:
+        return handleSetConfigValue(tr, state, action);
+      case SET_FILTER_STATE:
+        return handleSetFilterState(tr, state, action);
+      default:
+        return state;
     };
-
-    const newState = applyNewState();
-
-    if (!isFilterStateStale(state, newState, filterMatches)) {
-      return newState;
-    }
-
-    return deriveFilteredDecorations(tr.doc, newState, filterMatches);
   };
 };
 
