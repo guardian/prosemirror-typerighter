@@ -110,11 +110,12 @@ const SidebarMatches = ({
                           align-items: center;
                         `}
                       >
-                        {iconMap[matchType].render(true)}
+                        {iconMap[matchType].renderOnLight()}
                       </div>
                       <span
                         css={css`
-                          padding-left: ${space[1]}px;
+                          font-family: "Guardian Egyptian Text", Georgia, serif;
+                          padding-left: ${space[2]}px;
                           line-height: 30px;
                         `}
                       >
