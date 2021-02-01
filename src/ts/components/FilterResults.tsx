@@ -53,6 +53,7 @@ const FilterResults = ({ filterState, applyFilterState, matches }: IProps) => {
 
         return (
           <span
+            key={matchType}
             css={css`
               margin-right: ${space[2]}px;
             `}
@@ -60,13 +61,22 @@ const FilterResults = ({ filterState, applyFilterState, matches }: IProps) => {
             <Checkbox
               value={matchType}
               defaultChecked={true}
-              key={matchType}
               title="Show/hide matches of this colour"
               disabled={cannotAddFilter && !isDisabled}
               onClick={toggleFilterValue}
               label={
-                <span className={DecorationClassMap[matchType]}>
-                  <span>{iconMap[matchType].render()}</span>
+                <span
+                  className={`${DecorationClassMap[matchType]} MatchDecoration--is-transparent`}
+                >
+                  <span
+                    css={css`
+                      margin-right: ${space[1]}px;
+                      display: inline-block;
+                      vertical-align: middle;
+                    `}
+                  >
+                    {iconMap[matchType].render()}
+                  </span>
                   {`(${noMatchesOfThisType})`}
                 </span>
               }

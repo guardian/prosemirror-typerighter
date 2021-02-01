@@ -1,10 +1,11 @@
 import React, { Component } from "react";
+import { css } from "@emotion/react";
+import { Check } from "@material-ui/icons";
 
 import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
-import { Check } from "@material-ui/icons";
 import { getHtmlFromMarkdown } from "../utils/dom";
 
 interface IMatchProps<TMatch extends IMatch> {
@@ -64,7 +65,12 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
               onClick={() => onMarkCorrect(match)}
             >
               <Check fontSize="small" />
-              <span className="MatchWidget__ignore-match-text">
+              <span
+                className="MatchWidget__ignore-match-text"
+                css={css`
+                  color: ${matchColours.correct};
+                `}
+              >
                 Mark as correct
               </span>
             </div>
