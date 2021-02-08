@@ -18,6 +18,7 @@ interface IProps<TPluginState extends IPluginState> {
   onMarkCorrect?: (match: IMatch) => void;
 }
 
+
 /**
  * An overlay to display match tooltips.
  */
