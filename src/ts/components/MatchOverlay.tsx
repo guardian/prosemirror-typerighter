@@ -10,7 +10,6 @@ import { usePopper } from "react-popper";
 import { debounce } from "lodash"
 import { Placement } from "@popperjs/core";
 
-
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
