@@ -105,12 +105,3 @@ hr {
 .TyperighterPlugin__decoration-container {
   position: absolute;
 }
-
-.TyperighterPlugin__tooltip-overlay {
-  // position: relative provides a new stacking context, which
-  // gives the tooltip a better chance of appearing on top of
-  // other elements.
-  // https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context
-  position: relative;
-  z-index: 10;
-}
