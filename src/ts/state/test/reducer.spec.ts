@@ -163,7 +163,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          dirtiedRanges: [{ from: 2, to: 2 }],
+          dirtiedRanges: [{ from: 2, to: 3 }],
           requestPending: true
         },
         requestMatchesForDirtyRanges("id", exampleCategoryIds)

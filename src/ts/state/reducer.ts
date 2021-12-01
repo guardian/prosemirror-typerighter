@@ -471,9 +471,7 @@ const createHandleMatchesRequestForDirtyRanges = (
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ): TPluginState => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const blocks = ranges
-    .filter(({ from, to }) => from < to)
-    .map(range => createBlock(tr.doc, range, tr.time, getIgnoredRanges));
+  const blocks = ranges.map(range => createBlock(tr.doc, range, tr.time, getIgnoredRanges));
   return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
 
@@ -515,10 +513,22 @@ const handleRequestStart = (
       )
     : state.decorations;
 
-  const newBlockQueriesInFlight: IBlockInFlight[] = blocks.map(block => ({
-    block,
-    pendingCategoryIds: categoryIds
-  }));
+  const newBlockQueriesInFlight: IBlockInFlight[] = blocks
+    .map(block => ({
+      block,
+      pendingCategoryIds: categoryIds
+    }))
+    .filter(({ block }) => block.text !== "")
+
+  const newRequestInFlight = newBlockQueriesInFlight.length ?
+    {
+      [requestId]: {
+        totalBlocks: newBlockQueriesInFlight.length,
+        pendingBlocks: newBlockQueriesInFlight,
+        mapping: tr.mapping,
+        categoryIds
+      }
+    } : {}
 
   return {
     ...state,
@@ -529,12 +539,7 @@ const handleRequestStart = (
     requestPending: false,
     requestsInFlight: {
       ...state.requestsInFlight,
-      [requestId]: {
-        totalBlocks: newBlockQueriesInFlight.length,
-        pendingBlocks: newBlockQueriesInFlight,
-        mapping: tr.mapping,
-        categoryIds
-      }
+      ...newRequestInFlight
     },
     docChangedSinceCheck: false
   };
