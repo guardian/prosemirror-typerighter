@@ -156,8 +156,22 @@ describe("Action handlers", () => {
         selectBlockQueriesInFlightForSet(newState, "id")!.totalBlocks
       ).toEqual(2);
     });
-    it("should remove any ranges of zero width once they've been expanded", () => {
+    it("should remove any ranges with no content once they've been expanded", () => {
       const doc = createDoc(p(""));
+      const { state, tr } = createInitialData(doc);
+      const newState = reducer(
+        tr,
+        {
+          ...state,
+          dirtiedRanges: [{ from: 2, to: 3 }],
+          requestPending: true
+        },
+        requestMatchesForDirtyRanges("id", exampleCategoryIds)
+      );
+      expect(selectAllBlockQueriesInFlight(newState)).toEqual([]);
+    });
+    it("should remove any ranges that contain only whitespace once they've been expanded", () => {
+      const doc = createDoc(p("           "));
       const { state, tr } = createInitialData(doc);
       const newState = reducer(
         tr,
