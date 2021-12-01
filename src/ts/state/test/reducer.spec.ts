@@ -13,7 +13,7 @@ import {
   removeMatch,
   removeAllMatches
 } from "../actions";
-import { selectBlockQueriesInFlightForSet } from "../selectors";
+import { selectAllBlockQueriesInFlight, selectBlockQueriesInFlightForSet } from "../selectors";
 import { createReducer, IPluginState } from "../reducer";
 import {
   createDebugDecorationFromRange,
@@ -155,6 +155,20 @@ describe("Action handlers", () => {
       expect(
         selectBlockQueriesInFlightForSet(newState, "id")!.totalBlocks
       ).toEqual(2);
+    });
+    it("should remove any ranges of zero width once they've been expanded", () => {
+      const doc = createDoc(p(""));
+      const { state, tr } = createInitialData(doc);
+      const newState = reducer(
+        tr,
+        {
+          ...state,
+          dirtiedRanges: [{ from: 2, to: 2 }],
+          requestPending: true
+        },
+        requestMatchesForDirtyRanges("id", exampleCategoryIds)
+      );
+      expect(selectAllBlockQueriesInFlight(newState)).toEqual([]);
     });
   });
   describe("requestMatchesSuccess", () => {

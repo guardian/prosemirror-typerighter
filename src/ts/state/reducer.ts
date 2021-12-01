@@ -471,9 +471,9 @@ const createHandleMatchesRequestForDirtyRanges = (
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
 ): TPluginState => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
-  const blocks = ranges.map(range =>
-    createBlock(tr.doc, range, tr.time, getIgnoredRanges)
-  );
+  const blocks = ranges
+    .filter(({ from, to }) => from < to)
+    .map(range => createBlock(tr.doc, range, tr.time, getIgnoredRanges));
   return handleRequestStart(requestId, blocks, categoryIds)(tr, state);
 };
 
