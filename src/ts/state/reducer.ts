@@ -673,14 +673,17 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     [] as Decoration[]
   );
 
-  const matchesToAdd = response.matches.filter(match => !ignoreMatch(match));
   const currentMapping = selectBlockQueriesInFlightForSet(
     state,
     response.requestId
   )!.mapping;
+
+  // Map our matches across any changes, filtering out inapplicable matches
   const docSelection = new AllSelection(tr.doc);
-  const mappedMatchesToAdd = mapRanges(matchesToAdd, currentMapping).filter(match =>
-    match.to <= docSelection.to
+  const mappedMatchesToAdd = mapRanges(response.matches, currentMapping).filter(match =>
+    match.to <= docSelection.to // Match should be within document bounds
+      && match.to !== match.from // Match should not be zero width (can happen as a result of mapping)
+      && !ignoreMatch(match) // Match should not be marked as ignored by consumer
   );
 
   // Add the response to the current matches.
