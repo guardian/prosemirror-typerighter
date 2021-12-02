@@ -208,6 +208,26 @@ describe("Action handlers", () => {
         ).currentMatches
       ).toMatchObject([createMatch(1, 4)]);
     });
+    it("should not apply matches if they fall outside the bounds of the document", () => {
+      const { state, tr } = createInitialData();
+      let localState = reducer(
+        tr,
+        state,
+        applyNewDirtiedRanges([{ from: 1, to: 3 }])
+      );
+      localState = reducer(
+        tr,
+        localState,
+        requestMatchesForDirtyRanges(exampleRequestId, exampleCategoryIds)
+      );
+      expect(
+        reducer(
+          tr,
+          localState,
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 22, wordFrom: 1000, wordTo: 1022 }]))
+        ).currentMatches
+      ).toEqual([]);
+    });
     it("should create decorations for the incoming matches", () => {
       const { state, tr } = createInitialData();
       const newState = reducer(

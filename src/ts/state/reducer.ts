@@ -1,4 +1,4 @@
-import { Transaction } from "prosemirror-state";
+import { AllSelection, Transaction } from "prosemirror-state";
 import {
   ActionSetConfigValue,
   ActionRequestError,
@@ -678,7 +678,10 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     state,
     response.requestId
   )!.mapping;
-  const mappedMatchesToAdd = mapRanges(matchesToAdd, currentMapping);
+  const docSelection = new AllSelection(tr.doc);
+  const mappedMatchesToAdd = mapRanges(matchesToAdd, currentMapping).filter(match =>
+    match.to <= docSelection.to
+  );
 
   // Add the response to the current matches.
   currentMatches = currentMatches.concat(mappedMatchesToAdd);
