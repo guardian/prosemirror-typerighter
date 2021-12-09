@@ -520,7 +520,7 @@ const handleRequestStart = (
       block,
       pendingCategoryIds: categoryIds
     }))
-    .filter(({ block }) => block.text.trim() !== "")
+    .filter(({ block }) => block.text.length !== 0);
 
   const newRequestInFlight = newBlockQueriesInFlight.length ?
     {

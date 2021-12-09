@@ -170,20 +170,6 @@ describe("Action handlers", () => {
       );
       expect(selectAllBlockQueriesInFlight(newState)).toEqual([]);
     });
-    it("should remove any ranges that contain only whitespace once they've been expanded", () => {
-      const doc = createDoc(p("           "));
-      const { state, tr } = createInitialData(doc);
-      const newState = reducer(
-        tr,
-        {
-          ...state,
-          dirtiedRanges: [{ from: 2, to: 3 }],
-          requestPending: true
-        },
-        requestMatchesForDirtyRanges("id", exampleCategoryIds)
-      );
-      expect(selectAllBlockQueriesInFlight(newState)).toEqual([]);
-    });
   });
   describe("requestMatchesSuccess", () => {
     it("shouldn't do anything if there's nothing in the response and nothing to clean up", () => {
