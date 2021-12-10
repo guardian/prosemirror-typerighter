@@ -54,7 +54,7 @@ import {
   removeOverlappingRanges
 } from "../utils/range";
 import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
-import { getBlocksFromDocument } from "../utils/prosemirror";
+import { getBlocksFromDocument, nodeContainsText } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
   selectSingleBlockInFlightById,

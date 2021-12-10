@@ -176,3 +176,7 @@ export const selectMatches = <TMatch extends IMatch>(
 export const selectDocumentHasChanged = (state: IPluginState): boolean => {
   return state.docChangedSinceCheck;
 };
+
+export const selectDocumentIsEmpty = (state: IPluginState): boolean => {
+  return state.docIsEmpty;
+};
