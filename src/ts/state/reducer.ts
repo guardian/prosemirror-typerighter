@@ -153,6 +153,7 @@ export interface IPluginState<
   filterState: TFilterState;
   // Has the document changed since the last document check?
   docChangedSinceCheck: boolean;
+  docIsEmpty: boolean;
 }
 
 // The transaction meta key that namespaces our actions.
@@ -163,10 +164,10 @@ interface IInitialStateOpts<
   TMatch extends IMatch
 > {
   doc: Node;
-  matches: TMatch[];
-  ignoreMatch: IIgnoreMatchPredicate;
-  matchColours: IMatchTypeToColourMap;
-  filterOptions: IFilterOptions<TFilterState, TMatch> | undefined;
+  matches?: TMatch[];
+  ignoreMatch?: IIgnoreMatchPredicate;
+  matchColours?: IMatchTypeToColourMap;
+  filterOptions?: IFilterOptions<TFilterState, TMatch>;
 }
 
 /**
@@ -206,7 +207,8 @@ export const createInitialState = <
     requestPending: false,
     requestErrors: [],
     filterState: filterOptions?.initialFilterState as TFilterState,
-    docChangedSinceCheck: false
+    docChangedSinceCheck: false,
+    docIsEmpty: !nodeContainsText(doc)
   };
 
   const stateWithMatches = addMatchesToState(
