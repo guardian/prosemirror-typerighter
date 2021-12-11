@@ -368,35 +368,72 @@ describe("Action handlers", () => {
 
         expect(newState.decorations).toBe(state.decorations);
       });
-    });
-    it("should not apply matches if the ranges they apply to have since been dirtied", () => {
-      const { state, tr } = createInitialData(defaultDoc, 1337);
-      let localState = reducer(
-        tr,
-        state,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
-      localState = reducer(
-        tr,
-        localState,
-        requestMatchesForDirtyRanges("id", exampleCategoryIds)
-      );
-      localState = reducer(
-        tr,
-        localState,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
-      expect(
-        reducer(
+
+      describe("Dirtied ranges – realtime checks (requestMatchesOnDocModified = true)", () => {
+        it("should not apply matches if the ranges they apply to have since been dirtied and requestMatchesOnDocModified = true", () => {
+          const { state, tr } = createInitialData(defaultDoc, 1337);
+          let localState = reducer(
+            tr,
+            state,
+            applyNewDirtiedRanges([{ from: 1, to: 3 }])
+          );
+          localState = reducer(
+            tr,
+            localState,
+            requestMatchesForDirtyRanges("id", exampleCategoryIds)
+          );
+          localState = reducer(
+            tr,
+            localState,
+            applyNewDirtiedRanges([{ from: 1, to: 3 }])
+          );
+          expect(
+            reducer(
+              tr,
+              localState,
+              requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
+            )
+          ).toEqual({
+            ...localState,
+            dirtiedRanges: [{ from: 1, to: 3 }],
+            currentMatches: [],
+            requestPending: true
+          });
+        });
+      });
+
+      describe("Dirtied ranges – document checks (requestMatchesOnDocModified = false)", () => {
+        const { state, tr } = createInitialData(defaultDoc, 0, { requestMatchesOnDocModified: false });
+        let localState = reducer(
+          tr,
+          state,
+          requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
+        );
+        localState = reducer(
           tr,
           localState,
-          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
+          applyNewDirtiedRanges([{ from: 1, to: 3 }])
+        );
+
+        localState = reducer(
+          tr,
+          localState,
+          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 23 }]))
         )
-      ).toEqual({
-        ...localState,
-        dirtiedRanges: [{ from: 1, to: 3 }],
-        currentMatches: [],
-        requestPending: true
+
+        it("should not apply matches if the ranges they apply to have since been dirtied", () => {
+          expect(localState).toMatchObject({
+            currentMatches: [],
+            requestPending: false
+          });
+        });
+
+        it("should reset dirtiedRanges after all requests are complete", () => {
+          console.log(localState.dirtiedRanges)
+          expect(localState).toMatchObject({
+            dirtiedRanges: [],
+          });
+        });
       });
     });
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {
