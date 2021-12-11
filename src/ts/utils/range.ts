@@ -9,10 +9,8 @@ import { Mapping } from "prosemirror-transform";
 /**
  * Find the index of the first range in the given range array that overlaps/abuts with the given range.
  */
-export const findOverlappingRangeIndex = (
-  range: IRange,
-  ranges: IRange[],
-) => ranges.findIndex(
+export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) =>
+  ranges.findIndex(
     localRange =>
       // Overlaps or abuts to the left of the range
       (localRange.from <= range.from && localRange.to >= range.from) ||
@@ -21,7 +19,6 @@ export const findOverlappingRangeIndex = (
       // Overlaps or abuts to the right of the range
       (localRange.from >= range.from && localRange.to <= range.to)
   );
-
 
 export const mapAndMergeRanges = <Range extends IRange>(
   ranges: Range[],
@@ -37,6 +34,15 @@ export const mapRanges = <Range extends IRange>(
     from: mapping.map(range.from),
     to: mapping.map(range.to)
   }));
+
+export const mapRange = <Range extends IRange>(
+  range: Range,
+  mapping: Mapping
+): Range => ({
+  ...range,
+  from: mapping.map(range.from),
+  to: mapping.map(range.to)
+});
 
 /**
  * Return the first set of ranges with any members overlapping the second set removed.

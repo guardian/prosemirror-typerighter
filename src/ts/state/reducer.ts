@@ -49,7 +49,6 @@ import {
 import {
   mergeRanges,
   blockToRange,
-  mapAndMergeRanges,
   mapRanges,
   findOverlappingRangeIndex,
   removeOverlappingRanges
@@ -72,6 +71,7 @@ import {
 import {
   addMatchesToState,
   deriveFilteredDecorations,
+  getNewStateFromTransaction,
   isFilterStateStale
 } from "./helpers";
 import { TFilterMatches } from "../utils/plugin";
@@ -301,42 +301,6 @@ export const createReducer = <TPluginState extends IPluginState>(
     }
 
     return deriveFilteredDecorations(tr.doc, newState, filterMatches);
-  };
-};
-
-/**
- * Get a new plugin state from the incoming transaction.
- *
- * We need to respond to each transaction in our reducer, whether or not there's
- * an action present, in order to maintain mappings and respond to user input.
- */
-const getNewStateFromTransaction = <TPluginState extends IPluginState>(
-  tr: Transaction,
-  incomingState: TPluginState
-): TPluginState => {
-  const mappedRequestsInFlight = Object.entries(
-    incomingState.requestsInFlight
-  ).reduce((acc, [requestId, requestsInFlight]) => {
-    // We create a new mapping here to preserve state immutability, as
-    // appendMapping mutates an existing mapping.
-    const mapping = new Mapping();
-    mapping.appendMapping(requestsInFlight.mapping);
-    mapping.appendMapping(tr.mapping);
-    return {
-      ...acc,
-      [requestId]: {
-        ...requestsInFlight,
-        mapping
-      }
-    };
-  }, {});
-  return {
-    ...incomingState,
-    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
-    requestsInFlight: mappedRequestsInFlight,
-    docChangedSinceCheck: true
   };
 };
 
