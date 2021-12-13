@@ -685,6 +685,10 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     state.requestsInFlight
   );
 
+  const dirtiedRanges = (state.config.requestMatchesOnDocModified || Object.keys(newBlockQueriesInFlight).length)
+    ? state.dirtiedRanges
+    : []
+
   return {
     ...state,
     requestsInFlight: newBlockQueriesInFlight,
@@ -692,9 +696,7 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     decorations: state.decorations
       .remove(decsToRemove)
       .add(tr.doc, newDecorations),
-    dirtiedRanges: state.config.requestMatchesOnDocModified
-      ? state.dirtiedRanges
-      : []
+    dirtiedRanges
   };
 };
 
