@@ -1,4 +1,4 @@
-import { Transaction } from "prosemirror-state";
+import { AllSelection, Transaction } from "prosemirror-state";
 import {
   ActionSetConfigValue,
   ActionRequestError,
@@ -49,7 +49,6 @@ import {
 import {
   mergeRanges,
   blockToRange,
-  mapAndMergeRanges,
   mapRanges,
   findOverlappingRangeIndex,
   removeOverlappingRanges
@@ -72,6 +71,7 @@ import {
 import {
   addMatchesToState,
   deriveFilteredDecorations,
+  getNewStateFromTransaction,
   isFilterStateStale
 } from "./helpers";
 import { TFilterMatches } from "../utils/plugin";
@@ -301,42 +301,6 @@ export const createReducer = <TPluginState extends IPluginState>(
     }
 
     return deriveFilteredDecorations(tr.doc, newState, filterMatches);
-  };
-};
-
-/**
- * Get a new plugin state from the incoming transaction.
- *
- * We need to respond to each transaction in our reducer, whether or not there's
- * an action present, in order to maintain mappings and respond to user input.
- */
-const getNewStateFromTransaction = <TPluginState extends IPluginState>(
-  tr: Transaction,
-  incomingState: TPluginState
-): TPluginState => {
-  const mappedRequestsInFlight = Object.entries(
-    incomingState.requestsInFlight
-  ).reduce((acc, [requestId, requestsInFlight]) => {
-    // We create a new mapping here to preserve state immutability, as
-    // appendMapping mutates an existing mapping.
-    const mapping = new Mapping();
-    mapping.appendMapping(requestsInFlight.mapping);
-    mapping.appendMapping(tr.mapping);
-    return {
-      ...acc,
-      [requestId]: {
-        ...requestsInFlight,
-        mapping
-      }
-    };
-  }, {});
-  return {
-    ...incomingState,
-    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
-    requestsInFlight: mappedRequestsInFlight,
-    docChangedSinceCheck: true
   };
 };
 
@@ -673,12 +637,18 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     [] as Decoration[]
   );
 
-  const matchesToAdd = response.matches.filter(match => !ignoreMatch(match));
   const currentMapping = selectBlockQueriesInFlightForSet(
     state,
     response.requestId
   )!.mapping;
-  const mappedMatchesToAdd = mapRanges(matchesToAdd, currentMapping);
+
+  // Map our matches across any changes, filtering out inapplicable matches
+  const docSelection = new AllSelection(tr.doc);
+  const mappedMatchesToAdd = mapRanges(response.matches, currentMapping).filter(match =>
+    match.to <= docSelection.to // Match should be within document bounds
+      && match.to !== match.from // Match should not be zero width (can happen as a result of mapping)
+      && !ignoreMatch(match) // Match should not be marked as ignored by consumer
+  );
 
   // Add the response to the current matches.
   currentMatches = currentMatches.concat(mappedMatchesToAdd);
