@@ -285,3 +285,25 @@ export const findMarkPositions = (
   });
   return matched.map(match => ({ from: match.from, to: match.to }));
 };
+
+/**
+ * Does the given node contain any text content?
+ *
+ * Necessary to roll our own, as there's not a ProseMirror-native function that
+ * will return early once text is found, and a complete traversal through a
+ * large document would be inefficient.
+ */
+export const nodeContainsText = (node: Node): boolean => {
+  if (node.isText) {
+    return true;
+  }
+
+  let hasText = false;
+
+  for (let i = 0; hasText === false && i < node.content.childCount; i++) {
+    const child = node.content.maybeChild(i) as Node;
+    hasText = nodeContainsText(child);
+  }
+
+  return hasText;
+}

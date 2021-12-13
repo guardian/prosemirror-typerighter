@@ -1,7 +1,8 @@
 import builder from "prosemirror-test-builder";
 import {
   getBlocksFromDocument,
-  getDirtiedRangesFromTransaction
+  getDirtiedRangesFromTransaction,
+  nodeContainsText
 } from "../prosemirror";
 import { flatten } from "prosemirror-utils";
 import { doNotSkipRanges } from "../block";
@@ -52,12 +53,12 @@ describe("Prosemirror utils", () => {
   describe("getDirtiedRangesFromTransaction", () => {
     it("should get ranges from any replaced text in the transaction", () => {
       const { view, schema } = createEditor(
-       `<p>Paragraph 1</p>
+        `<p>Paragraph 1</p>
         <p>Paragraph 2</p>
         <p><ul><li>List item 1</li><li>List item 2</li></ul></p>`
-      )
+      );
 
-      const tr = view.state.tr
+      const tr = view.state.tr;
       tr.replaceWith(1, 5, schema.text("Replacement text"));
       expect(getDirtiedRangesFromTransaction(view.state.doc, tr)).toEqual([
         { from: 1, to: 17 }
@@ -67,8 +68,8 @@ describe("Prosemirror utils", () => {
       const { view } = createEditor(
         `<p>Paragraph 1</p>
          <p>Paragraph 2</p>`
-       )
-      const tr = view.state.tr
+      );
+      const tr = view.state.tr;
       tr.deleteRange(1, 2);
       // Deletions are always represented by a range of length 0, as they have
       // no length in document to which they've been applied.
@@ -80,8 +81,8 @@ describe("Prosemirror utils", () => {
       const { view } = createEditor(
         `<p>Paragraph 1</p>
          <p>Paragraph 2</p>`
-       )
-      const tr = view.state.tr
+      );
+      const tr = view.state.tr;
       tr.deleteRange(1, 2);
       tr.deleteRange(5, 6);
 
@@ -116,6 +117,27 @@ describe("Prosemirror utils", () => {
     it("should limit the depth of the operation if the descend param is false", () => {
       const node = doc(p(ul(li("List item 1"))));
       expect(flatten(node, false).length).toEqual(1);
+    });
+  });
+  describe("nodeContainsText", () => {
+    const testTextInput = (text: string, result: boolean) => {
+      expect(nodeContainsText(doc(text))).toBe(result);
+      expect(nodeContainsText(doc(p(text)))).toBe(result);
+      expect(nodeContainsText(doc(p(p(text))))).toBe(result);
+      expect(nodeContainsText(doc(p(""), p(text)))).toBe(result);
+      expect(nodeContainsText(doc(ul(li(text))))).toBe(result);
+    }
+
+    it("should return true if the document contains any text content", () => {
+      testTextInput("Text", true)
+    });
+
+    it("should return true if the document contains any whitespace", () => {
+      testTextInput(" ", true)
+    });
+
+    it("should return false if the document does not contain text content", () => {
+      testTextInput("", false)
     });
   });
 });

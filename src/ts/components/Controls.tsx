@@ -11,7 +11,8 @@ import {
   selectHasAuthError,
   selectRequestsInProgress,
   selectHasMatches,
-  selectDocumentHasChanged
+  selectDocumentHasChanged,
+  selectDocumentIsEmpty
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
@@ -117,24 +118,31 @@ const Controls = <TPluginState extends IPluginState>({
   };
 
   const renderCheckDocumentButton = () => {
+    const requestInProgress =
+      !!pluginState && selectRequestsInProgress(pluginState);
+    const docIsEmpty = !!pluginState && selectDocumentIsEmpty(pluginState);
+    const docHasChanged =
+      !!pluginState && !docIsEmpty && selectDocumentHasChanged(pluginState);
+
+    const isDisabled = requestInProgress || docIsEmpty;
+    const message = docIsEmpty ? "The document has no text to check" : "";
+
     const plainButton = (
-      <button
-        type="button"
-        className="Button"
-        onClick={handleCheckDocumentButtonClick}
-        disabled={pluginState && selectRequestsInProgress(pluginState)}
-      >
-        Check document
-      </button>
+      <>
+        <button
+          type="button"
+          className="Sidebar__header-button Button"
+          onClick={handleCheckDocumentButtonClick}
+          disabled={isDisabled}
+          title={message}
+        >
+          Check document
+        </button>
+
+      </>
     );
 
-    if (!pluginState) {
-      return plainButton;
-    }
-
-    const docHasChanged = selectDocumentHasChanged(pluginState);
-
-    if (!docHasChanged) {
+    if (!pluginState || !docHasChanged) {
       return plainButton;
     }
 

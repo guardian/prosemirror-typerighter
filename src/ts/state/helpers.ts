@@ -14,6 +14,7 @@ import {
 import { DecorationSet } from "prosemirror-view";
 import { TFilterMatches } from "../utils/plugin";
 import { mapAndMergeRanges, mapRange, mapRanges } from "../utils/range";
+import { nodeContainsText } from "../utils/prosemirror";
 
 export const addMatchesToState = <TPluginState extends IPluginState>(
   state: TPluginState,
@@ -135,6 +136,7 @@ export const getNewStateFromTransaction = <TPluginState extends IPluginState>(
     dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
     currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
     requestsInFlight: mappedRequestsInFlight,
-    docChangedSinceCheck: true
+    docChangedSinceCheck: true,
+    docIsEmpty: !nodeContainsText(tr.doc)
   };
 };
