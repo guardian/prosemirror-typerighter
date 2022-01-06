@@ -153,18 +153,18 @@ export const exampleCategoryIds = ["example-category"];
 
 export const exampleRequestId = "set-id";
 
-export const createBlockQueriesInFlight = (
-  blockQueries: IBlockWithSkippedRanges[],
+export const createRequestInFlight = (
+  blocksInFlight: IBlockWithSkippedRanges[],
   setId = exampleRequestId,
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
   total?: number
 ): { [setId: string]: IRequestInFlight } => ({
   [setId]: {
-    totalBlocks: total || blockQueries.length,
+    totalBlocks: total || blocksInFlight.length,
     mapping: new Mapping(),
     categoryIds,
-    pendingBlocks: blockQueries.map(block => ({
+    pendingBlocks: blocksInFlight.map(block => ({
       block,
       pendingCategoryIds
     }))
