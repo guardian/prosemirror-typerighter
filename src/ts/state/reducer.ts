@@ -60,7 +60,7 @@ import {
   selectSingleBlockInRequestInFlightById,
   selectRequestInFlightById,
   selectMatchByMatchId,
-  selectBlocksInFlightById as selectBlocksInFlightById
+  selectBlocksInFlightById
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import {
