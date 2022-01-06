@@ -448,14 +448,15 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
     output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
   );
 
+  const shouldPersistNewDirtyRanges = state.config.requestMatchesOnDocModified
+    || !!Object.keys(state.requestsInFlight).length;
+
   return {
     ...state,
     currentMatches,
     decorations: newDecorations,
-    // We only care about storing dirtied ranges if we're validating
-    // in response to user edits.
     requestPending: state.config.requestMatchesOnDocModified ? true : false,
-    dirtiedRanges: state.config.requestMatchesOnDocModified
+    dirtiedRanges: shouldPersistNewDirtyRanges
       ? state.dirtiedRanges.concat(dirtiedRanges)
       : []
   };
@@ -684,13 +685,18 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     state.requestsInFlight
   );
 
+  const dirtiedRanges = (state.config.requestMatchesOnDocModified || Object.keys(newBlockQueriesInFlight).length)
+    ? state.dirtiedRanges
+    : []
+
   return {
     ...state,
     requestsInFlight: newBlockQueriesInFlight,
     currentMatches,
     decorations: state.decorations
       .remove(decsToRemove)
-      .add(tr.doc, newDecorations)
+      .add(tr.doc, newDecorations),
+    dirtiedRanges
   };
 };
 

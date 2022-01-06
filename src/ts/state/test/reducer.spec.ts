@@ -368,35 +368,99 @@ describe("Action handlers", () => {
 
         expect(newState.decorations).toBe(state.decorations);
       });
-    });
-    it("should not apply matches if the ranges they apply to have since been dirtied", () => {
-      const { state, tr } = createInitialData(defaultDoc, 1337);
-      let localState = reducer(
-        tr,
-        state,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
-      localState = reducer(
-        tr,
-        localState,
-        requestMatchesForDirtyRanges("id", exampleCategoryIds)
-      );
-      localState = reducer(
-        tr,
-        localState,
-        applyNewDirtiedRanges([{ from: 1, to: 3 }])
-      );
-      expect(
-        reducer(
-          tr,
-          localState,
-          requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
-        )
-      ).toEqual({
-        ...localState,
-        dirtiedRanges: [{ from: 1, to: 3 }],
-        currentMatches: [],
-        requestPending: true
+
+      describe("Dirtied ranges – realtime checks (requestMatchesOnDocModified = true)", () => {
+        it("should not apply matches if the ranges they apply to have since been dirtied and requestMatchesOnDocModified = true", () => {
+          const { state, tr } = createInitialData(defaultDoc, 1337);
+          let localState = reducer(
+            tr,
+            state,
+            applyNewDirtiedRanges([{ from: 1, to: 3 }])
+          );
+          localState = reducer(
+            tr,
+            localState,
+            requestMatchesForDirtyRanges("id", exampleCategoryIds)
+          );
+          localState = reducer(
+            tr,
+            localState,
+            applyNewDirtiedRanges([{ from: 1, to: 3 }])
+          );
+          expect(
+            reducer(
+              tr,
+              localState,
+              requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 3 }]))
+            )
+          ).toEqual({
+            ...localState,
+            dirtiedRanges: [{ from: 1, to: 3 }],
+            currentMatches: [],
+            requestPending: true
+          });
+        });
+      });
+
+      describe("Dirtied ranges – document checks (requestMatchesOnDocModified = false)", () => {
+        it("should not apply matches if the ranges they apply to have since been dirtied", () => {
+          const { state, tr } = createInitialData(defaultDoc, 0, { requestMatchesOnDocModified: false });
+          const category = { id: "cat1", name: "Example category", colour: "eee" };
+          let localState: IPluginState = {
+            ...state,
+            dirtiedRanges: [{ from: 1, to: 3 }],
+            requestsInFlight: {
+              ...createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")], "req1", [category.id])
+            }
+          }
+
+          localState = reducer(
+            tr,
+            localState,
+            requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 23, category }], "req1"))
+          );
+
+          expect(localState).toMatchObject({
+            requestsInFlight: {},
+            dirtiedRanges: [],
+            currentMatches: []
+          });
+        });
+
+
+        it("should reset dirtiedRanges after all requests are complete", () => {
+          const { state, tr } = createInitialData(defaultDoc, 0, { requestMatchesOnDocModified: false });
+          const category = { id: "cat1", name: "Example category", colour: "eee" };
+          const category2 = { id: "cat1", name: "Example category", colour: "eee" };
+          let localState: IPluginState = {
+            ...state,
+            dirtiedRanges: [{ from: 1, to: 3 }],
+            requestsInFlight: {
+              ...createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")], "req1", [category.id]),
+              ...createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")], "req2", [category2.id])
+            }
+          }
+
+          localState = reducer(
+            tr,
+            localState,
+            requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 23, category }], "req1"))
+          );
+
+          expect(localState).toMatchObject({
+            dirtiedRanges: [{ from: 1, to: 3 }],
+          });
+
+          localState = reducer(
+            tr,
+            localState,
+            requestMatchesSuccess(createMatcherResponse([{ from: 1, to: 23, category: category2 }], "req2"))
+          );
+
+          expect(localState).toMatchObject({
+            dirtiedRanges: [],
+          });
+        });
       });
     });
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {

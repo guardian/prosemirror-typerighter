@@ -9,7 +9,7 @@ import {
   IRange
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
-import { IPluginState, IBlocksInFlightState, createReducer } from "../../state/reducer";
+import { IPluginState, IBlocksInFlightState, createReducer, IPluginConfig } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
@@ -180,7 +180,11 @@ export const createInitialTr = (doc: Node = defaultDoc) => {
   return tr;
 };
 
-export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
+export const createInitialData = (
+  doc: Node = defaultDoc,
+  time = 0,
+  config: Partial<IPluginConfig> = {}
+) => {
   const tr = createInitialTr(doc);
   tr.doc = doc;
   tr.time = time;
@@ -191,7 +195,8 @@ export const createInitialData = (doc: Node = defaultDoc, time = 0) => {
       config: {
         debug: false,
         requestMatchesOnDocModified: true,
-        matchColours: defaultMatchColours
+        matchColours: defaultMatchColours,
+        ...config
       },
       currentThrottle: 100,
       initialThrottle: 100,
