@@ -9,7 +9,7 @@ import {
   IRange
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
-import { IPluginState, IBlocksInFlightState, createReducer, IPluginConfig } from "../../state/reducer";
+import { IPluginState, IRequestInFlight, createReducer, IPluginConfig } from "../../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
@@ -159,7 +159,7 @@ export const createBlockQueriesInFlight = (
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
   total?: number
-): { [setId: string]: IBlocksInFlightState } => ({
+): { [setId: string]: IRequestInFlight } => ({
   [setId]: {
     totalBlocks: total || blockQueries.length,
     mapping: new Mapping(),

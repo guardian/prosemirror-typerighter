@@ -90,7 +90,7 @@ export interface IBlockInFlight {
 export type IIgnoreMatchPredicate = (match: IMatch) => boolean;
 export const includeAllMatches: IIgnoreMatchPredicate = () => false;
 
-export interface IBlocksInFlightState {
+export interface IRequestInFlight {
   totalBlocks: number;
   // The category ids that were sent with the request.
   categoryIds: string[];
@@ -145,7 +145,7 @@ export interface IPluginState<
   // The sets of blocks that have been sent to the matcher service
   // and have not yet completed processing.
   requestsInFlight: {
-    [requestId: string]: IBlocksInFlightState;
+    [requestId: string]: IRequestInFlight;
   };
   // The current error message.
   requestErrors: IMatchRequestError[];
@@ -563,7 +563,7 @@ const amendBlockQueriesInFlight = (
   if (!currentBlockQueriesInFlight) {
     return state.requestsInFlight;
   }
-  const newBlockQueriesInFlight: IBlocksInFlightState = {
+  const newBlockQueriesInFlight: IRequestInFlight = {
     ...currentBlockQueriesInFlight,
     pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
       (acc, blockInFlight) => {

@@ -1,7 +1,7 @@
 import { sortBy } from "lodash";
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { getMatchType, MatchType } from "../utils/decoration";
-import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
+import { IPluginState, IBlockInFlight, IRequestInFlight } from "./reducer";
 
 export const selectMatchByMatchId = <TPluginState extends IPluginState>(
   state: TPluginState,
@@ -12,7 +12,7 @@ export const selectMatchByMatchId = <TPluginState extends IPluginState>(
 export const selectBlockQueriesInFlightForSet = (
   state: IPluginState<unknown>,
   requestId: string
-): IBlocksInFlightState | undefined => {
+): IRequestInFlight | undefined => {
   return state.requestsInFlight[requestId];
 };
 
@@ -46,7 +46,7 @@ export const selectAllBlockQueriesInFlight = (
   );
 
 type TSelectRequestInFlight = Array<
-  IBlocksInFlightState & {
+  IRequestInFlight & {
     requestId: string;
   }
 >;
