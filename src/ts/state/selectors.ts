@@ -1,7 +1,7 @@
 import { sortBy } from "lodash";
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { getMatchType, MatchType } from "../utils/decoration";
-import { IPluginState, IBlockInFlight, IBlocksInFlightState } from "./reducer";
+import { IPluginState, IBlockInFlight, IRequestInFlight } from "./reducer";
 
 export const selectMatchByMatchId = <TPluginState extends IPluginState>(
   state: TPluginState,
@@ -9,35 +9,35 @@ export const selectMatchByMatchId = <TPluginState extends IPluginState>(
 ): TPluginState['currentMatches'][number] | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
-export const selectBlockQueriesInFlightForSet = (
+export const selectRequestInFlightById = (
   state: IPluginState<unknown>,
   requestId: string
-): IBlocksInFlightState | undefined => {
+): IRequestInFlight | undefined => {
   return state.requestsInFlight[requestId];
 };
 
-export const selectSingleBlockInFlightById = (
+export const selectSingleBlockInRequestInFlightById = (
   state: IPluginState,
   requestId: string,
   blockId: string
 ): IBlockInFlight | undefined => {
-  const blocksInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+  const blocksInFlight = selectRequestInFlightById(state, requestId);
   if (!blocksInFlight) {
     return;
   }
   return blocksInFlight.pendingBlocks.find(_ => _.block.id === blockId);
 };
 
-export const selectBlockQueriesInFlightById = (
+export const selectBlocksInFlightById = (
   state: IPluginState,
   requestId: string,
   blockIds: string[]
 ): IBlockInFlight[] =>
   blockIds
-    .map(blockId => selectSingleBlockInFlightById(state, requestId, blockId))
+    .map(blockId => selectSingleBlockInRequestInFlightById(state, requestId, blockId))
     .filter(_ => !!_) as IBlockInFlight[];
 
-export const selectAllBlockQueriesInFlight = (
+export const selectAllBlocksInFlight = (
   state: IPluginState
 ): IBlockInFlight[] =>
   Object.values(state.requestsInFlight).reduce(
@@ -46,7 +46,7 @@ export const selectAllBlockQueriesInFlight = (
   );
 
 type TSelectRequestInFlight = Array<
-  IBlocksInFlightState & {
+  IRequestInFlight & {
     requestId: string;
   }
 >;
@@ -60,7 +60,7 @@ export const selectNewBlockInFlight = (
       !oldState.requestsInFlight[requestId]
         ? acc.concat({
             requestId,
-            ...selectBlockQueriesInFlightForSet(newState, requestId)!
+            ...selectRequestInFlightById(newState, requestId)!
           })
         : acc,
     [] as TSelectRequestInFlight

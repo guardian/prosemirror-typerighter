@@ -2,12 +2,12 @@ import {
   selectPercentRemaining,
   selectMatchByMatchId,
   selectSuggestionAndRange,
-  selectSingleBlockInFlightById,
+  selectSingleBlockInRequestInFlightById,
   selectNewBlockInFlight
 } from "../selectors";
 import {
   createBlock,
-  createBlockQueriesInFlight,
+  createRequestInFlight,
   exampleRequestId,
   createInitialData,
   exampleCategoryIds
@@ -57,9 +57,9 @@ describe("selectors", () => {
       const input1 = createBlock(0, 5);
       const input2 = createBlock(10, 15);
       expect(
-        selectSingleBlockInFlightById(
+        selectSingleBlockInRequestInFlightById(
           {
-            requestsInFlight: createBlockQueriesInFlight([
+            requestsInFlight: createRequestInFlight([
               input1,
               input2
             ])
@@ -79,22 +79,22 @@ describe("selectors", () => {
         selectNewBlockInFlight(
           {
             ...state,
-            requestsInFlight: createBlockQueriesInFlight([
+            requestsInFlight: createRequestInFlight([
               input1
             ])
           },
           {
             ...state,
             requestsInFlight: {
-              ...createBlockQueriesInFlight([input1]),
-              ...createBlockQueriesInFlight([input2], "set-id-2")
+              ...createRequestInFlight([input1]),
+              ...createRequestInFlight([input2], "set-id-2")
             }
           }
         )
       ).toEqual([
         {
           requestId: "set-id-2",
-          ...createBlockQueriesInFlight([input2], "set-id-2")["set-id-2"]
+          ...createRequestInFlight([input2], "set-id-2")["set-id-2"]
         }
       ]);
     });
@@ -107,13 +107,13 @@ describe("selectors", () => {
           {
             ...state,
             requestsInFlight: {
-              ...createBlockQueriesInFlight([input1]),
-              ...createBlockQueriesInFlight([input2], "set-id-2")
+              ...createRequestInFlight([input1]),
+              ...createRequestInFlight([input2], "set-id-2")
             }
           },
           {
             ...state,
-            requestsInFlight: createBlockQueriesInFlight([
+            requestsInFlight: createRequestInFlight([
               input1
             ], exampleRequestId)
           }
@@ -240,7 +240,7 @@ describe("selectors", () => {
       const input2 = createBlock(10, 15);
       let state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight(
+        requestsInFlight: createRequestInFlight(
           [input1, input2],
           exampleRequestId,
           ["1", "2"]
@@ -249,7 +249,7 @@ describe("selectors", () => {
       expect(selectPercentRemaining(state)).toEqual(100);
       state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight(
+        requestsInFlight: createRequestInFlight(
           [input1, input2],
           exampleRequestId,
           ["1", "2"],
@@ -264,7 +264,7 @@ describe("selectors", () => {
       const input2 = createBlock(10, 15);
       let state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight(
+        requestsInFlight: createRequestInFlight(
           [input1, input2],
           exampleRequestId,
           []
@@ -286,22 +286,22 @@ describe("selectors", () => {
       let state = {
         ...initialState,
         requestsInFlight: {
-          ...createBlockQueriesInFlight([input1, input2]),
-          ...createBlockQueriesInFlight([input3], "set-id-2")
+          ...createRequestInFlight([input1, input2]),
+          ...createRequestInFlight([input3], "set-id-2")
         }
       };
       expect(selectPercentRemaining(state)).toEqual(100);
       state = {
         ...initialState,
         requestsInFlight: {
-          ...createBlockQueriesInFlight(
+          ...createRequestInFlight(
             [input1, input2],
             exampleRequestId,
             exampleCategoryIds,
             [],
             3
           ),
-          ...createBlockQueriesInFlight(
+          ...createRequestInFlight(
             [input3, input4],
             "set-id-2",
             exampleCategoryIds,

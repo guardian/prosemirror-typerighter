@@ -8,7 +8,7 @@ import Store, {
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "../state/store";
 import { Commands } from "../commands";
-import { selectAllBlockQueriesInFlight } from "../state/selectors";
+import { selectAllBlocksInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
 import { IPluginState } from "../state/reducer";
@@ -109,7 +109,7 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
   public requestFetchMatches() {
     this.requestPending = false;
     const pluginState = this.store.getState();
-    if (!pluginState || selectAllBlockQueriesInFlight(pluginState).length) {
+    if (!pluginState || selectAllBlocksInFlight(pluginState).length) {
       return this.scheduleRequest();
     }
     const requestId = v4();

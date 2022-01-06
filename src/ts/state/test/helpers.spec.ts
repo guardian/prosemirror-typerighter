@@ -2,7 +2,7 @@ import { identity } from "lodash";
 import { DecorationSet } from "prosemirror-view";
 import { IMatch } from "../..";
 import {
-  createBlockQueriesInFlight,
+  createRequestInFlight,
   createInitialTr,
   createMatch,
   createStateWithMatches,
@@ -162,7 +162,7 @@ describe("State helpers", () => {
       const { tr, state } = getState([], [MatchType.DEFAULT]);
       const initState = {
         ...state,
-        requestsInFlight: createBlockQueriesInFlight([createBlock(1, 22, "Example text to check")])
+        requestsInFlight: createRequestInFlight([createBlock(1, 22, "Example text to check")])
       };
 
       tr.delete(deleteFrom, deleteFrom + deleteRange);
@@ -175,7 +175,7 @@ describe("State helpers", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
       const { tr, state } = getState([], [MatchType.DEFAULT]);
-      const requestsInFlight = createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")])
+      const requestsInFlight = createRequestInFlight([createBlock(1, 23, "Example text to check")])
       const initState = {
         ...state,
         requestsInFlight

@@ -57,10 +57,10 @@ import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
 import { getBlocksFromDocument, nodeContainsText } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {
-  selectSingleBlockInFlightById,
-  selectBlockQueriesInFlightForSet,
+  selectSingleBlockInRequestInFlightById,
+  selectRequestInFlightById,
   selectMatchByMatchId,
-  selectBlockQueriesInFlightById
+  selectBlocksInFlightById as selectBlocksInFlightById
 } from "./selectors";
 import { Mapping } from "prosemirror-transform";
 import {
@@ -90,7 +90,7 @@ export interface IBlockInFlight {
 export type IIgnoreMatchPredicate = (match: IMatch) => boolean;
 export const includeAllMatches: IIgnoreMatchPredicate = () => false;
 
-export interface IBlocksInFlightState {
+export interface IRequestInFlight {
   totalBlocks: number;
   // The category ids that were sent with the request.
   categoryIds: string[];
@@ -145,7 +145,7 @@ export interface IPluginState<
   // The sets of blocks that have been sent to the matcher service
   // and have not yet completed processing.
   requestsInFlight: {
-    [requestId: string]: IBlocksInFlightState;
+    [requestId: string]: IRequestInFlight;
   };
   // The current error message.
   requestErrors: IMatchRequestError[];
@@ -518,18 +518,18 @@ const handleRequestStart = (
       )
     : state.decorations;
 
-  const newBlockQueriesInFlight: IBlockInFlight[] = blocks
+  const newBlocksInFlight: IBlockInFlight[] = blocks
     .map(block => ({
       block,
       pendingCategoryIds: categoryIds
     }))
     .filter(({ block }) => block.text.length !== 0);
 
-  const newRequestInFlight = newBlockQueriesInFlight.length ?
+  const newRequestInFlight = newBlocksInFlight.length ?
     {
       [requestId]: {
-        totalBlocks: newBlockQueriesInFlight.length,
-        pendingBlocks: newBlockQueriesInFlight,
+        totalBlocks: newBlocksInFlight.length,
+        pendingBlocks: newBlocksInFlight,
         mapping: tr.mapping,
         categoryIds
       }
@@ -550,22 +550,22 @@ const handleRequestStart = (
   };
 };
 
-const amendBlockQueriesInFlight = (
+const amendRequestInFlight = (
   state: IPluginState,
   requestId: string,
   blockId: string,
   categoryIds: string[]
 ) => {
-  const currentBlockQueriesInFlight = selectBlockQueriesInFlightForSet(
+  const currentRequestInFlight = selectRequestInFlightById(
     state,
     requestId
   );
-  if (!currentBlockQueriesInFlight) {
+  if (!currentRequestInFlight) {
     return state.requestsInFlight;
   }
-  const newBlockQueriesInFlight: IBlocksInFlightState = {
-    ...currentBlockQueriesInFlight,
-    pendingBlocks: currentBlockQueriesInFlight.pendingBlocks.reduce(
+  const newRequestInFlight: IRequestInFlight = {
+    ...currentRequestInFlight,
+    pendingBlocks: currentRequestInFlight.pendingBlocks.reduce(
       (acc, blockInFlight) => {
         // Don't modify blocks that don't match
         if (blockInFlight.block.id !== blockId) {
@@ -584,12 +584,12 @@ const amendBlockQueriesInFlight = (
       [] as IBlockInFlight[]
     )
   };
-  if (!newBlockQueriesInFlight.pendingBlocks.length) {
+  if (!newRequestInFlight.pendingBlocks.length) {
     return omit(state.requestsInFlight, requestId);
   }
   return {
     ...state.requestsInFlight,
-    [requestId]: newBlockQueriesInFlight
+    [requestId]: newRequestInFlight
   };
 };
 
@@ -608,25 +608,25 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     return state;
   }
 
-  const requestsInFlight = selectBlockQueriesInFlightById(
+  const blocksInFlight = selectBlocksInFlightById(
     state,
     response.requestId,
     response.blocks.map(_ => _.id)
   );
 
-  if (!requestsInFlight.length) {
+  if (!blocksInFlight.length) {
     return state;
   }
 
   // Remove matches superceded by the incoming matches.
   let currentMatches = removeOverlappingRanges(
     state.currentMatches,
-    requestsInFlight.map(_ => _.block),
+    blocksInFlight.map(_ => _.block),
     match => !response.categoryIds.includes(match.category.id)
   );
 
   // Remove decorations superceded by the incoming matches.
-  const decsToRemove = requestsInFlight.reduce(
+  const decsToRemove = blocksInFlight.reduce(
     (acc, blockInFlight) =>
       acc.concat(
         state.decorations
@@ -647,7 +647,7 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     [] as Decoration[]
   );
 
-  const currentMapping = selectBlockQueriesInFlightForSet(
+  const currentMapping = selectRequestInFlightById(
     state,
     response.requestId
   )!.mapping;
@@ -674,9 +674,9 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
   );
 
   // Amend the block queries in flight to remove the returned blocks and categories
-  const newBlockQueriesInFlight = requestsInFlight.reduce(
+  const newBlocksInFlight = blocksInFlight.reduce(
     (acc, blockInFlight) =>
-      amendBlockQueriesInFlight(
+      amendRequestInFlight(
         { ...state, requestsInFlight: acc },
         response.requestId,
         blockInFlight.block.id,
@@ -685,13 +685,13 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     state.requestsInFlight
   );
 
-  const dirtiedRanges = (state.config.requestMatchesOnDocModified || Object.keys(newBlockQueriesInFlight).length)
+  const dirtiedRanges = (state.config.requestMatchesOnDocModified || Object.keys(newBlocksInFlight).length)
     ? state.dirtiedRanges
     : []
 
   return {
     ...state,
-    requestsInFlight: newBlockQueriesInFlight,
+    requestsInFlight: newBlocksInFlight,
     currentMatches,
     decorations: state.decorations
       .remove(decsToRemove)
@@ -717,13 +717,13 @@ const handleMatchesRequestError = <TPluginState extends IPluginState>(
     };
   }
 
-  const requestsInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+  const requestsInFlight = selectRequestInFlightById(state, requestId);
 
   if (!requestsInFlight) {
     return state;
   }
 
-  const blockInFlight = selectSingleBlockInFlightById(
+  const blockInFlight = selectSingleBlockInRequestInFlightById(
     state,
     requestId,
     blockId
@@ -770,7 +770,7 @@ const handleMatchesRequestError = <TPluginState extends IPluginState>(
       ? mergeRanges(state.dirtiedRanges.concat(dirtiedRanges))
       : state.dirtiedRanges,
     decorations,
-    requestsInFlight: amendBlockQueriesInFlight(
+    requestsInFlight: amendRequestInFlight(
       state,
       requestId,
       blockId,
@@ -785,7 +785,7 @@ const handleRequestComplete = <TPluginState extends IPluginState>(
   state: TPluginState,
   { payload: { requestId } }: ActionRequestComplete
 ): TPluginState => {
-  const requestInFlight = selectBlockQueriesInFlightForSet(state, requestId);
+  const requestInFlight = selectRequestInFlightById(state, requestId);
   const hasUnfinishedWork =
     requestInFlight &&
     requestInFlight.pendingBlocks.some(

@@ -13,7 +13,7 @@ import {
   removeMatch,
   removeAllMatches
 } from "../actions";
-import { selectAllBlockQueriesInFlight, selectBlockQueriesInFlightForSet } from "../selectors";
+import { selectAllBlocksInFlight, selectRequestInFlightById } from "../selectors";
 import { createReducer, IPluginState } from "../reducer";
 import {
   createDebugDecorationFromRange,
@@ -29,7 +29,7 @@ import {
   createMatcherResponse,
   createBlock,
   exampleCategoryIds,
-  createBlockQueriesInFlight,
+  createRequestInFlight,
   exampleRequestId,
   createInitialData,
   defaultDoc,
@@ -63,7 +63,7 @@ describe("Action handlers", () => {
           requestMatchesForDocument(exampleRequestId, exampleCategoryIds)
         )
       ).toMatchObject({
-        requestsInFlight: createBlockQueriesInFlight([
+        requestsInFlight: createRequestInFlight([
           {
             from: 1,
             text: "Example text to check",
@@ -100,7 +100,7 @@ describe("Action handlers", () => {
           createDebugDecorationFromRange({ from: 1, to: 22 }, false)
         ]),
         requestPending: false,
-        requestsInFlight: createBlockQueriesInFlight([
+        requestsInFlight: createRequestInFlight([
           {
             text: "Example text to check",
             from: 1,
@@ -153,7 +153,7 @@ describe("Action handlers", () => {
         requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
       expect(
-        selectBlockQueriesInFlightForSet(newState, "id")!.totalBlocks
+        selectRequestInFlightById(newState, "id")!.totalBlocks
       ).toEqual(2);
     });
     it("should remove any ranges with no content once they've been expanded", () => {
@@ -168,7 +168,7 @@ describe("Action handlers", () => {
         },
         requestMatchesForDirtyRanges("id", exampleCategoryIds)
       );
-      expect(selectAllBlockQueriesInFlight(newState)).toEqual([]);
+      expect(selectAllBlocksInFlight(newState)).toEqual([]);
     });
   });
   describe("requestMatchesSuccess", () => {
@@ -248,7 +248,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+          requestsInFlight: createRequestInFlight([createBlock(5, 10)])
         },
         requestMatchesSuccess(createMatcherResponse([{ from: 5, to: 10 }]))
       );
@@ -280,7 +280,7 @@ describe("Action handlers", () => {
       const matcherResponse3 = createMatcherResponse([
         { from: 16, to: 37, wordFrom: 17, wordTo: 25 }
       ]); // Some other output for another block
-      const requestsInFlight = createBlockQueriesInFlight(
+      const requestsInFlight = createRequestInFlight(
         blocks,
         exampleRequestId,
         [...matcherResponse1.categoryIds, ...matcherResponse2.categoryIds]
@@ -410,7 +410,7 @@ describe("Action handlers", () => {
             ...state,
             dirtiedRanges: [{ from: 1, to: 3 }],
             requestsInFlight: {
-              ...createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")], "req1", [category.id])
+              ...createRequestInFlight([createBlock(1, 23, "Example text to check")], "req1", [category.id])
             }
           }
 
@@ -436,8 +436,8 @@ describe("Action handlers", () => {
             ...state,
             dirtiedRanges: [{ from: 1, to: 3 }],
             requestsInFlight: {
-              ...createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")], "req1", [category.id]),
-              ...createBlockQueriesInFlight([createBlock(1, 23, "Example text to check")], "req2", [category2.id])
+              ...createRequestInFlight([createBlock(1, 23, "Example text to check")], "req1", [category.id]),
+              ...createRequestInFlight([createBlock(1, 23, "Example text to check")], "req2", [category2.id])
             }
           }
 
@@ -500,7 +500,7 @@ describe("Action handlers", () => {
       const { state: initialState, tr } = createInitialData();
       const state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight([
+        requestsInFlight: createRequestInFlight([
           createBlock(1, 25, "Example text to check")
         ])
       };
@@ -540,7 +540,7 @@ describe("Action handlers", () => {
     it("should remove the inflight request from the state", () => {
       const state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight([
+        requestsInFlight: createRequestInFlight([
           createBlock(1, 25, "Example text to check")
         ])
       };
@@ -550,7 +550,7 @@ describe("Action handlers", () => {
     it("should ignore other requests", () => {
       const state = {
         ...initialState,
-        requestsInFlight: createBlockQueriesInFlight([
+        requestsInFlight: createRequestInFlight([
           createBlock(1, 25, "Example text to check"),
           createBlock(26, 47, "More text to check")
         ])
@@ -762,7 +762,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+          requestsInFlight: createRequestInFlight([createBlock(5, 10)])
         },
         requestMatchesSuccess(matcherResponse)
       );
@@ -793,7 +793,7 @@ describe("Action handlers", () => {
           tr,
           {
             ...acc,
-            requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+            requestsInFlight: createRequestInFlight([createBlock(5, 10)])
           },
           requestMatchesSuccess(cur)
         );
@@ -825,7 +825,7 @@ describe("Action handlers", () => {
           tr,
           {
             ...acc,
-            requestsInFlight: createBlockQueriesInFlight([createBlock(5, 10)])
+            requestsInFlight: createRequestInFlight([createBlock(5, 10)])
           },
           requestError(error)
         );
