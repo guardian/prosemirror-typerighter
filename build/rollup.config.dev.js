@@ -19,7 +19,8 @@ export default [
       ...defaultPlugins,
       nodeResolve({ browser: true }),
       replace({
-        "process.env.NODE_ENV": JSON.stringify("development")
+        "process.env.NODE_ENV": JSON.stringify("development"),
+        preventAssignment: true
       }),
       commonjs(),
       serve({ port: 5000, contentBase: "pages/dist" })
