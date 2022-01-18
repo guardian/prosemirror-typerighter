@@ -7,6 +7,7 @@ import TyperighterAdapter, {
 import { ITypeRighterResponse } from "../adapters/interfaces/ITyperighter";
 import { createBlockId } from "../../utils/block";
 import { IMatchRequestError } from "../../interfaces/IMatch";
+import { getErrorMessage } from "../../utils/error";
 
 const createResponse = (
   strs: string[],
@@ -75,7 +76,7 @@ const getLastRequest = () => {
     return requestBody;
   } catch (e) {
     throw new Error(
-      `Error parsing last request made to fetchMock: ${e.message}`
+      `Error parsing last request made to fetchMock: ${getErrorMessage(e)}`
     );
   }
 };

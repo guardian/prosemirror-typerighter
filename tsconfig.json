@@ -7,6 +7,7 @@
     "noUnusedParameters": true,
     "removeComments": true,
     "preserveConstEnums": true,
+    "skipLibCheck": false,
     "sourceMap": true,
     "strict": true,
     "target": "es6",
@@ -14,5 +15,5 @@
     "jsx": "react",
     "lib": ["dom", "esnext"]
   },
-  "exclude": ["dist"]
+  "exclude": ["dist", "**.*.spec"]
 }
