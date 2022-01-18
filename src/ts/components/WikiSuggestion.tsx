@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { IWikiSuggestion } from "../interfaces/IMatch";
+import { getErrorMessage } from "../utils/error";
 
 type IProps = IWikiSuggestion & {
   applySuggestion?: () => void;
@@ -45,7 +46,7 @@ const WikiSuggestion = ({
         try {
           setArticle(await fetchWikiData(title));
         } catch (e) {
-          setError(e.message);
+          setError(getErrorMessage(e));
         } finally {
           setLoading(false);
         }
@@ -106,7 +107,7 @@ const fetchWikiData = async (title: string) => {
     }
     return article;
   } catch (e) {
-    throw new Error(`Error parsing data from wikipedia: ${e.message}`);
+    throw new Error(`Error parsing data from wikipedia: ${getErrorMessage(e)}`);
   }
 };
 
