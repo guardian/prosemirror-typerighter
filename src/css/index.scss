@@ -104,4 +104,6 @@ hr {
 
 .TyperighterPlugin__decoration-container {
   position: absolute;
+  // Raise our tooltips above our sidebar content
+  z-index: 10;
 }
