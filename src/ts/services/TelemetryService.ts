@@ -2,6 +2,9 @@ import throttle from 'lodash/throttle';
 import chunk from 'lodash/chunk';
 
 import { ITyperighterTelemetryEvent } from "../interfaces/ITelemetryData";
+import { getErrorMessage } from '../utils/error';
+
+const getTelemetryServiceLogMsg = (msg: string) => `[TelemetryService]: ${msg}`;
 
 class UserTelemetryEventSender {
     private postEventLimit = 500;
@@ -20,23 +23,26 @@ class UserTelemetryEventSender {
         // Push the remaining events back into the buffer
         this.eventBuffer = subsequentChunks.flat();
 
-        const response = await fetch(`${this.telemetryUrl}/event`, {
-          method: "POST",
-          mode: "cors",
-          credentials: "include",
-          headers: new Headers({
-            "Content-Type": "application/json"
-          }),
-          body: jsonEventBuffer
-        });
+        try {
+          const response = await fetch(`${this.telemetryUrl}/event`, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: new Headers({
+              "Content-Type": "application/json"
+            }),
+            body: jsonEventBuffer
+          });
 
-        if (!response.ok) {
-          this.eventBuffer = this.eventBuffer.concat(firstChunk);
-        }
+          if (!response.ok) {
+            this.eventBuffer = this.eventBuffer.concat(firstChunk);
+          }
 
-        if (this.eventBuffer.length) {
-
-          this.throttledSendEvents();
+          if (this.eventBuffer.length) {
+            this.throttledSendEvents();
+          }
+        } catch(e) {
+          console.warn(getTelemetryServiceLogMsg(`Error sending telemetry event: ${getErrorMessage(e)}`));
         }
     }
 
