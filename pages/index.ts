@@ -17,7 +17,7 @@ import { createBoundCommands } from "../src/ts/commands";
 import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
-import TelemetryService from "../src/ts/services/TelemetryService";
+import { UserTelemetryEventSender } from "@guardian/user-telemetry-client";
 import { MatchType } from "../src/ts/utils/decoration";
 import { filterByMatchState } from "../src/ts/utils/plugin";
 import { findMarkPositions } from "../src/ts/utils/prosemirror";
@@ -43,7 +43,7 @@ document.body.append(overlayNode);
 const isElementPartOfTyperighterUI = (element: HTMLElement) =>
   overlayNode.contains(element);
 
-const telemetryService = new TelemetryService("https://example.com");
+const telemetryService = new UserTelemetryEventSender("https://example.com");
 const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
   telemetryService,
   "prosemirror-typerighter",

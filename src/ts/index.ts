@@ -2,8 +2,7 @@ import { IMatch, IBlock } from './interfaces/IMatch'
 import Store from './state/store';
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
-import TelemetryService from "./services/TelemetryService";
-import { ITelemetryEvent } from './interfaces/ITelemetryData';
+import { UserTelemetryEventSender, IUserTelemetryEvent} from "@guardian/user-telemetry-client";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
 import { createBoundCommands } from "./commands";
@@ -14,7 +13,7 @@ import '../css/index.scss';
 
 export {
   MatcherService,
-  TelemetryService,
+  UserTelemetryEventSender,
   TyperighterTelemetryAdapter,
   TyperighterAdapter,
   getBlocksFromDocument,
@@ -25,6 +24,6 @@ export {
   filterByMatchState,
   IMatch,
   IBlock,
-  ITelemetryEvent,
+  IUserTelemetryEvent,
   Store
 };
