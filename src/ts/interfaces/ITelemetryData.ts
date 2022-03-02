@@ -1,41 +1,7 @@
+import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
 import { MatchType } from "../utils/decoration";
 
 type TelemetryBool = "true" | "false";
-
-export interface ITelemetryEvent {
-  /**
-   * The application sending the event
-   */
-  app: string;
-
-  /**
-   * The application stage, e.g. 'CODE' | 'PROD'
-   */
-  stage: string;
-
-  /**
-   * The type of event we're sending, e.g. 'USER_ACTION_1' | 'USER_ACTION_2'
-   */
-  type: string;
-
-  /**
-   * The value of the event in question
-   */
-  value: number;
-
-  /**
-   * The time the event occurred (not the time it was queued, or sent), in ISO-8601 date format
-   * @format date-time
-   */
-  eventTime: string;
-
-  /**
-   * The event metadata – any additional context we'd like to provide.
-   */
-  tags?: {
-    [key: string]: string | number | boolean;
-  };
-}
 
 export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_MATCH_DECORATION_CLICKED = "TYPERIGHTER_MATCH_DECORATION_CLICKED",
@@ -50,9 +16,9 @@ export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_FILTER_STATE_CHANGED = "TYPERIGHTER_FILTER_STATE_CHANGED"
 }
 
-export interface ITyperighterTelemetryEvent extends ITelemetryEvent {
+export interface ITyperighterTelemetryEvent extends IUserTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE;
-  tags: ITelemetryEvent["tags"] & {
+  tags: IUserTelemetryEvent["tags"] & {
     // The URL of the resource containing the text that was scanned
     documentUrl: string;
   };

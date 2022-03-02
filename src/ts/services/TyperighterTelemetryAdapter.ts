@@ -12,13 +12,13 @@ import {
   ITyperighterTelemetryEvent,
   TYPERIGHTER_TELEMETRY_TYPE
 } from "../interfaces/ITelemetryData";
-import TelemetryService from "./TelemetryService";
+import { UserTelemetryEventSender } from "@guardian/user-telemetry-client";
 import { IMatch } from "..";
 import { MatchType } from "../utils/decoration";
 
 class TyperighterTelemetryAdapter {
   constructor(
-    private telemetryService: TelemetryService,
+    private telemetryService: UserTelemetryEventSender,
     private app: string,
     private stage: string
   ) {}
