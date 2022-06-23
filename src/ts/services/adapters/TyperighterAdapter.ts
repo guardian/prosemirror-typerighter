@@ -10,6 +10,7 @@ import {
   TRequestErrorCallback,
   TRequestCompleteCallback
 } from "../../interfaces/IMatcherAdapter";
+import { getErrorMessage } from "../../utils/error";
 
 /**
  * Convert an incoming response from a Typerighter service into
@@ -82,7 +83,7 @@ class TyperighterAdapter implements IMatcherAdapter {
         onRequestError({
           requestId,
           blockId: input.id,
-          message: e.message,
+          message: getErrorMessage(e),
           categoryIds,
           type: "GENERAL_ERROR"
         });

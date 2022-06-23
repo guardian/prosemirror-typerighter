@@ -8,6 +8,7 @@ import {
   IMatcherAdapter,
   TRequestCompleteCallback
 } from "../../interfaces/IMatcherAdapter";
+import { getErrorMessage } from "../../utils/error";
 
 const CHECK_RESPONSE = "CHECK_RESPONSE" as const;
 const CHECK_ERROR = "CHECK_ERROR" as const;
@@ -120,7 +121,7 @@ class TyperighterWsAdapter extends TyperighterAdapter
         }
       }
     } catch (e) {
-      onRequestError({ requestId, message: e.message, categoryIds: [] });
+      onRequestError({ requestId, message: getErrorMessage(e), categoryIds: [] });
     }
   };
 
