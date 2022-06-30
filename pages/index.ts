@@ -88,7 +88,7 @@ if (editorElement && sidebarNode) {
   const matcherService = new MatcherService(
     store,
     commands,
-    new TyperighterAdapter("https://api.typerighter.local.dev-gutools.co.uk"),
+    new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"),
     typerighterTelemetryAdapter
   );
 

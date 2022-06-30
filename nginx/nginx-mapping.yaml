@@ -1,5 +1,6 @@
-name: typerighter-client
+name: prosemirror-typerighter
 mappings:
-  - prefix: typerighter-client
+  - prefix: prosemirror-typerighter
     port: 5000
     path: /
+    websocket: /ws
