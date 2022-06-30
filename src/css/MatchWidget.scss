@@ -128,7 +128,7 @@
   }
 
   .MatchWidget__ignore-match-text {
-    margin-left: $gutter-width / 2;
+    margin-left: calc($gutter-width / 2);
   }
 
   .MatchWidget__ignore-match-button:hover {

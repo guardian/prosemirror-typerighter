@@ -7,7 +7,7 @@
 
 .Controls__row + .Controls__row {
   padding-top: 0;
-  padding-bottom: $gutter-width / 2;
+  padding-bottom: calc($gutter-width / 2);
 }
 
 .Controls__label {
