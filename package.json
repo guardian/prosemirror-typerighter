@@ -2,8 +2,8 @@
   "name": "@guardian/prosemirror-typerighter",
   "version": "2.1.1",
   "description": "A plugin to represent validation ranges in Prosemirror",
-  "main": "dist/index.js",
-  "module": "dist/index.m.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
   "types": "dist/src/ts/index.d.ts",
   "license": "MIT",
   "author": {
