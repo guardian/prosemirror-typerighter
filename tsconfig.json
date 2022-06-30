@@ -12,7 +12,9 @@
     "target": "es6",
     "esModuleInterop": true,
     "jsx": "react",
-    "lib": ["dom", "esnext"]
+    "lib": ["dom", "esnext"],
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "exclude": ["dist"]
 }
