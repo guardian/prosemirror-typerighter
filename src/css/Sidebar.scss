@@ -80,7 +80,7 @@
   min-width: 30px;
   font-weight: bold;
   height: fit-content;
-  margin-right: $gutter-width / 2;
+  margin-right: calc($gutter-width / 2);
   font-size: $font-size-base;
   cursor: pointer;
   &:focus {

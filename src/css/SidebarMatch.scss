@@ -17,7 +17,7 @@
 }
 
 .SidebarMatch__header-match-text {
-  margin-bottom: $gutter-width / 2;
+  margin-bottom: calc($gutter-width / 2);
   cursor: pointer;
 }
 
@@ -57,12 +57,12 @@
 }
 
 .SidebarMatch__suggestion-list {
-  margin-top: ($gutter-width / 2);
+  margin-top: calc($gutter-width / 2);
 }
 
 .SidebarMatch__list-title {
   font-style: italic;
-  margin-bottom: ($gutter-width / 2);
+  margin-bottom: calc($gutter-width / 2);
 }
 
 .SidebarMatch__subset-list {

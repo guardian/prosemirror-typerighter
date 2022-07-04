@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import jsDiff, { Change } from "diff";
+import { Change, diffChars } from "diff";
 
 import { ApplySuggestionOptions } from "../commands";
 import { ISuggestion, IMatch } from "../interfaces/IMatch";
@@ -28,7 +28,7 @@ const shouldShowDiff = (matchedText: string) => matchedText.length < 16;
  *    mispelled -> misspelled: mispelled – added char not highlighted, as it would change the match text
  */
 const renderMatchDiff = (suggestionText: string, matchedText: string) => {
-  const diffs = jsDiff.diffChars(suggestionText, matchedText);
+  const diffs = diffChars(suggestionText, matchedText);
 
   return (
     <>

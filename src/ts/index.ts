@@ -1,4 +1,4 @@
-import { IMatch, IBlock } from './interfaces/IMatch'
+import type { IMatch, IBlock } from './interfaces/IMatch'
 import Store from './state/store';
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
