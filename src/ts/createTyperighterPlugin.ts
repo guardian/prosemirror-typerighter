@@ -94,6 +94,9 @@ export interface IPluginOptions<
    * Called when a match decoration is clicked.
    */
   onMatchDecorationClicked?: (match: TMatch) => void;
+
+  // @see IPluginConfig
+  requestMatchesOnDocModified?: boolean;
 }
 
 /**
@@ -116,7 +119,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
     onMatchDecorationClicked = () => undefined,
-    isElementPartOfTyperighterUI = () => false
+    isElementPartOfTyperighterUI = () => false,
+    requestMatchesOnDocModified = false,
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TFilterState, TMatch>;
@@ -139,7 +143,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           matches,
           ignoreMatch,
           matchColours,
-          filterOptions
+          filterOptions,
+          requestMatchesOnDocModified,
         });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
