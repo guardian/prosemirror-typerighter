@@ -10,7 +10,8 @@ It's still in its early stages! [There's a demo here.](https://guardian.github.i
 
 ## Installation
 
-Install dependencies with `./scripts/setup.sh`.
+1. Run `nvm use` to set the correct Node version.
+2. Install dependencies with `./setup.sh` (you may need to enter your password to restart nginx).
 
 ## Development
 

@@ -6,3 +6,4 @@ pages/dist/bundle*
 .vs
 .metals
 coverage
+.idea
