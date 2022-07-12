@@ -8,15 +8,20 @@ import {
   createStateWithMatches,
   defaultDoc,
   createBlock,
-  exampleRequestId,
+  exampleRequestId
 } from "../../test/helpers/fixtures";
 import {
+  createDebugDecorationFromRange,
   getNewDecorationsForCurrentMatches,
   MatchType
 } from "../../utils/decoration";
 import { filterByMatchState, IDefaultFilterState } from "../../utils/plugin";
 import { expandRangesToParentBlockNode } from "../../utils/range";
-import { deriveFilteredDecorations, getNewStateFromTransaction, isFilterStateStale } from "../helpers";
+import {
+  deriveFilteredDecorations,
+  getNewStateFromTransaction,
+  isFilterStateStale
+} from "../helpers";
 import { createReducer, IPluginState } from "../reducer";
 
 describe("State helpers", () => {
@@ -120,6 +125,25 @@ describe("State helpers", () => {
       expect(currentMatches).toEqual(matches);
       expect(filteredMatches).toEqual([]);
       expect(decorations).toEqual(DecorationSet.empty);
+    });
+
+    it("should not touch non-match-related decorations", () => {
+      const { tr, state } = getState([], [MatchType.DEFAULT]);
+      const debugDecos = DecorationSet.create(tr.doc, [
+        createDebugDecorationFromRange({ from: 0, to: 1 })
+      ]);
+      const stateWithDebugDecos: IPluginState<IDefaultFilterState> = {
+        ...state,
+        decorations: debugDecos
+      };
+
+      const { decorations } = deriveFilteredDecorations(
+        tr.doc,
+        stateWithDebugDecos,
+        filterByMatchState
+      );
+
+      expect(decorations).toEqual(debugDecos);
     });
   });
 
