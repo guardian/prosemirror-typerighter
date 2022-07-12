@@ -15,7 +15,7 @@ It's still in its early stages! [There's a demo here.](https://guardian.github.i
 
 ## Development
 
-`npm run watch` builds the project locally, watches for file changes, and serves the project locally at https://typerighter-client.local.dev-gutools.co.uk/ – or http://localhost:5000, if your Typerighter service doesn't require [pan-domain authentication](https://github.com/guardian/pan-domain-authentication).
+`npm run watch` builds the project locally, watches for file changes, and serves the project locally at https://prosemirror-typerighter.local.dev-gutools.co.uk/ – or http://localhost:5000, if your Typerighter service doesn't require [pan-domain authentication](https://github.com/guardian/pan-domain-authentication).
 
 If your Typerighter service does require pan-domain authentication, you will need to run and visit another .local.dev-gutools application alongside this service to supply an authenticated cookie for that domain.
 
