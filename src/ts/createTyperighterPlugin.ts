@@ -3,7 +3,8 @@ import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IIgnoreMatchPredicate,
-  includeAllMatches
+  includeAllMatches,
+  IPluginConfig
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import {
@@ -46,10 +47,12 @@ export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
   initialFilterState: TFilterState;
 }
 
+type PluginOptionsFromConfig = Partial<Pick<IPluginConfig, "requestMatchesOnDocModified">>;
+
 export interface IPluginOptions<
   TFilterState = undefined,
   TMatch extends IMatch = IMatch
-> {
+> extends PluginOptionsFromConfig {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -94,9 +97,6 @@ export interface IPluginOptions<
    * Called when a match decoration is clicked.
    */
   onMatchDecorationClicked?: (match: TMatch) => void;
-
-  // @see IPluginConfig
-  requestMatchesOnDocModified?: boolean;
 }
 
 /**
