@@ -82,7 +82,7 @@ export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
   const decorationsToRemove = newState.decorations.find(
     undefined,
     undefined,
-    spec => !filteredMatchIds.includes(spec.id)
+    spec => spec.id && !filteredMatchIds.includes(spec.id)
   );
 
   const decorations = newState.decorations

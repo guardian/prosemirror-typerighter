@@ -50,7 +50,7 @@ export const createDebugDecorationFromRange = (range: IRange, dirty = true) => {
   const type = dirty ? DECORATION_DIRTY : DECORATION_INFLIGHT;
   return Decoration.inline(
     range.from,
-    range.to + 1,
+    range.to,
     {
       class: DecorationClassMap[type]
     },
