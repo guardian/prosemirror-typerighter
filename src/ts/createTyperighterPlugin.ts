@@ -3,7 +3,8 @@ import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IIgnoreMatchPredicate,
-  includeAllMatches
+  includeAllMatches,
+  IPluginConfig
 } from "./state/reducer";
 import { createInitialState, createReducer } from "./state/reducer";
 import {
@@ -46,10 +47,12 @@ export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
   initialFilterState: TFilterState;
 }
 
+type PluginOptionsFromConfig = Partial<Pick<IPluginConfig, "requestMatchesOnDocModified">>;
+
 export interface IPluginOptions<
   TFilterState = undefined,
   TMatch extends IMatch = IMatch
-> {
+> extends PluginOptionsFromConfig {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -116,7 +119,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
     onMatchDecorationClicked = () => undefined,
-    isElementPartOfTyperighterUI = () => false
+    isElementPartOfTyperighterUI = () => false,
+    requestMatchesOnDocModified = false,
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TFilterState, TMatch>;
@@ -139,7 +143,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           matches,
           ignoreMatch,
           matchColours,
-          filterOptions
+          filterOptions,
+          requestMatchesOnDocModified,
         });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;

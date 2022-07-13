@@ -99,7 +99,8 @@ export interface IRequestInFlight {
 }
 
 export interface IPluginConfig {
-  // Should we trigger a request when the document is modified?
+  // Should we trigger a request for matches when the document is modified (e.g.
+  // real-time checking)?
   requestMatchesOnDocModified: boolean;
   // Is the plugin in debug mode? Debug mode adds marks to show dirtied
   // and expanded ranges.
@@ -168,6 +169,7 @@ interface IInitialStateOpts<
   ignoreMatch?: IIgnoreMatchPredicate;
   matchColours?: IMatchTypeToColourMap;
   filterOptions?: IFilterOptions<TFilterState, TMatch>;
+  requestMatchesOnDocModified?: boolean;
 }
 
 /**
@@ -181,6 +183,7 @@ export const createInitialState = <
   matches = [],
   ignoreMatch = includeAllMatches,
   matchColours = defaultMatchColours,
+  requestMatchesOnDocModified = false,
   filterOptions
 }: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
   TFilterState,
@@ -189,8 +192,8 @@ export const createInitialState = <
   const initialState = {
     config: {
       debug: false,
-      requestMatchesOnDocModified: false,
-      matchColours
+      requestMatchesOnDocModified,
+      matchColours,
     },
     decorations: DecorationSet.create(
       doc,

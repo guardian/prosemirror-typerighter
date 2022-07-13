@@ -59,7 +59,8 @@ const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
   getSkippedRanges: (node, from, to) =>
     findMarkPositions(node, from, to, mySchema.marks.code),
   onMatchDecorationClicked: match =>
-    typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL)
+    typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL),
+    requestMatchesOnDocModified: true
 });
 
 if (editorElement && sidebarNode) {
@@ -104,7 +105,7 @@ if (editorElement && sidebarNode) {
     onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
     getScrollOffset,
-    telemetryAdapter: typerighterTelemetryAdapter
+    telemetryAdapter: typerighterTelemetryAdapter,
   });
 
   // Handy debugging tools

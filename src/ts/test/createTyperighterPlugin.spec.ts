@@ -57,6 +57,11 @@ describe("createTyperighterPlugin", () => {
     const { getState, view } = createPlugin();
     expect(getState(view.state).currentMatches).toEqual(matches);
   });
+  it("should allow us to specify real time checking when creating the plugin", () => {
+    const { getState, view } = createPlugin({ requestMatchesOnDocModified: true });
+    expect(getState(view.state).config.requestMatchesOnDocModified).toEqual(true);
+  });
+
   describe("Match persistence/removal", () => {
     it("should add matches to the document by default", () => {
       const { editorElement } = createEditor("123456", [createMatch(2, 4)]);
