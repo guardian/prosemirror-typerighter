@@ -180,3 +180,5 @@ export const selectDocumentHasChanged = (state: IPluginState): boolean => {
 export const selectDocumentIsEmpty = (state: IPluginState): boolean => {
   return state.docIsEmpty;
 };
+
+export const selectPluginConfig = (state: IPluginState) => state.config

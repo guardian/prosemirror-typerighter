@@ -12,7 +12,8 @@ import {
   selectRequestsInProgress,
   selectHasMatches,
   selectDocumentHasChanged,
-  selectDocumentIsEmpty
+  selectDocumentIsEmpty,
+  selectPluginConfig
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
@@ -26,6 +27,7 @@ interface IProps<TPluginState extends IPluginState> {
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
+  enableDevMode?: boolean;
 }
 
 const getErrorFeedbackLink = (
@@ -49,13 +51,14 @@ const Controls = <TPluginState extends IPluginState>({
   clearMatches,
   requestMatchesForDocument,
   getCurrentCategories,
-  feedbackHref
+  feedbackHref,
+  enableDevMode,
+  setRequestOnDocModified,
+  setDebugState
 }: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<TPluginState | undefined>(
     undefined
   );
-
-  const { telemetryAdapter } = useContext(TelemetryContext);
 
   useEffect(() => {
     store.on(STORE_EVENT_NEW_STATE, newState => {
@@ -63,6 +66,12 @@ const Controls = <TPluginState extends IPluginState>({
     });
     setPluginState(store.getState());
   }, []);
+
+  if (!pluginState) {
+    return null;
+  }
+  const { requestMatchesOnDocModified, debug } = selectPluginConfig(pluginState)
+  const { telemetryAdapter } = useContext(TelemetryContext);
 
   const requestMatches = () => {
     requestMatchesForDocument(
@@ -142,7 +151,7 @@ const Controls = <TPluginState extends IPluginState>({
       </>
     );
 
-    if (!pluginState || !docHasChanged) {
+    if (!docHasChanged) {
       return plainButton;
     }
 
@@ -176,6 +185,29 @@ const Controls = <TPluginState extends IPluginState>({
             <DeleteForever />
           </IconButton>
         </div>
+        {enableDevMode && (
+          <div>
+            <hr />
+            <div>
+              <input
+                type="checkbox"
+                checked={requestMatchesOnDocModified}
+                onChange={() =>
+                  setRequestOnDocModified(!requestMatchesOnDocModified)
+                }
+              ></input>
+              <label>Enable real-time checking</label>
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                checked={debug}
+                onChange={() => setDebugState(!debug)}
+              ></input>
+              <label>Show pending and inflight checks</label>
+            </div>
+          </div>
+        )}
       </div>
       {renderErrorMessage()}
     </>

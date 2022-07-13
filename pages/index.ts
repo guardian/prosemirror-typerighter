@@ -106,6 +106,7 @@ if (editorElement && sidebarNode) {
     editorScrollElement: editorElement,
     getScrollOffset,
     telemetryAdapter: typerighterTelemetryAdapter,
+    enableDevMode: true
   });
 
   // Handy debugging tools
