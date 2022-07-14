@@ -25,6 +25,18 @@ To test this plugin in applications that use it before publishing a release, use
 - Run `npm link` in the root of this project
 - Run `npm link @guardian/prosemirror-typerighter` in the root of the project that's consuming this package.
 
+## Testing locally in applications that use `prosemirror-typerighter`
+
+We've found yalc useful in testing local changes to prosemirror-typerighter in applications that use it.
+
+Setup: 
+
+1. Install `yalc` globally with `npm i yalc -g` or `yarn global add yalc`.
+2. Run `yarn yalc` in your local project from your current branch, to build the project and push changes to yalc.
+3. Run `yalc add @guardian/prosemirror-typerighter` within the project consuming prosemirror-typerighter locally.
+
+Note: any changes you make to your local prosemirror-typerighter branch must be republished (step 3). Don't forget to run `yarn yalc` again!
+
 ## Updating documentation
 
 To update the project readme, edit the README.md in ./build and run `build:doc`. This runs Typedoc and appends the generated type information to the readme file, which is then published to the ./docs folder.
