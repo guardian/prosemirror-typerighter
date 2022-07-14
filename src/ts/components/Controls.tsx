@@ -67,10 +67,6 @@ const Controls = <TPluginState extends IPluginState>({
     setPluginState(store.getState());
   }, []);
 
-  if (!pluginState) {
-    return null;
-  }
-  const { requestMatchesOnDocModified, debug } = selectPluginConfig(pluginState)
   const { telemetryAdapter } = useContext(TelemetryContext);
 
   const requestMatches = () => {
@@ -165,6 +161,12 @@ const Controls = <TPluginState extends IPluginState>({
       </div>
     );
   };
+
+  if (!pluginState) {
+    return null;
+  }
+
+  const { requestMatchesOnDocModified, debug } = selectPluginConfig(pluginState)
 
   return (
     <>
