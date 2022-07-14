@@ -188,23 +188,29 @@ const Controls = <TPluginState extends IPluginState>({
         {enableDevMode && (
           <div>
             <hr />
-            <div>
+            <div className="Controls__input-group">
               <input
                 type="checkbox"
+                id="real-time-checks"
                 checked={requestMatchesOnDocModified}
                 onChange={() =>
                   setRequestOnDocModified(!requestMatchesOnDocModified)
                 }
               ></input>
-              <label>Enable real-time checking</label>
+              <label htmlFor="real-time-checks" className="Controls__label">
+                Enable real-time checking
+              </label>
             </div>
-            <div>
+            <div className="Controls__input-group">
               <input
                 type="checkbox"
+                id="debug"
                 checked={debug}
                 onChange={() => setDebugState(!debug)}
               ></input>
-              <label>Show pending and inflight checks</label>
+              <label htmlFor="debug" className="Controls__label">
+                Show pending and inflight checks
+              </label>
             </div>
           </div>
         )}

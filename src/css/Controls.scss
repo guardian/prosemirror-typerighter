@@ -10,10 +10,14 @@
   padding-bottom: calc($gutter-width / 2);
 }
 
+.Controls__input-group {
+  display: flex;
+}
+
 .Controls__label {
+  margin-left: calc($gutter-width / 2);
   font-weight: normal;
   cursor: pointer;
-  width: 100%;
 }
 
 .Controls__error-message {
