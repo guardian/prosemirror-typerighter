@@ -870,5 +870,30 @@ describe("Action handlers", () => {
         setConfigValue("debug", "true")
       );
     });
+
+    it("should remove debug decorations if showPendingInflightChecks is no longer true", () => {
+      const { state } = createInitialData();
+
+      const stateWithCurrentMatchesAndDecorations = {
+        ...state,
+        config: {
+          ...state.config,
+          showPendingInflightChecks: true
+        },
+        decorations: DecorationSet.create(defaultDoc, [
+          createDebugDecorationFromRange({ from: 1, to: 2 })
+        ])
+      };
+
+      const newState = reducer(
+        new Transaction(defaultDoc),
+        stateWithCurrentMatchesAndDecorations,
+        setConfigValue("showPendingInflightChecks", false)
+      );
+
+      expect(newState.decorations).toEqual(
+        DecorationSet.create(defaultDoc, [])
+      );
+    });
   });
 });

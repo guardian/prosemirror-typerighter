@@ -810,13 +810,31 @@ const handleSetConfigValue = <TPluginState extends IPluginState>(
   _: Transaction,
   state: TPluginState,
   { payload: { key, value } }: ActionSetConfigValue
-): TPluginState => ({
-  ...state,
-  config: {
-    ...state.config,
-    [key]: value
+): TPluginState => {
+  const newState = {
+    ...state,
+    config: {
+      ...state.config,
+      [key]: value
+    }
+  };
+
+  const shouldRemovePendingInflightDecos = key === "showPendingInflightChecks" && !!state.config.showPendingInflightChecks && value === false
+  if (shouldRemovePendingInflightDecos) {
+    return {
+      ...newState,
+      decorations: state.decorations.remove(
+        state.decorations.find(
+          undefined,
+          undefined,
+          spec =>
+            spec.type === DECORATION_INFLIGHT || spec.type === DECORATION_DIRTY
+        )
+      )
+    };
   }
-});
+  return newState;
+};
 
 const handleSetFilterState = <TPluginState extends IPluginState>(
   _: Transaction,
