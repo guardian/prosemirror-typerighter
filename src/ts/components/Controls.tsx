@@ -20,7 +20,7 @@ import TelemetryContext from "../contexts/TelemetryContext";
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
   clearMatches: () => void;
-  setDebugState: (debug: boolean) => void;
+  setShowPendingInflightChecks: (isEnabled: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
   getCurrentCategories: () => ICategory[];
@@ -54,7 +54,7 @@ const Controls = <TPluginState extends IPluginState>({
   feedbackHref,
   enableDevMode,
   setRequestOnDocModified,
-  setDebugState
+  setShowPendingInflightChecks
 }: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<TPluginState | undefined>(
     undefined
@@ -166,7 +166,7 @@ const Controls = <TPluginState extends IPluginState>({
     return null;
   }
 
-  const { requestMatchesOnDocModified, debug } = selectPluginConfig(pluginState)
+  const { requestMatchesOnDocModified, showPendingInflightChecks } = selectPluginConfig(pluginState)
 
   return (
     <>
@@ -207,8 +207,8 @@ const Controls = <TPluginState extends IPluginState>({
               <input
                 type="checkbox"
                 id="debug"
-                checked={debug}
-                onChange={() => setDebugState(!debug)}
+                checked={showPendingInflightChecks}
+                onChange={() => setShowPendingInflightChecks(!showPendingInflightChecks)}
               ></input>
               <label htmlFor="debug" className="Controls__label">
                 Show pending and inflight checks

@@ -48,7 +48,7 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
           <Controls
             store={store}
             clearMatches={() => commands.clearMatches()}
-            setDebugState={value => commands.setConfigValue("debug", value)}
+            setShowPendingInflightChecks={value => commands.setConfigValue("showPendingInflightChecks", value)}
             setRequestOnDocModified={value =>
               commands.setConfigValue("requestMatchesOnDocModified", value)
             }

@@ -102,9 +102,8 @@ export interface IPluginConfig {
   // Should we trigger a request for matches when the document is modified (e.g.
   // real-time checking)?
   requestMatchesOnDocModified: boolean;
-  // Is the plugin in debug mode? Debug mode adds marks to show dirtied
-  // and expanded ranges.
-  debug: boolean;
+  // Make pending and inflight checks visible as decorations on the document.
+  showPendingInflightChecks: boolean;
   // The colours to use when rendering matches
   matchColours: IMatchTypeToColourMap;
 }
@@ -191,7 +190,7 @@ export const createInitialState = <
 > => {
   const initialState = {
     config: {
-      debug: false,
+      showPendingInflightChecks: false,
       requestMatchesOnDocModified,
       matchColours,
     },
@@ -438,7 +437,7 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
 ): TPluginState => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
-  let newDecorations = state.config.debug
+  let newDecorations = state.config.showPendingInflightChecks
     ? state.decorations.add(
         tr.doc,
         dirtiedRanges.map(range => createDebugDecorationFromRange(range))
@@ -512,7 +511,7 @@ const handleRequestStart = (
   state: TPluginState
 ): TPluginState => {
   // Replace any debug decorations, if they exist.
-  const decorations = state.config.debug
+  const decorations = state.config.showPendingInflightChecks
     ? removeDecorationsFromRanges(state.decorations, blocks, [
         DECORATION_DIRTY
       ]).add(
@@ -637,7 +636,7 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
             response.categoryIds.includes(spec.categoryId)
           )
           .concat(
-            state.config.debug
+            state.config.showPendingInflightChecks
               ? // Ditch any decorations marking inflight matches.
                 state.decorations.find(
                   undefined,
@@ -760,7 +759,7 @@ const handleMatchesRequestError = <TPluginState extends IPluginState>(
   // checked on the next pass.
   let decorations = state.decorations.remove(decsToRemove);
 
-  if (dirtiedRanges.length && state.config.debug) {
+  if (dirtiedRanges.length && state.config.showPendingInflightChecks) {
     decorations = decorations.add(
       tr.doc,
       dirtiedRanges.map(range => createDebugDecorationFromRange(range))
