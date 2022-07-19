@@ -17,6 +17,7 @@ interface IProps<TPluginState extends IPluginState> {
   feedbackHref?: string;
   editorScrollElement: Element;
   getScrollOffset: () => number;
+  enableDevMode?: boolean;
 }
 
 const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
@@ -26,7 +27,8 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
   contactHref,
   editorScrollElement,
   getScrollOffset,
-  feedbackHref
+  feedbackHref,
+  enableDevMode
 }: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
@@ -46,7 +48,7 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
           <Controls
             store={store}
             clearMatches={() => commands.clearMatches()}
-            setDebugState={value => commands.setConfigValue("debug", value)}
+            setShowPendingInflightChecks={value => commands.setConfigValue("showPendingInflightChecks", value)}
             setRequestOnDocModified={value =>
               commands.setConfigValue("requestMatchesOnDocModified", value)
             }
@@ -55,6 +57,7 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
             addCategory={matcherService.addCategory}
             removeCategory={matcherService.removeCategory}
             feedbackHref={feedbackHref}
+            enableDevMode={enableDevMode}
           />
           <Results
             store={store}

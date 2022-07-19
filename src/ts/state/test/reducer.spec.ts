@@ -83,7 +83,7 @@ describe("Action handlers", () => {
           tr,
           {
             ...state,
-            config: { ...state.config, debug: true },
+            config: { ...state.config, showPendingInflightChecks: true },
             dirtiedRanges: [{ from: 5, to: 10 }],
             requestPending: true
           },
@@ -93,7 +93,7 @@ describe("Action handlers", () => {
         ...state,
         config: {
           ...state.config,
-          debug: true
+          showPendingInflightChecks: true
         },
         dirtiedRanges: [],
         decorations: DecorationSet.empty.add(tr.doc, [
@@ -117,7 +117,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          config: { ...state.config, debug: true },
+          config: { ...state.config, showPendingInflightChecks: true },
           dirtiedRanges: [{ from: 5, to: 10 }],
           decorations: DecorationSet.empty.add(tr.doc, [
             createDebugDecorationFromRange({ from: 1, to: 3 })
@@ -142,7 +142,7 @@ describe("Action handlers", () => {
         tr,
         {
           ...state,
-          config: { ...state.config, debug: true },
+          config: { ...state.config, showPendingInflightChecks: true },
           dirtiedRanges: [
             { from: 5, to: 10 },
             { from: 28, to: 35 }
@@ -848,9 +848,9 @@ describe("Action handlers", () => {
         reducer(
           new Transaction(createDoc),
           state,
-          setConfigValue("debug", true)
+          setConfigValue("showPendingInflightChecks", true)
         )
-      ).toEqual({ ...state, config: { ...state.config, debug: true } });
+      ).toEqual({ ...state, config: { ...state.config, showPendingInflightChecks: true } });
     });
     it("should not accept incorrect config keys", () => {
       const { state } = createInitialData();
@@ -868,6 +868,31 @@ describe("Action handlers", () => {
         state,
         // @ts-expect-error
         setConfigValue("debug", "true")
+      );
+    });
+
+    it("should remove debug decorations if showPendingInflightChecks is no longer true", () => {
+      const { state } = createInitialData();
+
+      const stateWithCurrentMatchesAndDecorations = {
+        ...state,
+        config: {
+          ...state.config,
+          showPendingInflightChecks: true
+        },
+        decorations: DecorationSet.create(defaultDoc, [
+          createDebugDecorationFromRange({ from: 1, to: 2 })
+        ])
+      };
+
+      const newState = reducer(
+        new Transaction(defaultDoc),
+        stateWithCurrentMatchesAndDecorations,
+        setConfigValue("showPendingInflightChecks", false)
+      );
+
+      expect(newState.decorations).toEqual(
+        DecorationSet.create(defaultDoc, [])
       );
     });
   });

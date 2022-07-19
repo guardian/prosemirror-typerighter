@@ -33,6 +33,8 @@ interface IViewOptions<TPluginState extends IPluginState> {
   // document might change during the lifecycle of the page.
   getScrollOffset?: () => number;
   telemetryAdapter?: TyperighterTelemetryAdapter;
+  // Expose useful utilities for developers.
+  enableDevMode?: boolean;
 }
 
 /**
@@ -55,7 +57,8 @@ const createView = <TPluginState extends IPluginState<MatchType[]>>({
   logger = consoleLogger,
   onMarkCorrect,
   editorScrollElement,
-  getScrollOffset = () => 50
+  getScrollOffset = () => 50,
+  enableDevMode = false
 }: IViewOptions<TPluginState>) => {
   // Create our overlay node, which is responsible for displaying
   // match messages when the user hovers over highlighted ranges.
@@ -106,6 +109,7 @@ const createView = <TPluginState extends IPluginState<MatchType[]>>({
         feedbackHref={feedbackHref}
         editorScrollElement={editorScrollElement}
         getScrollOffset={getScrollOffset}
+        enableDevMode={enableDevMode}
       />
     </TelemetryContext.Provider>,
     sidebarNode

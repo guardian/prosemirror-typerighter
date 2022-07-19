@@ -12,20 +12,22 @@ import {
   selectRequestsInProgress,
   selectHasMatches,
   selectDocumentHasChanged,
-  selectDocumentIsEmpty
+  selectDocumentIsEmpty,
+  selectPluginConfig
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps<TPluginState extends IPluginState> {
   store: Store<TPluginState>;
   clearMatches: () => void;
-  setDebugState: (debug: boolean) => void;
+  setShowPendingInflightChecks: (isEnabled: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
   feedbackHref?: string;
+  enableDevMode?: boolean;
 }
 
 const getErrorFeedbackLink = (
@@ -49,13 +51,14 @@ const Controls = <TPluginState extends IPluginState>({
   clearMatches,
   requestMatchesForDocument,
   getCurrentCategories,
-  feedbackHref
+  feedbackHref,
+  enableDevMode,
+  setRequestOnDocModified,
+  setShowPendingInflightChecks
 }: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<TPluginState | undefined>(
     undefined
   );
-
-  const { telemetryAdapter } = useContext(TelemetryContext);
 
   useEffect(() => {
     store.on(STORE_EVENT_NEW_STATE, newState => {
@@ -63,6 +66,8 @@ const Controls = <TPluginState extends IPluginState>({
     });
     setPluginState(store.getState());
   }, []);
+
+  const { telemetryAdapter } = useContext(TelemetryContext);
 
   const requestMatches = () => {
     requestMatchesForDocument(
@@ -142,7 +147,7 @@ const Controls = <TPluginState extends IPluginState>({
       </>
     );
 
-    if (!pluginState || !docHasChanged) {
+    if (!docHasChanged) {
       return plainButton;
     }
 
@@ -156,6 +161,12 @@ const Controls = <TPluginState extends IPluginState>({
       </div>
     );
   };
+
+  if (!pluginState) {
+    return null;
+  }
+
+  const { requestMatchesOnDocModified, showPendingInflightChecks } = selectPluginConfig(pluginState)
 
   return (
     <>
@@ -176,6 +187,35 @@ const Controls = <TPluginState extends IPluginState>({
             <DeleteForever />
           </IconButton>
         </div>
+        {enableDevMode && (
+          <div>
+            <hr />
+            <div className="Controls__input-group">
+              <input
+                type="checkbox"
+                id="real-time-checks"
+                checked={requestMatchesOnDocModified}
+                onChange={() =>
+                  setRequestOnDocModified(!requestMatchesOnDocModified)
+                }
+              ></input>
+              <label htmlFor="real-time-checks" className="Controls__label">
+                Enable real-time checking
+              </label>
+            </div>
+            <div className="Controls__input-group">
+              <input
+                type="checkbox"
+                id="debug"
+                checked={showPendingInflightChecks}
+                onChange={() => setShowPendingInflightChecks(!showPendingInflightChecks)}
+              ></input>
+              <label htmlFor="debug" className="Controls__label">
+                Show pending and inflight checks
+              </label>
+            </div>
+          </div>
+        )}
       </div>
       {renderErrorMessage()}
     </>
