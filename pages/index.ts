@@ -14,12 +14,12 @@ import "../src/css/index.scss";
 import createTyperighterPlugin from "../src/ts/createTyperighterPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
-import { TyperighterAdapter } from "../src/ts";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 import { UserTelemetryEventSender } from "@guardian/user-telemetry-client";
 import { MatchType } from "../src/ts/utils/decoration";
 import { filterByMatchState } from "../src/ts/utils/plugin";
 import { findMarkPositions } from "../src/ts/utils/prosemirror";
+import TyperighterChunkedAdapter from "../src/ts/services/adapters/TyperighterChunkedAdapter";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
@@ -49,7 +49,12 @@ const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
   "DEV"
 );
 
-const { plugin: validatorPlugin, store, getState, matcherService } = createTyperighterPlugin({
+const {
+  plugin: validatorPlugin,
+  store,
+  getState,
+  matcherService
+} = createTyperighterPlugin({
   isElementPartOfTyperighterUI,
   filterOptions: {
     filterMatches: filterByMatchState,
@@ -59,8 +64,10 @@ const { plugin: validatorPlugin, store, getState, matcherService } = createTyper
     findMarkPositions(node, from, to, mySchema.marks.code),
   onMatchDecorationClicked: match =>
     typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL),
-    requestMatchesOnDocModified: true,
-  adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"), 
+  requestMatchesOnDocModified: true,
+  adapter: new TyperighterChunkedAdapter(
+    "https://checker.typerighter.local.dev-gutools.co.uk"
+  ),
   telemetryAdapter: typerighterTelemetryAdapter
 });
 
