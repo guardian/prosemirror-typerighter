@@ -13,6 +13,8 @@ import {
  */
 class TyperighterChunkedAdapter extends TyperighterAdapter
   implements IMatcherAdapter {
+  private textDecoder = new TextDecoder();
+
   public fetchMatches = async (
     requestId: string,
     inputs: IBlock[],
@@ -54,10 +56,14 @@ class TyperighterChunkedAdapter extends TyperighterAdapter
       return;
     }
 
-    const streamReader = readJsonSeqStream(reader, message => {
-      this.responseBuffer.push(message);
-      this.throttledHandleResponse(requestId, onMatchesReceived);
-    });
+    const streamReader = readJsonSeqStream(
+      reader,
+      this.textDecoder,
+      message => {
+        this.responseBuffer.push(message);
+        this.throttledHandleResponse(requestId, onMatchesReceived);
+      }
+    );
 
     streamReader
       .catch(error => {
@@ -74,18 +80,21 @@ export const RECORD_SEPARATOR = String.fromCharCode(31);
 
 export const readJsonSeqStream = async (
   reader: ReadableStreamDefaultReader,
+  decoder: TextDecoder,
   onMessage: (message: any) => void
 ): Promise<void> => {
-  const decoder = new TextDecoder();
   const initialChunk = await reader.read();
   // Chunks do not correspond directly with lines of JSON, so we must buffer
   // partial lines.
   let buffer = "";
 
-  const processStringChunk = (chunk: string, includeBuffer = true) => {
-    const textChunks = (includeBuffer ? buffer + chunk : chunk).split(
-      RECORD_SEPARATOR
-    );
+  const parseAndPushMessage = (json: string) => {
+    const message = JSON.parse(json.trim());
+    onMessage(message);
+  };
+
+  const processStringChunk = (chunk: string) => {
+    const textChunks = (buffer + chunk).split(RECORD_SEPARATOR);
 
     // Take everything but the tail of the array. This will either be an empty
     // string, as the preceding line will have been terminated by a newline
@@ -96,8 +105,7 @@ export const readJsonSeqStream = async (
         break;
       }
 
-      const message = JSON.parse(json.trim());
-      onMessage(message);
+      parseAndPushMessage(json);
     }
 
     // Add anything that remains to the buffer.
@@ -111,7 +119,7 @@ export const readJsonSeqStream = async (
     if (done) {
       if (buffer.length) {
         // Flush anything that remains in the buffer
-        processStringChunk(buffer, false);
+        parseAndPushMessage(buffer);
       }
       return Promise.resolve();
     }
