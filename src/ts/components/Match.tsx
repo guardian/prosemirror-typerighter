@@ -4,7 +4,7 @@ import { IMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
-import { Check } from "@material-ui/icons";
+import { Check } from "@mui/icons-material";
 import { getHtmlFromMarkdown } from "../utils/dom";
 
 interface IMatchProps<TMatch extends IMatch> {

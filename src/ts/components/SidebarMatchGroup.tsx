@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
 import MatchSnippet from "./MatchSnippet";
-import { ArrowDropUp, ArrowDropDown } from "@material-ui/icons";
+import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 import { getHtmlFromMarkdown } from "../utils/dom";
 import SidebarMatchContainer from "./SidebarMatchContainer";
 
