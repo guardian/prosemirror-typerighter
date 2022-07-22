@@ -43,6 +43,17 @@ class TyperighterChunkedAdapter extends TyperighterAdapter
       })
     });
 
+    if (response.status === 401 || response.status === 419) {
+      onRequestError({
+        requestId,
+        blockId: inputs[0]?.id ?? "no-id",
+        message: `${response.status}: ${response.statusText}`,
+        categoryIds,
+        type: "AUTH_ERROR"
+      });
+      onRequestComplete(requestId);
+    }
+
     const reader = response.body?.getReader();
 
     if (!reader) {
