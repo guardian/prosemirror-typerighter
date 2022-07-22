@@ -41,13 +41,13 @@ const FilterResults = ({
         ).length;
 
         const toggleFilterValue = () => {
-          telemetryAdapter?.filterStateToggled(matchType, !!isDisabled)
+          telemetryAdapter?.filterStateToggled(matchType, !!isDisabled);
           applyFilterState(
             isDisabled
               ? filterState.filter(currentType => currentType !== matchType)
               : [...filterState, matchType]
           );
-        }
+        };
 
         return (
           <button

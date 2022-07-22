@@ -23,7 +23,7 @@ export interface IMatchTypeToColourMap {
 export const defaultMatchColours = {
   hasSuggestion: news[400],
   hasSuggestionOpacity: "FF",
-  default: opinion[400],
+  default: opinion[300],
   defaultOpacity: "AD",
   correct: success[400],
   correctOpacity: "FF"

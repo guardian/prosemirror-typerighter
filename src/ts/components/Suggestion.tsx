@@ -34,8 +34,8 @@ const renderMatchDiff = (suggestionText: string, matchedText: string) => {
     <>
       {diffs
         .filter((diff: Change) => !diff.removed)
-        .map(diff => (
-          <span className={`Suggestion__diff-${diff.added ? "added" : ""}`}>
+        .map((diff, index) => (
+          <span key={`${diff.value}-${index}`} className={`Suggestion__diff-${diff.added ? "added" : ""}`}>
             {diff.value}
           </span>
         ))}
