@@ -13,8 +13,6 @@ import {
  */
 class TyperighterChunkedAdapter extends TyperighterAdapter
   implements IMatcherAdapter {
-  private textDecoder = new TextDecoder();
-
   public fetchMatches = async (
     requestId: string,
     inputs: IBlock[],
@@ -43,15 +41,18 @@ class TyperighterChunkedAdapter extends TyperighterAdapter
       })
     });
 
-    if (response.status === 401 || response.status === 419) {
+    if (response.status > 399) {
       onRequestError({
         requestId,
         blockId: inputs[0]?.id ?? "no-id",
         message: `${response.status}: ${response.statusText}`,
         categoryIds,
-        type: "AUTH_ERROR"
+        type:
+          response.status === 401 || response.status === 419
+            ? "AUTH_ERROR"
+            : "GENERAL_ERROR"
       });
-      onRequestComplete(requestId);
+      return onRequestComplete(requestId);
     }
 
     const reader = response.body?.getReader();
@@ -62,21 +63,15 @@ class TyperighterChunkedAdapter extends TyperighterAdapter
         message: "Typerighter did not send a response",
         categoryIds
       });
-      onRequestComplete(requestId);
-
-      return;
+      return onRequestComplete(requestId);
     }
 
-    const streamReader = readJsonSeqStream(
-      reader,
-      this.textDecoder,
-      message => {
-        this.responseBuffer.push(message);
-        this.throttledHandleResponse(requestId, onMatchesReceived);
-      }
-    );
+    const streamReader = readJsonSeqStream(reader, message => {
+      this.responseBuffer.push(message);
+      this.throttledHandleResponse(requestId, onMatchesReceived);
+    });
 
-    streamReader
+    return streamReader
       .catch(error => {
         onRequestError({ requestId, message: error.message, categoryIds });
       })
@@ -91,9 +86,10 @@ export const RECORD_SEPARATOR = String.fromCharCode(31);
 
 export const readJsonSeqStream = async (
   reader: ReadableStreamDefaultReader,
-  decoder: TextDecoder,
   onMessage: (message: any) => void
 ): Promise<void> => {
+  // window.TextDecoder will not be defined in a NodeJS context (for our tests)..
+  const textDecoder = new (window.TextDecoder ?? require("util").TextDecoder)();
   const initialChunk = await reader.read();
   // Chunks do not correspond directly with lines of JSON, so we must buffer
   // partial lines.
@@ -135,7 +131,7 @@ export const readJsonSeqStream = async (
       return Promise.resolve();
     }
 
-    const textChunks = decoder.decode(value);
+    const textChunks = textDecoder.decode(value);
     processStringChunk(textChunks);
 
     return reader.read().then(streamIterator);
