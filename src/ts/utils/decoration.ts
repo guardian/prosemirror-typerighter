@@ -260,6 +260,8 @@ export const getMatchOffset = (
   return element ? getProseMirrorOffsetValue(element, scrollElement) : 0;
 };
 
+export const GLOBAL_DECORATION_STYLE_ID = "prosemirror-typerighter-global-styles";
+
 /**
  * Creates a global decoration style tag to style inline decoration elements.
  *
@@ -329,6 +331,7 @@ export const createGlobalDecorationStyleTag = (
     }
   `;
   const elem = document.createElement("style");
+  elem.id = GLOBAL_DECORATION_STYLE_ID;
   elem.innerHTML = styleContent;
   return elem;
 };
