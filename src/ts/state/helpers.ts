@@ -75,8 +75,7 @@ export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
   );
 
   const decorationsToAdd = createDecorationsForMatches(
-    matchesWithoutDecorations,
-    newState.config.matchColours
+    matchesWithoutDecorations
   );
 
   const decorationsToRemove = newState.decorations.find(
