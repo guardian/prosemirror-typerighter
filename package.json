@@ -24,7 +24,8 @@
     "report-coverage": "jest --env=jsdom --coverage --coverageReporters=text-lcov | coveralls",
     "prepublishOnly": "npm run build",
     "format": "prettier --write './src/**/*.ts'",
-    "publish-pages": "git subtree push --prefix pages/dist origin gh-pages"
+    "publish-pages": "git subtree push --prefix pages/dist origin gh-pages",
+    "yalc": "npm run build && yalc push"
   },
   "devDependencies": {
     "@testing-library/dom": "^7.23.0",
