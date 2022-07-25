@@ -12,7 +12,6 @@ export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_CLEAR_DOCUMENT = "TYPERIGHTER_CLEAR_DOCUMENT",
   TYPERIGHTER_OPEN_STATE_CHANGED = "TYPERIGHTER_OPEN_STATE_CHANGED",
   TYPERIGHTER_SIDEBAR_MATCH_CLICK = "TYPERIGHTER_SIDEBAR_MATCH_CLICK",
-  TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED = "TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED",
   TYPERIGHTER_FILTER_STATE_CHANGED = "TYPERIGHTER_FILTER_STATE_CHANGED"
 }
 
@@ -57,7 +56,8 @@ export interface IMarkAsCorrectEvent extends ITyperighterTelemetryEvent {
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
 }
 
-export interface IMatchDecorationClickedEvent extends ITyperighterTelemetryEvent {
+export interface IMatchDecorationClickedEvent
+  extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_DECORATION_CLICKED;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
@@ -82,11 +82,6 @@ export interface ISidebarClickEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK;
   value: 1;
   tags: ITyperighterTelemetryEvent["tags"] & IMatchEventTags;
-}
-
-export interface ISummaryToggleEvent extends ITyperighterTelemetryEvent {
-  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED;
-  value: 0 | 1;
 }
 
 export interface IFilterToggleEvent extends ITyperighterTelemetryEvent {

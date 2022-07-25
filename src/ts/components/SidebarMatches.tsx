@@ -78,7 +78,6 @@ interface ISidebarProps {
   selectedMatch: string | undefined;
   editorScrollElement: Element;
   getScrollOffset: () => number;
-  isSummaryView: boolean;
 }
 
 const SidebarMatches = ({
@@ -89,8 +88,7 @@ const SidebarMatches = ({
   stopHighlight,
   selectedMatch,
   editorScrollElement,
-  getScrollOffset,
-  isSummaryView
+  getScrollOffset
 }: ISidebarProps) => {
   const groupedCurrentMatches = chain(matches)
     .groupBy("ruleId")
@@ -100,67 +98,53 @@ const SidebarMatches = ({
 
   return (
     <ul className="Sidebar__list">
-      {isSummaryView
-        ? groupedCurrentMatches.map(group => {
-            const matchElements =
-              group.length > 1 ? (
-                <SidebarMatchGroup
-                  matchColours={matchColours}
-                  matchGroup={group}
-                  selectedMatch={selectedMatch}
-                  selectMatch={selectMatch}
-                  indicateHighlight={indicateHighlight}
-                  stopHighlight={stopHighlight}
-                  editorScrollElement={editorScrollElement}
-                  getScrollOffset={getScrollOffset}
-                  key={group[0].matchId}
-                />
-              ) : (
-                group[0] && (
-                  <SidebarMatch
-                    matchColours={matchColours}
-                    match={group[0]}
-                    selectedMatch={selectedMatch}
-                    selectMatch={selectMatch}
-                    indicateHighlight={indicateHighlight}
-                    stopHighlight={stopHighlight}
-                    editorScrollElement={editorScrollElement}
-                    getScrollOffset={getScrollOffset}
-                    key={group[0].matchId}
-                  />
-                )
-              );
-
-            const matchType = group[0] && getMatchType(group[0]);
-            const shouldInsertHeader = matchType !== currentMatchType;
-            if (shouldInsertHeader) {
-              currentMatchType = matchType;
-              return (
-                <MatchHeader
-                  matchColours={matchColours}
-                  match={group[0]}
-                  matchType={currentMatchType}
-                  key={currentMatchType}
-                >
-                  {matchElements}
-                </MatchHeader>
-              );
-            }
-            return matchElements;
-          })
-        : matches.map(match => (
-            <SidebarMatch
+      {groupedCurrentMatches.map(group => {
+        const matchElements =
+          group.length > 1 ? (
+            <SidebarMatchGroup
               matchColours={matchColours}
-              match={match}
+              matchGroup={group}
               selectedMatch={selectedMatch}
               selectMatch={selectMatch}
               indicateHighlight={indicateHighlight}
               stopHighlight={stopHighlight}
               editorScrollElement={editorScrollElement}
               getScrollOffset={getScrollOffset}
-              key={match.matchId}
+              key={group[0].matchId}
             />
-          ))}
+          ) : (
+            group[0] && (
+              <SidebarMatch
+                matchColours={matchColours}
+                match={group[0]}
+                selectedMatch={selectedMatch}
+                selectMatch={selectMatch}
+                indicateHighlight={indicateHighlight}
+                stopHighlight={stopHighlight}
+                editorScrollElement={editorScrollElement}
+                getScrollOffset={getScrollOffset}
+                key={group[0].matchId}
+              />
+            )
+          );
+
+        const matchType = group[0] && getMatchType(group[0]);
+        const shouldInsertHeader = matchType !== currentMatchType;
+        if (shouldInsertHeader) {
+          currentMatchType = matchType;
+          return (
+            <MatchHeader
+              matchColours={matchColours}
+              match={group[0]}
+              matchType={currentMatchType}
+              key={currentMatchType}
+            >
+              {matchElements}
+            </MatchHeader>
+          );
+        }
+        return matchElements;
+      })}
     </ul>
   );
 };

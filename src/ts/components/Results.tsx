@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
-import { selectMatches, selectPercentRemaining } from "../state/selectors";
-import { Switch } from "@mui/material";
+import {
+  selectImportanceOrderedMatches,
+  selectPercentRemaining
+} from "../state/selectors";
 import FilterResults from "./FilterResults";
 import { MatchType } from "../utils/decoration";
-import TelemetryContext from "../contexts/TelemetryContext";
 import _ from "lodash";
 import SidebarMatches from "./SidebarMatches";
 
@@ -40,8 +41,6 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     undefined
   );
   const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
-  const [sortAndGroup, setSortAndGroup] = useState<boolean>(true);
-  const { telemetryAdapter } = useContext(TelemetryContext);
 
   const handleNewState = (incomingState: TPluginState) => {
     setPluginState({
@@ -73,12 +72,6 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     }
   };
 
-  const toggleSortAndGroup = () => {
-    const newValue = !sortAndGroup;
-    telemetryAdapter?.summaryViewToggled(newValue, { documentUrl: document.URL })
-    setSortAndGroup(newValue)
-  }
-
   const {
     currentMatches = [],
     filteredMatches = [],
@@ -88,29 +81,16 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
   const hasMatches = !!currentMatches.length;
   const percentRemaining = selectPercentRemaining(pluginState);
   const orderedMatches = pluginState
-    ? selectMatches(pluginState, sortAndGroup)
+    ? selectImportanceOrderedMatches(pluginState)
     : [];
   const isLoading =
     !!requestsInFlight && !!Object.keys(requestsInFlight).length;
-
 
   return (
     <>
       <div className="Sidebar__header-container">
         <div className="Sidebar__header">
-          <span>
-            Results {hasMatches && <span>({filteredMatches.length}) </span>}
-          </span>
-          <span className="Sidebar__header-sort">
-            Summary view
-            <Switch
-              size="small"
-              checked={sortAndGroup}
-              onChange={toggleSortAndGroup}
-              color="primary"
-              inputProps={{ "aria-label": "Summary view" }}
-            />
-          </span>
+          Results {hasMatches && <span>({filteredMatches.length}) </span>}
         </div>
         <div className="Sidebar__header-bottom">
           {pluginState && pluginState.config.matchColours && (
@@ -154,7 +134,6 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
           stopHighlight={stopHighlight}
           editorScrollElement={editorScrollElement}
           getScrollOffset={getScrollOffset}
-          isSummaryView={sortAndGroup}
         />
         {!hasMatches && (
           <div className="Sidebar__awaiting-match">No matches to report.</div>
