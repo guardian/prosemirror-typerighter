@@ -90,7 +90,7 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
     <>
       <div className="Sidebar__header-container">
         <div className="Sidebar__header">
-          Results {hasMatches && <span>({filteredMatches.length}) </span>}
+          Results {!!hasMatches && `(${filteredMatches.length})`}
         </div>
         <div className="Sidebar__header-bottom">
           {pluginState && pluginState.config.matchColours && (
