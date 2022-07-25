@@ -14,7 +14,8 @@
     "jsx": "react",
     "lib": ["dom", "esnext"],
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["@emotion/react/types/css-prop", "jest"]
   },
   "exclude": ["dist"]
 }

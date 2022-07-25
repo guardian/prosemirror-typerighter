@@ -3,7 +3,7 @@ import sortBy from "lodash/sortBy";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { selectMatches, selectPercentRemaining } from "../state/selectors";
-import { Switch } from "@material-ui/core";
+import { Switch } from "@mui/material";
 import FilterResults from "./FilterResults";
 import { MatchType } from "../utils/decoration";
 import TelemetryContext from "../contexts/TelemetryContext";

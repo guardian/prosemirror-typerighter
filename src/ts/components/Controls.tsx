@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
-import IconButton from "@material-ui/core/IconButton";
-import { DeleteForever } from "@material-ui/icons";
+import { IconButton } from "@mui/material";
+import { DeleteForever } from "@mui/icons-material";
 
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
