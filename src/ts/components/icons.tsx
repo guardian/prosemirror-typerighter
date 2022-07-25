@@ -1,5 +1,5 @@
 import React from "react";
-import { neutral, text } from "@guardian/src-foundations";
+import { neutral } from "@guardian/src-foundations";
 
 export const warningIcon = (colour: string) => (
   <svg
@@ -26,9 +26,7 @@ export const infoIcon = (colour: string) => (
     fill={colour}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path
-      d="M4.5 6.5H5.5V7.5H4.5V6.5ZM4.5 2.5H5.5V5.5H4.5V2.5ZM4.995 0C2.235 0 0 2.24 0 5C0 7.76 2.235 10 4.995 10C7.76 10 10 7.76 10 5C10 2.24 7.76 0 4.995 0ZM5 9C2.79 9 1 7.21 1 5C1 2.79 2.79 1 5 1C7.21 1 9 2.79 9 5C9 7.21 7.21 9 5 9Z"
-    />
+    <path d="M4.5 6.5H5.5V7.5H4.5V6.5ZM4.5 2.5H5.5V5.5H4.5V2.5ZM4.995 0C2.235 0 0 2.24 0 5C0 7.76 2.235 10 4.995 10C7.76 10 10 7.76 10 5C10 2.24 7.76 0 4.995 0ZM5 9C2.79 9 1 7.21 1 5C1 2.79 2.79 1 5 1C7.21 1 9 2.79 9 5C9 7.21 7.21 9 5 9Z" />
   </svg>
 );
 
@@ -51,18 +49,15 @@ export const tickIcon = (colour: string) => (
 
 export const iconMap = {
   CORRECT: {
-    iconOnDark: tickIcon(text.primary),
-    iconOnLight: tickIcon(neutral[100]),
+    icon: tickIcon(neutral[100]),
     description: "OK"
   },
   HAS_REPLACEMENT: {
-    iconOnDark: warningIcon(text.primary),
-    iconOnLight: warningIcon(neutral[100]),
+    icon: warningIcon(neutral[100]),
     description: "Amend"
   },
   DEFAULT: {
-    iconOnDark: infoIcon(text.primary),
-    iconOnLight: infoIcon(neutral[100]),
+    icon: infoIcon(neutral[100]),
     description: "Review"
   }
 };

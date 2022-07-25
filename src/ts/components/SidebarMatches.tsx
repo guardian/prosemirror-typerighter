@@ -51,7 +51,7 @@ const MatchHeader: React.FunctionComponent<{
               align-items: center;
             `}
           >
-            {iconMap[matchType].iconOnLight}
+            {iconMap[matchType].icon}
           </div>
           <span
             css={css`
