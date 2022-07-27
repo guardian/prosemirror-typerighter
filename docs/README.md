@@ -21,9 +21,17 @@ If your Typerighter service does require pan-domain authentication, you will nee
 
 The plugin must be pointed to the address of a running Typerighter service to submit a document and receive matches. To modify this address, change the address passed to the `TyperighterAdapter` in `pages/index.ts`.
 
-To test this plugin in applications that use it before publishing a release, use [`npm link`](https://docs.npmjs.com/cli/link) –
-- Run `npm link` in the root of this project
-- Run `npm link @guardian/prosemirror-typerighter` in the root of the project that's consuming this package.
+## Testing locally in applications that use `prosemirror-typerighter`
+
+We've found yalc useful in testing local changes to prosemirror-typerighter in applications that use it.
+
+Setup: 
+
+1. Install `yalc` globally with `npm i yalc -g` or `yarn global add yalc`.
+2. Run `npm run yalc` in your local project from your current branch, to build the project and push changes to yalc.
+3. Run `yalc add @guardian/prosemirror-typerighter` within the project consuming prosemirror-typerighter locally.
+
+Note: any changes you make to your local prosemirror-typerighter branch must be republished (step 3). Don't forget to run `npm run yalc` again!
 
 ## Updating documentation
 
