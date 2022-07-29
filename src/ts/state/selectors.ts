@@ -165,14 +165,6 @@ export const selectImportanceOrderedMatches = <TMatch extends IMatch>(
     getSortOrderForMatchAppearance
   );
 
-export const selectMatches = <TMatch extends IMatch>(
-  state: IPluginState<unknown, TMatch>,
-  sortByImportance: boolean
-): Array<IMatch<ISuggestion>> =>
-  sortByImportance
-    ? selectImportanceOrderedMatches(state)
-    : selectDocumentOrderedMatches(state);
-
 export const selectDocumentHasChanged = (state: IPluginState): boolean => {
   return state.docChangedSinceCheck;
 };

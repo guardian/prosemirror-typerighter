@@ -8,7 +8,6 @@ import {
   IOpenTyperighterEvent,
   ISidebarClickEvent,
   ISuggestionAcceptedEvent,
-  ISummaryToggleEvent,
   ITyperighterTelemetryEvent,
   TYPERIGHTER_TELEMETRY_TYPE
 } from "../interfaces/ITelemetryData";
@@ -113,17 +112,6 @@ class TyperighterTelemetryAdapter {
         ...this.getTelemetryTagsFromMatch(match)
       }
     } as IMatchFoundEvent);
-  }
-
-  public summaryViewToggled(
-    toggledOn: boolean,
-    tags: ITyperighterTelemetryEvent["tags"]
-  ) {
-    this.addEvent({
-      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SUMMARY_VIEW_TOGGLE_CHANGED,
-      value: toggledOn ? 1 : 0,
-      tags
-    } as ISummaryToggleEvent);
   }
 
   public filterStateToggled(matchType: MatchType, toggledOn: boolean) {
