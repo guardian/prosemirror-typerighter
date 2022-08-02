@@ -15,12 +15,10 @@ import { iconMap } from "./icons";
 import SidebarMatch from "./SidebarMatch";
 import SidebarMatchGroup from "./SidebarMatchGroup";
 import {
-  SetBoolean,
   TooltipIcon,
   TooltipMessage,
   Update,
-  SetElement,
-  SetString,
+  SetState,
   getPopperConfig
 } from "./Tooltip";
 import { neutral } from "@guardian/src-foundations";
@@ -29,11 +27,11 @@ const MatchHeader: React.FunctionComponent<{
   matchColours?: IMatchTypeToColourMap;
   match: IMatch<ISuggestion>;
   matchType: MatchType;
-  setTooltipOpaque: SetBoolean;
+  setTooltipOpaque: SetState<boolean>;
   updatePopper: Update;
-  setReferenceElement: SetElement;
-  setTooltipMessage: SetString;
-  setBorderColor: SetString;
+  setReferenceElement: SetState<HTMLElement | null>;
+  setTooltipMessage: SetState<string>;
+  setBorderColor: SetState<string>;
 }> = ({
   matchColours,
   match,
@@ -136,8 +134,8 @@ const SidebarMatches = ({
     .value();
   let currentMatchType: MatchType | undefined;
 
-  const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null);
-  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
+  const [arrowElement, setArrowElement] = useState<HTMLElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLElement | null>(
     null
   );
   const [tooltipMessage, setTooltipMessage] = useState("");
@@ -146,7 +144,7 @@ const SidebarMatches = ({
   const [
     referenceElement,
     setReferenceElement
-  ] = useState<HTMLDivElement | null>(null);
+  ] = useState<HTMLElement | null>(null);
 
   const popper = usePopper(
     referenceElement,

@@ -3,9 +3,9 @@ import styled from "@emotion/styled";
 import { neutral } from "@guardian/src-foundations";
 import { SvgInfo } from "@guardian/src-icons";
 import { Options, State } from "@popperjs/core";
-import React, { useState } from "react";
+import React, { Dispatch, LegacyRef, SetStateAction, useState } from "react";
 
-export type SetBoolean = (value: boolean) => void;
+export type SetState<T> = Dispatch<SetStateAction<T>>
 
 export type Update = (() => Promise<Partial<State>>) | null;
 type Popper = {
@@ -21,8 +21,6 @@ type Popper = {
   };
   update: Update;
 };
-export type SetElement = (value: any) => void;
-export type SetString = (value: string) => void;
 
 const fadeDuration = 300; //Milliseconds
 
@@ -145,8 +143,8 @@ export const TooltipMessage = ({
 }: {
   opaque: boolean;
   popper: Popper;
-  setPopperElement: SetElement;
-  setArrowElement: SetElement;
+  setPopperElement: LegacyRef<HTMLDivElement>;
+  setArrowElement: LegacyRef<HTMLDivElement>;
   borderColor: string;
   children: React.ReactNode;
 }) => {
@@ -176,9 +174,9 @@ export const TooltipIcon = ({
   setReferenceElement,
   updateValues
 }: {
-  setOpaque: SetBoolean;
+  setOpaque: SetState<boolean>;
   updatePopper: Update;
-  setReferenceElement: SetElement;
+  setReferenceElement: SetState<HTMLElement | null>;
   updateValues: () => void;
 }) => {
   const makeOpaque = () => {
