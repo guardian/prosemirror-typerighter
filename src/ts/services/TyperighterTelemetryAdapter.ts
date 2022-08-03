@@ -11,7 +11,7 @@ import {
   ITyperighterTelemetryEvent,
   TYPERIGHTER_TELEMETRY_TYPE
 } from "../interfaces/ITelemetryData";
-import { UserTelemetryEventSender } from "@guardian/user-telemetry-client";
+import { IUserTelemetryEvent, UserTelemetryEventSender } from "@guardian/user-telemetry-client";
 import { IMatch } from "..";
 import { MatchType } from "../utils/decoration";
 
@@ -19,7 +19,8 @@ class TyperighterTelemetryAdapter {
   constructor(
     private telemetryService: UserTelemetryEventSender,
     private app: string,
-    private stage: string
+    private stage: string,
+    private tags?: IUserTelemetryEvent["tags"],
   ) {}
 
   public suggestionIsAccepted(
@@ -126,9 +127,11 @@ class TyperighterTelemetryAdapter {
     event: Omit<TEvent, "app" | "stage" | "eventTime">
   ) {
     this.telemetryService.addEvent({
-      ...event,
+      type: event.type,
+      value: event.value,
       app: this.app,
       stage: this.stage,
+      tags: { ...this.tags, ...event.tags },
       eventTime: new Date().toISOString()
     });
   }
