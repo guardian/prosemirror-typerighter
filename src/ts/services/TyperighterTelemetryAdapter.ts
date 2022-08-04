@@ -23,6 +23,11 @@ class TyperighterTelemetryAdapter {
     private tags?: IUserTelemetryEvent["tags"],
   ) {}
 
+  // used by flexible-content to update tags that are only known after the telemetry adaptor has been initialised
+  public updateTelemetryTags(tags: IUserTelemetryEvent["tags"]) {
+    this.tags = { ...this.tags, ...tags};
+  }
+
   public suggestionIsAccepted(
     match: IMatch,
     documentUrl: string,
