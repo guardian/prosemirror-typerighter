@@ -7,7 +7,6 @@ import { exampleSetup } from "prosemirror-example-setup";
 
 import createTyperighterPlugin from "../../createTyperighterPlugin";
 import { createBoundCommands } from "../../commands";
-import MatcherService from "../../services/MatcherService";
 import TyperighterAdapter from "../../services/adapters/TyperighterAdapter";
 import { IMatch } from "../..";
 
@@ -32,9 +31,10 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
   const isElementPartOfTyperighterUI = (element: HTMLElement) =>
     overlayNode.contains(element);
 
-  const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
+  const { plugin: validatorPlugin, getState } = createTyperighterPlugin({
     isElementPartOfTyperighterUI,
-    matches
+    matches,
+    adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk")
   });
 
   const view = new EditorView(editorElement!, {
@@ -51,12 +51,6 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
   });
 
   const commands = createBoundCommands(view, getState);
-  // @ts-ignore
-  const matcherService = new MatcherService(
-    store,
-    commands,
-    new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk")
-  );
 
   return { editorElement, view, commands, schema: mySchema };
 };
