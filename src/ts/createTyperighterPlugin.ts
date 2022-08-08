@@ -30,10 +30,13 @@ import Store, {
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
 import { doNotSkipRanges, TGetSkippedRanges } from "./utils/block";
-import { startHoverCommand, stopHoverCommand } from "./commands";
+import { createBoundCommands, startHoverCommand, stopHoverCommand } from "./commands";
 import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 import { getClientRectIndex } from "./utils/clientRect";
+import MatcherService from "./services/MatcherService";
+import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
+import { IMatcherAdapter } from "./interfaces/IMatcherAdapter";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -99,6 +102,13 @@ export interface IPluginOptions<
    * Called when a match decoration is clicked.
    */
   onMatchDecorationClicked?: (match: TMatch) => void;
+
+  /**
+   * Expose useful utilities for developers.
+   */
+  telemetryAdapter?: TyperighterTelemetryAdapter;
+  
+  adapter: IMatcherAdapter<TMatch>,
 }
 
 /**
@@ -107,11 +117,12 @@ export interface IPluginOptions<
  * when they are are returned, and applying suggestions to the document.
  */
 const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
-  options: IPluginOptions<TFilterState, TMatch> = {}
+  options: IPluginOptions<TFilterState, TMatch>
 ): {
   plugin: Plugin<IPluginState<TFilterState, TMatch>>;
   store: Store<IPluginState<TFilterState, TMatch>>;
   getState: (state: EditorState) => IPluginState<TFilterState, TMatch>;
+  matcherService: MatcherService<TFilterState, TMatch>
 } => {
   const {
     expandRanges = expandRangesToParentBlockNode,
@@ -123,6 +134,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     onMatchDecorationClicked = () => undefined,
     isElementPartOfTyperighterUI = () => false,
     requestMatchesOnDocModified = false,
+    adapter,
+    telemetryAdapter
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TFilterState, TMatch>;
@@ -135,6 +148,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     filterOptions?.filterMatches,
     getSkippedRanges
   );
+  const matcherService = new MatcherService(store, adapter, telemetryAdapter)
 
   const plugin: Plugin<TPluginState> = new Plugin({
     key: pluginKey,
@@ -238,6 +252,9 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       }
     },
     view(view) {
+      const commands = createBoundCommands(view, plugin.getState);
+      matcherService.setCommands(commands);
+
       // Prepend any globally available styles to the document editor if they
       // are not already present.
       if (!document.getElementById(GLOBAL_DECORATION_STYLE_ID)) {
@@ -260,7 +277,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     store,
     getState: plugin.getState.bind(plugin) as (
       state: EditorState
-    ) => TPluginState
+    ) => TPluginState,
+    matcherService
   };
 };
 
