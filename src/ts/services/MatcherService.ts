@@ -129,7 +129,9 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
   }
 
   /**
-   * Provide the matcher service with commands, which required an editor
+   * Provide the matcher service with commands, which must be 
+   * bound to an `EditorView` instance, and so cannot be provided 
+   * until the Typerighter plugin is instantiated by an `EditorView`.
    */
   public setCommands(commands: Commands) {
     this.commands = commands;
