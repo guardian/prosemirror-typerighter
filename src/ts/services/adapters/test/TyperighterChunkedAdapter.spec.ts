@@ -37,7 +37,7 @@ describe("TyperighterChunkedAdapter", () => {
     jest.restoreAllMocks();
   });
 
-  it("on a successful response, it should call `onMatchesReceived` for each record, and finally call `onRequestComplete`", async () => {
+  it("should call `onMatchesReceived` for each record in a successful response, and finally call `onRequestComplete`", async () => {
     const adapter = new TyperighterChunkedAdapter("https://example.com");
     const input: IMatcherResponse[] = [
       {
