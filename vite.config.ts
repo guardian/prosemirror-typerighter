@@ -25,6 +25,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist/",
+    sourcemap: true,
     lib: {
       entry: "src/ts/index.ts",
       formats: ["cjs", "es"],
