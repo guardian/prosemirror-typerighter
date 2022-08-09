@@ -61,7 +61,7 @@ const MatchHeader: React.FunctionComponent<{
   matchType: MatchType;
   setTooltipOpaque: SetState<boolean>;
   updatePopper: Update;
-  setReferenceElement: SetState<HTMLElement | null>;
+  setRefElement: SetState<HTMLElement | null>;
   setTooltipMessage: SetState<string>;
   setBorderColor: SetState<string>;
 }> = ({
@@ -70,7 +70,7 @@ const MatchHeader: React.FunctionComponent<{
   matchType,
   setTooltipOpaque,
   updatePopper,
-  setReferenceElement,
+  setRefElement,
   setTooltipMessage,
   setBorderColor,
   children
@@ -82,7 +82,7 @@ const MatchHeader: React.FunctionComponent<{
 
   const getTooltipIconMouseEnterHandler = (ref: HTMLElement | null) => {
     return () => {
-      setReferenceElement(ref)
+      setRefElement(ref)
       setTooltipOpaque(true);
       setTooltipMessage(iconMap[matchType].tooltip);
       if (colours) {
@@ -152,13 +152,10 @@ const SidebarMatches = ({
   const [tooltipMessage, setTooltipMessage] = useState("");
   const [tooltipOpaque, setTooltipOpaque] = useState(false);
   const [borderColor, setBorderColor] = useState(neutral[86] as string);
-  const [
-    referenceElement,
-    setReferenceElement
-  ] = useState<HTMLElement | null>(null);
+  const [refElement, setRefElement] = useState<HTMLElement | null>(null);
 
   const popper = usePopper(
-    referenceElement,
+    refElement,
     popperElement,
     getPopperConfig(arrowElement)
   );
@@ -216,7 +213,7 @@ const SidebarMatches = ({
               key={currentMatchType}
               setTooltipOpaque={setTooltipOpaque}
               updatePopper={popper.update}
-              setReferenceElement={setReferenceElement}
+              setRefElement={setRefElement}
               setTooltipMessage={setTooltipMessage}
               setBorderColor={setBorderColor}
             >
