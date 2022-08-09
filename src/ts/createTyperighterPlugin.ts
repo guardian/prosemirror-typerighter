@@ -254,8 +254,9 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       const commands = createBoundCommands(view, plugin.getState);
       matcherService.setCommands(commands);
 
+      // Check the document eagerly on editor initialisation if 
+      // requestMatchesOnDocModified is enabled
       const pluginState = store.getState();
-
       if (pluginState){
         const { requestMatchesOnDocModified } = selectPluginConfig(pluginState)
         requestMatchesOnDocModified ?? requestMatchesForDocument(
