@@ -71,7 +71,7 @@ describe("TyperighterChunkedAdapter", () => {
     expect(onComplete).toHaveBeenCalled();
   });
 
-  it("on an empty response, it should call `onRequestError`, and finally call `onRequestComplete`", async () => {
+  it("should call `onRequestError` for an empty response, and finally call `onRequestComplete`", async () => {
     const adapter = new TyperighterChunkedAdapter("https://example.com");
     mockFetchBody({ body: undefined });
 
