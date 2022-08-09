@@ -6,6 +6,7 @@ import { State } from "@popperjs/core";
 import React, { useEffect, useState } from "react";
 
 export type SetBoolean = (value: boolean) => void;
+
 export type Update = (() => Promise<Partial<State>>) | null;
 type Popper = {
     styles: {
@@ -19,7 +20,7 @@ type Popper = {
     update: Update
 }
 export type SetElement = (value: any) => void;
-export type SetTooltipMessage = (value: string) => void;
+export type SetString = (value: string) => void;
 
 const infoIcon = css`
   height: 22px;
@@ -65,12 +66,13 @@ const Arrow = styled.div`
   }
 `;
 
-const TooltipBox = styled.div`
-  background-color: ${neutral[10]};
-  color: ${neutral[97]};
+const TooltipBox = styled.div<{ borderColor: string }>`
+  background-color: ${neutral[100]};
+  color: ${neutral[7]};
   width: 260px;
   font-weight: 300;
   font-size: 0.9rem;
+  border: 1px solid ${props => props.borderColor};
   border-radius: 4px;
   line-height: 1.2rem;
   filter: drop-shadow(0 2px 4px rgb(0 0 0 / 30%));
@@ -97,21 +99,37 @@ const TooltipBox = styled.div`
   }
   &[data-popper-placement^="top"] > .arrow {
     bottom: -4px;
+    &::before {
+        border-right: 1px solid ${props => props.borderColor};
+        border-bottom: 1px solid ${props => props.borderColor};
+    }
   }
   &[data-popper-placement^="bottom"] > .arrow {
-    top: -4px;
+    top: -5px;
+    &::before {
+        border-left: 1px solid ${props => props.borderColor};
+        border-top: 1px solid ${props => props.borderColor};
+    }
   }
   &[data-popper-placement^="left"] > .arrow {
     right: -4px;
+    &::before {
+        border-right: 1px solid ${props => props.borderColor};
+        border-top: 1px solid ${props => props.borderColor};
+    }
   }
   &[data-popper-placement^="right"] > .arrow {
     left: -4px;
+    &::before {
+        border-left: 1px solid ${props => props.borderColor};
+        border-bottom: 1px solid ${props => props.borderColor};
+    }
   }
 `;
 
 
-export const TooltipMessage = ({ opaque, setVisible, visible, popper,  setPopperElement, setArrowElement, children }: 
-    { opaque: boolean, setVisible: SetBoolean, visible: Boolean, popper: Popper, setPopperElement: SetElement, setArrowElement: SetElement, children: React.ReactNode }) => {
+export const TooltipMessage = ({ opaque, setVisible, visible, popper,  setPopperElement, setArrowElement, borderColor, children }: 
+    { opaque: boolean, setVisible: SetBoolean, visible: Boolean, popper: Popper, setPopperElement: SetElement, setArrowElement: SetElement, borderColor: string; children: React.ReactNode }) => {
     const { styles, attributes } = popper;
     useEffect(() => {
         if (!opaque) {
@@ -128,6 +146,7 @@ export const TooltipMessage = ({ opaque, setVisible, visible, popper,  setPopper
             style={styles.popper}
             data-show={visible || null}
             data-opaque={opaque || null}
+            borderColor={borderColor}
             {...attributes.popper}
         >
             {children}
@@ -141,7 +160,7 @@ export const TooltipMessage = ({ opaque, setVisible, visible, popper,  setPopper
     );
 };
 
-export const TooltipIcon = ({setOpaque, setVisible, update, setReferenceElement, updateTooltipMessage}: {setOpaque: SetBoolean, setVisible: SetBoolean, update: Update, setReferenceElement: SetElement, updateTooltipMessage: () => void}) => {
+export const TooltipIcon = ({setOpaque, setVisible, update, setReferenceElement, updateValues}: {setOpaque: SetBoolean, setVisible: SetBoolean, update: Update, setReferenceElement: SetElement, updateValues: () => void}) => {
     const makeOpaque = () => {
         setOpaque(true);
         setVisible(true);
@@ -152,7 +171,7 @@ export const TooltipIcon = ({setOpaque, setVisible, update, setReferenceElement,
 
     const handleMouseEnter = () => {
         setReferenceElement(thisRef);
-        updateTooltipMessage();
+        updateValues();
         makeOpaque();
         if (update) void update();
     };
