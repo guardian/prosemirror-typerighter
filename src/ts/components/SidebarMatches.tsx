@@ -14,19 +14,37 @@ import {
 import { iconMap } from "./icons";
 import SidebarMatch from "./SidebarMatch";
 import SidebarMatchGroup from "./SidebarMatchGroup";
-import { SetBoolean, TooltipIcon, TooltipMessage, Update, SetElement, SetString } from "./Tooltip";
+import {
+  SetBoolean,
+  TooltipIcon,
+  TooltipMessage,
+  Update,
+  SetElement,
+  SetString,
+  getPopperConfig
+} from "./Tooltip";
+import { neutral } from "@guardian/src-foundations";
 
 const MatchHeader: React.FunctionComponent<{
   matchColours?: IMatchTypeToColourMap;
   match: IMatch<ISuggestion>;
   matchType: MatchType;
-  setOpaque: SetBoolean;
-  setVisible: SetBoolean;
-  update: Update;
+  setTooltipOpaque: SetBoolean;
+  updatePopper: Update;
   setReferenceElement: SetElement;
   setTooltipMessage: SetString;
   setBorderColor: SetString;
-}> = ({ matchColours, match, matchType, setOpaque, setVisible, update, setReferenceElement, setTooltipMessage, setBorderColor, children}) => {
+}> = ({
+  matchColours,
+  match,
+  matchType,
+  setTooltipOpaque,
+  updatePopper,
+  setReferenceElement,
+  setTooltipMessage,
+  setBorderColor,
+  children
+}) => {
   const colours =
     match && matchColours
       ? getColourForMatch(match, matchColours, true)
@@ -75,16 +93,16 @@ const MatchHeader: React.FunctionComponent<{
           </span>
           <TooltipIcon
             setReferenceElement={setReferenceElement}
-            setOpaque={setOpaque}
-            setVisible={setVisible}
-            update={update} 
+            setOpaque={setTooltipOpaque}
+            updatePopper={updatePopper}
             updateValues={() => {
               setTooltipMessage(iconMap[matchType].tooltip);
-              if (colours) { setBorderColor(colours.borderColour) }
+              if (colours) {
+                setBorderColor(colours.borderColour);
+              }
             }}
           />
         </div>
-        
       </li>
       {children}
     </Fragment>
@@ -123,52 +141,29 @@ const SidebarMatches = ({
     null
   );
   const [tooltipMessage, setTooltipMessage] = useState("");
-  const [opaque, setOpaque] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [borderColor, setBorderColor] = useState("#ddd");
+  const [tooltipOpaque, setTooltipOpaque] = useState(false);
+  const [borderColor, setBorderColor] = useState(neutral[86] as string);
   const [
     referenceElement,
-    setReferenceElement,
+    setReferenceElement
   ] = useState<HTMLDivElement | null>(null);
 
   const popper = usePopper(
     referenceElement,
     popperElement,
-    {
-      placement: "top",
-      modifiers: [
-        { name: "arrow", options: { element: arrowElement } },
-        {
-          name: "offset",
-          options: {
-            offset: [0, 4],
-          },
-        },
-        {
-          name: 'preventOverflow',
-          options: {
-            altAxis: true,
-            padding: 10
-          }
-        },
-      ],
-    }
+    getPopperConfig(arrowElement)
   );
 
   return (
     <ul className="Sidebar__list">
       <TooltipMessage
         borderColor={borderColor}
-        opaque={opaque} 
-        setVisible={setVisible} 
-        visible={visible} 
+        opaque={tooltipOpaque}
         popper={popper}
         setArrowElement={setArrowElement}
         setPopperElement={setPopperElement}
       >
-        <p>
-          {tooltipMessage}
-        </p>
+        <p>{tooltipMessage}</p>
       </TooltipMessage>
       {groupedCurrentMatches.map(group => {
         const matchElements =
@@ -210,9 +205,8 @@ const SidebarMatches = ({
               match={group[0]}
               matchType={currentMatchType}
               key={currentMatchType}
-              setOpaque={setOpaque}
-              setVisible={setVisible}
-              update={popper.update}
+              setTooltipOpaque={setTooltipOpaque}
+              updatePopper={popper.update}
               setReferenceElement={setReferenceElement}
               setTooltipMessage={setTooltipMessage}
               setBorderColor={setBorderColor}
