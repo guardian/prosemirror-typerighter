@@ -4,6 +4,7 @@ import { neutral } from "@guardian/src-foundations";
 import { SvgInfo } from "@guardian/src-icons";
 import { Options, State } from "@popperjs/core";
 import React, { Dispatch, LegacyRef, SetStateAction, useState } from "react";
+import { Reference } from "react-popper";
 
 export type SetState<T> = Dispatch<SetStateAction<T>>
 
@@ -169,33 +170,14 @@ export const TooltipMessage = ({
 };
 
 export const TooltipIcon = ({
-  setOpaque,
-  updatePopper,
-  setReferenceElement,
-  updateValues
+  getMouseEnterHandler,
+  handleMouseLeave
 }: {
-  setOpaque: SetState<boolean>;
-  updatePopper: Update;
-  setReferenceElement: SetState<HTMLElement | null>;
-  updateValues: () => void;
+  getMouseEnterHandler: (ref: HTMLElement | null) => () => void;
+  handleMouseLeave: () => void;
 }) => {
-  const makeOpaque = () => {
-    setOpaque(true);
-  };
-
   const [thisRef, setThisRef] = useState<HTMLElement | null>(null);
-
-  const handleMouseEnter = () => {
-    setReferenceElement(thisRef);
-    updateValues();
-    makeOpaque();
-    if (updatePopper) void updatePopper();
-  };
-
-  const handleMouseLeave = () => {
-    setOpaque(false);
-    if (updatePopper) void updatePopper();
-  };
+  const handleMouseEnter = getMouseEnterHandler(thisRef);
 
   return (
     <div

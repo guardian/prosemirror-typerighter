@@ -22,6 +22,38 @@ import {
   getPopperConfig
 } from "./Tooltip";
 import { neutral } from "@guardian/src-foundations";
+import styled from "@emotion/styled";
+
+const listStyles = css`
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+`
+
+const matchTitleStyles = css`
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-left: ${space[2]}px;
+  line-height: 30px;
+  flex-grow: 1;
+`
+
+const MatchHeaderBar = styled.div`
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  height: 30px;
+  background-color: ${props => props.color};
+`
+const MatchHeaderIconBox = styled.div`
+  background-color: ${props => props.color};
+  height: 30px;
+  width: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
 
 const MatchHeader: React.FunctionComponent<{
   matchColours?: IMatchTypeToColourMap;
@@ -47,60 +79,39 @@ const MatchHeader: React.FunctionComponent<{
     match && matchColours
       ? getColourForMatch(match, matchColours, true)
       : undefined;
+
+  const getTooltipIconMouseEnterHandler = (ref: HTMLElement | null) => {
+    return () => {
+      setReferenceElement(ref)
+      setTooltipOpaque(true);
+      setTooltipMessage(iconMap[matchType].tooltip);
+      if (colours) {
+        setBorderColor(colours.borderColour);
+      }
+      if (updatePopper) void updatePopper();
+    }
+  }
+
+  const handleTooltipIconMouseLeave = () => {
+    setTooltipOpaque(false);
+    if (updatePopper) void updatePopper();
+  }
+
   return (
     <Fragment key={match.matchId}>
-      <li
-        css={css`
-          background-color: white;
-          position: sticky;
-          top: 0;
-          z-index: 1;
-        `}
-      >
-        <div
-          css={css`
-            display: flex;
-            align-items: center;
-            padding-right: 8px;
-            height: 30px;
-            background-color: ${colours?.backgroundColour};
-          `}
-        >
-          <div
-            css={css`
-              background-color: ${colours?.borderColour};
-              height: 30px;
-              width: 30px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-            `}
-          >
+      <li css={listStyles}>
+        <MatchHeaderBar color={colours?.backgroundColour}>
+          <MatchHeaderIconBox color={colours?.borderColour}>
             {iconMap[matchType].icon}
-          </div>
-          <span
-            css={css`
-              font-size: 1.1rem;
-              font-weight: 600;
-              padding-left: ${space[2]}px;
-              line-height: 30px;
-              flex-grow: 1;
-            `}
-          >
+          </MatchHeaderIconBox>
+          <span css={matchTitleStyles}>
             {iconMap[matchType].description}
           </span>
           <TooltipIcon
-            setReferenceElement={setReferenceElement}
-            setOpaque={setTooltipOpaque}
-            updatePopper={updatePopper}
-            updateValues={() => {
-              setTooltipMessage(iconMap[matchType].tooltip);
-              if (colours) {
-                setBorderColor(colours.borderColour);
-              }
-            }}
+            getMouseEnterHandler={getTooltipIconMouseEnterHandler}
+            handleMouseLeave={handleTooltipIconMouseLeave}
           />
-        </div>
+        </MatchHeaderBar>
       </li>
       {children}
     </Fragment>
