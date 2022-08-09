@@ -4,7 +4,6 @@ import { neutral } from "@guardian/src-foundations";
 import { SvgInfo } from "@guardian/src-icons";
 import { Options, State } from "@popperjs/core";
 import React, { Dispatch, LegacyRef, SetStateAction, useState } from "react";
-import { Reference } from "react-popper";
 
 export type SetState<T> = Dispatch<SetStateAction<T>>
 
