@@ -103,9 +103,6 @@ export interface IPluginOptions<
    */
   onMatchDecorationClicked?: (match: TMatch) => void;
 
-  /**
-   * Expose useful utilities for developers.
-   */
   telemetryAdapter?: TyperighterTelemetryAdapter;
   
   adapter: IMatcherAdapter<TMatch>,
