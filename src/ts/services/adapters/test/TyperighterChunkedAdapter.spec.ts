@@ -90,7 +90,7 @@ describe("TyperighterChunkedAdapter", () => {
     expect(onComplete).toHaveBeenCalled();
   });
 
-  it("on an non-2XX response, it should call `onRequestError`, and finally call `onRequestComplete`", async () => {
+  it("it should call `onRequestError` for an non-2XX response, and finally call `onRequestComplete`", async () => {
     const adapter = new TyperighterChunkedAdapter("https://example.com");
     mockFetchBody({ status: 500, statusText: "Server error" });
 
