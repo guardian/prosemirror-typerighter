@@ -67,8 +67,11 @@ const commands = {
 const requestId = "set-id";
 const store = new Store();
 const endpoint = "http://typerighter-service-endpoint.rad";
-const createMatcherService = () =>
-  new MatcherService(store, commands as any, new TyperighterAdapter(endpoint));
+const createMatcherService = () => {
+  const matcherService = new MatcherService(store, new TyperighterAdapter(endpoint));
+  matcherService.setCommands(commands as any);
+  return matcherService;
+}
 const getLastRequest = () => {
   try {
     const [, request] = fetchMock.lastCall()!;

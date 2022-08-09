@@ -18,6 +18,7 @@ import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
 import { filterByMatchState, IDefaultFilterState } from "../utils/plugin";
+import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
@@ -26,12 +27,15 @@ const matchWithReplacement: IMatch = {
   ...createMatch(5),
   replacement: { text: "replacement text", type: "TEXT_SUGGESTION" }
 };
+const endpoint = "http://typerighter-service-endpoint.rad";
+const adapter = new TyperighterAdapter(endpoint);
 
 const createPlugin = <TFilterState = unknown>(
   opts?: IPluginOptions<TFilterState>
 ) => {
   const { plugin, getState, store } = createTyperighterPlugin({
     matches,
+    adapter,
     ...opts
   });
   const state = EditorState.create({
@@ -58,7 +62,7 @@ describe("createTyperighterPlugin", () => {
     expect(getState(view.state).currentMatches).toEqual(matches);
   });
   it("should allow us to specify real time checking when creating the plugin", () => {
-    const { getState, view } = createPlugin({ requestMatchesOnDocModified: true });
+    const { getState, view } = createPlugin({adapter, requestMatchesOnDocModified: true });
     expect(getState(view.state).config.requestMatchesOnDocModified).toEqual(true);
   });
 
@@ -180,7 +184,7 @@ describe("createTyperighterPlugin", () => {
   });
   it("should add matches and their decorations on init", () => {
     const match = createMatch(1, 2);
-    const { view, getState } = createPlugin({ matches: [match] });
+    const { view, getState } = createPlugin({ adapter, matches: [match] });
 
     const decorationSpecs = getDecorationSpecsFromDoc(view);
     const expectedSpecs = getDecorationSpecsFromMatches([match], doc);
@@ -193,6 +197,7 @@ describe("createTyperighterPlugin", () => {
     const match = createMatch(1, 2);
     const { view, getState } = createPlugin({
       ignoreMatch: () => true,
+      adapter,
       matches: [match]
     });
 
@@ -204,6 +209,7 @@ describe("createTyperighterPlugin", () => {
   });
   it("should not add matches and their decorations returned from a matcher when the ignoreMatch predicate returns true", () => {
     const { commands, view, getState } = createPlugin({
+      adapter,
       ignoreMatch: () => true
     });
 
@@ -228,6 +234,7 @@ describe("createTyperighterPlugin", () => {
     it("should filter matches with the supplied predicate when the plugin initialises – remove matches", () => {
       const correctMatches = [{ ...createMatch(1), markAsCorrect: true }];
       const { view } = createPlugin<IDefaultFilterState>({
+        adapter,
         matches: correctMatches,
         filterOptions
       });
@@ -241,6 +248,7 @@ describe("createTyperighterPlugin", () => {
         matchWithReplacement
       ];
       const { view } = createPlugin<IDefaultFilterState>({
+        adapter,
         matches: correctMatches,
         filterOptions
       });
@@ -257,6 +265,7 @@ describe("createTyperighterPlugin", () => {
         createMatch(3)
       ];
       const { view, commands } = createPlugin<IDefaultFilterState>({
+        adapter,
         matches: matchesWithReplacements,
         filterOptions
       });

@@ -14,7 +14,6 @@ import "../src/css/index.scss";
 import createTyperighterPlugin from "../src/ts/createTyperighterPlugin";
 import createView from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
-import MatcherService from "../src/ts/services/MatcherService";
 import { TyperighterAdapter } from "../src/ts";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 import { UserTelemetryEventSender } from "@guardian/user-telemetry-client";
@@ -50,7 +49,7 @@ const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
   "DEV"
 );
 
-const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
+const { plugin: validatorPlugin, store, getState, matcherService } = createTyperighterPlugin({
   isElementPartOfTyperighterUI,
   filterOptions: {
     filterMatches: filterByMatchState,
@@ -60,7 +59,9 @@ const { plugin: validatorPlugin, store, getState } = createTyperighterPlugin({
     findMarkPositions(node, from, to, mySchema.marks.code),
   onMatchDecorationClicked: match =>
     typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL),
-    requestMatchesOnDocModified: true
+    requestMatchesOnDocModified: true,
+  adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"), 
+  telemetryAdapter: typerighterTelemetryAdapter
 });
 
 if (editorElement && sidebarNode) {
@@ -85,13 +86,6 @@ if (editorElement && sidebarNode) {
     editorElement.getBoundingClientRect().height / 2 - menuHeight;
 
   const commands = createBoundCommands(view, getState);
-
-  const matcherService = new MatcherService(
-    store,
-    commands,
-    new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"),
-    typerighterTelemetryAdapter
-  );
 
   createView({
     view,
