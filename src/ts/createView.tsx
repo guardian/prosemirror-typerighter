@@ -12,9 +12,6 @@ import TelemetryContext from "./contexts/TelemetryContext";
 import { EditorView } from "prosemirror-view";
 import { IPluginState } from "./state/reducer";
 import { MatchType } from "./utils/decoration";
-import { requestMatchesForDocument } from "./state/actions";
-import { v4 } from "uuid";
-import { selectPluginConfig } from "./state/selectors";
 
 interface IViewOptions<TPluginState extends IPluginState> {
   view: EditorView;
@@ -67,17 +64,6 @@ const createView = <TPluginState extends IPluginState<MatchType[]>>({
   // match messages when the user hovers over highlighted ranges.
   overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");
   logger.info("Typerighter plugin starting");
-
-  const pluginState = store.getState();
-
-  if (pluginState){
-    const { requestMatchesOnDocModified } = selectPluginConfig(pluginState)
-    requestMatchesOnDocModified ?? requestMatchesForDocument(
-      v4(),
-      matcherService.getCurrentCategories().map(_ => _.id)
-    );
-  }
-
 
   // Finally, render our components.
   render(

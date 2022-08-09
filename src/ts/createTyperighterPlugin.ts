@@ -1,4 +1,4 @@
-import { applyNewDirtiedRanges } from "./state/actions";
+import { applyNewDirtiedRanges, requestMatchesForDocument } from "./state/actions";
 import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
@@ -9,7 +9,8 @@ import {
 import { createInitialState, createReducer } from "./state/reducer";
 import {
   selectMatchByMatchId,
-  selectNewBlockInFlight
+  selectNewBlockInFlight,
+  selectPluginConfig
 } from "./state/selectors";
 import {
   IMatchTypeToColourMap,
@@ -37,6 +38,7 @@ import { getClientRectIndex } from "./utils/clientRect";
 import MatcherService from "./services/MatcherService";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import { IMatcherAdapter } from "./interfaces/IMatcherAdapter";
+import { v4 } from "uuid";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
@@ -252,6 +254,16 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       const commands = createBoundCommands(view, plugin.getState);
       matcherService.setCommands(commands);
 
+      const pluginState = store.getState();
+
+      if (pluginState){
+        const { requestMatchesOnDocModified } = selectPluginConfig(pluginState)
+        requestMatchesOnDocModified ?? requestMatchesForDocument(
+          v4(),
+          matcherService.getCurrentCategories().map(_ => _.id)
+        );
+      }
+      
       // Prepend any globally available styles to the document editor if they
       // are not already present.
       if (!document.getElementById(GLOBAL_DECORATION_STYLE_ID)) {
