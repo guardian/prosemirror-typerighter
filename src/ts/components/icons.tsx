@@ -50,14 +50,17 @@ export const tickIcon = (colour: string) => (
 export const iconMap = {
   CORRECT: {
     icon: tickIcon(neutral[100]),
-    description: "OK"
+    description: "OK",
+    tooltip: "Words and phrases that are flagged as correct by Typerighter. No change is required."
   },
   HAS_REPLACEMENT: {
     icon: warningIcon(neutral[100]),
-    description: "Amend"
+    description: "Amend",
+    tooltip: "Words and phrases that are flagged as incorrect or problematic by Typerighter. These should be corrected unless there is a justification for their use."
   },
   DEFAULT: {
     icon: infoIcon(neutral[100]),
-    description: "Review"
+    description: "Review",
+    tooltip: "Words and phrases that are flagged as potentially incorrect or problematic by Typerighter. These should be reviewed."
   }
 };

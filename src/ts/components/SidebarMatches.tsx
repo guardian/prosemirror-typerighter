@@ -1,8 +1,8 @@
 import { css } from "@emotion/react";
 import { space } from "@guardian/src-foundations";
-import { body } from "@guardian/src-foundations/typography";
 import { chain } from "lodash";
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
+import { usePopper } from "react-popper";
 import { IMatch } from "..";
 import { ISuggestion } from "../interfaces/IMatch";
 import {
@@ -14,12 +14,18 @@ import {
 import { iconMap } from "./icons";
 import SidebarMatch from "./SidebarMatch";
 import SidebarMatchGroup from "./SidebarMatchGroup";
+import { SetBoolean, TooltipIcon, TooltipMessage, Update, SetElement, SetTooltipMessage } from "./Tooltip";
 
 const MatchHeader: React.FunctionComponent<{
   matchColours?: IMatchTypeToColourMap;
   match: IMatch<ISuggestion>;
   matchType: MatchType;
-}> = ({ matchColours, match, matchType, children }) => {
+  setOpaque: SetBoolean;
+  setVisible: SetBoolean;
+  update: Update;
+  setReferenceElement: SetElement;
+  setTooltipMessage: SetTooltipMessage;
+}> = ({ matchColours, match, matchType, setOpaque, setVisible, update, setReferenceElement, setTooltipMessage, children}) => {
   const colours =
     match && matchColours
       ? getColourForMatch(match, matchColours, true)
@@ -37,6 +43,8 @@ const MatchHeader: React.FunctionComponent<{
         <div
           css={css`
             display: flex;
+            align-items: center;
+            padding-right: 8px;
             height: 30px;
             background-color: ${colours?.backgroundColour};
           `}
@@ -55,14 +63,24 @@ const MatchHeader: React.FunctionComponent<{
           </div>
           <span
             css={css`
-        ${body.medium()}
-        padding-left: ${space[2]}px;
-        line-height: 30px;
-      `}
+              font-size: 1.1rem;
+              font-weight: 600;
+              padding-left: ${space[2]}px;
+              line-height: 30px;
+              flex-grow: 1;
+            `}
           >
             {iconMap[matchType].description}
           </span>
+          <TooltipIcon
+            setReferenceElement={setReferenceElement}
+            setOpaque={setOpaque}
+            setVisible={setVisible}
+            update={update} 
+            updateTooltipMessage={() => setTooltipMessage(iconMap[matchType].tooltip)}
+          />
         </div>
+        
       </li>
       {children}
     </Fragment>
@@ -96,8 +114,55 @@ const SidebarMatches = ({
     .value();
   let currentMatchType: MatchType | undefined;
 
+  const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
+    null
+  );
+  const [tooltipMessage, setTooltipMessage] = useState("");
+  const [opaque, setOpaque] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [
+    referenceElement,
+    setReferenceElement,
+  ] = useState<HTMLDivElement | null>(null);
+  const popper = usePopper(
+    referenceElement,
+    popperElement,
+    {
+      placement: "top",
+      modifiers: [
+        { name: "arrow", options: { element: arrowElement } },
+        {
+          name: "offset",
+          options: {
+            offset: [0, 4],
+          },
+        },
+        {
+          name: 'preventOverflow',
+          options: {
+            altAxis: true,
+            padding: 10
+          }
+        },
+      ],
+    }
+  );
+
   return (
     <ul className="Sidebar__list">
+      <TooltipMessage 
+        opaque={opaque} 
+        setVisible={setVisible} 
+        visible={visible} 
+        popper={popper}
+        setArrowElement={setArrowElement}
+        setPopperElement={setPopperElement}
+      >
+        <p>
+          {tooltipMessage}
+        </p>
+      </TooltipMessage>
       {groupedCurrentMatches.map(group => {
         const matchElements =
           group.length > 1 ? (
@@ -138,6 +203,11 @@ const SidebarMatches = ({
               match={group[0]}
               matchType={currentMatchType}
               key={currentMatchType}
+              setOpaque={setOpaque}
+              setVisible={setVisible}
+              update={popper.update}
+              setReferenceElement={setReferenceElement}
+              setTooltipMessage={setTooltipMessage}
             >
               {matchElements}
             </MatchHeader>
