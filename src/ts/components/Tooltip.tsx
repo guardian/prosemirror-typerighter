@@ -89,15 +89,18 @@ const Arrow = styled.div`
 `;
 
 const popperPlacement = (
+  popperSide: string,
   offsetSide: string,
   neighbourSide: string,
   borderColor: string
 ) => `
+  &[data-popper-placement^=${popperSide}] > .arrow {
     ${offsetSide}: -4px;
     &::before {
         border-${neighbourSide}: 1px solid ${borderColor};
         border-${offsetSide}: 1px solid ${borderColor};
     }
+  }
 `;
 
 const TooltipBox = styled.div<{ borderColor: string }>`
@@ -120,18 +123,10 @@ const TooltipBox = styled.div<{ borderColor: string }>`
   &[data-opaque="true"] {
     opacity: 1;
   }
-  &[data-popper-placement^="top"] > .arrow {
-    ${props => popperPlacement("bottom", "right", props.borderColor)}
-  }
-  &[data-popper-placement^="bottom"] > .arrow {
-    ${props => popperPlacement("top", "left", props.borderColor)}
-  }
-  &[data-popper-placement^="left"] > .arrow {
-    ${props => popperPlacement("right", "top", props.borderColor)}
-  }
-  &[data-popper-placement^="right"] > .arrow {
-    ${props => popperPlacement("left", "bottom", props.borderColor)}
-  }
+  ${props => popperPlacement("top", "bottom", "right", props.borderColor)}
+  ${props => popperPlacement("bottom", "top", "left", props.borderColor)}
+  ${props => popperPlacement("left", "right", "top", props.borderColor)}
+  ${props => popperPlacement("right", "left", "bottom", props.borderColor)}
 `;
 
 export const TooltipMessage = ({
