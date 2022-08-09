@@ -1,9 +1,9 @@
-import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { neutral } from "@guardian/src-foundations";
-import { SvgInfo } from "@guardian/src-icons";
 import { Options, State } from "@popperjs/core";
 import React, { Dispatch, LegacyRef, SetStateAction, useState } from "react";
+import { TooltipIconView } from "./TooltipIconView";
+import { css } from "@emotion/react";
 
 export type SetState<T> = Dispatch<SetStateAction<T>>
 
@@ -39,7 +39,7 @@ export const getPopperConfig = (
       {
         name: "offset",
         options: {
-          offset: [0, 4]
+          offset: [0, 5]
         }
       },
       {
@@ -53,12 +53,13 @@ export const getPopperConfig = (
   };
 };
 
-const infoIcon = css`
-  height: 22px;
-  width: 22px;
-  margin-right: 4px;
-  margin-left: -4px;
+const tooltipIconView = css`
+    padding: 2px;
+    height: 20px;
+    margin-right: 4px;
   svg {
+    height: 18px;
+    width: 18px;
     margin: -1px;
   }
   :hover {
@@ -175,14 +176,14 @@ export const TooltipIcon = ({
 
   return (
     <div
-      css={infoIcon}
+      css={tooltipIconView}
       ref={ref => {
         setThisRef(ref);
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <SvgInfo />
+      <TooltipIconView />
     </div>
   );
 };
