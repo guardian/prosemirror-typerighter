@@ -43,8 +43,7 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
     });
   }
   public getCommands = () => {
-    console.warn("[prosemirror-typerighter] Attempted to use commands before they were available")
-    return this.commands
+     return this.commands
   }
 
   private sendMatchTelemetryEvents = (matches: TMatch[]) => {
