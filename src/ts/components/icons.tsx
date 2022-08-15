@@ -51,16 +51,16 @@ export const iconMap = {
   CORRECT: {
     icon: tickIcon(neutral[100]),
     description: "OK",
-    tooltip: "Words and phrases that are flagged as correct by Typerighter. No change is required."
+    tooltip: "Typerighter thinks these matches are correct."
   },
   HAS_REPLACEMENT: {
     icon: warningIcon(neutral[100]),
     description: "Amend",
-    tooltip: "Words and phrases that are flagged as incorrect or problematic by Typerighter. These should be corrected unless there is a justification for their use."
+    tooltip: "Typerighter doesn’t think these matches are correct."
   },
   DEFAULT: {
     icon: infoIcon(neutral[100]),
     description: "Review",
-    tooltip: "Words and phrases that are flagged as potentially incorrect or problematic by Typerighter. These should be reviewed."
+    tooltip: "Typerighter can’t figure out whether these matches are correct or not. They might be worth reviewing."
   }
 };
