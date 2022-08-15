@@ -1,7 +1,9 @@
 # This action is just a test
 name: Snyk
 
-on: push
+on: 
+  push:
+  workflow_dispatch:
 
 jobs:
   security:
