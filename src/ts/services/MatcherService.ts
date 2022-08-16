@@ -43,7 +43,9 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
     });
   }
   public getCommands = () => {
-    console.warn("[prosemirror-typerighter] Attempted to use commands before they were available")
+    if (!this.commands){
+      console.warn("[prosemirror-typerighter] Attempted to use commands before they were available")
+    }
     return this.commands
   }
 
