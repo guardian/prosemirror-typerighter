@@ -68,6 +68,7 @@
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.9.3",
     "@guardian/src-foundations": "^3.0.1",
+    "@guardian/src-icons": "^3.13.0",
     "@guardian/user-telemetry-client": "^1.0.1",
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.9.0",

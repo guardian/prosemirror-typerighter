@@ -50,14 +50,17 @@ export const tickIcon = (colour: string) => (
 export const iconMap = {
   CORRECT: {
     icon: tickIcon(neutral[100]),
-    description: "OK"
+    description: "OK",
+    tooltip: "Typerighter thinks these matches are correct."
   },
   HAS_REPLACEMENT: {
     icon: warningIcon(neutral[100]),
-    description: "Amend"
+    description: "Amend",
+    tooltip: "Typerighter doesn’t think these matches are correct."
   },
   DEFAULT: {
     icon: infoIcon(neutral[100]),
-    description: "Review"
+    description: "Review",
+    tooltip: "Typerighter can’t figure out whether these matches are correct or not. They might be worth reviewing."
   }
 };

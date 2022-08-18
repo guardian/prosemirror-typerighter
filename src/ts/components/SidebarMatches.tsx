@@ -1,8 +1,8 @@
 import { css } from "@emotion/react";
 import { space } from "@guardian/src-foundations";
-import { body } from "@guardian/src-foundations/typography";
 import { chain } from "lodash";
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
+import { usePopper } from "react-popper";
 import { IMatch } from "..";
 import { ISuggestion } from "../interfaces/IMatch";
 import {
@@ -14,55 +14,104 @@ import {
 import { iconMap } from "./icons";
 import SidebarMatch from "./SidebarMatch";
 import SidebarMatchGroup from "./SidebarMatchGroup";
+import {
+  TooltipIcon,
+  TooltipMessage,
+  Update,
+  SetState,
+  getPopperConfig
+} from "./Tooltip";
+import { neutral } from "@guardian/src-foundations";
+import styled from "@emotion/styled";
+
+const listStyles = css`
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+`
+
+const matchTitleStyles = css`
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-left: ${space[2]}px;
+  line-height: 30px;
+  flex-grow: 1;
+`
+
+const MatchHeaderBar = styled.div`
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  height: 30px;
+  background-color: ${props => props.color};
+`
+const MatchHeaderIconBox = styled.div`
+  background-color: ${props => props.color};
+  height: 30px;
+  width: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
 
 const MatchHeader: React.FunctionComponent<{
   matchColours?: IMatchTypeToColourMap;
   match: IMatch<ISuggestion>;
   matchType: MatchType;
-}> = ({ matchColours, match, matchType, children }) => {
+  setTooltipOpaque: SetState<boolean>;
+  updatePopper: Update;
+  setRefElement: SetState<HTMLElement | null>;
+  setTooltipMessage: SetState<string>;
+  setBorderColor: SetState<string>;
+}> = ({
+  matchColours,
+  match,
+  matchType,
+  setTooltipOpaque,
+  updatePopper,
+  setRefElement,
+  setTooltipMessage,
+  setBorderColor,
+  children
+}) => {
   const colours =
     match && matchColours
       ? getColourForMatch(match, matchColours, true)
       : undefined;
+
+  const getTooltipIconMouseEnterHandler = (ref: HTMLElement | null) => {
+    return () => {
+      setRefElement(ref)
+      setTooltipOpaque(true);
+      setTooltipMessage(iconMap[matchType].tooltip);
+      if (colours) {
+        setBorderColor(colours.borderColour);
+      }
+      if (updatePopper) void updatePopper();
+    }
+  }
+
+  const handleTooltipIconMouseLeave = () => {
+    setTooltipOpaque(false);
+    if (updatePopper) void updatePopper();
+  }
+
   return (
     <Fragment key={match.matchId}>
-      <li
-        css={css`
-          background-color: white;
-          position: sticky;
-          top: 0;
-          z-index: 1;
-        `}
-      >
-        <div
-          css={css`
-            display: flex;
-            height: 30px;
-            background-color: ${colours?.backgroundColour};
-          `}
-        >
-          <div
-            css={css`
-              background-color: ${colours?.borderColour};
-              height: 30px;
-              width: 30px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-            `}
-          >
+      <li css={listStyles}>
+        <MatchHeaderBar color={colours?.backgroundColour}>
+          <MatchHeaderIconBox color={colours?.borderColour}>
             {iconMap[matchType].icon}
-          </div>
-          <span
-            css={css`
-        ${body.medium()}
-        padding-left: ${space[2]}px;
-        line-height: 30px;
-      `}
-          >
+          </MatchHeaderIconBox>
+          <span css={matchTitleStyles}>
             {iconMap[matchType].description}
           </span>
-        </div>
+          <TooltipIcon
+            getMouseEnterHandler={getTooltipIconMouseEnterHandler}
+            handleMouseLeave={handleTooltipIconMouseLeave}
+          />
+        </MatchHeaderBar>
       </li>
       {children}
     </Fragment>
@@ -96,8 +145,32 @@ const SidebarMatches = ({
     .value();
   let currentMatchType: MatchType | undefined;
 
+  const [arrowElement, setArrowElement] = useState<HTMLElement | null>(null);
+  const [popperElement, setPopperElement] = useState<HTMLElement | null>(
+    null
+  );
+  const [tooltipMessage, setTooltipMessage] = useState("");
+  const [tooltipOpaque, setTooltipOpaque] = useState(false);
+  const [borderColor, setBorderColor] = useState(neutral[86] as string);
+  const [refElement, setRefElement] = useState<HTMLElement | null>(null);
+
+  const popper = usePopper(
+    refElement,
+    popperElement,
+    getPopperConfig(arrowElement)
+  );
+
   return (
     <ul className="Sidebar__list">
+      <TooltipMessage
+        borderColor={borderColor}
+        opaque={tooltipOpaque}
+        popper={popper}
+        setArrowElement={setArrowElement}
+        setPopperElement={setPopperElement}
+      >
+        <p>{tooltipMessage}</p>
+      </TooltipMessage>
       {groupedCurrentMatches.map(group => {
         const matchElements =
           group.length > 1 ? (
@@ -138,6 +211,11 @@ const SidebarMatches = ({
               match={group[0]}
               matchType={currentMatchType}
               key={currentMatchType}
+              setTooltipOpaque={setTooltipOpaque}
+              updatePopper={popper.update}
+              setRefElement={setRefElement}
+              setTooltipMessage={setTooltipMessage}
+              setBorderColor={setBorderColor}
             >
               {matchElements}
             </MatchHeader>
