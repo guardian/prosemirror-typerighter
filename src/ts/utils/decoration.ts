@@ -288,41 +288,30 @@ export const createGlobalDecorationStyleTag = (
     .${DecorationClassMap.DEFAULT} {
       position: relative;
       background-color: ${defaultColours.backgroundColour};
-    }
-
-    .${DecorationClassMap.DEFAULT}:after {
-      position: absolute;
-      width: 100%;
-      content: "";
-      bottom: -3px;
-      left: 0px;
-      height: 4px;
-      background-repeat: repeat-x;
-      background-position: top;
-      background-image: url('${getSquiggleAsUri(defaultColours.borderColour)}');
+      border-image-source: url('${getSquiggleAsUri(defaultColours.borderColour)}');
+      border-image-width: 0 0 4px 0;
+      border-image-slice: 4;
+      border-image-repeat: round;
+      border-style: solid;
+      border-width: 2px;
     }
 
     .${DecorationClassMap.DEFAULT}.MatchDecoration--is-selected {
       background-color: ${defaultColours.backgroundColourSelected};
-    }
-    .${DecorationClassMap.DEFAULT}.MatchDecoration--is-selected:after {
-      background-image: linear-gradient(0deg, ${defaultColours.backgroundColourSelected} 3px, transparent 3px), url('${getSquiggleAsUri(defaultColours.borderColour)}');
+      border-image-source: linear-gradient(0deg, ${defaultColours.backgroundColourSelected} 3px, transparent 3px), url('${getSquiggleAsUri(defaultColours.borderColour)}');
     }
 
     .${DecorationClassMap.CORRECT} {
-      background-color: ${correctColours.backgroundColour};
       position: relative;
-    }
-
-    .${DecorationClassMap.CORRECT}:after {
-      position: absolute;
-      width: 100%;
-      content: "";
-      bottom: -2px;
-      left: 0px;
-      height: 2px;
-      background-image: repeating-linear-gradient(to right, ${correctColours.borderColour} 0, ${correctColours.borderColour} 3px, transparent 3px, transparent 5px);
-      background-size: 5px 2px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      background-color: ${correctColours.backgroundColour};
+      border-image-source: linear-gradient(to right, ${correctColours.borderColour} 0, ${correctColours.borderColour} 45px, transparent 0, transparent 0);
+      border-image-width: 0 0 2px 0;
+      border-image-slice: 19;
+      border-image-repeat: round;
+      border-style: solid;
+      border-width: 2px;
     }
 
     .${DecorationClassMap.CORRECT}.MatchDecoration--is-selected,
