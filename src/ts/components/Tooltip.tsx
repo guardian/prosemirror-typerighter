@@ -54,13 +54,11 @@ export const getPopperConfig = (
 };
 
 const tooltipIconView = css`
-    padding: 2px;
-    height: 20px;
+    height: 18px;
     margin-right: 4px;
   svg {
     height: 18px;
     width: 18px;
-    margin: -1px;
   }
   :hover {
     cursor: pointer;
