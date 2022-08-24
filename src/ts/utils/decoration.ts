@@ -306,9 +306,9 @@ export const createGlobalDecorationStyleTag = (
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
       background-color: ${correctColours.backgroundColour};
-      border-image-source: linear-gradient(to right, ${correctColours.borderColour} 0, ${correctColours.borderColour} 45px, transparent 0, transparent 0);
-      border-image-width: 0 0 2px 0;
-      border-image-slice: 19;
+      border-image-source: linear-gradient(to right, ${correctColours.borderColour} 0, ${correctColours.borderColour} 47px, transparent 0, transparent 0);
+      border-image-width: 0 0 3px 0;
+      border-image-slice: 20;
       border-image-repeat: round;
       border-style: solid;
       border-width: 2px;
