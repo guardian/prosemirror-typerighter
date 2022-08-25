@@ -309,7 +309,6 @@ export const createGlobalDecorationStyleTag = (
       border-image-source: repeating-linear-gradient(to right, ${correctColours.borderColour} 0, ${correctColours.borderColour} 3px, transparent 3px, transparent 5px);
       border-image-width: 0 0 auto 0;
       border-image-slice: 0 0 3 0;
-      border-image-repeat: stretch;
       border-style: solid;
       border-width: 0 0 2px 0;
     }
