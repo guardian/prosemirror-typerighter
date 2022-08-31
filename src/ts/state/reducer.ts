@@ -852,15 +852,14 @@ const handleSetTyperighterEnabled = <TPluginState extends IPluginState>(
   state: TPluginState,
   { payload: { typerighterEnabled } }: ActionSetTyperighterEnabled
 ): TPluginState => {
-
   const newState = {...state}
+  
   if (!typerighterEnabled){
     // Typerighter has been disabled
-    // 1. Remove any current matches
-    newState.currentMatches = [];
-    newState.filteredMatches = [];
-    // 2. Stop realtime checking
-    newState.config.requestMatchesOnDocModified = false;
+    // Remove any current matches
+    const { decorations, currentMatches } = handleRemoveAllMatches(_, state)
+    newState.decorations = decorations;
+    newState.currentMatches = currentMatches;
   }
   
   return {
