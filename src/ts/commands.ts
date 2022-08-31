@@ -11,7 +11,8 @@ import {
   removeMatch,
   removeAllMatches,
   newHighlightIdReceived,
-  setFilterState
+  setFilterState,
+  setTyperighterEnabled
 } from "./state/actions";
 import {
   selectMatchByMatchId,
@@ -382,6 +383,24 @@ const maybeApplySuggestions = (
 };
 
 /**
+ * Enable or disable typerighter
+ */
+ export const setTyperighterEnabledCommand = (typerighterEnabled: boolean): Command => (
+  state,
+  dispatch
+) => {
+  if (dispatch) {
+    dispatch(
+      state.tr.setMeta(
+        PROSEMIRROR_TYPERIGHTER_ACTION,
+        setTyperighterEnabled(typerighterEnabled)
+      )
+    );
+  }
+  return true;
+};
+
+/**
  * Create a palette of prosemirror-typerighter commands bound to the given EditorView.
  */
 export const createBoundCommands = <TPluginState extends IPluginState>(
@@ -416,7 +435,8 @@ export const createBoundCommands = <TPluginState extends IPluginState>(
     applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
     applyRequestError: bindCommand(applyRequestErrorCommand),
     applyRequestComplete: bindCommand(applyRequestCompleteCommand),
-    setFilterState: bindCommand(setFilterStateCommand)
+    setFilterState: bindCommand(setFilterStateCommand),
+    setTyperighterEnabled: bindCommand(setTyperighterEnabledCommand)
   };
 };
 

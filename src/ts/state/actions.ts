@@ -22,6 +22,7 @@ export const REMOVE_ALL_MATCHES = "REMOVE_ALL_MATCHES" as const;
 export const APPLY_NEW_DIRTY_RANGES = "HANDLE_NEW_DIRTY_RANGES" as const;
 export const SET_CONFIG_VALUE = "SET_CONFIG_VALUE" as const;
 export const SET_FILTER_STATE = "SET_FILTER_STATE" as const;
+export const SET_TYPERIGHTER_ENABLED = "SET_TYPERIGHTER_ENABLED" as const;
 
 /**
  * Action creators.
@@ -138,6 +139,16 @@ export type ActionSetFilterState<TPluginState extends IPluginState> = {
   payload: { filterState: TPluginState["filterState"] };
 };
 
+export const setTyperighterEnabled = (
+  typerighterEnabled: boolean
+) => ({
+  type: SET_TYPERIGHTER_ENABLED,
+  payload: { typerighterEnabled }
+});
+
+export type ActionSetTyperighterEnabled = ReturnType<typeof setTyperighterEnabled>
+
+
 export type Action<TPluginState extends IPluginState> =
   | ActionNewHoverIdReceived
   | ActionNewHighlightIdReceived
@@ -151,4 +162,5 @@ export type Action<TPluginState extends IPluginState> =
   | ActionSetConfigValue
   | ActionRemoveMatch
   | ActionRemoveAllMatches
-  | ActionSetFilterState<TPluginState>;
+  | ActionSetFilterState<TPluginState>
+  | ActionSetTyperighterEnabled;
