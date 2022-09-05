@@ -30,7 +30,7 @@ jobs:
     - run: npm run test
     - run: npm run build
     - name: Semantic Release
-      uses: cycjimmy/semantic-release-action@v2
+      uses: cycjimmy/semantic-release-action@5982a02995853159735cb838992248c4f0f16166
       with:
         branches: |
           [
