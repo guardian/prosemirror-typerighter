@@ -49,27 +49,17 @@ describe("Range utils", () => {
         }
       ]);
     });
-    it("should handle multiple ranges for different nodes", () => {
+    it("should handle multiple nodes for a single range", () => {
       expect(
         getRangesOfParentBlockNodes(
           [
-            { from: 1, to: 2 },
-            { from: 30, to: 32 },
-            { from: 50, to: 55 }
+            { from: 1, to: 67 }
           ],
           doc
         )
       ).toEqual([
         {
           from: 1,
-          to: 21
-        },
-        {
-          from: 23,
-          to: 44
-        },
-        {
-          from: 46,
           to: 67
         }
       ]);

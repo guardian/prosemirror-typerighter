@@ -135,22 +135,25 @@ export const blockToRange = (input: IBlock): IRange => ({
 /**
  * Expand a range in a document to encompass the nearest ancestor block node.
  */
-export const expandRangeToParentBlockNode = (
+export const expandRangeToParentBlockNodes = (
   range: IRange,
   doc: Node
 ): IRange | undefined => {
   try {
     const $fromPos = doc.resolve(range.from);
     const $toPos = doc.resolve(range.to);
-    const parentNode = findParentNode(node => node.isBlock)(
-      new TextSelection($fromPos, $toPos)
+    const parentOfStart = findParentNode(node => node.isBlock)(
+      new TextSelection($fromPos, $fromPos)
     );
-    if (!parentNode) {
+    const parentOfEnd = findParentNode(node => node.isBlock)(
+      new TextSelection($toPos, $toPos)
+    );
+    if (!parentOfStart || !parentOfEnd) {
       return undefined;
     }
     return {
-      from: parentNode.start,
-      to: parentNode.start + parentNode.node.textContent.length
+      from: parentOfStart.start,
+      to: parentOfEnd.start + parentOfEnd.node.textContent.length
     };
   } catch (e) {
     return undefined;
@@ -162,7 +165,7 @@ export const expandRangeToParentBlockNode = (
  */
 export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
   const matchRanges = ranges.reduce((acc, range: IRange) => {
-    const expandedRange = expandRangeToParentBlockNode(
+    const expandedRange = expandRangeToParentBlockNodes(
       { from: range.from, to: range.to },
       doc
     );
