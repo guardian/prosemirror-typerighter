@@ -33,7 +33,6 @@ import {
   getPatchesFromReplacementText,
   applyPatchToTransaction
 } from "./utils/prosemirror";
-import { v4 } from "uuid";
 
 type Command = (
   state: EditorState,

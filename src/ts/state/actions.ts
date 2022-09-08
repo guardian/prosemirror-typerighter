@@ -1,4 +1,3 @@
-import { EditorState, Transaction } from "prosemirror-state";
 import {
   IMatchRequestError,
   IMatcherResponse,
