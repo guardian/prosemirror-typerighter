@@ -1,3 +1,4 @@
+import { EditorState, Transaction } from "prosemirror-state";
 import {
   IMatchRequestError,
   IMatcherResponse,
@@ -140,7 +141,7 @@ export type ActionSetFilterState<TPluginState extends IPluginState> = {
 };
 
 export const setTyperighterEnabled = (
-  typerighterEnabled: boolean
+  typerighterEnabled: boolean,
 ) => ({
   type: SET_TYPERIGHTER_ENABLED,
   payload: { typerighterEnabled }

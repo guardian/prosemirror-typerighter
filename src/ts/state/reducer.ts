@@ -27,7 +27,7 @@ import {
   SET_FILTER_STATE,
   ActionSetFilterState,
   SET_TYPERIGHTER_ENABLED,
-  ActionSetTyperighterEnabled
+  ActionSetTyperighterEnabled,
 } from "./actions";
 import {
   IMatch,
@@ -77,7 +77,7 @@ import {
   isFilterStateStale
 } from "./helpers";
 import { TFilterMatches } from "../utils/plugin";
-
+import { v4 } from "uuid";
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
@@ -172,6 +172,7 @@ interface IInitialStateOpts<
   matchColours?: IMatchTypeToColourMap;
   filterOptions?: IFilterOptions<TFilterState, TMatch>;
   requestMatchesOnDocModified?: boolean;
+  typerighterEnabled: boolean;
 }
 
 /**
@@ -186,6 +187,7 @@ export const createInitialState = <
   ignoreMatch = includeAllMatches,
   matchColours = defaultMatchColours,
   requestMatchesOnDocModified = false,
+  typerighterEnabled,
   filterOptions
 }: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
   TFilterState,
@@ -214,7 +216,7 @@ export const createInitialState = <
     filterState: filterOptions?.initialFilterState as TFilterState,
     docChangedSinceCheck: false,
     docIsEmpty: !nodeContainsText(doc),
-    typerighterEnabled: true
+    typerighterEnabled
   };
 
   const stateWithMatches = addMatchesToState(
@@ -298,7 +300,7 @@ export const createReducer = <TPluginState extends IPluginState>(
         case SET_FILTER_STATE:
           return handleSetFilterState(tr, state, action);
         case SET_TYPERIGHTER_ENABLED:
-          return handleSetTyperighterEnabled(tr, state, action);
+          return handleSetTyperighterEnabled(getIgnoredRanges)(tr, state, action);
         default:
           return state;
       }
@@ -611,7 +613,7 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
   state: TPluginState,
   { payload: { response } }: ActionRequestMatchesSuccess<TPluginState>
 ): TPluginState => {
-  if (!response) {
+  if (!response || !state.typerighterEnabled) {
     return state;
   }
 
@@ -847,23 +849,27 @@ const handleSetFilterState = <TPluginState extends IPluginState>(
   filterState
 });
 
-const handleSetTyperighterEnabled = <TPluginState extends IPluginState>(
+const handleSetTyperighterEnabled = (getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges) => <TPluginState extends IPluginState>(
   _: Transaction,
   state: TPluginState,
-  { payload: { typerighterEnabled } }: ActionSetTyperighterEnabled
+  { payload: { typerighterEnabled } }: ActionSetTyperighterEnabled,
 ): TPluginState => {
-  const newState = {...state}
-  
-  if (!typerighterEnabled){
-    // Typerighter has been disabled
-    // Remove any current matches
-    const { decorations, currentMatches } = handleRemoveAllMatches(_, state)
-    newState.decorations = decorations;
-    newState.currentMatches = currentMatches;
+
+  const matchRequestAction = { type: REQUEST_FOR_DOCUMENT, payload: { requestId: v4(), categoryIds: []}}
+  const updatedState = typerighterEnabled ? {
+    // Run a check if typerighter has been enabled
+    ...createHandleMatchesRequestForDocument(getIgnoredRanges)(_, state, matchRequestAction)
+  } : {
+      // Typerighter has been disabled
+      // Remove any current matches and pending requests
+      ...handleRemoveAllMatches(_, state),
+      requestsInFlight: {},
+      requestPending: false
   }
   
   return {
-    ...newState,
+    ...state,
+    ...updatedState,
     typerighterEnabled
   }
 }

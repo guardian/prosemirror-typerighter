@@ -33,6 +33,7 @@ import {
   getPatchesFromReplacementText,
   applyPatchToTransaction
 } from "./utils/prosemirror";
+import { v4 } from "uuid";
 
 type Command = (
   state: EditorState,
@@ -439,5 +440,25 @@ export const createBoundCommands = <TPluginState extends IPluginState>(
     setTyperighterEnabled: bindCommand(setTyperighterEnabledCommand)
   };
 };
+
+export const commands = {
+  ignoreMatchCommand,
+  clearMatchesCommand,
+  applySuggestionsCommand,
+  selectMatchCommand,
+  applyAutoFixableSuggestionsCommand,
+  requestMatchesForDocumentCommand,
+  requestMatchesForDirtyRangesCommand,
+  startHoverCommand,
+  stopHoverCommand,
+  startHighlightCommand,
+  stopHighlightCommand,
+  setConfigValueCommand,
+  applyMatcherResponseCommand,
+  applyRequestErrorCommand,
+  applyRequestCompleteCommand,
+  setFilterStateCommand,
+  setTyperighterEnabledCommand,  
+}
 
 export type Commands = ReturnType<typeof createBoundCommands>;

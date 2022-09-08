@@ -34,7 +34,8 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
   const { plugin: validatorPlugin, getState } = createTyperighterPlugin({
     isElementPartOfTyperighterUI,
     matches,
-    adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk")
+    adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"),
+    typerighterEnabled: true
   });
 
   const view = new EditorView(editorElement!, {

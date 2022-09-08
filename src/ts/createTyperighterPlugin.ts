@@ -108,6 +108,8 @@ export interface IPluginOptions<
   telemetryAdapter?: TyperighterTelemetryAdapter;
   
   adapter: IMatcherAdapter<TMatch>,
+
+  typerighterEnabled?: boolean
 }
 
 /**
@@ -134,7 +136,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     isElementPartOfTyperighterUI = () => false,
     requestMatchesOnDocModified = false,
     adapter,
-    telemetryAdapter
+    telemetryAdapter,
+    typerighterEnabled,
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TFilterState, TMatch>;
@@ -160,6 +163,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           matchColours,
           filterOptions,
           requestMatchesOnDocModified,
+          typerighterEnabled: typerighterEnabled ?? true
         });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;

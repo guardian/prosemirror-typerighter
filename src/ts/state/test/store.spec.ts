@@ -4,7 +4,7 @@ import { createDoc, p } from "../../test/helpers/prosemirror";
 
 describe("store", () => {
   const doc = createDoc(p("Example doc"))
-  const initState = createInitialState({ doc });
+  const initState = createInitialState({ doc, typerighterEnabled: true });
 
   it("should allow consumers to subscribe to all store events, and trigger subscriptions when those events are emitted", () => {
     const store = new Store();
