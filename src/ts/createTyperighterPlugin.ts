@@ -21,7 +21,7 @@ import {
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction, EditorState } from "prosemirror-state";
-import { expandRangesToParentBlockNode } from "./utils/range";
+import { expandRangesToParentBlockNodes } from "./utils/range";
 import { getDirtiedRangesFromTransaction } from "./utils/prosemirror";
 import { IRange, IMatch } from "./interfaces/IMatch";
 import { Node } from "prosemirror-model";
@@ -106,7 +106,7 @@ export interface IPluginOptions<
   onMatchDecorationClicked?: (match: TMatch) => void;
 
   telemetryAdapter?: TyperighterTelemetryAdapter;
-  
+
   adapter: IMatcherAdapter<TMatch>,
 }
 
@@ -124,7 +124,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   matcherService: MatcherService<TFilterState, TMatch>
 } => {
   const {
-    expandRanges = expandRangesToParentBlockNode,
+    expandRanges = expandRangesToParentBlockNodes,
     getSkippedRanges = doNotSkipRanges,
     matches = [],
     filterOptions,

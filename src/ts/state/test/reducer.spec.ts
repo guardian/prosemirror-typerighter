@@ -20,7 +20,7 @@ import {
   getNewDecorationsForCurrentMatches,
   createDecorationsForMatch
 } from "../../utils/decoration";
-import { expandRangesToParentBlockNode } from "../../utils/range";
+import { expandRangesToParentBlockNodes } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
 import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
 import { addMatchesToState } from "../helpers";
@@ -37,7 +37,7 @@ import {
 } from "../../test/helpers/fixtures";
 import { createBlockId } from "../../utils/block";
 
-const reducer = createReducer(expandRangesToParentBlockNode);
+const reducer = createReducer(expandRangesToParentBlockNodes);
 
 describe("Action handlers", () => {
   describe("No action", () => {
@@ -464,7 +464,7 @@ describe("Action handlers", () => {
     });
     it("should not apply matches if they trigger the ignoreMatch predicate", () => {
       const ignoreMatchReducer = createReducer(
-        expandRangesToParentBlockNode,
+        expandRangesToParentBlockNodes,
         match => match.from > 3
       );
 
