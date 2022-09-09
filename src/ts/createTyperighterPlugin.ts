@@ -137,7 +137,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     requestMatchesOnDocModified = false,
     adapter,
     telemetryAdapter,
-    typerighterEnabled,
+    typerighterEnabled = true,
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TFilterState, TMatch>;
@@ -163,7 +163,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           matchColours,
           filterOptions,
           requestMatchesOnDocModified,
-          typerighterEnabled: typerighterEnabled ?? true
+          typerighterEnabled
         });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
