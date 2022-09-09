@@ -384,6 +384,14 @@ const maybeApplySuggestions = (
 
 /**
  * Enable or disable typerighter
+ * 
+ * When Typerighter is enabled:
+ *  - a check occurs of the whole document.
+ *  - realtime checks will continue to occur if they are enabled.
+ * When Typerighter is disabled:
+ *  - all matches are removed
+ *  - all pending requests are discarded
+ *  - realtime checks will no longer occur
  */
  export const setTyperighterEnabledCommand = (typerighterEnabled: boolean): Command => (
   state,
