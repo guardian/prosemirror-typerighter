@@ -35,7 +35,6 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
     isElementPartOfTyperighterUI,
     matches,
     adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"),
-    typerighterEnabled: true
   });
 
   const view = new EditorView(editorElement!, {

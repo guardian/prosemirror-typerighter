@@ -877,7 +877,7 @@ describe("Action handlers", () => {
       expect(newState.requestsInFlight).toEqual({});
       expect(newState.requestPending).toEqual(false);
     })
-    it("should fetch matches for the entire document when enabled", () => {
+    it("should add requests-in-flight for the entire document when enabled", () => {
       const { state, tr } = createInitialData();
       const expectedRequest = {
         "categoryIds": [], 
