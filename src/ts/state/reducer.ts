@@ -172,7 +172,7 @@ interface IInitialStateOpts<
   matchColours?: IMatchTypeToColourMap;
   filterOptions?: IFilterOptions<TFilterState, TMatch>;
   requestMatchesOnDocModified?: boolean;
-  typerighterEnabled: boolean;
+  typerighterEnabled?: boolean;
 }
 
 /**
@@ -187,7 +187,7 @@ export const createInitialState = <
   ignoreMatch = includeAllMatches,
   matchColours = defaultMatchColours,
   requestMatchesOnDocModified = false,
-  typerighterEnabled,
+  typerighterEnabled = true,
   filterOptions
 }: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
   TFilterState,
