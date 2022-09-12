@@ -1,4 +1,3 @@
-import clamp from "lodash/clamp";
 import { Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
@@ -133,55 +132,61 @@ export const blockToRange = (input: IBlock): IRange => ({
 });
 
 /**
- * Expand a range in a document to encompass the nearest ancestor block node.
+ * Given a range and a document, return the textblock nodes covered by this
+ * range, expanding the start and end of the ranges to encompass the entirety of
+ * each textblock.
  */
-export const expandRangeToParentBlockNode = (
+export const expandRangeToParentBlockNodes = (
   range: IRange,
   doc: Node
-): IRange | undefined => {
+): IRange[] => {
   try {
-    const $fromPos = doc.resolve(range.from);
-    const $toPos = doc.resolve(range.to);
-    const parentNode = findParentNode(node => node.isBlock)(
-      new TextSelection($fromPos, $toPos)
-    );
-    if (!parentNode) {
-      return undefined;
-    }
-    return {
-      from: parentNode.start,
-      to: parentNode.start + parentNode.node.textContent.length
-    };
-  } catch (e) {
-    return undefined;
+        const $fromPos = doc.resolve(range.from);
+        const $toPos = doc.resolve(range.to);
+        const parentOfStart = findParentNode(node => node.isBlock)(
+          new TextSelection($fromPos, $fromPos)
+        );
+        const parentOfEnd = findParentNode(node => node.isBlock)(
+          new TextSelection($toPos, $toPos)
+        );
+
+        if (!parentOfStart || !parentOfEnd) {
+          return [];
+        }
+
+        const from = parentOfStart.start;
+        const to = parentOfEnd.start + parentOfEnd.node.textContent.length;
+
+        const expandedBlockRanges: IRange[] = [];
+        // We offset by one to offset into the document node.
+        const docOffset = 1;
+        doc.nodesBetween(from, to, (node, pos) => {
+          // Make sure we're at a node that contains text as its child, as our
+          // ranges need to refer to text nodes.
+          if (node.isTextblock) {
+            expandedBlockRanges.push({
+              from: pos + docOffset,
+              to: pos + node.textContent.length + docOffset
+            })
+            return false;
+          }
+        });
+
+        return expandedBlockRanges;
+      } catch (e) {
+    return [];
   }
 };
 
 /**
- * Expand the given ranges to include their ancestor block nodes.
+ * Expand the given ranges to include the start and end of their textblock nodes.
  */
-export const getRangesOfParentBlockNodes = (ranges: IRange[], doc: Node) => {
-  const matchRanges = ranges.reduce((acc, range: IRange) => {
-    const expandedRange = expandRangeToParentBlockNode(
-      { from: range.from, to: range.to },
-      doc
-    );
-    return acc.concat(
-      expandedRange
-        ? [
-            {
-              from: expandedRange.from,
-              to: clamp(expandedRange.to, doc.content.size)
-            }
-          ]
-        : []
-    );
-  }, [] as IRange[]);
+export const expandRangesToParentBlockNodes = (ranges: IRange[], doc: Node) => {
+  const matchRanges = ranges.flatMap(range =>
+    expandRangeToParentBlockNodes({ from: range.from, to: range.to }, doc)
+  );
   return mergeRanges(matchRanges);
 };
-
-export const expandRangesToParentBlockNode = (ranges: IRange[], doc: Node) =>
-  getRangesOfParentBlockNodes(ranges, doc);
 
 const getCharsRemovedBeforeFrom = (
   currentRange: IRange,

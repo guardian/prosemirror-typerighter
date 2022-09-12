@@ -3,7 +3,7 @@ import {
   findOverlappingRangeIndex,
   mergeRanges,
   removeOverlappingRanges,
-  getRangesOfParentBlockNodes,
+  expandRangesToParentBlockNodes,
   mapRemovedRange,
   getIntersection,
   mapAddedRange
@@ -18,7 +18,7 @@ describe("Range utils", () => {
       p("Paragraph 3 - 46 - 67")
     );
     it("should get the range of the nearest ancestor block node", () => {
-      expect(getRangesOfParentBlockNodes([{ from: 1, to: 2 }], doc)).toEqual([
+      expect(expandRangesToParentBlockNodes([{ from: 1, to: 2 }], doc)).toEqual([
         {
           from: 1,
           to: 21
@@ -26,7 +26,7 @@ describe("Range utils", () => {
       ]);
     });
     it("should handle ranges of length 0", () => {
-      expect(getRangesOfParentBlockNodes([{ from: 1, to: 1 }], doc)).toEqual([
+      expect(expandRangesToParentBlockNodes([{ from: 1, to: 1 }], doc)).toEqual([
         {
           from: 1,
           to: 21
@@ -35,7 +35,7 @@ describe("Range utils", () => {
     });
     it("should handle multiple ranges for the same node", () => {
       expect(
-        getRangesOfParentBlockNodes(
+        expandRangesToParentBlockNodes(
           [
             { from: 1, to: 2 },
             { from: 10, to: 12 }
@@ -49,29 +49,18 @@ describe("Range utils", () => {
         }
       ]);
     });
-    it("should handle multiple ranges for different nodes", () => {
+    it("should handle multiple nodes for a single range", () => {
       expect(
-        getRangesOfParentBlockNodes(
+        expandRangesToParentBlockNodes(
           [
-            { from: 1, to: 2 },
-            { from: 30, to: 32 },
-            { from: 50, to: 55 }
+            { from: 1, to: 67 }
           ],
           doc
         )
       ).toEqual([
-        {
-          from: 1,
-          to: 21
-        },
-        {
-          from: 23,
-          to: 44
-        },
-        {
-          from: 46,
-          to: 67
-        }
+        { from: 1, to:  21 },
+        { from: 23, to:  44 },
+        { from: 46, to:  67 }
       ]);
     });
   });

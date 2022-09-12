@@ -16,7 +16,7 @@ import {
   MatchType
 } from "../../utils/decoration";
 import { filterByMatchState, IDefaultFilterState } from "../../utils/plugin";
-import { expandRangesToParentBlockNode } from "../../utils/range";
+import { expandRangesToParentBlockNodes } from "../../utils/range";
 import {
   deriveFilteredDecorations,
   getNewStateFromTransaction,
@@ -30,7 +30,7 @@ describe("State helpers", () => {
     filterState: TFilterState
   ) => {
     const { state, matches } = createStateWithMatches(
-      createReducer(expandRangesToParentBlockNode),
+      createReducer(expandRangesToParentBlockNodes),
       matchesToAdd
     );
     const tr = createInitialTr(defaultDoc);
