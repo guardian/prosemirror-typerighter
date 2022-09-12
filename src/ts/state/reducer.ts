@@ -856,17 +856,21 @@ const handleSetTyperighterEnabled = (getIgnoredRanges: TGetSkippedRanges = doNot
 ): TPluginState => {
 
   const matchRequestAction = { type: REQUEST_FOR_DOCUMENT, payload: { requestId: v4(), categoryIds: []}}
-  const updatedState = typerighterEnabled ? {
-    // Run a check if typerighter has been enabled
-    ...createHandleMatchesRequestForDocument(getIgnoredRanges)(_, state, matchRequestAction)
-  } : {
-      // Typerighter has been disabled
-      // Remove any current matches and pending requests
-      ...handleRemoveAllMatches(_, state),
-      requestsInFlight: {},
-      requestPending: false
-  }
-  
+  const updatedState = typerighterEnabled
+    ? // Run a check if typerighter has been enabled
+      createHandleMatchesRequestForDocument(getIgnoredRanges)(
+        _,
+        state,
+        matchRequestAction
+      )
+    : {
+        // Typerighter has been disabled
+        // Remove any current matches and pending requests
+        ...handleRemoveAllMatches(_, state),
+        requestsInFlight: {},
+        requestPending: false
+      };
+
   return {
     ...state,
     ...updatedState,
