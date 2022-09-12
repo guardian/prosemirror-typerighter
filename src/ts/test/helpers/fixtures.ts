@@ -215,7 +215,8 @@ export const createInitialData = (
       requestPending: false,
       requestErrors: [],
       docChangedSinceCheck: false,
-      docIsEmpty: false
+      docIsEmpty: false,
+      typerighterEnabled: true
     } as IPluginState
   };
 };

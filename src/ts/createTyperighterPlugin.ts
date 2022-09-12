@@ -108,6 +108,8 @@ export interface IPluginOptions<
   telemetryAdapter?: TyperighterTelemetryAdapter;
 
   adapter: IMatcherAdapter<TMatch>,
+
+  typerighterEnabled?: boolean
 }
 
 /**
@@ -134,7 +136,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     isElementPartOfTyperighterUI = () => false,
     requestMatchesOnDocModified = false,
     adapter,
-    telemetryAdapter
+    telemetryAdapter,
+    typerighterEnabled = true,
   } = options;
   // A handy alias to reduce repetition
   type TPluginState = IPluginState<TFilterState, TMatch>;
@@ -160,6 +163,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
           matchColours,
           filterOptions,
           requestMatchesOnDocModified,
+          typerighterEnabled
         });
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
@@ -185,7 +189,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
         [] as IRange[]
       );
       if (newDirtiedRanges.length) {
-        if (newPluginState.config.requestMatchesOnDocModified) {
+        if (newPluginState.config.requestMatchesOnDocModified && newPluginState.typerighterEnabled) {
           // We wait a tick here, as applyNewDirtiedRanges must run
           // before the newly dirtied range is available in the state.
           // @todo -- this is a bit of a hack, it can be done better.
@@ -259,7 +263,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       const pluginState = store.getState();
       if (
         pluginState &&
-        selectPluginConfig(pluginState).requestMatchesOnDocModified
+        selectPluginConfig(pluginState).requestMatchesOnDocModified &&
+        pluginState.typerighterEnabled
       ) {
         commands.requestMatchesForDocument(
           v4(),

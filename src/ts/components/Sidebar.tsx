@@ -53,6 +53,7 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
               commands.setConfigValue("requestMatchesOnDocModified", value)
             }
             requestMatchesForDocument={commands.requestMatchesForDocument}
+            setTyperighterEnabled={commands.setTyperighterEnabled}
             getCurrentCategories={matcherService.getCurrentCategories}
             addCategory={matcherService.addCategory}
             removeCategory={matcherService.removeCategory}

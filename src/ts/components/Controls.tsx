@@ -22,6 +22,7 @@ interface IProps<TPluginState extends IPluginState> {
   clearMatches: () => void;
   setShowPendingInflightChecks: (isEnabled: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
+  setTyperighterEnabled: (typerighterEnabled: boolean) => void;
   requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
@@ -54,7 +55,8 @@ const Controls = <TPluginState extends IPluginState>({
   feedbackHref,
   enableDevMode,
   setRequestOnDocModified,
-  setShowPendingInflightChecks
+  setShowPendingInflightChecks,
+  setTyperighterEnabled
 }: IProps<TPluginState>) => {
   const [pluginState, setPluginState] = useState<TPluginState | undefined>(
     undefined
@@ -167,6 +169,7 @@ const Controls = <TPluginState extends IPluginState>({
   }
 
   const { requestMatchesOnDocModified, showPendingInflightChecks } = selectPluginConfig(pluginState)
+  const typerighterEnabled = pluginState.typerighterEnabled;
 
   return (
     <>
@@ -212,6 +215,17 @@ const Controls = <TPluginState extends IPluginState>({
               ></input>
               <label htmlFor="debug" className="Controls__label">
                 Show pending and inflight checks
+              </label>
+            </div>
+            <div className="Controls__input-group">
+              <input
+                type="checkbox"
+                id="debug"
+                checked={typerighterEnabled}
+                onChange={() => setTyperighterEnabled(!typerighterEnabled)}
+              ></input>
+              <label htmlFor="debug" className="Controls__label">
+                Enable Typerighter
               </label>
             </div>
           </div>

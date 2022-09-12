@@ -11,7 +11,8 @@ import {
   newHoverIdReceived,
   requestMatchesComplete as requestComplete,
   removeMatch,
-  removeAllMatches
+  removeAllMatches,
+  setTyperighterEnabled
 } from "../actions";
 import { selectAllBlocksInFlight, selectRequestInFlightById } from "../selectors";
 import { createReducer, IPluginState } from "../reducer";
@@ -839,6 +840,82 @@ describe("Action handlers", () => {
       expect(newState.requestErrors).toEqual(state.requestErrors);
     });
   });
+  describe("setTyperighterEnabled", () => { 
+    it("should remove any matches and decorations when disabled", () => {
+      const { state, tr } = createInitialData();
+      const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
+      let newState = reducer(
+        tr,
+        {
+          ...state,
+          requestsInFlight: createRequestInFlight([createBlock(5, 10)])
+        },
+        requestMatchesSuccess(matcherResponse)
+      );
+
+      newState = reducer(
+        tr,
+        newState,
+        setTyperighterEnabled(false)
+      );
+
+      expect(newState.currentMatches).toEqual([]);
+      expect(newState.decorations).toEqual(state.decorations);
+    })
+    it("should remove any pending requests when disabled", () => {
+      const { state, tr } = createInitialData();
+      let newState = reducer(
+        tr,
+        {
+          ...state,
+          requestsInFlight: createRequestInFlight([createBlock(5, 10)]),
+          requestPending: true,
+        },
+        setTyperighterEnabled(false)
+      );
+
+      expect(newState.requestsInFlight).toEqual({});
+      expect(newState.requestPending).toEqual(false);
+    })
+    it("should add requests-in-flight for the entire document when enabled", () => {
+      const { state, tr } = createInitialData();
+      const expectedRequest = {
+        "categoryIds": [], 
+        "mapping": {
+          "from": 0, 
+          "maps": [], 
+          "mirror": undefined, 
+          "to": 0
+        }, 
+        "pendingBlocks": [{
+          "block": {
+            "from": 1, 
+            "id": "0-from:1-to:23", 
+            "skipRanges": [], 
+            "text": "Example text to check", 
+            "to": 23
+          }, 
+          "pendingCategoryIds": []
+        }], 
+        "totalBlocks": 1
+      }
+
+      const requests = reducer(
+        tr,
+        state,
+        setTyperighterEnabled(true)
+      ).requestsInFlight;
+      
+      
+      const requestNames = Object.keys(requests);
+      const actualRequest = requests[Object.keys(requests)[0]]
+      
+      expect(requestNames.length).toEqual(1); 
+      expect(actualRequest).toMatchObject(
+        expectedRequest
+      ); 
+    });
+  })
   describe("setConfigValue", () => {
     it("should set a config value", () => {
       const { state } = createInitialData();

@@ -121,4 +121,41 @@ describe("Commands", () => {
       expect(editorElement.innerHTML).toBe("An a<em>mp</em>le sentence");
     });
   });
+  describe("setTyperighterEnabled", () => { 
+
+    const createExampleEditor = (
+      before: string,
+      from: number,
+      to: number,
+    )  => {
+      const match = createMatch(from, to, [
+        { text: "N/A", type: "TEXT_SUGGESTION" }
+      ]);
+      const { editorElement, commands } = createEditor(before, [match]);
+    
+      return { editorElement, commands };
+    };
+
+    it("should remove any match decorations when Typerighter is disabled", () => {
+      const { editorElement, commands } = createExampleEditor("<p>An example sentence</p>",
+      4,
+      11);
+
+      commands.setTyperighterEnabled(false);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBeFalsy()
+    })
+
+    it("should not remove match decorations when setTyperighterEnabled is set to true", () => {
+      const { editorElement, commands } = createExampleEditor("<p>An example sentence</p>",
+      4,
+      11);
+
+      commands.setTyperighterEnabled(true);
+
+      const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
+      expect(maybeMatchElement).toBeTruthy()
+    })
+  })
 });

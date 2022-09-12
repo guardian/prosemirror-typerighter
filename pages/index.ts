@@ -68,7 +68,8 @@ const {
   adapter: new TyperighterChunkedAdapter(
     "https://checker.typerighter.local.dev-gutools.co.uk"
   ),
-  telemetryAdapter: typerighterTelemetryAdapter
+  telemetryAdapter: typerighterTelemetryAdapter,
+  typerighterEnabled: true
 });
 
 if (editorElement && sidebarNode) {
