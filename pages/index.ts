@@ -5,6 +5,7 @@ import { marks, schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
+import applyDevTools from "prosemirror-dev-tools";
 
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
@@ -113,5 +114,8 @@ if (editorElement && sidebarNode) {
 
   // Handy debugging tools
   (window as any).editor = view;
-  (window as any).ProseMirrorDevTools.applyDevTools(view, { EditorState });
+  // We need this due to a transitive dependency that expects a global `process` object.
+  // See https://github.com/d4rkr00t/prosemirror-dev-tools/issues/115
+  (window as any).process = {};
+  applyDevTools(view);
 }
