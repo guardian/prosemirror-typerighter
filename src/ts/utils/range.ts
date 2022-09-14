@@ -25,14 +25,18 @@ export const mapAndMergeRanges = <Range extends IRange>(
 ): Range[] => mergeRanges(mapRanges(ranges, mapping));
 
 export const mapRanges = <Range extends IRange>(
-  ranges: Range[],
-  mapping: Mapping
-): Range[] =>
-  ranges.map(range => ({
-    ...range,
-    from: mapping.map(range.from),
-    to: mapping.map(range.to)
-  }));
+         ranges: Range[],
+         mapping: Mapping
+       ): Range[] =>
+         ranges
+           .map(range => ({
+             ...range,
+             from: mapping.map(range.from),
+             to: mapping.map(range.to)
+           }))
+           // If in mapping a range we reduce its size to 0, remove it –
+           // the relevant text no longer exists.
+           .filter(range => range.to > range.from);
 
 export const mapRange = <Range extends IRange>(
   range: Range,

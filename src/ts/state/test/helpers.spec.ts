@@ -1,4 +1,5 @@
 import { identity } from "lodash";
+import { AllSelection } from "prosemirror-state";
 import { DecorationSet } from "prosemirror-view";
 import { IMatch } from "../..";
 import {
@@ -213,6 +214,18 @@ describe("State helpers", () => {
 
       expect(newBlockInFlight.from).toEqual(oldBlockInFlight.from);
       expect(newBlockInFlight.to).toEqual(oldBlockInFlight.to - deleteRange);
+    });
+
+    it("should remove matches when they no longer have a width (for example, when the text they refer to has been deleted)", () => {
+      const matches = [createMatch(1, 4), createMatch(4, 7)];
+      const { tr, state } = getState(matches, [MatchType.DEFAULT]);
+
+      tr.setSelection(new AllSelection(tr.doc));
+      tr.deleteSelection();
+      const { currentMatches, decorations } = getNewStateFromTransaction(tr, state);
+
+      expect(currentMatches.length).toBe(0);
+      expect(decorations.find().length).toBe(0);
     });
   })
 });
