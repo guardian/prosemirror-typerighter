@@ -81,6 +81,7 @@ export interface IMatcherResponse<MatchesType extends IMatch[] = IMatch[]> {
   categoryIds: string[];
   matches: MatchesType;
   requestId: string;
+  percentageRequestComplete?: number;
 }
 
 export type IMatchLibrary = Array<

@@ -312,5 +312,26 @@ describe("selectors", () => {
       };
       expect(selectPercentRemaining(state)).toEqual(40);
     });
+    it("should derive percent remaining from percentageRequestComplete when available", () => {
+      const { state: initialState } = createInitialData();
+      let state = {
+        ...initialState,
+        percentageRequestComplete: 8
+      };
+      expect(selectPercentRemaining(state)).toEqual(92);
+      state = {
+        ...initialState,
+        percentageRequestComplete: 50
+      }
+      expect(selectPercentRemaining(state)).toEqual(50)
+    });
+    it("should not allow negative numbers if percentageRequestComplete is greater than 100", () => {
+      const { state: initialState } = createInitialData();
+      const state = {
+        ...initialState,
+        percentageRequestComplete: 120
+      };
+      expect(selectPercentRemaining(state)).toEqual(0)
+    });
   });
 });

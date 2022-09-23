@@ -31,7 +31,8 @@ export const convertTyperighterResponse = (
     category: rule.category,
     ruleId: rule.id,
     ...match
-  }))
+  })),
+  percentageRequestComplete: response.percentageRequestComplete
 });
 
 /**
@@ -118,11 +119,13 @@ class TyperighterAdapter implements IMatcherAdapter {
     );
     const categoryIds = uniq(this.responseBuffer.flatMap(_ => _.categoryIds));
     const matches = this.responseBuffer.flatMap(_ => _.matches);
+    const percentageRequestComplete = this.responseBuffer[this.responseBuffer.length - 1].percentageRequestComplete
     const socketMessage = {
       blocks,
       categoryIds,
       matches,
-      requestId
+      requestId,
+      percentageRequestComplete
     };
 
     onMatchesReceived(convertTyperighterResponse(requestId, socketMessage));

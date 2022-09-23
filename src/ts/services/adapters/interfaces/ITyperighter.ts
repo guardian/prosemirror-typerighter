@@ -5,6 +5,7 @@ export interface ITypeRighterResponse {
   categoryIds: string[];
   matches: ITypeRighterMatch[];
   requestId: string;
+  percentageRequestComplete?: number;
 }
 
 export interface ITypeRighterBlockResponse {
