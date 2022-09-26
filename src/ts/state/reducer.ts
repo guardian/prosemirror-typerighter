@@ -157,7 +157,7 @@ export interface IPluginState<
   docChangedSinceCheck: boolean;
   docIsEmpty: boolean;
   typerighterEnabled: boolean;
-  // the percentage of blocks that have been processed by the matcher service
+  // the percentage of the request that has been processed by the matcher service
   percentageRequestComplete?: number;
 }
 
