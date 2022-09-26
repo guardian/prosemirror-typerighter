@@ -5,6 +5,7 @@ import MatcherService from "./services/MatcherService";
 import { UserTelemetryEventSender, IUserTelemetryEvent} from "@guardian/user-telemetry-client";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
+import TyperighterChunkedAdapter from "./services/adapters/TyperighterChunkedAdapter";
 import { commands, createBoundCommands } from "./commands";
 import { getBlocksFromDocument } from './utils/prosemirror';
 import { filterByMatchState } from './utils/plugin';
@@ -16,6 +17,7 @@ export {
   UserTelemetryEventSender,
   TyperighterTelemetryAdapter,
   TyperighterAdapter,
+  TyperighterChunkedAdapter,
   getBlocksFromDocument,
   convertTyperighterResponse,
   createBoundCommands,
