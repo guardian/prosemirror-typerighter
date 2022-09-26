@@ -39,21 +39,23 @@ describe("TyperighterChunkedAdapter", () => {
 
   it("should call `onMatchesReceived` for each record in a successful response, and finally call `onRequestComplete`", async () => {
     const adapter = new TyperighterChunkedAdapter("https://example.com");
-    const input: IMatcherResponse[] = [
+    const mockResponse: IMatcherResponse[] = [
       {
         blocks: [],
         categoryIds: ["1"],
         matches: [],
-        requestId: "request-id"
+        requestId: "request-id",
+        percentageRequestComplete: 50.0
       },
       {
         blocks: [],
         categoryIds: ["2"],
         matches: [],
-        requestId: "request-id"
+        requestId: "request-id",
+        percentageRequestComplete: 100.0
       }
     ];
-    const jsonSeq = createJsonSeqArrFromRecords(input);
+    const jsonSeq = createJsonSeqArrFromRecords(mockResponse);
     const stream = createStream(jsonSeq);
     mockFetchBody({ body: stream });
 
@@ -66,8 +68,8 @@ describe("TyperighterChunkedAdapter", () => {
       onComplete
     );
 
-    expect(onReceived).toHaveBeenCalledWith(input[0]);
-    expect(onReceived).toHaveBeenCalledWith(input[1]);
+    expect(onReceived).toHaveBeenCalledWith(mockResponse[0]);
+    expect(onReceived).toHaveBeenCalledWith(mockResponse[1]);
     expect(onComplete).toHaveBeenCalled();
   });
 

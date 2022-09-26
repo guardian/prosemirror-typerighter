@@ -72,6 +72,9 @@ export const selectPercentRemaining = <TPluginState extends IPluginState>(
   if (!state) {
     return 0;
   }
+  if (state.percentageRequestComplete) {
+    return Math.max(100 - state.percentageRequestComplete, 0)
+  }
   const [totalWork, totalRemainingWork] = Object.values(
     state.requestsInFlight
   ).reduce(

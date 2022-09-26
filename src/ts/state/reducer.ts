@@ -157,6 +157,8 @@ export interface IPluginState<
   docChangedSinceCheck: boolean;
   docIsEmpty: boolean;
   typerighterEnabled: boolean;
+  // the percentage of the request that has been processed by the matcher service
+  percentageRequestComplete?: number;
 }
 
 // The transaction meta key that namespaces our actions.
@@ -702,7 +704,8 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     decorations: state.decorations
       .remove(decsToRemove)
       .add(tr.doc, newDecorations),
-    dirtiedRanges
+    dirtiedRanges,
+    percentageRequestComplete: response.percentageRequestComplete
   };
 };
 
