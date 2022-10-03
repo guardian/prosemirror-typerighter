@@ -6,14 +6,13 @@ import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
 import applyDevTools from "prosemirror-dev-tools";
-
 import "prosemirror-view/style/prosemirror.css";
 import "prosemirror-menu/style/menu.css";
 import "prosemirror-example-setup/style/style.css";
 import "prosemirror-example-setup/style/style.css";
 import "../src/css/index.scss";
 import createTyperighterPlugin from "../src/ts/createTyperighterPlugin";
-import createView from "../src/ts/createView";
+import { createOverlayView, createSidebarView } from "../src/ts/createView";
 import { createBoundCommands } from "../src/ts/commands";
 import TyperighterTelemetryAdapter from "../src/ts/services/TyperighterTelemetryAdapter";
 import { UserTelemetryEventSender } from "@guardian/user-telemetry-client";
@@ -96,20 +95,27 @@ if (editorElement && sidebarNode) {
 
   const commands = createBoundCommands(view, getState);
 
-  createView({
-    view,
+  createSidebarView({
     store,
     matcherService,
     commands,
     sidebarNode,
-    overlayNode,
     contactHref: "mailto:example@typerighter.co.uk",
     feedbackHref: "http://a-form-for-example.com",
-    onMarkCorrect: match => console.info("Match ignored!", match),
     editorScrollElement: editorElement,
     getScrollOffset,
     telemetryAdapter: typerighterTelemetryAdapter,
     enableDevMode: true
+  });
+
+  createOverlayView({
+    view,
+    store,
+    commands,
+    overlayNode,
+    feedbackHref: "http://a-form-for-example.com",
+    onMarkCorrect: match => console.info("Match ignored!", match),
+    telemetryAdapter: typerighterTelemetryAdapter,
   });
 
   // Handy debugging tools

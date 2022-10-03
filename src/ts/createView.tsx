@@ -1,11 +1,10 @@
 import React from "react";
-import { render } from "react-dom";
+import { render, unmountComponentAtNode } from "react-dom";
 import MatchOverlay from "./components/MatchOverlay";
 import Store from "./state/store";
 import { Commands } from "./commands";
 import { IMatch } from "./interfaces/IMatch";
 import { MatcherService } from ".";
-import { ILogger, consoleLogger } from "./utils/logger";
 import Sidebar from "./components/Sidebar";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TelemetryContext from "./contexts/TelemetryContext";
@@ -13,59 +12,33 @@ import { EditorView } from "prosemirror-view";
 import { IPluginState } from "./state/reducer";
 import { MatchType } from "./utils/decoration";
 
-interface IViewOptions<TPluginState extends IPluginState> {
+interface OverlayViewOptions<TPluginState extends IPluginState> {
   view: EditorView;
   store: Store<TPluginState>;
-  matcherService: MatcherService<TPluginState["filterState"], IMatch>;
   commands: Commands;
-  sidebarNode: Element;
   overlayNode: Element;
-  contactHref?: string;
   feedbackHref?: string;
-  logger?: ILogger;
   onMarkCorrect?: (match: IMatch) => void;
-  // The element responsible for scrolling the editor content.
-  // Used to scroll to matches when they're clicked in the sidebar.
-  editorScrollElement: Element;
-  // Gets a scroll offset when we scroll to matches. This allows consumers
-  // to dynamically change the offset. Useful when e.g. consumers would like
-  // to place the match in the middle of the screen, as the size of the
-  // document might change during the lifecycle of the page.
-  getScrollOffset?: () => number;
   telemetryAdapter?: TyperighterTelemetryAdapter;
-  // Expose useful utilities for developers.
-  enableDevMode?: boolean;
 }
 
 /**
- * Instantiate a UI for the given EditorView, commands, and configuration,
- * appending it to the given HTML elements. This includes:
- *  - The overlay responsible for displaying tooltips
- *  - The plugin configuration pane
- *  - The plugin results pane
+ * Instantiate the overlay view. The overlay view is responsible for rendering
+ * the suggestion tooltip when users hover over a match in a document.
  */
-const createView = <TPluginState extends IPluginState<MatchType[]>>({
+export const createOverlayView = <
+  TPluginState extends IPluginState<MatchType[]>
+>({
   view,
   store,
-  matcherService,
   telemetryAdapter,
   commands,
-  sidebarNode,
   overlayNode,
-  contactHref,
   feedbackHref,
-  logger = consoleLogger,
-  onMarkCorrect,
-  editorScrollElement,
-  getScrollOffset = () => 50,
-  enableDevMode = false
-}: IViewOptions<TPluginState>) => {
-  // Create our overlay node, which is responsible for displaying
-  // match messages when the user hovers over highlighted ranges.
+  onMarkCorrect
+}: OverlayViewOptions<TPluginState>) => {
   overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");
-  logger.info("Typerighter plugin starting");
 
-  // Finally, render our components.
   render(
     <TelemetryContext.Provider value={{ telemetryAdapter }}>
       <MatchOverlay
@@ -99,6 +72,48 @@ const createView = <TPluginState extends IPluginState<MatchType[]>>({
     overlayNode
   );
 
+  return () => unmountComponentAtNode(overlayNode);
+};
+
+interface SidebarViewOptions<TPluginState extends IPluginState> {
+  store: Store<TPluginState>;
+  matcherService: MatcherService<TPluginState["filterState"], IMatch>;
+  commands: Commands;
+  sidebarNode: Element;
+  contactHref?: string;
+  feedbackHref?: string;
+  // The element responsible for scrolling the editor content.
+  // Used to scroll to matches when they're clicked in the sidebar.
+  editorScrollElement: Element;
+  // Gets a scroll offset when we scroll to matches. This allows consumers
+  // to dynamically change the offset. Useful when e.g. consumers would like
+  // to place the match in the middle of the screen, as the size of the
+  // document might change during the lifecycle of the page.
+  getScrollOffset?: () => number;
+  telemetryAdapter?: TyperighterTelemetryAdapter;
+  // Expose useful utilities for developers.
+  enableDevMode?: boolean;
+}
+
+/**
+ * Create a sidebar view. The sidebar is responsible for displaying an
+ * overview of all of the matches in a document, allowing users to see
+ * a summary of matches and navigate to those matches.
+ */
+export const createSidebarView = <
+  TPluginState extends IPluginState<MatchType[]>
+>({
+  store,
+  matcherService,
+  telemetryAdapter,
+  commands,
+  sidebarNode,
+  contactHref,
+  feedbackHref,
+  editorScrollElement,
+  getScrollOffset = () => 50,
+  enableDevMode = false
+}: SidebarViewOptions<TPluginState>) => {
   render(
     <TelemetryContext.Provider value={{ telemetryAdapter }}>
       <Sidebar
@@ -114,6 +129,6 @@ const createView = <TPluginState extends IPluginState<MatchType[]>>({
     </TelemetryContext.Provider>,
     sidebarNode
   );
-};
 
-export default createView;
+  return () => unmountComponentAtNode(sidebarNode);
+};
