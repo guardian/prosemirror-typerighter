@@ -59,11 +59,11 @@ describe("createTyperighterPlugin", () => {
   });
   it("should add matches passed to the plugin to the plugin state when the plugin is constructed", () => {
     const { getState, view } = createPlugin();
-    expect(getState(view.state).currentMatches).toEqual(matches);
+    expect(getState(view.state)!.currentMatches).toEqual(matches);
   });
   it("should allow us to specify real time checking when creating the plugin", () => {
     const { getState, view } = createPlugin({adapter, requestMatchesOnDocModified: true });
-    expect(getState(view.state).config.requestMatchesOnDocModified).toEqual(true);
+    expect(getState(view.state)!.config.requestMatchesOnDocModified).toEqual(true);
   });
 
   describe("Match persistence/removal", () => {
@@ -190,7 +190,7 @@ describe("createTyperighterPlugin", () => {
     const expectedSpecs = getDecorationSpecsFromMatches([match], doc);
     expect(decorationSpecs).toEqual(expectedSpecs);
 
-    const pluginMatches = getState(view.state).currentMatches;
+    const pluginMatches = getState(view.state)!.currentMatches;
     expect(pluginMatches).toEqual([match]);
   });
   it("should not add matches and their decorations on init when the ignoreMatch predicate returns true", () => {
@@ -204,7 +204,7 @@ describe("createTyperighterPlugin", () => {
     const decorations = getDecorationSpecsFromDoc(view);
     expect(decorations).toEqual(new Set());
 
-    const pluginMatches = getState(view.state).currentMatches;
+    const pluginMatches = getState(view.state)!.currentMatches;
     expect(pluginMatches).toEqual([]);
   });
   it("should not add matches and their decorations returned from a matcher when the ignoreMatch predicate returns true", () => {
@@ -223,7 +223,7 @@ describe("createTyperighterPlugin", () => {
     const decorations = getDecorationSpecsFromDoc(view);
     expect(decorations).toEqual(new Set());
 
-    const pluginMatches = getState(view.state).currentMatches;
+    const pluginMatches = getState(view.state)!.currentMatches;
     expect(pluginMatches).toEqual([]);
   });
   describe("filtering matchers", () => {

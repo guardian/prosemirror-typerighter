@@ -31,7 +31,7 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
   const isElementPartOfTyperighterUI = (element: HTMLElement) =>
     overlayNode.contains(element);
 
-  const { plugin: validatorPlugin, getState } = createTyperighterPlugin({
+  const { plugin: validatorPlugin } = createTyperighterPlugin({
     isElementPartOfTyperighterUI,
     matches,
     adapter: new TyperighterAdapter("https://checker.typerighter.local.dev-gutools.co.uk"),
@@ -50,7 +50,7 @@ export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
     })
   });
 
-  const commands = createBoundCommands(view, getState);
+  const commands = createBoundCommands(view);
 
   return { editorElement, view, commands, schema: mySchema };
 };
