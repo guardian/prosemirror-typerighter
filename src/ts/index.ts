@@ -8,7 +8,7 @@ import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapt
 import TyperighterChunkedAdapter from "./services/adapters/TyperighterChunkedAdapter";
 import { commands, createBoundCommands } from "./commands";
 import { getBlocksFromDocument } from './utils/prosemirror';
-import { filterByMatchState } from './utils/plugin';
+import { filterByMatchState, getState } from './utils/plugin';
 import createView from "./createView";
 import '../css/index.scss';
 
@@ -23,6 +23,7 @@ export {
   createBoundCommands,
   commands,
   createView,
+  getState,
   createTyperighterPlugin,
   filterByMatchState,
   IMatch,
