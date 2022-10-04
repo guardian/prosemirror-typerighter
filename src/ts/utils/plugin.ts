@@ -3,9 +3,10 @@ import { EditorView } from "prosemirror-view";
 import { PluginKey } from "prosemirror-state";
 import { getMatchType, MatchType } from "./decoration";
 import { IMatch } from "..";
+import { IPluginState } from "../state/reducer";
 
 export const pluginKey = new PluginKey("prosemirror-typerighter");
-export const getState = pluginKey.getState.bind(pluginKey);
+export const getState = (pluginKey as PluginKey<IPluginState>).getState.bind(pluginKey);
 
 export const maybeResetHoverStates = (
   view: EditorView,
