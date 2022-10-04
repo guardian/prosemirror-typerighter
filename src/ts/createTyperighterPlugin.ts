@@ -20,7 +20,7 @@ import {
   GLOBAL_DECORATION_STYLE_ID
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
-import { Plugin, Transaction, EditorState } from "prosemirror-state";
+import { Plugin, Transaction } from "prosemirror-state";
 import { expandRangesToParentBlockNodes } from "./utils/range";
 import { getDirtiedRangesFromTransaction } from "./utils/prosemirror";
 import { IRange, IMatch } from "./interfaces/IMatch";
@@ -122,7 +122,6 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
 ): {
   plugin: Plugin<IPluginState<TFilterState, TMatch>>;
   store: Store<IPluginState<TFilterState, TMatch>>;
-  getState: (state: EditorState) => IPluginState<TFilterState, TMatch>;
   matcherService: MatcherService<TFilterState, TMatch>
 } => {
   const {
@@ -255,7 +254,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       }
     },
     view(view) {
-      const commands = createBoundCommands(view, plugin.getState);
+      const commands = createBoundCommands(view);
       matcherService.setCommands(commands);
 
       // Check the document eagerly on editor initialisation if
@@ -292,9 +291,6 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
   return {
     plugin,
     store,
-    getState: plugin.getState.bind(plugin) as (
-      state: EditorState
-    ) => TPluginState,
     matcherService
   };
 };

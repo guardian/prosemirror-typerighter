@@ -5,6 +5,7 @@ import { getMatchType, MatchType } from "./decoration";
 import { IMatch } from "..";
 
 export const pluginKey = new PluginKey("prosemirror-typerighter");
+export const getState = pluginKey.getState.bind(pluginKey);
 
 export const maybeResetHoverStates = (
   view: EditorView,

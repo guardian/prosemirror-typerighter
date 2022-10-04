@@ -17,7 +17,7 @@ import { createBoundCommands } from "../commands";
 import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
-import { filterByMatchState, IDefaultFilterState } from "../utils/plugin";
+import { filterByMatchState, getState, IDefaultFilterState } from "../utils/plugin";
 import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
@@ -33,7 +33,7 @@ const adapter = new TyperighterAdapter(endpoint);
 const createPlugin = <TFilterState = unknown>(
   opts?: IPluginOptions<TFilterState>
 ) => {
-  const { plugin, getState, store } = createTyperighterPlugin({
+  const { plugin, store } = createTyperighterPlugin({
     matches,
     adapter,
     ...opts
@@ -44,7 +44,7 @@ const createPlugin = <TFilterState = unknown>(
   });
   const editorElement = document.createElement("div");
   const view = new EditorView(editorElement, { state });
-  const commands = createBoundCommands(view, getState);
+  const commands = createBoundCommands(view);
   return { plugin, getState, store, view, commands };
 };
 
@@ -80,7 +80,7 @@ describe("createTyperighterPlugin", () => {
       view.dispatch(tr);
 
       const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
-      expect(maybeMatchElement).toBe(null)   
+      expect(maybeMatchElement).toBe(null)
     });
     it("should remove matches when the user makes an insert that abuts them – rhs", () => {
       const { editorElement, view } = createEditor("123456", [createMatch(2, 4)]);
