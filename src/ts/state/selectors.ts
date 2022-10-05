@@ -6,11 +6,11 @@ import { IPluginState, IBlockInFlight, IRequestInFlight } from "./reducer";
 export const selectMatchByMatchId = <TPluginState extends IPluginState>(
   state: TPluginState,
   matchId: string
-): TPluginState['currentMatches'][number] | undefined =>
+): TPluginState["currentMatches"][number] | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
 export const selectRequestInFlightById = (
-  state: IPluginState<unknown>,
+  state: IPluginState,
   requestId: string
 ): IRequestInFlight | undefined => {
   return state.requestsInFlight[requestId];
@@ -34,7 +34,9 @@ export const selectBlocksInFlightById = (
   blockIds: string[]
 ): IBlockInFlight[] =>
   blockIds
-    .map(blockId => selectSingleBlockInRequestInFlightById(state, requestId, blockId))
+    .map(blockId =>
+      selectSingleBlockInRequestInFlightById(state, requestId, blockId)
+    )
     .filter(_ => !!_) as IBlockInFlight[];
 
 export const selectAllBlocksInFlight = (
@@ -66,14 +68,14 @@ export const selectNewBlockInFlight = (
     [] as TSelectRequestInFlight
   );
 
-export const selectPercentRemaining = <TPluginState extends IPluginState>(
-  state?: TPluginState
+export const selectPercentRemaining = (
+  state?: IPluginState
 ) => {
   if (!state) {
     return 0;
   }
   if (state.percentageRequestComplete) {
-    return Math.max(100 - state.percentageRequestComplete, 0)
+    return Math.max(100 - state.percentageRequestComplete, 0);
   }
   const [totalWork, totalRemainingWork] = Object.values(
     state.requestsInFlight
@@ -115,9 +117,7 @@ export const selectSuggestionAndRange = (
   };
 };
 
-export const selectAllAutoFixableMatches = <T, TMatch extends IMatch>(
-  state: IPluginState<T, TMatch>
-): TMatch[] =>
+export const selectAllAutoFixableMatches = (state: IPluginState): IMatch[] =>
   state.currentMatches.filter(
     _ => _.replacement && _.replacement.text === _.message
   );
@@ -137,9 +137,8 @@ export const selectHasAuthError = (state: IPluginState): boolean => {
 export const selectRequestsInProgress = (state: IPluginState): boolean =>
   !!Object.keys(state.requestsInFlight).length;
 
-export const selectHasMatches = <TMatch extends IMatch>(
-  state: IPluginState<unknown, TMatch>
-): boolean => !!state.currentMatches && state.currentMatches.length > 0;
+export const selectHasMatches = (state: IPluginState): boolean =>
+  !!state.currentMatches && state.currentMatches.length > 0;
 
 const getSortOrderForMatchType = (match: IMatch) => {
   const matchType = getMatchType(match);
@@ -154,13 +153,13 @@ const getSortOrderForMatchType = (match: IMatch) => {
 
 const getSortOrderForMatchAppearance = (match: IMatch) => match.from;
 
-export const selectDocumentOrderedMatches = <TMatch extends IMatch>(
-  state: IPluginState<unknown, TMatch>
+export const selectDocumentOrderedMatches = (
+  state: IPluginState
 ): Array<IMatch<ISuggestion>> =>
   sortBy(state.filteredMatches, getSortOrderForMatchAppearance);
 
-export const selectImportanceOrderedMatches = <TMatch extends IMatch>(
-  state: IPluginState<unknown, TMatch>
+export const selectImportanceOrderedMatches = (
+  state: IPluginState
 ): Array<IMatch<ISuggestion>> =>
   sortBy(
     state.filteredMatches,
@@ -176,4 +175,4 @@ export const selectDocumentIsEmpty = (state: IPluginState): boolean => {
   return state.docIsEmpty;
 };
 
-export const selectPluginConfig = (state: IPluginState) => state.config
+export const selectPluginConfig = (state: IPluginState) => state.config;

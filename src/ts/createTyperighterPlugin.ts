@@ -17,7 +17,8 @@ import {
   defaultMatchColours,
   maybeGetDecorationMatchIdFromEvent,
   createGlobalDecorationStyleTag,
-  GLOBAL_DECORATION_STYLE_ID
+  GLOBAL_DECORATION_STYLE_ID,
+  MatchType
 } from "./utils/decoration";
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction } from "prosemirror-state";
@@ -32,7 +33,7 @@ import Store, {
 } from "./state/store";
 import { doNotSkipRanges, TGetSkippedRanges } from "./utils/block";
 import { createBoundCommands, startHoverCommand, stopHoverCommand } from "./commands";
-import { TFilterMatches, maybeResetHoverStates } from "./utils/plugin";
+import { IFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
 import { getClientRectIndex } from "./utils/clientRect";
 import MatcherService from "./services/MatcherService";
@@ -42,24 +43,21 @@ import { v4 } from "uuid";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
 
-export interface IFilterOptions<TFilterState, TMatch extends IMatch> {
+export interface IFilterOptions{
   /**
    * A function to filter matches given a user-defined filter state.
    */
-  filterMatches: TFilterMatches<TFilterState, TMatch>;
+  filterMatches: IFilterMatches;
 
   /**
    * The initial state to pass to the filter predicate.
    */
-  initialFilterState: TFilterState;
+  initialFilterState: MatchType[];
 }
 
 type PluginOptionsFromConfig = Partial<Pick<IPluginConfig, "requestMatchesOnDocModified">>;
 
-export interface IPluginOptions<
-  TFilterState = undefined,
-  TMatch extends IMatch = IMatch
-> extends PluginOptionsFromConfig {
+export interface IPluginOptions extends PluginOptionsFromConfig {
   /**
    * A function that receives ranges that have been dirtied since the
    * last request, and returns the new ranges to find matches for. The
@@ -71,14 +69,14 @@ export interface IPluginOptions<
   /**
    * The initial set of matches to apply to the document, if any.
    */
-  matches?: TMatch[];
+  matches?: IMatch[];
 
   /**
    * Ignore matches when this predicate returns true.
    */
   ignoreMatch?: IIgnoreMatchPredicate;
 
-  filterOptions?: IFilterOptions<TFilterState, TMatch>;
+  filterOptions?: IFilterOptions;
 
   /**
    * The colours to use for document matches.
@@ -103,11 +101,11 @@ export interface IPluginOptions<
   /**
    * Called when a match decoration is clicked.
    */
-  onMatchDecorationClicked?: (match: TMatch) => void;
+  onMatchDecorationClicked?: (match: IMatch) => void;
 
   telemetryAdapter?: TyperighterTelemetryAdapter;
 
-  adapter: IMatcherAdapter<TMatch>,
+  adapter: IMatcherAdapter,
 
   typerighterEnabled?: boolean
 }
@@ -117,12 +115,12 @@ export interface IPluginOptions<
  * document is changed via the supplied servier, decorating the document with matches
  * when they are are returned, and applying suggestions to the document.
  */
-const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
-  options: IPluginOptions<TFilterState, TMatch>
+const createTyperighterPlugin = (
+  options: IPluginOptions
 ): {
-  plugin: Plugin<IPluginState<TFilterState, TMatch>>;
-  store: Store<IPluginState<TFilterState, TMatch>>;
-  matcherService: MatcherService<TFilterState, TMatch>
+  plugin: Plugin<IPluginState>;
+  store: Store<IPluginState>;
+  matcherService: MatcherService
 } => {
   const {
     expandRanges = expandRangesToParentBlockNodes,
@@ -138,24 +136,22 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
     telemetryAdapter,
     typerighterEnabled = true,
   } = options;
-  // A handy alias to reduce repetition
-  type TPluginState = IPluginState<TFilterState, TMatch>;
-
   // Set up our store, which we'll use to notify consumer code of state updates.
-  const store = new Store<TPluginState>();
-  const reducer = createReducer<TPluginState>(
+  const store = new Store<IPluginState>();
+  const reducer = createReducer(
     expandRanges,
     ignoreMatch,
     filterOptions?.filterMatches,
     getSkippedRanges
   );
+
   const matcherService = new MatcherService(store, adapter, telemetryAdapter)
 
-  const plugin: Plugin<TPluginState> = new Plugin({
+  const plugin: Plugin<IPluginState> = new Plugin({
     key: pluginKey,
     state: {
       init: (_, { doc }) => {
-        const initialState = createInitialState<TFilterState, TMatch>({
+        const initialState = createInitialState({
           doc,
           matches,
           ignoreMatch,
@@ -167,7 +163,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
         store.emit(STORE_EVENT_NEW_STATE, initialState);
         return initialState;
       },
-      apply(tr: Transaction, state: TPluginState): TPluginState {
+      apply(tr: Transaction, state: IPluginState): IPluginState {
         // We use the reducer pattern to handle state transitions.
         return reducer(tr, state, tr.getMeta(PROSEMIRROR_TYPERIGHTER_ACTION));
       }
@@ -178,8 +174,8 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
      * in response to state transitions.
      */
     appendTransaction(trs: Transaction[], oldState, newState) {
-      const oldPluginState: TPluginState = plugin.getState(oldState);
-      const newPluginState: TPluginState = plugin.getState(newState);
+      const oldPluginState: IPluginState = plugin.getState(oldState);
+      const newPluginState: IPluginState = plugin.getState(newState);
 
       const newTr = newState.tr;
 
@@ -213,10 +209,7 @@ const createTyperighterPlugin = <TFilterState, TMatch extends IMatch>(
       );
     },
     props: {
-      decorations: state => {
-        const { decorations }: TPluginState = plugin.getState(state);
-        return decorations;
-      },
+      decorations: state => plugin.getState(state).decorations,
       handleDOMEvents: {
         mouseleave: (view, event) => {
           maybeResetHoverStates(view, isElementPartOfTyperighterUI, event);

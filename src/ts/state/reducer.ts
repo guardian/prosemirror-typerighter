@@ -27,7 +27,7 @@ import {
   SET_FILTER_STATE,
   ActionSetFilterState,
   SET_TYPERIGHTER_ENABLED,
-  ActionSetTyperighterEnabled,
+  ActionSetTyperighterEnabled
 } from "./actions";
 import {
   IMatch,
@@ -46,7 +46,8 @@ import {
   createDecorationsForMatch,
   createDecorationsForMatches,
   IMatchTypeToColourMap,
-  defaultMatchColours
+  defaultMatchColours,
+  MatchType
 } from "../utils/decoration";
 import {
   mergeRanges,
@@ -76,8 +77,8 @@ import {
   getNewStateFromTransaction,
   isFilterStateStale
 } from "./helpers";
-import { TFilterMatches } from "../utils/plugin";
 import { v4 } from "uuid";
+import { IFilterMatches } from "../utils/plugin";
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
@@ -110,20 +111,17 @@ export interface IPluginConfig {
   matchColours: IMatchTypeToColourMap;
 }
 
-export interface IPluginState<
-  TFilterState extends unknown = unknown,
-  TMatches extends IMatch = IMatch
-> {
+export interface IPluginState {
   config: IPluginConfig;
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current matches for the document.
-  currentMatches: TMatches[];
+  currentMatches: IMatch[];
   // The current matches, filtered by the current filterState and the
   // supplied filter predicate. This is cached in the state and only
   // recomputed when necessary – filtering decorations in the plugin
   // decoration mapping on every transaction is not performant.
-  filteredMatches: TMatches[];
+  filteredMatches: IMatch[];
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last request.
   dirtiedRanges: IRange[];
@@ -152,7 +150,7 @@ export interface IPluginState<
   // The current error message.
   requestErrors: IMatchRequestError[];
   // The current state of the filter
-  filterState: TFilterState;
+  filterState: MatchType[];
   // Has the document changed since the last document check?
   docChangedSinceCheck: boolean;
   docIsEmpty: boolean;
@@ -164,15 +162,12 @@ export interface IPluginState<
 // The transaction meta key that namespaces our actions.
 export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 
-interface IInitialStateOpts<
-  TFilterState extends unknown,
-  TMatch extends IMatch
-> {
+interface IInitialStateOpts {
   doc: Node;
-  matches?: TMatch[];
+  matches?: IMatch[];
   ignoreMatch?: IIgnoreMatchPredicate;
   matchColours?: IMatchTypeToColourMap;
-  filterOptions?: IFilterOptions<TFilterState, TMatch>;
+  filterOptions?: IFilterOptions;
   requestMatchesOnDocModified?: boolean;
   typerighterEnabled?: boolean;
 }
@@ -180,10 +175,7 @@ interface IInitialStateOpts<
 /**
  * Initial state.
  */
-export const createInitialState = <
-  TFilterState extends unknown,
-  TMatch extends IMatch
->({
+export const createInitialState = ({
   doc,
   matches = [],
   ignoreMatch = includeAllMatches,
@@ -191,23 +183,20 @@ export const createInitialState = <
   requestMatchesOnDocModified = false,
   typerighterEnabled = true,
   filterOptions
-}: IInitialStateOpts<TFilterState, TMatch>): IPluginState<
-  TFilterState,
-  TMatch
-> => {
-  const initialState = {
+}: IInitialStateOpts): IPluginState => {
+  const initialState: IPluginState = {
     config: {
       showPendingInflightChecks: false,
       requestMatchesOnDocModified,
-      matchColours,
+      matchColours
     },
     decorations: DecorationSet.create(
       doc,
       createDecorationsForMatches(matches)
     ),
     dirtiedRanges: [],
-    currentMatches: [] as TMatch[],
-    filteredMatches: [] as TMatch[],
+    currentMatches: [] as IMatch[],
+    filteredMatches: [] as IMatch[],
     selectedMatch: undefined,
     hoverId: undefined,
     hoverRectIndex: undefined,
@@ -215,7 +204,7 @@ export const createInitialState = <
     requestsInFlight: {},
     requestPending: false,
     requestErrors: [],
-    filterState: filterOptions?.initialFilterState as TFilterState,
+    filterState: filterOptions?.initialFilterState ?? [],
     docChangedSinceCheck: false,
     docIsEmpty: !nodeContainsText(doc),
     typerighterEnabled
@@ -239,13 +228,10 @@ export const createInitialState = <
   );
 };
 
-export const createReducer = <TPluginState extends IPluginState>(
+export const createReducer = (
   expandRanges: ExpandRanges,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
-  filterMatches?: TFilterMatches<
-    TPluginState["filterState"],
-    TPluginState["currentMatches"][0]
-  >,
+  filterMatches?: IFilterMatches,
   getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
@@ -255,15 +241,15 @@ export const createReducer = <TPluginState extends IPluginState>(
   const handleMatchesRequestForDocument = createHandleMatchesRequestForDocument(
     getIgnoredRanges
   );
-  const handleNewHoverId = createHandleNewFocusState<TPluginState>("hoverId");
-  const handleNewHighlightId = createHandleNewFocusState<TPluginState>(
+  const handleNewHoverId = createHandleNewFocusState("hoverId");
+  const handleNewHighlightId = createHandleNewFocusState(
     "highlightId"
   );
   return (
     tr: Transaction,
-    incomingState: TPluginState,
-    action?: Action<TPluginState>
-  ): TPluginState => {
+    incomingState: IPluginState,
+    action?: Action
+  ): IPluginState => {
     // There are certain things we need to do every time the document is changed, e.g. mapping ranges.
     const state = tr.docChanged
       ? getNewStateFromTransaction(tr, incomingState)
@@ -302,7 +288,11 @@ export const createReducer = <TPluginState extends IPluginState>(
         case SET_FILTER_STATE:
           return handleSetFilterState(tr, state, action);
         case SET_TYPERIGHTER_ENABLED:
-          return handleSetTyperighterEnabled(getIgnoredRanges)(tr, state, action);
+          return handleSetTyperighterEnabled(getIgnoredRanges)(
+            tr,
+            state,
+            action
+          );
         default:
           return state;
       }
@@ -325,11 +315,11 @@ export const createReducer = <TPluginState extends IPluginState>(
 /**
  * Handle the selection of a hover id.
  */
-const handleSelectMatch = <TPluginState extends IPluginState>(
+const handleSelectMatch = (
   _: unknown,
-  state: TPluginState,
+  state: IPluginState,
   action: ActionSelectMatch
-): TPluginState => {
+): IPluginState => {
   return {
     ...state,
     selectedMatch: action.payload.matchId
@@ -339,11 +329,11 @@ const handleSelectMatch = <TPluginState extends IPluginState>(
 /**
  * Remove a match and its decoration from the state.
  */
-const handleRemoveMatch = <TPluginState extends IPluginState>(
+const handleRemoveMatch = (
   _: unknown,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { id } }: ActionRemoveMatch
-): TPluginState => {
+): IPluginState => {
   const decorationToRemove = state.decorations.find(
     undefined,
     undefined,
@@ -365,10 +355,10 @@ const handleRemoveMatch = <TPluginState extends IPluginState>(
 /**
  * Remove all matches and their decoration from the state.
  */
-const handleRemoveAllMatches = <TPluginState extends IPluginState>(
+const handleRemoveAllMatches = (
   _: unknown,
-  state: TPluginState
-): TPluginState => {
+  state: IPluginState
+): IPluginState => {
   const decorationToRemove = state.decorations.find();
 
   const decorations = decorationToRemove
@@ -386,13 +376,13 @@ const handleRemoveAllMatches = <TPluginState extends IPluginState>(
 /**
  * Handle the receipt of a new focus state.
  */
-const createHandleNewFocusState = <TPluginState extends IPluginState>(
+const createHandleNewFocusState = (
   focusState: "highlightId" | "hoverId"
 ) => (
   tr: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   action: ActionNewHoverIdReceived | ActionNewHighlightIdReceived
-): TPluginState => {
+): IPluginState => {
   let decorations = state.decorations;
   const incomingHoverId = action.payload.matchId;
   const currentHoverId = state[focusState];
@@ -420,10 +410,7 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
     }
     return decorations.add(
       tr.doc,
-      createDecorationsForMatch(
-        output,
-        hoverData.isSelected
-      )
+      createDecorationsForMatch(output, hoverData.isSelected)
     );
   }, decorations);
 
@@ -440,11 +427,11 @@ const createHandleNewFocusState = <TPluginState extends IPluginState>(
   };
 };
 
-const handleNewDirtyRanges = <TPluginState extends IPluginState>(
+const handleNewDirtyRanges = (
   tr: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { ranges: dirtiedRanges } }: ActionHandleNewDirtyRanges
-): TPluginState => {
+): IPluginState => {
   // Map our dirtied ranges through the current transaction, and append any new ranges it has dirtied.
   let newDecorations = state.config.showPendingInflightChecks
     ? state.decorations.add(
@@ -459,8 +446,9 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
     output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
   );
 
-  const shouldPersistNewDirtyRanges = state.config.requestMatchesOnDocModified
-    || !!Object.keys(state.requestsInFlight).length;
+  const shouldPersistNewDirtyRanges =
+    state.config.requestMatchesOnDocModified ||
+    !!Object.keys(state.requestsInFlight).length;
 
   return {
     ...state,
@@ -479,11 +467,11 @@ const handleNewDirtyRanges = <TPluginState extends IPluginState>(
 const createHandleMatchesRequestForDirtyRanges = (
   expandRanges: ExpandRanges,
   getIgnoredRanges: TGetSkippedRanges
-) => <TPluginState extends IPluginState>(
+) => (
   tr: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDirtyRanges
-): TPluginState => {
+): IPluginState => {
   const ranges = expandRanges(state.dirtiedRanges, tr.doc);
   const blocks = ranges.map(range =>
     createBlock(tr.doc, range, tr.time, getIgnoredRanges)
@@ -496,11 +484,11 @@ const createHandleMatchesRequestForDirtyRanges = (
  */
 const createHandleMatchesRequestForDocument = (
   getIgnoredRanges: TGetSkippedRanges
-) => <TPluginState extends IPluginState>(
+) => (
   tr: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { requestId, categoryIds } }: ActionRequestMatchesForDocument
-): TPluginState => {
+): IPluginState => {
   return handleRequestStart(
     requestId,
     getBlocksFromDocument(tr.doc, tr.time, getIgnoredRanges),
@@ -515,10 +503,10 @@ const handleRequestStart = (
   requestId: string,
   blocks: IBlockWithSkippedRanges[],
   categoryIds: string[]
-) => <TPluginState extends IPluginState>(
+) => (
   tr: Transaction,
-  state: TPluginState
-): TPluginState => {
+  state: IPluginState
+): IPluginState => {
   // Replace any debug decorations, if they exist.
   const decorations = state.config.showPendingInflightChecks
     ? removeDecorationsFromRanges(state.decorations, blocks, [
@@ -536,15 +524,16 @@ const handleRequestStart = (
     }))
     .filter(({ block }) => block.text.length !== 0);
 
-  const newRequestInFlight = newBlocksInFlight.length ?
-    {
-      [requestId]: {
-        totalBlocks: newBlocksInFlight.length,
-        pendingBlocks: newBlocksInFlight,
-        mapping: tr.mapping,
-        categoryIds
+  const newRequestInFlight = newBlocksInFlight.length
+    ? {
+        [requestId]: {
+          totalBlocks: newBlocksInFlight.length,
+          pendingBlocks: newBlocksInFlight,
+          mapping: tr.mapping,
+          categoryIds
+        }
       }
-    } : {}
+    : {};
 
   return {
     ...state,
@@ -567,10 +556,7 @@ const amendRequestInFlight = (
   blockId: string,
   categoryIds: string[]
 ) => {
-  const currentRequestInFlight = selectRequestInFlightById(
-    state,
-    requestId
-  );
+  const currentRequestInFlight = selectRequestInFlightById(state, requestId);
   if (!currentRequestInFlight) {
     return state.requestsInFlight;
   }
@@ -607,14 +593,11 @@ const amendRequestInFlight = (
 /**
  * Handle a response, decorating the document with any matches we've received.
  */
-const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
-  TMatch extends IMatch,
-  TPluginState extends IPluginState<unknown, TMatch>
->(
+const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => (
   tr: Transaction,
-  state: TPluginState,
-  { payload: { response } }: ActionRequestMatchesSuccess<TPluginState>
-): TPluginState => {
+  state: IPluginState,
+  { payload: { response } }: ActionRequestMatchesSuccess
+): IPluginState => {
   if (!response || !state.typerighterEnabled) {
     return state;
   }
@@ -658,17 +641,16 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     [] as Decoration[]
   );
 
-  const currentMapping = selectRequestInFlightById(
-    state,
-    response.requestId
-  )!.mapping;
+  const currentMapping = selectRequestInFlightById(state, response.requestId)!
+    .mapping;
 
   // Map our matches across any changes, filtering out inapplicable matches
   const docSelection = new AllSelection(tr.doc);
-  const mappedMatchesToAdd = mapRanges(response.matches, currentMapping).filter(match =>
-    match.to <= docSelection.to // Match should be within document bounds
-      && match.to !== match.from // Match should not be zero width (can happen as a result of mapping)
-      && !ignoreMatch(match) // Match should not be marked as ignored by consumer
+  const mappedMatchesToAdd = mapRanges(response.matches, currentMapping).filter(
+    match =>
+      match.to <= docSelection.to && // Match should be within document bounds
+      match.to !== match.from && // Match should not be zero width (can happen as a result of mapping)
+      !ignoreMatch(match) // Match should not be marked as ignored by consumer
   );
 
   // Add the response to the current matches.
@@ -693,9 +675,11 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
     state.requestsInFlight
   );
 
-  const dirtiedRanges = (state.config.requestMatchesOnDocModified || Object.keys(newBlocksInFlight).length)
-    ? state.dirtiedRanges
-    : []
+  const dirtiedRanges =
+    state.config.requestMatchesOnDocModified ||
+    Object.keys(newBlocksInFlight).length
+      ? state.dirtiedRanges
+      : [];
 
   return {
     ...state,
@@ -712,11 +696,11 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => <
 /**
  * Handle a matches request error.
  */
-const handleMatchesRequestError = <TPluginState extends IPluginState>(
+const handleMatchesRequestError = (
   tr: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { matchRequestError } }: ActionRequestError
-): TPluginState => {
+): IPluginState => {
   const { requestId, blockId, categoryIds } = matchRequestError;
 
   if (!blockId) {
@@ -789,11 +773,11 @@ const handleMatchesRequestError = <TPluginState extends IPluginState>(
   };
 };
 
-const handleRequestComplete = <TPluginState extends IPluginState>(
+const handleRequestComplete = (
   _: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { requestId } }: ActionRequestComplete
-): TPluginState => {
+): IPluginState => {
   const requestInFlight = selectRequestInFlightById(state, requestId);
   const hasUnfinishedWork =
     requestInFlight &&
@@ -813,11 +797,11 @@ const handleRequestComplete = <TPluginState extends IPluginState>(
   };
 };
 
-const handleSetConfigValue = <TPluginState extends IPluginState>(
+const handleSetConfigValue = (
   _: Transaction,
-  state: TPluginState,
+  state: IPluginState,
   { payload: { key, value } }: ActionSetConfigValue
-): TPluginState => {
+): IPluginState => {
   const newState = {
     ...state,
     config: {
@@ -826,7 +810,10 @@ const handleSetConfigValue = <TPluginState extends IPluginState>(
     }
   };
 
-  const shouldRemovePendingInflightDecos = key === "showPendingInflightChecks" && !!state.config.showPendingInflightChecks && value === false
+  const shouldRemovePendingInflightDecos =
+    key === "showPendingInflightChecks" &&
+    !!state.config.showPendingInflightChecks &&
+    value === false;
   if (shouldRemovePendingInflightDecos) {
     return {
       ...newState,
@@ -843,22 +830,26 @@ const handleSetConfigValue = <TPluginState extends IPluginState>(
   return newState;
 };
 
-const handleSetFilterState = <TPluginState extends IPluginState>(
+const handleSetFilterState = (
   _: Transaction,
-  state: TPluginState,
-  { payload: { filterState } }: ActionSetFilterState<TPluginState>
-): TPluginState => ({
+  state: IPluginState,
+  { payload: { filterState } }: ActionSetFilterState
+): IPluginState => ({
   ...state,
   filterState
 });
 
-const handleSetTyperighterEnabled = (getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges) => <TPluginState extends IPluginState>(
+const handleSetTyperighterEnabled = (
+  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
+) => (
   _: Transaction,
-  state: TPluginState,
-  { payload: { typerighterEnabled } }: ActionSetTyperighterEnabled,
-): TPluginState => {
-
-  const matchRequestAction = { type: REQUEST_FOR_DOCUMENT, payload: { requestId: v4(), categoryIds: []}}
+  state: IPluginState,
+  { payload: { typerighterEnabled } }: ActionSetTyperighterEnabled
+): IPluginState => {
+  const matchRequestAction = {
+    type: REQUEST_FOR_DOCUMENT,
+    payload: { requestId: v4(), categoryIds: [] }
+  };
   const updatedState = typerighterEnabled
     ? // Run a check if typerighter has been enabled
       createHandleMatchesRequestForDocument(getIgnoredRanges)(
@@ -878,5 +869,5 @@ const handleSetTyperighterEnabled = (getIgnoredRanges: TGetSkippedRanges = doNot
     ...state,
     ...updatedState,
     typerighterEnabled
-  }
-}
+  };
+};
