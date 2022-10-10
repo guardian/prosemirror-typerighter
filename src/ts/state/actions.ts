@@ -59,9 +59,9 @@ export const requestMatchesSuccess = <TPluginState extends IPluginState>(
 // We must repeat ourselves here, as ReturnType doesn't play nicely with type parameters.
 // See https://github.com/microsoft/TypeScript/issues/26856
 // tslint:disable-next-line:interface-over-type-literal
-export type ActionRequestMatchesSuccess<TPluginState extends IPluginState> = {
+export type ActionRequestMatchesSuccess = {
   type: "REQUEST_SUCCESS";
-  payload: { response: IMatcherResponse<TPluginState["currentMatches"]> };
+  payload: { response: IMatcherResponse<IPluginState["currentMatches"]> };
 };
 
 export const requestError = (matchRequestError: IMatchRequestError) => ({
@@ -76,7 +76,10 @@ export const requestMatchesComplete = (requestId: string) => ({
 });
 export type ActionRequestComplete = ReturnType<typeof requestMatchesComplete>;
 
-export const newHoverIdReceived = (matchId: string | undefined, rectIndex: number | undefined) => ({
+export const newHoverIdReceived = (
+  matchId: string | undefined,
+  rectIndex: number | undefined
+) => ({
   type: NEW_HOVER_ID,
   payload: { matchId, rectIndex }
 });
@@ -134,25 +137,24 @@ export const setFilterState = <TPluginState extends IPluginState>(
   payload: { filterState }
 });
 // tslint:disable-next-line:interface-over-type-literal
-export type ActionSetFilterState<TPluginState extends IPluginState> = {
+export type ActionSetFilterState = {
   type: typeof SET_FILTER_STATE;
-  payload: { filterState: TPluginState["filterState"] };
+  payload: { filterState: IPluginState["filterState"] };
 };
 
-export const setTyperighterEnabled = (
-  typerighterEnabled: boolean,
-) => ({
+export const setTyperighterEnabled = (typerighterEnabled: boolean) => ({
   type: SET_TYPERIGHTER_ENABLED,
   payload: { typerighterEnabled }
 });
 
-export type ActionSetTyperighterEnabled = ReturnType<typeof setTyperighterEnabled>
+export type ActionSetTyperighterEnabled = ReturnType<
+  typeof setTyperighterEnabled
+>;
 
-
-export type Action<TPluginState extends IPluginState> =
+export type Action =
   | ActionNewHoverIdReceived
   | ActionNewHighlightIdReceived
-  | ActionRequestMatchesSuccess<TPluginState>
+  | ActionRequestMatchesSuccess
   | ActionRequestMatchesForDirtyRanges
   | ActionRequestMatchesForDocument
   | ActionRequestError
@@ -162,5 +164,5 @@ export type Action<TPluginState extends IPluginState> =
   | ActionSetConfigValue
   | ActionRemoveMatch
   | ActionRemoveAllMatches
-  | ActionSetFilterState<TPluginState>
+  | ActionSetFilterState
   | ActionSetTyperighterEnabled;

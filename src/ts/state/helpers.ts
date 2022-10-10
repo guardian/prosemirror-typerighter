@@ -12,16 +12,16 @@ import {
   createDecorationsForMatches
 } from "../utils/decoration";
 import { DecorationSet } from "prosemirror-view";
-import { TFilterMatches } from "../utils/plugin";
+import { IFilterMatches } from "../utils/plugin";
 import { mapAndMergeRanges, mapRange, mapRanges } from "../utils/range";
 import { nodeContainsText } from "../utils/prosemirror";
 
-export const addMatchesToState = <TPluginState extends IPluginState>(
-  state: TPluginState,
+export const addMatchesToState = (
+  state: IPluginState,
   doc: any,
-  matches: Array<TPluginState["currentMatches"][number]>,
+  matches: Array<IPluginState["currentMatches"][number]>,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
-) => {
+): IPluginState => {
   const matchesToApply = matches.filter(match => !ignoreMatch(match));
   const decorations = matchesToApply.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
@@ -37,11 +37,11 @@ export const addMatchesToState = <TPluginState extends IPluginState>(
 /**
  * Is the current filter state stale, given the incoming state?
  */
-export const isFilterStateStale = <TPluginState extends IPluginState>(
-  oldState: TPluginState,
-  newState: TPluginState,
-  filterMatches?: TFilterMatches<TPluginState["filterState"]>
-): filterMatches is TFilterMatches<TPluginState["filterState"]> => {
+export const isFilterStateStale = (
+  oldState: IPluginState,
+  newState: IPluginState,
+  filterMatches?: IFilterMatches
+): filterMatches is IFilterMatches => {
   const matchesChanged = oldState.currentMatches !== newState.currentMatches;
   const filterStateChanged = oldState.filterState !== newState.filterState;
   const noFilterApplied = !oldState.filterState && !newState.filterState;
@@ -52,14 +52,11 @@ export const isFilterStateStale = <TPluginState extends IPluginState>(
   );
 };
 
-export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
+export const deriveFilteredDecorations = (
   doc: Node,
-  newState: TPluginState,
-  filterMatches: TFilterMatches<
-    TPluginState["filterState"],
-    TPluginState["currentMatches"][number]
-  >
-): TPluginState => {
+  newState: IPluginState,
+  filterMatches: IFilterMatches
+): IPluginState => {
   const filteredMatches = filterMatches(
     newState.filterState,
     newState.currentMatches
@@ -102,10 +99,10 @@ export const deriveFilteredDecorations = <TPluginState extends IPluginState>(
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
  */
-export const getNewStateFromTransaction = <TPluginState extends IPluginState>(
+export const getNewStateFromTransaction = (
   tr: Transaction,
-  incomingState: TPluginState
-): TPluginState => {
+  incomingState: IPluginState
+): IPluginState => {
   const mappedRequestsInFlight = Object.entries(
     incomingState.requestsInFlight
   ).reduce((acc, [requestId, requestsInFlight]) => {

@@ -191,7 +191,7 @@ export const createInitialData = (
   return {
     tr,
     state: {
-      filterState: undefined,
+      filterState: [],
       config: {
         debug: false,
         requestMatchesOnDocModified: true,

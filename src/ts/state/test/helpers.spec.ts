@@ -15,7 +15,7 @@ import {
   getNewDecorationsForCurrentMatches,
   MatchType
 } from "../../utils/decoration";
-import { filterByMatchState, IDefaultFilterState } from "../../utils/plugin";
+import { filterByMatchState } from "../../utils/plugin";
 import { expandRangesToParentBlockNodes } from "../../utils/range";
 import {
   deriveFilteredDecorations,
@@ -40,7 +40,7 @@ describe("State helpers", () => {
       state: {
         ...state,
         filterState
-      } as IPluginState<TFilterState>
+      } as IPluginState
     };
   };
 
@@ -54,10 +54,7 @@ describe("State helpers", () => {
     });
     it("should report fresh when the filter state is undefined and the matches change", () => {
       const { state: oldState } = getState([] as IMatch[], undefined);
-      const { state: newState } = getState(
-        [createMatch(1, 2)],
-        undefined
-      );
+      const { state: newState } = getState([createMatch(1, 2)], undefined);
       const isStale = isFilterStateStale(oldState, newState, identity);
       expect(isStale).toBe(false);
     });
@@ -86,7 +83,7 @@ describe("State helpers", () => {
       const { tr, state } = getState([], []);
       const { filteredMatches, decorations } = deriveFilteredDecorations(
         tr.doc,
-        state as IPluginState<IDefaultFilterState>,
+        state as IPluginState,
         filterByMatchState
       );
       expect(filteredMatches).toEqual([]);
@@ -101,7 +98,7 @@ describe("State helpers", () => {
         decorations
       } = deriveFilteredDecorations(
         tr.doc,
-        state as IPluginState<IDefaultFilterState>,
+        state as IPluginState,
         filterByMatchState
       );
       expect(filteredMatches).toEqual(currentMatches);
@@ -118,7 +115,7 @@ describe("State helpers", () => {
         decorations
       } = deriveFilteredDecorations(
         tr.doc,
-        state as IPluginState<IDefaultFilterState>,
+        state as IPluginState,
         filterByMatchState
       );
 
@@ -132,7 +129,7 @@ describe("State helpers", () => {
       const debugDecos = DecorationSet.create(tr.doc, [
         createDebugDecorationFromRange({ from: 0, to: 1 })
       ]);
-      const stateWithDebugDecos: IPluginState<IDefaultFilterState> = {
+      const stateWithDebugDecos: IPluginState = {
         ...state,
         decorations: debugDecos
       };
@@ -159,7 +156,9 @@ describe("State helpers", () => {
 
       expect(newState.currentMatches[0].from).toBe(matches[0].from);
       expect(newState.currentMatches[0].to).toBe(matches[0].to - deleteRange);
-      expect(newState.currentMatches[1].from).toBe(matches[1].from - deleteRange);
+      expect(newState.currentMatches[1].from).toBe(
+        matches[1].from - deleteRange
+      );
       expect(newState.currentMatches[1].to).toBe(matches[1].to - deleteRange);
     });
 
@@ -171,13 +170,15 @@ describe("State helpers", () => {
       const initState = {
         ...state,
         dirtiedRanges: [dirtiedRange]
-      }
+      };
 
       tr.delete(deleteFrom, deleteFrom + deleteRange);
       const newState = getNewStateFromTransaction(tr, initState);
 
       expect(newState.dirtiedRanges[0].from).toEqual(dirtiedRange.from);
-      expect(newState.dirtiedRanges[0].to).toEqual(dirtiedRange.to - deleteRange);
+      expect(newState.dirtiedRanges[0].to).toEqual(
+        dirtiedRange.to - deleteRange
+      );
     });
 
     it("should add mapping to the requests in flight", () => {
@@ -186,20 +187,26 @@ describe("State helpers", () => {
       const { tr, state } = getState([], [MatchType.DEFAULT]);
       const initState = {
         ...state,
-        requestsInFlight: createRequestInFlight([createBlock(1, 22, "Example text to check")])
+        requestsInFlight: createRequestInFlight([
+          createBlock(1, 22, "Example text to check")
+        ])
       };
 
       tr.delete(deleteFrom, deleteFrom + deleteRange);
       const newState = getNewStateFromTransaction(tr, initState);
 
-      expect(newState.requestsInFlight[exampleRequestId].mapping).toEqual(tr.mapping);
+      expect(newState.requestsInFlight[exampleRequestId].mapping).toEqual(
+        tr.mapping
+      );
     });
 
     it("should map requestsInFlight blocks through the incoming transaction mapping", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
       const { tr, state } = getState([], [MatchType.DEFAULT]);
-      const requestsInFlight = createRequestInFlight([createBlock(1, 23, "Example text to check")])
+      const requestsInFlight = createRequestInFlight([
+        createBlock(1, 23, "Example text to check")
+      ]);
       const initState = {
         ...state,
         requestsInFlight
@@ -208,11 +215,13 @@ describe("State helpers", () => {
       tr.delete(deleteFrom, deleteFrom + deleteRange);
       const newState = getNewStateFromTransaction(tr, initState);
 
-      const oldBlockInFlight = state.requestsInFlight[exampleRequestId].pendingBlocks[0].block
-      const newBlockInFlight = newState.requestsInFlight[exampleRequestId].pendingBlocks[0].block
+      const oldBlockInFlight =
+        state.requestsInFlight[exampleRequestId].pendingBlocks[0].block;
+      const newBlockInFlight =
+        newState.requestsInFlight[exampleRequestId].pendingBlocks[0].block;
 
       expect(newBlockInFlight.from).toEqual(oldBlockInFlight.from);
       expect(newBlockInFlight.to).toEqual(oldBlockInFlight.to - deleteRange);
     });
-  })
+  });
 });

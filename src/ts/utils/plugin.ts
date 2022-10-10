@@ -3,8 +3,12 @@ import { EditorView } from "prosemirror-view";
 import { PluginKey } from "prosemirror-state";
 import { getMatchType, MatchType } from "./decoration";
 import { IMatch } from "..";
+import { IPluginState } from "../state/reducer";
 
 export const pluginKey = new PluginKey("prosemirror-typerighter");
+export const getState = (pluginKey as PluginKey<IPluginState>).getState.bind(
+  pluginKey
+);
 
 export const maybeResetHoverStates = (
   view: EditorView,
@@ -37,15 +41,10 @@ export type IDefaultFilterState = MatchType[];
  * A function that, receiving a filter state, returns a filtered list of matches.
  * Generic to allow plugin consumers to apply their own filter behaviour.
  */
-export type TFilterMatches<
-  TFilterState,
-  TMatch extends IMatch = IMatch
-> = (
-  filterState: TFilterState,
-  matches: TMatch[]
-) => TMatch[];
+export type IFilterMatches = (
+  filterState: MatchType[],
+  matches: IMatch[]
+) => IMatch[];
 
-export const filterByMatchState: TFilterMatches<IDefaultFilterState> = (
-  filterState,
-  matches
-) => matches.filter(match => !filterState.includes(getMatchType(match)));
+export const filterByMatchState: IFilterMatches = (filterState, matches) =>
+  matches.filter(match => !filterState.includes(getMatchType(match)));
