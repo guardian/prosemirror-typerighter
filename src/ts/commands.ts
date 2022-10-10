@@ -40,9 +40,7 @@ type Command = (
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TPluginState extends IPluginState = IPluginState> = (
-  state: EditorState
-) => TPluginState | null | undefined;
+type GetState = (state: EditorState) => IPluginState | null | undefined;
 
 /**
  * Requests matches for an entire document.
@@ -153,9 +151,9 @@ export const stopHighlightCommand = (): Command => (state, dispatch) => {
 /**
  * Mark a given match as active.
  */
-export const selectMatchCommand = <TPluginState extends IPluginState>(
+export const selectMatchCommand = (
   matchId: string,
-  getState: GetState<TPluginState>
+  getState: GetState
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
   if (!pluginState) {
@@ -345,9 +343,7 @@ export const ignoreMatchCommand = (id: string) => (getState: GetState) => (
   return !!match;
 };
 
-export const clearMatchesCommand = () => <TPluginState extends IPluginState>(
-  _: GetState<TPluginState>
-) => (
+export const clearMatchesCommand = () => (_: GetState) => (
   state: EditorState,
   dispatch?: (tr: Transaction<any>) => void
 ): boolean => {

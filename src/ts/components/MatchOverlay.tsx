@@ -11,8 +11,8 @@ import { debounce } from "lodash"
 import { Placement } from "@popperjs/core";
 
 
-interface IProps<TPluginState extends IPluginState> {
-  store: Store<TPluginState>;
+interface IProps {
+  store: Store<IPluginState>;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   stopHover: () => void;
   feedbackHref?: string;
@@ -22,13 +22,13 @@ interface IProps<TPluginState extends IPluginState> {
 /**
  * An overlay to display match tooltips.
  */
-const matchOverlay = <TPluginState extends IPluginState>({
+const matchOverlay = ({
   applySuggestions,
   feedbackHref,
   onMarkCorrect,
   stopHover,
   store
-}: IProps<TPluginState>) => {
+}: IProps) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
   );
@@ -91,7 +91,7 @@ const matchOverlay = <TPluginState extends IPluginState>({
       const lastRect = rects[rects.length - 1];
       //Determine the X offset as the difference between the last rect (bottom left) and the current rect.
       //This will only work if the placement is set to the "bottom-start". If we wanted to change this we
-      //would need to build more flexibility into how this is calculated. 
+      //would need to build more flexibility into how this is calculated.
       const x = hoverRect.left - lastRect.left;
       //Determine the Y offset by taking the rect height and multiplying by the number of rects (lines)
       //This adjustment depends on if the popup is displayed above or below the content.

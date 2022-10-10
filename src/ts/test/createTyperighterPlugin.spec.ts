@@ -17,7 +17,7 @@ import { createBoundCommands } from "../commands";
 import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
-import { filterByMatchState, getState, IDefaultFilterState } from "../utils/plugin";
+import { filterByMatchState, getState } from "../utils/plugin";
 import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
@@ -30,8 +30,8 @@ const matchWithReplacement: IMatch = {
 const endpoint = "http://typerighter-service-endpoint.rad";
 const adapter = new TyperighterAdapter(endpoint);
 
-const createPlugin = <TFilterState = unknown>(
-  opts?: IPluginOptions<TFilterState>
+const createPlugin = (
+  opts?: IPluginOptions
 ) => {
   const { plugin, store } = createTyperighterPlugin({
     matches,
@@ -233,7 +233,7 @@ describe("createTyperighterPlugin", () => {
     };
     it("should filter matches with the supplied predicate when the plugin initialises – remove matches", () => {
       const correctMatches = [{ ...createMatch(1), markAsCorrect: true }];
-      const { view } = createPlugin<IDefaultFilterState>({
+      const { view } = createPlugin({
         adapter,
         matches: correctMatches,
         filterOptions
@@ -247,7 +247,7 @@ describe("createTyperighterPlugin", () => {
         { ...createMatch(1), markAsCorrect: true },
         matchWithReplacement
       ];
-      const { view } = createPlugin<IDefaultFilterState>({
+      const { view } = createPlugin({
         adapter,
         matches: correctMatches,
         filterOptions
@@ -264,7 +264,7 @@ describe("createTyperighterPlugin", () => {
         createMatch(2),
         createMatch(3)
       ];
-      const { view, commands } = createPlugin<IDefaultFilterState>({
+      const { view, commands } = createPlugin({
         adapter,
         matches: matchesWithReplacements,
         filterOptions
