@@ -9,7 +9,8 @@ import TyperighterChunkedAdapter from "./services/adapters/TyperighterChunkedAda
 import { commands, createBoundCommands } from "./commands";
 import { getBlocksFromDocument } from './utils/prosemirror';
 import { filterByMatchState } from './utils/plugin';
-import { createSidebarView, createOverlayView } from "./createView";
+import { createSidebarView } from "./components/createSidebarView";
+import { createOverlayView } from "./components/createOverlayView";
 import '../css/index.scss';
 
 export {
