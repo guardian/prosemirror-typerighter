@@ -8,7 +8,7 @@ import { MatcherService } from "..";
 import { IPluginState } from "../state/reducer";
 
 interface IProps {
-  store: Store<IPluginState>;
+  store: Store;
   matcherService: MatcherService;
   commands: Commands;
   contactHref?: string;

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import { IconButton } from "@mui/material";
 import { DeleteForever } from "@mui/icons-material";
-
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { IPluginState } from "../state/reducer";
 import { ICategory } from "../interfaces/IMatch";
@@ -17,8 +16,8 @@ import {
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
 
-interface IProps<TPluginState extends IPluginState> {
-  store: Store<TPluginState>;
+interface IProps {
+  store: Store;
   clearMatches: () => void;
   setShowPendingInflightChecks: (isEnabled: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
@@ -47,7 +46,7 @@ const getErrorFeedbackLink = (
 /**
  * Controls to open and close Typerighter and check document.
  */
-const Controls = <TPluginState extends IPluginState>({
+const Controls = ({
   store,
   clearMatches,
   requestMatchesForDocument,
@@ -57,8 +56,8 @@ const Controls = <TPluginState extends IPluginState>({
   setRequestOnDocModified,
   setShowPendingInflightChecks,
   setTyperighterEnabled
-}: IProps<TPluginState>) => {
-  const [pluginState, setPluginState] = useState<TPluginState | undefined>(
+}: IProps) => {
+  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
   );
 

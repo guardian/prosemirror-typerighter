@@ -11,7 +11,6 @@ import { Commands } from "../commands";
 import { selectAllBlocksInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
-import { IPluginState } from "../state/reducer";
 import { removeSkippedRanges } from "../utils/block";
 import { mapMatchThroughBlocks } from "../utils/match";
 
@@ -28,7 +27,7 @@ class MatcherService {
   private commands: Commands | undefined;
 
   constructor(
-    private store: Store<IPluginState>,
+    private store: Store,
     private adapter: IMatcherAdapter,
     private telemetryAdapter?: TyperighterTelemetryAdapter,
     // The initial throttle duration for pending requests.

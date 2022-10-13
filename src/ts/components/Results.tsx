@@ -12,7 +12,7 @@ import _ from "lodash";
 import SidebarMatches from "./SidebarMatches";
 
 interface IProps {
-  store: Store<IPluginState>;
+  store: Store;
   applyAutoFixableSuggestions: () => void;
   applyFilterState: (filterState: MatchType[]) => void;
   selectMatch: (matchId: string) => void;

@@ -119,7 +119,7 @@ const createTyperighterPlugin = (
   options: IPluginOptions
 ): {
   plugin: Plugin<IPluginState>;
-  store: Store<IPluginState>;
+  store: Store;
   matcherService: MatcherService
 } => {
   const {
@@ -137,7 +137,7 @@ const createTyperighterPlugin = (
     typerighterEnabled = true,
   } = options;
   // Set up our store, which we'll use to notify consumer code of state updates.
-  const store = new Store<IPluginState>();
+  const store = new Store();
   const reducer = createReducer(
     expandRanges,
     ignoreMatch,

@@ -9,8 +9,9 @@ import TyperighterChunkedAdapter from "./services/adapters/TyperighterChunkedAda
 import { commands, createBoundCommands } from "./commands";
 import * as selectors from "./state/selectors";
 import { getBlocksFromDocument } from './utils/prosemirror';
+import { createSidebarView } from "./components/createSidebarView";
+import { createOverlayView } from "./components/createOverlayView";
 import { filterByMatchState, getState } from './utils/plugin';
-import createView from "./createView";
 import '../css/index.scss';
 
 export {
@@ -23,8 +24,9 @@ export {
   convertTyperighterResponse,
   createBoundCommands,
   commands,
+  createSidebarView,
+  createOverlayView,
   selectors,
-  createView,
   getState,
   createTyperighterPlugin,
   filterByMatchState,

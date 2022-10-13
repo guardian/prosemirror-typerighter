@@ -12,7 +12,7 @@ import { Placement } from "@popperjs/core";
 
 
 interface IProps {
-  store: Store<IPluginState>;
+  store: Store;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   stopHover: () => void;
   feedbackHref?: string;
