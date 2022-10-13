@@ -7,12 +7,10 @@ import { IMatch } from "../interfaces/IMatch";
 import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
 import TelemetryContext from "../contexts/TelemetryContext";
 import { EditorView } from "prosemirror-view";
-import { IPluginState } from "../state/reducer";
-import { MatchType } from "../utils/decoration";
 
-interface OverlayViewOptions<TPluginState extends IPluginState> {
+interface OverlayViewOptions {
   view: EditorView;
-  store: Store<TPluginState>;
+  store: Store;
   commands: Commands;
   overlayNode: Element;
   feedbackHref?: string;
@@ -24,9 +22,7 @@ interface OverlayViewOptions<TPluginState extends IPluginState> {
  * Instantiate the overlay view. The overlay view is responsible for rendering
  * the suggestion tooltip when users hover over a match in a document.
  */
-export const createOverlayView = <
-  TPluginState extends IPluginState<MatchType[]>
->({
+export const createOverlayView = ({
   view,
   store,
   telemetryAdapter,
@@ -34,7 +30,7 @@ export const createOverlayView = <
   overlayNode,
   feedbackHref,
   onMarkCorrect
-}: OverlayViewOptions<TPluginState>) => {
+}: OverlayViewOptions) => {
   overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");
 
   render(

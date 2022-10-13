@@ -9,9 +9,7 @@ import {
 /**
  * @internal
  */
-export declare class IMatcherAdapter<
-  TMatch extends IMatch = IMatch
-> {
+export declare class IMatcherAdapter {
   /**
    * Fetch the matches for the given inputs.
    */
@@ -19,7 +17,7 @@ export declare class IMatcherAdapter<
     requestId: string,
     input: IBlock[],
     categoryIds: string[],
-    onMatchesReceived: TMatchesReceivedCallback<TMatch>,
+    onMatchesReceived: TMatchesReceivedCallback,
     onRequestError: TRequestErrorCallback,
     onRequestComplete: TRequestCompleteCallback
   ) => void;
@@ -32,9 +30,7 @@ export declare class IMatcherAdapter<
   constructor(apiUrl: string);
 }
 
-export type TMatchesReceivedCallback<
-  TMatch extends IMatch = IMatch
-> = (response: IMatcherResponse<TMatch[]>) => void;
+export type TMatchesReceivedCallback = (response: IMatcherResponse<IMatch[]>) => void;
 
 export type TRequestErrorCallback = (
   matchRequestError: TMatchRequestErrorWithDefault

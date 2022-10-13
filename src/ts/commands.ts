@@ -33,15 +33,14 @@ import {
   getPatchesFromReplacementText,
   applyPatchToTransaction
 } from "./utils/prosemirror";
+import { getState } from "./utils/plugin";
 
 type Command = (
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => boolean;
 
-type GetState<TPluginState extends IPluginState = IPluginState> = (
-  state: EditorState
-) => TPluginState;
+type GetState = (state: EditorState) => IPluginState | null | undefined;
 
 /**
  * Requests matches for an entire document.
@@ -83,10 +82,10 @@ export const requestMatchesForDirtyRangesCommand = (
 /**
  * Indicate the user is hovering over a match.
  */
-export const startHoverCommand = (matchId: string, rectIndex: number | undefined): Command => (
-  state,
-  dispatch
-) => {
+export const startHoverCommand = (
+  matchId: string,
+  rectIndex: number | undefined
+): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
@@ -152,11 +151,15 @@ export const stopHighlightCommand = (): Command => (state, dispatch) => {
 /**
  * Mark a given match as active.
  */
-export const selectMatchCommand = <TPluginState extends IPluginState>(
+export const selectMatchCommand = (
   matchId: string,
-  getState: GetState<TPluginState>
+  getState: GetState
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
+  if (!pluginState) {
+    return false;
+  }
+
   const output = selectMatchByMatchId(pluginState, matchId);
   if (!output) {
     return false;
@@ -277,6 +280,10 @@ export const applySuggestionsCommand = (
   getState: GetState
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
+  if (!pluginState) {
+    return false;
+  }
+
   const suggestionsToApply = suggestionOptions
     .map(opt => {
       const maybeMatch = selectMatchByMatchId(pluginState, opt.matchId);
@@ -300,6 +307,10 @@ export const applyAutoFixableSuggestionsCommand = (
   getState: GetState
 ): Command => (state, dispatch) => {
   const pluginState = getState(state);
+  if (!pluginState) {
+    return false;
+  }
+
   const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(
     output => ({
       from: output.from,
@@ -321,21 +332,25 @@ export const ignoreMatchCommand = (id: string) => (getState: GetState) => (
   state: EditorState,
   dispatch?: (tr: Transaction<any>) => void
 ): boolean => {
-  const match = selectMatchByMatchId(getState(state), id);
+  const pluginState = getState(state);
+  if (!pluginState) {
+    return false;
+  }
+  const match = selectMatchByMatchId(pluginState, id);
   if (match && dispatch) {
     dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, removeMatch(id)));
   }
   return !!match;
 };
 
-export const clearMatchesCommand = () => <TPluginState extends IPluginState>(
-  _: GetState<TPluginState>
-) => (
+export const clearMatchesCommand = () => (_: GetState) => (
   state: EditorState,
   dispatch?: (tr: Transaction<any>) => void
 ): boolean => {
   if (dispatch) {
-    dispatch(state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, removeAllMatches()));
+    dispatch(
+      state.tr.setMeta(PROSEMIRROR_TYPERIGHTER_ACTION, removeAllMatches())
+    );
   }
   return true;
 };
@@ -384,7 +399,7 @@ const maybeApplySuggestions = (
 
 /**
  * Enable or disable typerighter
- * 
+ *
  * When Typerighter is enabled:
  *  - a check occurs of the whole document.
  *  - realtime checks will continue to occur if they are enabled.
@@ -393,10 +408,9 @@ const maybeApplySuggestions = (
  *  - all pending requests are discarded
  *  - realtime checks will no longer occur
  */
- export const setTyperighterEnabledCommand = (typerighterEnabled: boolean): Command => (
-  state,
-  dispatch
-) => {
+export const setTyperighterEnabledCommand = (
+  typerighterEnabled: boolean
+): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
@@ -411,17 +425,15 @@ const maybeApplySuggestions = (
 /**
  * Create a palette of prosemirror-typerighter commands bound to the given EditorView.
  */
-export const createBoundCommands = <TPluginState extends IPluginState>(
-  view: EditorView,
-  getState: GetState<TPluginState>
-) => {
+export const createBoundCommands = (view: EditorView) => {
   const bindCommand = <CommandArgs extends any[]>(
     action: (...args: CommandArgs) => Command
   ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
   return {
     ignoreMatch: (id: string) =>
       ignoreMatchCommand(id)(getState)(view.state, view.dispatch),
-    clearMatches: () => clearMatchesCommand()(getState)(view.state, view.dispatch),
+    clearMatches: () =>
+      clearMatchesCommand()(getState)(view.state, view.dispatch),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
       applySuggestionsCommand(suggestionOpts, getState)(
         view.state,
@@ -465,7 +477,7 @@ export const commands = {
   applyRequestErrorCommand,
   applyRequestCompleteCommand,
   setFilterStateCommand,
-  setTyperighterEnabledCommand,  
-}
+  setTyperighterEnabledCommand
+};
 
 export type Commands = ReturnType<typeof createBoundCommands>;

@@ -11,8 +11,8 @@ import { MatchType } from "../utils/decoration";
 import _ from "lodash";
 import SidebarMatches from "./SidebarMatches";
 
-interface IProps<TPluginState extends IPluginState> {
-  store: Store<TPluginState>;
+interface IProps {
+  store: Store;
   applyAutoFixableSuggestions: () => void;
   applyFilterState: (filterState: MatchType[]) => void;
   selectMatch: (matchId: string) => void;
@@ -27,7 +27,7 @@ interface IProps<TPluginState extends IPluginState> {
  * Displays current matches and allows users to apply suggestions.
  */
 
-const Results = <TPluginState extends IPluginState<MatchType[]>>({
+const Results = ({
   store,
   selectMatch,
   indicateHighlight,
@@ -36,13 +36,13 @@ const Results = <TPluginState extends IPluginState<MatchType[]>>({
   editorScrollElement,
   getScrollOffset,
   applyFilterState
-}: IProps<TPluginState>) => {
-  const [pluginState, setPluginState] = useState<TPluginState | undefined>(
+}: IProps) => {
+  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
   );
   const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
 
-  const handleNewState = (incomingState: TPluginState) => {
+  const handleNewState = (incomingState: IPluginState) => {
     setPluginState({
       ...incomingState,
       currentMatches: sortBy(incomingState.currentMatches, "from")

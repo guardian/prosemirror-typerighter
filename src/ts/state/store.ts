@@ -10,29 +10,24 @@ type STORE_EVENT_NEW_MATCHES = typeof STORE_EVENT_NEW_MATCHES;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
-export interface IStoreEvents<TPluginState extends IPluginState> {
+export interface IStoreEvents {
   [STORE_EVENT_NEW_MATCHES]: (
     requestId: string,
     blocks: IBlockWithSkippedRanges[]
   ) => void;
-  [STORE_EVENT_NEW_STATE]: (state: TPluginState) => void;
+  [STORE_EVENT_NEW_STATE]: (state: IPluginState) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
-type EventNames = keyof IStoreEvents<IPluginState>;
+type EventNames = keyof IStoreEvents;
 
 /**
  * A store to allow consumers to subscribe to state updates.
  */
-class Store<
-  TPluginState extends IPluginState,
-  TStoreEvents extends IStoreEvents<TPluginState> = IStoreEvents<
-    TPluginState
-  >
-> {
-  private state: TPluginState | undefined;
+class Store {
+  private state: IPluginState | undefined;
   private subscribers: {
-    [EventName in EventNames]: Array<TStoreEvents[EventName]>
+    [EventName in EventNames]: Array<IStoreEvents[EventName]>;
   } = {
     [STORE_EVENT_NEW_STATE]: [],
     [STORE_EVENT_NEW_MATCHES]: [],
@@ -48,11 +43,11 @@ class Store<
    */
   public emit<EventName extends EventNames>(
     eventName: EventName,
-    ...args: ArgumentTypes<TStoreEvents[EventName]>
+    ...args: ArgumentTypes<IStoreEvents[EventName]>
   ) {
-    (this.subscribers[eventName] as Array<TStoreEvents[EventName]>).forEach(
-      (_: any) => _(...args)
-    );
+    (this.subscribers[eventName] as Array<
+      IStoreEvents[EventName]
+    >).forEach((_: any) => _(...args));
   }
 
   /**
@@ -60,10 +55,10 @@ class Store<
    */
   public removeEventListener<EventName extends EventNames>(
     eventName: EventName,
-    listener: TStoreEvents[EventName]
+    listener: IStoreEvents[EventName]
   ): void {
     const index = (this.subscribers[eventName] as Array<
-      TStoreEvents[EventName]
+      IStoreEvents[EventName]
     >).indexOf(listener);
     if (index === -1) {
       throw new Error(
@@ -78,10 +73,10 @@ class Store<
    */
   public on<EventName extends EventNames>(
     eventName: EventName,
-    listener: (...args: ArgumentTypes<TStoreEvents[EventName]>) => void
+    listener: (...args: ArgumentTypes<IStoreEvents[EventName]>) => void
   ): void {
-    (this.subscribers[eventName] as Array<TStoreEvents[EventName]>).push(
-      listener as TStoreEvents[EventName]
+    (this.subscribers[eventName] as Array<IStoreEvents[EventName]>).push(
+      listener as IStoreEvents[EventName]
     );
   }
 
@@ -95,7 +90,7 @@ class Store<
   /**
    * Update the store's reference to the plugin state.
    */
-  private updateState(state: TPluginState) {
+  private updateState(state: IPluginState) {
     this.state = state;
   }
 }

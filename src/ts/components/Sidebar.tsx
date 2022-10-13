@@ -4,14 +4,12 @@ import Store, { STORE_EVENT_NEW_STATE } from ".././state/store";
 import Results from "./Results";
 import Controls from "./Controls";
 import { Commands } from ".././commands";
-import { IMatch } from ".././interfaces/IMatch";
 import { MatcherService } from "..";
 import { IPluginState } from "../state/reducer";
-import { MatchType } from "../utils/decoration";
 
-interface IProps<TPluginState extends IPluginState> {
-  store: Store<TPluginState>;
-  matcherService: MatcherService<TPluginState["filterState"], IMatch>;
+interface IProps {
+  store: Store;
+  matcherService: MatcherService;
   commands: Commands;
   contactHref?: string;
   feedbackHref?: string;
@@ -20,7 +18,7 @@ interface IProps<TPluginState extends IPluginState> {
   enableDevMode?: boolean;
 }
 
-const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
+const Sidebar = ({
   store,
   matcherService,
   commands,
@@ -29,7 +27,7 @@ const Sidebar = <TPluginState extends IPluginState<MatchType[]>>({
   getScrollOffset,
   feedbackHref,
   enableDevMode
-}: IProps<TPluginState>) => {
+}: IProps) => {
   const [pluginState, setPluginState] = useState<IPluginState | undefined>(
     undefined
   );

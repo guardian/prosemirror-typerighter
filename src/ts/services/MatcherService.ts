@@ -11,7 +11,6 @@ import { Commands } from "../commands";
 import { selectAllBlocksInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
-import { IPluginState } from "../state/reducer";
 import { removeSkippedRanges } from "../utils/block";
 import { mapMatchThroughBlocks } from "../utils/match";
 
@@ -19,7 +18,7 @@ import { mapMatchThroughBlocks } from "../utils/match";
  * A matcher service to manage the interaction between the prosemirror-typerighter plugin
  * and the remote matching service.
  */
-class MatcherService<TFilterState, TMatch extends IMatch> {
+class MatcherService {
   // The current throttle duration, which increases during backoff.
   private currentThrottle: number;
   private currentCategories = [] as ICategory[];
@@ -28,8 +27,8 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
   private commands: Commands | undefined;
 
   constructor(
-    private store: Store<IPluginState<TFilterState, TMatch>>,
-    private adapter: IMatcherAdapter<TMatch>,
+    private store: Store,
+    private adapter: IMatcherAdapter,
     private telemetryAdapter?: TyperighterTelemetryAdapter,
     // The initial throttle duration for pending requests.
     private initialThrottle = 2000,
@@ -49,8 +48,8 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
     return this.commands
   }
 
-  private sendMatchTelemetryEvents = (matches: TMatch[]) => {
-    matches.forEach((match: TMatch) =>
+  private sendMatchTelemetryEvents = (matches: IMatch[]) => {
+    matches.forEach((match: IMatch) =>
       this.telemetryAdapter?.matchFound(match, document.URL)
     );
   };
@@ -90,7 +89,7 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
   public async fetchMatches(requestId: string, blocks: IBlockWithSkippedRanges[]) {
     const commands = this.getCommands();
     if (!commands) return;
-    const applyMatcherResponse: TMatchesReceivedCallback<TMatch> = response => {
+    const applyMatcherResponse: TMatchesReceivedCallback = response => {
       this.sendMatchTelemetryEvents(response.matches);
       // For matches, map through skipped ranges on the way in
       const transformedMatches = response.matches.map(match => mapMatchThroughBlocks(match, blocks))
@@ -131,8 +130,8 @@ class MatcherService<TFilterState, TMatch extends IMatch> {
   }
 
   /**
-   * Provide the matcher service with commands, which must be 
-   * bound to an `EditorView` instance, and so cannot be provided 
+   * Provide the matcher service with commands, which must be
+   * bound to an `EditorView` instance, and so cannot be provided
    * until the Typerighter plugin is instantiated by an `EditorView`.
    */
   public setCommands(commands: Commands) {

@@ -2,17 +2,14 @@ import React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import Store from "../state/store";
 import { Commands } from "../commands";
-import { IMatch } from "../interfaces/IMatch";
 import { MatcherService } from "..";
 import Sidebar from "./Sidebar";
 import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
 import TelemetryContext from "../contexts/TelemetryContext";
-import { IPluginState } from "../state/reducer";
-import { MatchType } from "../utils/decoration";
 
-interface SidebarViewOptions<TPluginState extends IPluginState> {
-  store: Store<TPluginState>;
-  matcherService: MatcherService<TPluginState["filterState"], IMatch>;
+interface SidebarViewOptions {
+  store: Store;
+  matcherService: MatcherService;
   commands: Commands;
   sidebarNode: Element;
   contactHref?: string;
@@ -35,9 +32,7 @@ interface SidebarViewOptions<TPluginState extends IPluginState> {
  * overview of all of the matches in a document, allowing users to see
  * a summary of matches and navigate to those matches.
  */
-export const createSidebarView = <
-  TPluginState extends IPluginState<MatchType[]>
->({
+export const createSidebarView = ({
   store,
   matcherService,
   telemetryAdapter,
@@ -48,7 +43,7 @@ export const createSidebarView = <
   editorScrollElement,
   getScrollOffset = () => 50,
   enableDevMode = false
-}: SidebarViewOptions<TPluginState>) => {
+}: SidebarViewOptions) => {
   render(
     <TelemetryContext.Provider value={{ telemetryAdapter }}>
       <Sidebar

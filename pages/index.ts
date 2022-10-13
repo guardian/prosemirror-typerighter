@@ -53,7 +53,6 @@ const typerighterTelemetryAdapter = new TyperighterTelemetryAdapter(
 const {
   plugin: validatorPlugin,
   store,
-  getState,
   matcherService
 } = createTyperighterPlugin({
   isElementPartOfTyperighterUI,
@@ -94,7 +93,7 @@ if (editorElement && sidebarNode) {
   const getScrollOffset = () =>
     editorElement.getBoundingClientRect().height / 2 - menuHeight;
 
-  const commands = createBoundCommands(view, getState);
+  const commands = createBoundCommands(view);
 
   createSidebarView({
     store,
