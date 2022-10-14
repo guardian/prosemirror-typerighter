@@ -30,6 +30,7 @@
   "devDependencies": {
     "@emotion/babel-plugin": "^11.9.2",
     "@testing-library/dom": "^7.23.0",
+    "@testing-library/react": "^12.1.5",
     "@types/diff": "^4.0.2",
     "@types/fetch-mock": "^7.3.3",
     "@types/jest": "^23.3.2",
