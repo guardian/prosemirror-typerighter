@@ -53,11 +53,12 @@ const matchOverlay = ({
     // Subscribe to the plugin state. We keep a separate reference to the
     // currentMatchId so we can create an effect that watches for it changing.
     // If we watched the whole plugin state, we'd have a lot of redundant calls.
-    store.on(STORE_EVENT_NEW_STATE, newState => {
+    const updateState = (newState: IPluginState) => {
       setPluginState(newState);
       setCurrentMatchId(newState.hoverId);
       setCurrentRectIndex(newState.hoverRectIndex);
-    });
+    }
+    store.on(STORE_EVENT_NEW_STATE, updateState);
     return () =>
       store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
   }, []);
