@@ -60,7 +60,7 @@ const matchOverlay = ({
     }
     store.on(STORE_EVENT_NEW_STATE, updateState);
     return () =>
-      store.removeEventListener(STORE_EVENT_NEW_STATE, setPluginState);
+      store.removeEventListener(STORE_EVENT_NEW_STATE, updateState);
   }, []);
 
   useEffect(() => {
