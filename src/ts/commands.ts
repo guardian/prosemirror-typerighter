@@ -34,6 +34,7 @@ import {
   applyPatchToTransaction
 } from "./utils/prosemirror";
 import { getState } from "./utils/plugin";
+import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 
 type Command = (
   state: EditorState,
@@ -47,7 +48,8 @@ type GetState = (state: EditorState) => IPluginState | null | undefined;
  */
 export const requestMatchesForDocumentCommand = (
   requestId: string,
-  categoryIds: string[]
+  categoryIds: string[],
+  telemetryAdapter?: TyperighterTelemetryAdapter
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
@@ -56,6 +58,7 @@ export const requestMatchesForDocumentCommand = (
         requestMatchesForDocument(requestId, categoryIds)
       )
     );
+    telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   }
   return true;
 };

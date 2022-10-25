@@ -260,7 +260,8 @@ const createTyperighterPlugin = (
       ) {
         commands.requestMatchesForDocument(
           v4(),
-          matcherService.getCurrentCategories().map(_ => _.id)
+          matcherService.getCurrentCategories().map(_ => _.id),
+          telemetryAdapter
         );
       }
 
