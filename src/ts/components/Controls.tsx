@@ -35,10 +35,10 @@ const getErrorFeedbackLink = (
   pluginState: IPluginState | undefined,
   feedbackHref: string | undefined
 ) => {
-  const errorLmit = 10;
+  const errorLimit = 10;
   const data = {
     url: document.location.href,
-    errors: pluginState?.requestErrors?.slice(0, errorLmit)
+    errors: pluginState?.requestErrors?.slice(0, errorLimit)
   };
   const encodedData = encodeURIComponent(JSON.stringify(data, undefined, 2));
   return feedbackHref + encodedData;
