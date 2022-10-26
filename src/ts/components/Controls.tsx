@@ -85,7 +85,7 @@ const Controls = ({
 
   const handleClearButtonClick = (): void => {
     clearMatches();
-    telemetryAdapter?.documentIsCleared({ documentUrl: document.URL, blockId: 'squirrel' });
+    telemetryAdapter?.documentIsCleared({ documentUrl: document.URL });
   };
 
   const renderErrorMessage = () => {

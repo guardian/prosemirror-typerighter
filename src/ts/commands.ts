@@ -58,7 +58,7 @@ export const requestMatchesForDocumentCommand = (
         requestMatchesForDocument(requestId, categoryIds)
       )
     );
-    telemetryAdapter?.documentIsChecked({ documentUrl: document.URL, blockId: 'squirrel' });
+    telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   }
   return true;
 };

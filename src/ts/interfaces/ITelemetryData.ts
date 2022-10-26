@@ -20,7 +20,6 @@ export interface ITyperighterTelemetryEvent extends IUserTelemetryEvent {
   tags: IUserTelemetryEvent["tags"] & {
     // The URL of the resource containing the text that was scanned
     documentUrl: string;
-    blockId: string;
   };
 }
 
