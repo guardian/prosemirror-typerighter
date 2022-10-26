@@ -15,6 +15,7 @@ import {
   selectPluginConfig
 } from "../state/selectors";
 import TelemetryContext from "../contexts/TelemetryContext";
+import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
 
 interface IProps {
   store: Store;
@@ -22,7 +23,7 @@ interface IProps {
   setShowPendingInflightChecks: (isEnabled: boolean) => void;
   setRequestOnDocModified: (r: boolean) => void;
   setTyperighterEnabled: (typerighterEnabled: boolean) => void;
-  requestMatchesForDocument: (requestId: string, categoryIds: string[]) => void;
+  requestMatchesForDocument: (requestId: string, categoryIds: string[], telemetryAdapter?: TyperighterTelemetryAdapter) => void;
   getCurrentCategories: () => ICategory[];
   addCategory: (id: string) => void;
   removeCategory: (id: string) => void;
@@ -34,10 +35,10 @@ const getErrorFeedbackLink = (
   pluginState: IPluginState | undefined,
   feedbackHref: string | undefined
 ) => {
-  const errorLmit = 10;
+  const errorLimit = 10;
   const data = {
     url: document.location.href,
-    errors: pluginState?.requestErrors?.slice(0, errorLmit)
+    errors: pluginState?.requestErrors?.slice(0, errorLimit)
   };
   const encodedData = encodeURIComponent(JSON.stringify(data, undefined, 2));
   return feedbackHref + encodedData;
@@ -73,13 +74,13 @@ const Controls = ({
   const requestMatches = () => {
     requestMatchesForDocument(
       v4(),
-      getCurrentCategories().map(_ => _.id)
+      getCurrentCategories().map(_ => _.id),
+      telemetryAdapter
     );
   };
 
   const handleCheckDocumentButtonClick = (): void => {
     requestMatches();
-    telemetryAdapter?.documentIsChecked({ documentUrl: document.URL });
   };
 
   const handleClearButtonClick = (): void => {

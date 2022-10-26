@@ -20,7 +20,7 @@ const createResponse = (
       id: createBlockId(0, 0, 5),
       from: 0,
       to: 5,
-      text: "Some text that has been checkd"
+      text: "Some text that has been checked"
     }
   ],
   matches: strs.map(str => ({
