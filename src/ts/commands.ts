@@ -68,7 +68,8 @@ export const requestMatchesForDocumentCommand = (
  */
 export const requestMatchesForDirtyRangesCommand = (
   requestId: string,
-  categoryIds: string[]
+  categoryIds: string[],
+  telemetryAdaptor?: TyperighterTelemetryAdapter,
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
@@ -77,6 +78,7 @@ export const requestMatchesForDirtyRangesCommand = (
         requestMatchesForDirtyRanges(requestId, categoryIds)
       )
     );
+    telemetryAdaptor?.rangeIsChecked({ documentUrl: document.URL });
   }
 
   return true;

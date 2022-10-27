@@ -88,7 +88,9 @@ class MatcherService {
    */
   public async fetchMatches(requestId: string, blocks: IBlockWithSkippedRanges[]) {
     const commands = this.getCommands();
-    if (!commands) return;
+    if (!commands) {
+      return;
+    }
     const applyMatcherResponse: TMatchesReceivedCallback = response => {
       this.sendMatchTelemetryEvents(response.matches);
       // For matches, map through skipped ranges on the way in
@@ -116,7 +118,9 @@ class MatcherService {
    */
   public requestFetchMatches() {
     const commands = this.getCommands();
-    if (!commands) return;
+    if (!commands) {
+      return;
+    }
     this.requestPending = false;
     const pluginState = this.store.getState();
     if (!pluginState || selectAllBlocksInFlight(pluginState).length) {
@@ -125,7 +129,8 @@ class MatcherService {
     const requestId = v4();
     commands.requestMatchesForDirtyRanges(
       requestId,
-      this.getCurrentCategories().map(_ => _.id)
+      this.getCurrentCategories().map(_ => _.id),
+      this.telemetryAdapter
     );
   }
 
