@@ -1,5 +1,6 @@
 import {
   ICheckDocumentEvent,
+  ICheckRangeEvent,
   IClearDocumentEvent,
   IFilterToggleEvent,
   IMarkAsCorrectEvent,
@@ -72,6 +73,14 @@ class TyperighterTelemetryAdapter {
       value: 1,
       tags
     } as ICheckDocumentEvent);
+  }
+
+  public rangeIsChecked(tags?: ITyperighterTelemetryEvent["tags"]) {
+    this.addEvent({
+      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_CHECK_RANGE,
+      value: 1,
+      tags
+    } as ICheckRangeEvent);
   }
 
   public documentIsCleared(tags: ITyperighterTelemetryEvent["tags"]) {
