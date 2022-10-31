@@ -247,7 +247,7 @@ const createTyperighterPlugin = (
       }
     },
     view(view) {
-      const commands = createBoundCommands(view);
+      const commands = createBoundCommands(view, telemetryAdapter);
       matcherService.setCommands(commands);
 
       // Check the document eagerly on editor initialisation if
