@@ -238,8 +238,10 @@ export const applyMatcherResponseCommand = (
  * to be resent on the next request.
  */
 export const applyRequestErrorCommand = (
-  matchRequestError: TMatchRequestErrorWithDefault
+  matchRequestError: TMatchRequestErrorWithDefault,
+  telemetryAdapter?: TyperighterTelemetryAdapter
 ): Command => (state, dispatch) => {
+  telemetryAdapter?.error(matchRequestError.message);
   if (dispatch) {
     dispatch(
       state.tr.setMeta(
@@ -430,7 +432,10 @@ export const setTyperighterEnabledCommand = (
 /**
  * Create a palette of prosemirror-typerighter commands bound to the given EditorView.
  */
-export const createBoundCommands = (view: EditorView) => {
+export const createBoundCommands = (
+  view: EditorView,
+  telemetryAdapter?: TyperighterTelemetryAdapter
+) => {
   const bindCommand = <CommandArgs extends any[]>(
     action: (...args: CommandArgs) => Command
   ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
@@ -458,7 +463,11 @@ export const createBoundCommands = (view: EditorView) => {
     stopHighlight: bindCommand(stopHighlightCommand),
     setConfigValue: bindCommand(setConfigValueCommand),
     applyMatcherResponse: bindCommand(applyMatcherResponseCommand),
-    applyRequestError: bindCommand(applyRequestErrorCommand),
+    applyRequestError: (matchRequestError: TMatchRequestErrorWithDefault) =>
+      applyRequestErrorCommand(matchRequestError, telemetryAdapter)(
+        view.state,
+        view.dispatch
+      ),
     applyRequestComplete: bindCommand(applyRequestCompleteCommand),
     setFilterState: bindCommand(setFilterStateCommand),
     setTyperighterEnabled: bindCommand(setTyperighterEnabledCommand)

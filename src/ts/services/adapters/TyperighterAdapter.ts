@@ -69,7 +69,7 @@ class TyperighterAdapter implements IMatcherAdapter {
           return onRequestError({
             requestId,
             blockId: input.id,
-            message: `${response.status}: ${response.statusText}`,
+            message: `${response.url} responded with ${response.status} ${response.statusText}`,
             categoryIds,
             type: "AUTH_ERROR"
           });

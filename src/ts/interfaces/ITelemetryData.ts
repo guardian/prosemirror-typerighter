@@ -13,7 +13,8 @@ export enum TYPERIGHTER_TELEMETRY_TYPE {
   TYPERIGHTER_CLEAR_DOCUMENT = "TYPERIGHTER_CLEAR_DOCUMENT",
   TYPERIGHTER_OPEN_STATE_CHANGED = "TYPERIGHTER_OPEN_STATE_CHANGED",
   TYPERIGHTER_SIDEBAR_MATCH_CLICK = "TYPERIGHTER_SIDEBAR_MATCH_CLICK",
-  TYPERIGHTER_FILTER_STATE_CHANGED = "TYPERIGHTER_FILTER_STATE_CHANGED"
+  TYPERIGHTER_FILTER_STATE_CHANGED = "TYPERIGHTER_FILTER_STATE_CHANGED",
+  TYPERIGHTER_ERROR = "TYPERIGHTER_ERROR"
 }
 
 export interface ITyperighterTelemetryEvent extends IUserTelemetryEvent {
@@ -94,4 +95,10 @@ export interface IFilterToggleEvent extends ITyperighterTelemetryEvent {
   type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_FILTER_STATE_CHANGED;
   value: 0 | 1;
   tags: ITyperighterTelemetryEvent["tags"] & { matchType: MatchType };
+}
+
+export interface IErrorEvent extends ITyperighterTelemetryEvent {
+  type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_ERROR;
+  value: 1;
+  tags: ITyperighterTelemetryEvent["tags"] & { message: string };
 }

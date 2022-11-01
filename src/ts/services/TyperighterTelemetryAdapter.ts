@@ -2,6 +2,7 @@ import {
   ICheckDocumentEvent,
   ICheckRangeEvent,
   IClearDocumentEvent,
+  IErrorEvent,
   IFilterToggleEvent,
   IMarkAsCorrectEvent,
   IMatchDecorationClickedEvent,
@@ -12,7 +13,10 @@ import {
   ITyperighterTelemetryEvent,
   TYPERIGHTER_TELEMETRY_TYPE
 } from "../interfaces/ITelemetryData";
-import { IUserTelemetryEvent, UserTelemetryEventSender } from "@guardian/user-telemetry-client";
+import {
+  IUserTelemetryEvent,
+  UserTelemetryEventSender
+} from "@guardian/user-telemetry-client";
 import { IMatch } from "..";
 import { MatchType } from "../utils/decoration";
 
@@ -21,12 +25,12 @@ class TyperighterTelemetryAdapter {
     private telemetryService: UserTelemetryEventSender,
     private app: string,
     private stage: string,
-    private tags?: IUserTelemetryEvent["tags"],
+    private tags?: IUserTelemetryEvent["tags"]
   ) {}
 
   // used to update tags that are only known after the telemetry adaptor has been initialised
   public updateTelemetryTags(tags: IUserTelemetryEvent["tags"]) {
-    this.tags = { ...this.tags, ...tags};
+    this.tags = { ...this.tags, ...tags };
   }
 
   public suggestionIsAccepted(
@@ -135,6 +139,13 @@ class TyperighterTelemetryAdapter {
       value: toggledOn ? 1 : 0,
       tags: { matchType }
     } as IFilterToggleEvent);
+  }
+
+  public error(message: string) {
+    this.addEvent({
+      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_ERROR,
+      tags: { message }
+    } as IErrorEvent);
   }
 
   private addEvent<TEvent extends ITyperighterTelemetryEvent>(

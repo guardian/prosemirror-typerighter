@@ -93,7 +93,7 @@ if (editorElement && sidebarNode) {
   const getScrollOffset = () =>
     editorElement.getBoundingClientRect().height / 2 - menuHeight;
 
-  const commands = createBoundCommands(view);
+  const commands = createBoundCommands(view, typerighterTelemetryAdapter);
 
   createSidebarView({
     store,
