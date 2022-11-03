@@ -142,9 +142,9 @@ export const selectHasMatches = (state: IPluginState): boolean =>
 
 const getSortOrderForMatchType = (match: IMatch) => {
   const matchType = getMatchType(match);
-  if (matchType === MatchType.HAS_REPLACEMENT) {
+  if (matchType === MatchType.AMEND) {
     return 0;
-  } else if (matchType === MatchType.CORRECT) {
+  } else if (matchType === MatchType.OK) {
     return 2;
   } else {
     return 1;
