@@ -127,7 +127,8 @@ export const createDecorationsForMatch = (
       match.to,
       {
         class: className,
-        [DECORATION_ATTRIBUTE_ID]: match.matchId
+        [DECORATION_ATTRIBUTE_ID]: match.matchId,
+        spellcheck: "false"
       },
       spec
     )

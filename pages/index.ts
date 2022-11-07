@@ -66,7 +66,7 @@ const {
     typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL),
   requestMatchesOnDocModified: true,
   adapter: new TyperighterChunkedAdapter(
-    "https://checker.typerighter.local.dev-gutools.co.uk"
+    "https://checker.typerighter.code.dev-gutools.co.uk"
   ),
   telemetryAdapter: typerighterTelemetryAdapter,
   typerighterEnabled: true
