@@ -58,19 +58,19 @@ describe("Decoration utils", () => {
   });
   describe("getMatchType", () => {
     const defaultMatch = createMatch(0, 5);
-    it("gives a MatchType of CORRECT when markAsCorrect is set", () => {
+    it("gives a MatchType of OK when markAsCorrect is set", () => {
       const match = { ...defaultMatch, markAsCorrect: true };
-      expect(getMatchType(match)).toBe(MatchType.CORRECT);
+      expect(getMatchType(match)).toBe(MatchType.OK);
     });
-    it("gives a matchType of HAS_REPLACEMENT when a replacement is available", () => {
+    it("gives a matchType of AMEND when a replacement is available", () => {
       const match = {
         ...defaultMatch,
         replacement: { text: "u r wrong", type: "TEXT_SUGGESTION" as const }
       };
-      expect(getMatchType(match)).toBe(MatchType.HAS_REPLACEMENT);
+      expect(getMatchType(match)).toBe(MatchType.AMEND);
     });
-    it("gives a match type of DEFAULT when none of the above apply", () => {
-      expect(getMatchType(defaultMatch)).toBe(MatchType.DEFAULT);
+    it("gives a match type of REVIEW when none of the above apply", () => {
+      expect(getMatchType(defaultMatch)).toBe(MatchType.REVIEW);
     });
   });
 });

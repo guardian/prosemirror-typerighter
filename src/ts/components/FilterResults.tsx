@@ -10,9 +10,9 @@ import {
 } from "../utils/decoration";
 
 const filterOrder = Object.values([
-  MatchType.CORRECT,
-  MatchType.DEFAULT,
-  MatchType.HAS_REPLACEMENT
+  MatchType.OK,
+  MatchType.REVIEW,
+  MatchType.AMEND
 ]);
 
 interface IProps {

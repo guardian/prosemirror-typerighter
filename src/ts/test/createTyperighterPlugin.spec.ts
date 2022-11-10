@@ -229,7 +229,7 @@ describe("createTyperighterPlugin", () => {
   describe("filtering matchers", () => {
     const filterOptions = {
       filterMatches: filterByMatchState,
-      initialFilterState: [MatchType.CORRECT]
+      initialFilterState: [MatchType.OK]
     };
     it("should filter matches with the supplied predicate when the plugin initialises – remove matches", () => {
       const correctMatches = [{ ...createMatch(1), markAsCorrect: true }];
@@ -270,7 +270,7 @@ describe("createTyperighterPlugin", () => {
         filterOptions
       });
 
-      commands.setFilterState([MatchType.DEFAULT]);
+      commands.setFilterState([MatchType.REVIEW]);
 
       const decorationSpecs = getDecorationSpecsFromDoc(view);
       const decorationsSpecsToExpect = getDecorationSpecs(

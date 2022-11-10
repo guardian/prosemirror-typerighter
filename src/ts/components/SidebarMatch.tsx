@@ -34,7 +34,7 @@ export const getSidebarMatchStyles = (
     : "";
 
   switch (matchType) {
-    case MatchType.CORRECT:
+    case MatchType.OK:
       return css`
         &:after {
           position: absolute;
@@ -53,7 +53,7 @@ export const getSidebarMatchStyles = (
           background-size: 2px 5px;
         }
       `;
-    case MatchType.DEFAULT:
+    case MatchType.REVIEW:
       return css`
         &:after {
           position: absolute;
@@ -67,7 +67,7 @@ export const getSidebarMatchStyles = (
           background-image: url('${getSquiggleAsUri(color, 'VERTICAL')}');
         }
       `;
-    case MatchType.HAS_REPLACEMENT:
+    case MatchType.AMEND:
       return css`
         border-left: 2px solid ${color};
       `;

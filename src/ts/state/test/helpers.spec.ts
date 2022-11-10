@@ -60,7 +60,7 @@ describe("State helpers", () => {
     });
     it("should report stale when the filter state changes", () => {
       const oldFilterState = [] as MatchType[];
-      const newFilterState = [MatchType.CORRECT];
+      const newFilterState = [MatchType.OK];
       const matches = [] as IMatch[];
       const { state: oldState } = getState(matches, oldFilterState);
       const { state: newState } = getState(matches, newFilterState);
@@ -108,7 +108,7 @@ describe("State helpers", () => {
     });
     it("should remove matches when they don't pass the filter", () => {
       const matches = [createMatch(1, 4), createMatch(4, 7)];
-      const { tr, state } = getState(matches, [MatchType.DEFAULT]);
+      const { tr, state } = getState(matches, [MatchType.REVIEW]);
       const {
         currentMatches,
         filteredMatches,
@@ -125,7 +125,7 @@ describe("State helpers", () => {
     });
 
     it("should not touch non-match-related decorations", () => {
-      const { tr, state } = getState([], [MatchType.DEFAULT]);
+      const { tr, state } = getState([], [MatchType.REVIEW]);
       const debugDecos = DecorationSet.create(tr.doc, [
         createDebugDecorationFromRange({ from: 0, to: 1 })
       ]);
@@ -149,7 +149,7 @@ describe("State helpers", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
       const matches = [createMatch(1, 4), createMatch(4, 7)];
-      const { tr, state } = getState(matches, [MatchType.DEFAULT]);
+      const { tr, state } = getState(matches, [MatchType.REVIEW]);
 
       tr.delete(deleteFrom, deleteFrom + deleteRange);
       const newState = getNewStateFromTransaction(tr, state);
@@ -165,7 +165,7 @@ describe("State helpers", () => {
     it("should map dirtied ranges through the transaction mapping", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
-      const { tr, state } = getState([], [MatchType.DEFAULT]);
+      const { tr, state } = getState([], [MatchType.REVIEW]);
       const dirtiedRange = { from: 0, to: 4 };
       const initState = {
         ...state,
@@ -184,7 +184,7 @@ describe("State helpers", () => {
     it("should add mapping to the requests in flight", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
-      const { tr, state } = getState([], [MatchType.DEFAULT]);
+      const { tr, state } = getState([], [MatchType.REVIEW]);
       const initState = {
         ...state,
         requestsInFlight: createRequestInFlight([
@@ -203,7 +203,7 @@ describe("State helpers", () => {
     it("should map requestsInFlight blocks through the incoming transaction mapping", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
-      const { tr, state } = getState([], [MatchType.DEFAULT]);
+      const { tr, state } = getState([], [MatchType.REVIEW]);
       const requestsInFlight = createRequestInFlight([
         createBlock(1, 23, "Example text to check")
       ]);

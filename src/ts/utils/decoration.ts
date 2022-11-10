@@ -6,9 +6,9 @@ import { IRange, IMatch } from "../interfaces/IMatch";
 import { getSquiggleAsUri } from "./squiggle";
 
 export enum MatchType {
-  HAS_REPLACEMENT = "HAS_REPLACEMENT",
-  DEFAULT = "DEFAULT",
-  CORRECT = "CORRECT"
+  AMEND = "AMEND",
+  REVIEW = "REVIEW",
+  OK = "OK"
 }
 
 export interface IMatchTypeToColourMap {
@@ -42,9 +42,9 @@ export const DecorationClassMap = {
   [DECORATION_MATCH]: "MatchDecoration",
   [DECORATION_MATCH_HEIGHT_MARKER]: "MatchDecoration__height-marker",
   [DECORATION_MATCH_IS_SELECTED]: "MatchDecoration--is-selected",
-  [MatchType.CORRECT]: "MatchDecoration--is-correct",
-  [MatchType.DEFAULT]: "MatchDecoration--default",
-  [MatchType.HAS_REPLACEMENT]: "MatchDecoration--has-replacement"
+  [MatchType.OK]: "MatchDecoration--is-correct",
+  [MatchType.REVIEW]: "MatchDecoration--default",
+  [MatchType.AMEND]: "MatchDecoration--has-replacement"
 };
 
 export const DECORATION_ATTRIBUTE_ID = "data-match-id";
@@ -147,12 +147,12 @@ export const createDecorationSpecFromMatch = (match: IMatch) => ({
 
 export const getMatchType = (match: IMatch): MatchType => {
   if (match.markAsCorrect) {
-    return MatchType.CORRECT;
+    return MatchType.OK;
   }
   if (match.replacement) {
-    return MatchType.HAS_REPLACEMENT;
+    return MatchType.AMEND;
   }
-  return MatchType.DEFAULT;
+  return MatchType.REVIEW;
 };
 
 export const getColourForMatch = (
@@ -183,13 +183,13 @@ export const getColourForMatchType = (
   const backgroundOpacitySelected = "50";
   const backgroundOpacity = "07";
   switch (matchType) {
-    case MatchType.CORRECT:
+    case MatchType.OK:
       return {
         backgroundColour: `${matchColours.correct}${backgroundOpacity}`,
         backgroundColourSelected: `${matchColours.correct}${backgroundOpacitySelected}`,
         borderColour: `${matchColours.correct}${matchColours.correctOpacity}`
       };
-    case MatchType.HAS_REPLACEMENT:
+    case MatchType.AMEND:
       return {
         backgroundColour: `${matchColours.hasSuggestion}${backgroundOpacity}`,
         backgroundColourSelected: `${matchColours.hasSuggestion}${backgroundOpacitySelected}`,
@@ -273,20 +273,20 @@ export const GLOBAL_DECORATION_STYLE_ID = "prosemirror-typerighter-global-styles
 export const createGlobalDecorationStyleTag = (
   matchColours: IMatchTypeToColourMap
 ): HTMLStyleElement => {
-  const correctColours = getColourForMatchType(MatchType.CORRECT, matchColours);
-  const hasReplacementColours = getColourForMatchType(MatchType.HAS_REPLACEMENT, matchColours);
-  const defaultColours = getColourForMatchType(MatchType.DEFAULT, matchColours);
+  const correctColours = getColourForMatchType(MatchType.OK, matchColours);
+  const hasReplacementColours = getColourForMatchType(MatchType.AMEND, matchColours);
+  const defaultColours = getColourForMatchType(MatchType.REVIEW, matchColours);
   const styleContent = `
-    .${DecorationClassMap.HAS_REPLACEMENT} {
+    .${DecorationClassMap.AMEND} {
       background-color: ${hasReplacementColours.backgroundColour};
       border-bottom: 2px solid ${hasReplacementColours.borderColour};
     }
 
-    .${DecorationClassMap.HAS_REPLACEMENT}.MatchDecoration--is-selected {
+    .${DecorationClassMap.AMEND}.MatchDecoration--is-selected {
       background-color: ${hasReplacementColours.backgroundColourSelected};
     }
 
-    .${DecorationClassMap.DEFAULT} {
+    .${DecorationClassMap.REVIEW} {
       position: relative;
       background-color: ${defaultColours.backgroundColour};
       border-image-source: url('${getSquiggleAsUri(defaultColours.borderColour)}');
@@ -297,12 +297,12 @@ export const createGlobalDecorationStyleTag = (
       border-width: 0 0 2px 0;
     }
 
-    .${DecorationClassMap.DEFAULT}.MatchDecoration--is-selected {
+    .${DecorationClassMap.REVIEW}.MatchDecoration--is-selected {
       background-color: ${defaultColours.backgroundColourSelected};
       border-image-source: linear-gradient(0deg, ${defaultColours.backgroundColourSelected} 3px, transparent 3px), url('${getSquiggleAsUri(defaultColours.borderColour)}');
     }
 
-    .${DecorationClassMap.CORRECT} {
+    .${DecorationClassMap.OK} {
       position: relative;
       box-decoration-break: clone;
       -webkit-box-decoration-break: clone;
@@ -314,8 +314,8 @@ export const createGlobalDecorationStyleTag = (
       border-width: 0 0 2px 0;
     }
 
-    .${DecorationClassMap.CORRECT}.MatchDecoration--is-selected,
-    .${DecorationClassMap.CORRECT}.MatchDecoration--is-selected:after {
+    .${DecorationClassMap.OK}.MatchDecoration--is-selected,
+    .${DecorationClassMap.OK}.MatchDecoration--is-selected:after {
       background-color: ${correctColours.backgroundColourSelected};
     }
   `;
