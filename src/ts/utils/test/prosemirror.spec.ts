@@ -1,4 +1,4 @@
-import builder from "prosemirror-test-builder";
+import { doc, p, ul, li } from "prosemirror-test-builder";
 import {
   getBlocksFromDocument,
   getDirtiedRangesFromTransaction,
@@ -7,8 +7,6 @@ import {
 import { flatten } from "prosemirror-utils";
 import { doNotSkipRanges } from "../block";
 import { createEditor } from "../../test/helpers/createEditor";
-
-const { doc, p, ul, li } = builder;
 
 describe("Prosemirror utils", () => {
   describe("getBlocksFromDocument", () => {

@@ -18,7 +18,9 @@ export const MarkTypes = {
 export const flatten = (node: Node, descend = true) => {
   const result: Array<{ node: Node; parent: Node; pos: number }> = [];
   node.descendants((child, pos, parent) => {
-    result.push({ node: child, parent, pos });
+    if (parent) {
+      result.push({ node: child, parent, pos });
+    }
     if (!descend) {
       return false;
     }
@@ -102,7 +104,7 @@ interface ISuggestionPatchInsert extends IBaseSuggestionPatch {
   // is applied to the document, not when it's first created. This ensures that
   // positions stored in a patch correctly map to the document, even after previous
   // patches have altered it.
-  getMarks: (tr: Transaction) => Array<Mark<any>>;
+  getMarks: (tr: Transaction) => Array<Mark>;
 }
 
 type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete;

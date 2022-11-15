@@ -41,7 +41,7 @@ import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter"
 import { IMatcherAdapter } from "./interfaces/IMatcherAdapter";
 import { v4 } from "uuid";
 
-export type ExpandRanges = (ranges: IRange[], doc: Node<any>) => IRange[];
+export type ExpandRanges = (ranges: IRange[], doc: Node) => IRange[];
 
 export interface IFilterOptions{
   /**
@@ -173,16 +173,20 @@ const createTyperighterPlugin = (
      * We use appendTransaction to handle side effects and dispatch actions
      * in response to state transitions.
      */
-    appendTransaction(trs: Transaction[], oldState, newState) {
-      const oldPluginState: IPluginState = plugin.getState(oldState);
-      const newPluginState: IPluginState = plugin.getState(newState);
+    appendTransaction(trs, oldState, newState) {
+      const oldPluginState = plugin.getState(oldState);
+      const newPluginState = plugin.getState(newState);
+
+      if (!oldPluginState || !newPluginState) {
+        return;
+      }
 
       const newTr = newState.tr;
-
       const newDirtiedRanges = trs.reduce(
         (acc, tr) => acc.concat(getDirtiedRangesFromTransaction(oldState.doc, tr)),
         [] as IRange[]
       );
+
       if (newDirtiedRanges.length) {
         if (newPluginState.config.requestMatchesOnDocModified && newPluginState.typerighterEnabled) {
           // We wait a tick here, as applyNewDirtiedRanges must run
@@ -200,6 +204,7 @@ const createTyperighterPlugin = (
         oldPluginState,
         newPluginState
       );
+
       blockStates.forEach(({ requestId, pendingBlocks }) =>
         store.emit(
           STORE_EVENT_NEW_MATCHES,
@@ -209,17 +214,22 @@ const createTyperighterPlugin = (
       );
     },
     props: {
-      decorations: state => plugin.getState(state).decorations,
+      decorations: state => plugin.getState(state)?.decorations,
       handleDOMEvents: {
         mouseleave: (view, event) => {
           maybeResetHoverStates(view, isElementPartOfTyperighterUI, event);
           return false;
         },
         click: (view: EditorView, event: Event) => {
+          const pluginState = plugin.getState(view.state);
+          if (!pluginState) {
+            return;
+          }
+
           const matchId = maybeGetDecorationMatchIdFromEvent(event);
           const match =
             matchId &&
-            selectMatchByMatchId(plugin.getState(view.state), matchId);
+            selectMatchByMatchId(pluginState, matchId);
           if (match) {
             onMatchDecorationClicked(match);
           }
@@ -233,7 +243,7 @@ const createTyperighterPlugin = (
             stopHoverCommand()(view.state, view.dispatch);
           }
 
-          if (!matchId || matchId === plugin.getState(view.state).hoverId) {
+          if (!matchId || matchId === plugin.getState(view.state)?.hoverId) {
             return false;
           }
 
@@ -276,7 +286,10 @@ const createTyperighterPlugin = (
       return {
         // Update our store with the new state.
         update: _ => {
-          store.emit(STORE_EVENT_NEW_STATE, plugin.getState(view.state));
+          const pluginState = plugin.getState(view.state);
+          if (pluginState) {
+            store.emit(STORE_EVENT_NEW_STATE, pluginState);
+          }
         }
       };
     }

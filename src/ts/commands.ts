@@ -337,7 +337,7 @@ export const applyAutoFixableSuggestionsCommand = (
  */
 export const ignoreMatchCommand = (id: string) => (getState: GetState) => (
   state: EditorState,
-  dispatch?: (tr: Transaction<any>) => void
+  dispatch?: (tr: Transaction) => void
 ): boolean => {
   const pluginState = getState(state);
   if (!pluginState) {
@@ -352,7 +352,7 @@ export const ignoreMatchCommand = (id: string) => (getState: GetState) => (
 
 export const clearMatchesCommand = () => (_: GetState) => (
   state: EditorState,
-  dispatch?: (tr: Transaction<any>) => void
+  dispatch?: (tr: Transaction) => void
 ): boolean => {
   if (dispatch) {
     dispatch(
@@ -369,7 +369,7 @@ const maybeApplySuggestions = (
     text: string | undefined;
   }>,
   state: EditorState,
-  dispatch?: (tr: Transaction<any>) => void
+  dispatch?: (tr: Transaction) => void
 ) => {
   if (!suggestionsToApply.length) {
     return false;
