@@ -4,7 +4,6 @@ import { builders } from "prosemirror-test-builder";
 import {
   EditorView,
   DecorationSet,
-  InlineDecorationSpec,
   Decoration
 } from "prosemirror-view";
 import { getNewDecorationsForCurrentMatches } from "../../utils/decoration";
@@ -31,8 +30,8 @@ export const p = build.p;
  */
 export const getDecorationSpecsFromDoc = (
   view: EditorView
-): Set<InlineDecorationSpec> =>
-  getDecorationSpecsFromSet(view.someProp("decorations", f => f(view.state)));
+) =>
+  getDecorationSpecsFromSet(view.someProp("decorations", f => f(view.state)) as DecorationSet);
 
 export const getDecorationSpecsFromMatches = (matches: IMatch[], doc: Node) => {
   const decorationSet = getNewDecorationsForCurrentMatches(matches, DecorationSet.empty, doc)
@@ -41,8 +40,8 @@ export const getDecorationSpecsFromMatches = (matches: IMatch[], doc: Node) => {
 
 export const getDecorationSpecsFromSet = (
   set: DecorationSet
-): Set<InlineDecorationSpec> => new Set(set.find().map(_ => _.spec));
+) => new Set(set.find().map(_ => _.spec));
 
 export const getDecorationSpecs = (
   decorations: Decoration[]
-): Set<InlineDecorationSpec> => new Set(decorations.map(_ => _.spec));
+) => new Set(decorations.map(_ => _.spec));

@@ -640,11 +640,12 @@ describe("Action handlers", () => {
         precedingText: "bigger block of text",
         subsequentText: ""
       };
+
       const localState = {
         ...state,
-        decorations: new DecorationSet().add(tr.doc, [
-          ...createDecorationsForMatch(output, true)
-        ]),
+        decorations: DecorationSet.create(tr.doc,
+          createDecorationsForMatch(output, true)
+        ),
         currentMatches: [output],
         hoverId: "match-id",
         hoverInfo: undefined
@@ -653,7 +654,7 @@ describe("Action handlers", () => {
         reducer(tr, localState, newHoverIdReceived(undefined, undefined))
       ).toEqual({
         ...localState,
-        decorations: new DecorationSet().add(tr.doc, [
+        decorations: DecorationSet.create(tr.doc, [
           ...createDecorationsForMatch(output, false)
         ]),
         hoverId: undefined,
