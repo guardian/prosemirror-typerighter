@@ -69,7 +69,7 @@ export const getSidebarMatchStyles = (
       `;
     case MatchType.AMEND:
       return css`
-        border-left: 2px solid ${color};
+        border-left: 4px double ${color};
       `;
   }
 };

@@ -83,7 +83,7 @@ const matchOverlay = ({
     // If there's a gap, the tooltip library detects a `mouseleave` event
     // and closes the tooltip prematurely. We account for this with
     // padding on the tooltip container – see the styling for MatchWidget.
-    const yOffset = -3;
+    const yOffset = -4;
     const isTop = placement.indexOf("top") >= 0;
     const isBottom = placement.indexOf("bottom") >= 0
     if (referenceElement && currentRectIndex !== undefined && (isTop || isBottom)) {

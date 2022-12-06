@@ -279,7 +279,7 @@ export const createGlobalDecorationStyleTag = (
   const styleContent = `
     .${DecorationClassMap.AMEND} {
       background-color: ${hasReplacementColours.backgroundColour};
-      border-bottom: 2px solid ${hasReplacementColours.borderColour};
+      border-bottom: 4px double ${hasReplacementColours.borderColour};
     }
 
     .${DecorationClassMap.AMEND}.MatchDecoration--is-selected {
