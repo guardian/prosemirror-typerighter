@@ -16,6 +16,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+      
     strategy:
       matrix:
         node-version: [18.15.0]
