@@ -23,7 +23,7 @@ The plugin must be pointed to the address of a running Typerighter service to su
 
 ## Testing locally in applications that use `prosemirror-typerighter`
 
-We've found yalc useful in testing local changes to prosemirror-typerighter in applications that use it.
+We've found `yalc` useful in testing local changes to prosemirror-typerighter in applications that use it.
 
 Setup: 
 
