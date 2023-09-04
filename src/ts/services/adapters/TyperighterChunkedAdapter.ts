@@ -37,7 +37,8 @@ class TyperighterChunkedAdapter extends TyperighterAdapter
       }),
       body: JSON.stringify({
         requestId,
-        blocks
+        blocks,
+        categoryIds
       })
     });
 
