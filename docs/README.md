@@ -29,7 +29,7 @@ Setup:
 
 1. Install `yalc` globally with `npm i yalc -g` or `yarn global add yalc`.
 2. Run `npm run yalc` in your local project from your current branch in prosemirror-typerighter, to build the project and push changes to yalc.
-3. Run `yalc add @guardian/prosemirror-typerighter` within the project consuming prosemirror-typerighter locally e.g. in the Composer subdirectory of flexible-content.
+3. Run `yalc add @guardian/prosemirror-typerighter` within the project consuming prosemirror-typerighter locally e.g. in the Composer subdirectory of `flexible-content`.
 
 Note: any changes you make to your local prosemirror-typerighter branch must be republished (step 3). Don't forget to run `npm run yalc` again!
 
