@@ -41,7 +41,7 @@ export type ActionRequestMatchesForDirtyRanges = ReturnType<
 
 export const requestMatchesForDocument = (
   requestId: string,
-  categoryIds: string[]
+  categoryIds: string[],
 ) => ({
   type: REQUEST_FOR_DOCUMENT,
   payload: { requestId, categoryIds }
