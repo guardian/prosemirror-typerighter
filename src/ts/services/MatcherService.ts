@@ -32,6 +32,7 @@ class MatcherService {
     private telemetryAdapter?: TyperighterTelemetryAdapter,
     // The initial throttle duration for pending requests.
     private initialThrottle = 2000,
+    private excludedCategories: string[] = []
   ) {
     this.currentThrottle = this.initialThrottle;
     this.store.on(STORE_EVENT_NEW_MATCHES, (requestId, requestsInFlight) => {
@@ -72,6 +73,10 @@ class MatcherService {
     this.currentCategories.push(category);
   };
 
+  public setExcludedCategories = (excludedCategoryIds: string[]) => {
+    this.excludedCategories = excludedCategoryIds;
+  }
+
   public removeCategory = (categoryId: string) => {
     this.currentCategories = this.currentCategories.filter(
       _ => _.id !== categoryId
@@ -101,15 +106,15 @@ class MatcherService {
 
     // For blocks, remove skipped ranges on the way out
     const transformedBlocks = blocks.map(removeSkippedRanges)
-
-    this.adapter.fetchMatches(
+    this.adapter.fetchMatches({
       requestId,
-      transformedBlocks,
-      this.currentCategories.map(_ => _.id),
-      applyMatcherResponse,
-      commands.applyRequestError,
-      commands.applyRequestComplete
-    );
+      inputs: transformedBlocks,
+      categoryIds: this.currentCategories.map(_ => _.id),
+      excludeCategoryIds: this.excludedCategories,
+      onMatchesReceived: applyMatcherResponse,
+      onRequestError: commands.applyRequestError,
+      onRequestComplete: commands.applyRequestComplete
+    });
   }
 
   /**
@@ -128,6 +133,29 @@ class MatcherService {
     }
     const requestId = v4();
     commands.requestMatchesForDirtyRanges(
+      requestId,
+      this.getCurrentCategories().map(_ => _.id),
+      this.telemetryAdapter
+    );
+  }
+
+  /**
+   * Request a fetch for matches. If we already have a request in flight,
+   * defer it until the next throttle window.
+   */
+  public requestFetchMatchesForDocument() {
+    const commands = this.getCommands();
+    if (!commands) {
+      return;
+    }
+    this.requestPending = false;
+    const pluginState = this.store.getState();
+    if (!pluginState || selectAllBlocksInFlight(pluginState).length) {
+      return this.scheduleRequest();
+    }
+    const requestId = v4();
+    commands.clearMatches();
+    commands.requestMatchesForDocument(
       requestId,
       this.getCurrentCategories().map(_ => _.id),
       this.telemetryAdapter

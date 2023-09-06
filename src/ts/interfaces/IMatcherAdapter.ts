@@ -6,6 +6,16 @@ import {
   TMatchRequestErrorWithDefault
 } from "./IMatch";
 
+export type FetchMatches = {
+  requestId: string,
+  inputs: IBlock[],
+  categoryIds: string[],
+  excludeCategoryIds: string[],
+  onMatchesReceived: TMatchesReceivedCallback,
+  onRequestError: TRequestErrorCallback,
+  onRequestComplete: TRequestCompleteCallback
+}
+
 /**
  * @internal
  */
@@ -13,14 +23,7 @@ export declare class IMatcherAdapter {
   /**
    * Fetch the matches for the given inputs.
    */
-  public fetchMatches: (
-    requestId: string,
-    input: IBlock[],
-    categoryIds: string[],
-    onMatchesReceived: TMatchesReceivedCallback,
-    onRequestError: TRequestErrorCallback,
-    onRequestComplete: TRequestCompleteCallback
-  ) => void;
+  public fetchMatches: (options: FetchMatches) => void;
 
   /**
    * Fetch the currently available matcher categories.

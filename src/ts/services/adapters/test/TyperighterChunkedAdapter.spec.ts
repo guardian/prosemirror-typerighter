@@ -59,14 +59,15 @@ describe("TyperighterChunkedAdapter", () => {
     const stream = createStream(jsonSeq);
     mockFetchBody({ body: stream });
 
-    await adapter.fetchMatches(
-      "request-id",
-      [],
-      [],
-      onReceived,
-      onError,
-      onComplete
-    );
+    await adapter.fetchMatches({
+      requestId: "request-id",
+      inputs: [],
+      categoryIds: [],
+      excludeCategoryIds: [],
+      onMatchesReceived: onReceived,
+      onRequestError: onError,
+      onRequestComplete: onComplete
+  });
 
     expect(onReceived).toHaveBeenCalledWith(mockResponse[0]);
     expect(onReceived).toHaveBeenCalledWith(mockResponse[1]);
@@ -77,14 +78,16 @@ describe("TyperighterChunkedAdapter", () => {
     const adapter = new TyperighterChunkedAdapter("https://example.com");
     mockFetchBody({ body: undefined });
 
-    await adapter.fetchMatches(
-      "request-id",
-      [],
-      [],
-      onReceived,
-      onError,
-      onComplete
-    );
+    await adapter.fetchMatches({
+      requestId: "request-id",
+      inputs: [],
+      categoryIds: [],
+      excludeCategoryIds: [],
+      onMatchesReceived: onReceived,
+      onRequestError: onError,
+      onRequestComplete: onComplete
+  });
+    
 
     expect(onError.mock.calls[0][0]).toMatchObject({
       message: "Typerighter did not send a response"
@@ -96,14 +99,15 @@ describe("TyperighterChunkedAdapter", () => {
     const adapter = new TyperighterChunkedAdapter("https://example.com");
     mockFetchBody({ status: 500, statusText: "Server error" });
 
-    await adapter.fetchMatches(
-      "request-id",
-      [],
-      [],
-      onReceived,
-      onError,
-      onComplete
-    );
+    await adapter.fetchMatches({
+      requestId: "request-id",
+      inputs: [],
+      categoryIds: [],
+      excludeCategoryIds: [],
+      onMatchesReceived: onReceived,
+      onRequestError: onError,
+      onRequestComplete: onComplete
+  });
 
     expect(onError.mock.calls[0][0]).toMatchObject({
       message: "Typerighter did not send a response"
