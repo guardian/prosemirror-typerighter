@@ -15,7 +15,7 @@
     "lib": ["dom", "esnext"],
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "types": ["@emotion/react/types/css-prop", "jest"]
+    "types": ["@emotion/react/types/css-prop", "bun-types"]
   },
   "exclude": ["dist"]
 }
