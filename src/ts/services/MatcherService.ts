@@ -35,6 +35,7 @@ class MatcherService {
   ) {
     this.currentThrottle = this.initialThrottle;
     this.store.on(STORE_EVENT_NEW_MATCHES, (requestId, requestsInFlight) => {
+      console.log('fetching new matches')
       this.fetchMatches(requestId, requestsInFlight);
     });
     this.store.on(STORE_EVENT_NEW_DIRTIED_RANGES, () => {

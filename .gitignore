@@ -7,3 +7,4 @@ pages/dist/bundle*
 .metals
 coverage
 .idea
+.vscode

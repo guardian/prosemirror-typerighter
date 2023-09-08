@@ -6,6 +6,7 @@ import TyperighterChunkedAdapter, {
   readJsonSeqStream,
   RECORD_SEPARATOR
 } from "../TyperighterChunkedAdapter";
+import { afterAll, afterEach, describe, expect, it, mock } from "bun:test";
 
 const textEncoder = new TextEncoder();
 
@@ -22,19 +23,15 @@ const createStream = (records: string[]) =>
 
 describe("TyperighterChunkedAdapter", () => {
   const localFetch = global.fetch;
-  const onReceived = jest.fn();
-  const onError = jest.fn();
-  const onComplete = jest.fn();
+  const onReceived = mock(noop);
+  const onError = mock(noop);
+  const onComplete = mock(noop);
 
   const mockFetchBody = (partialRequest: Partial<Response>) =>
-    (global.fetch = jest.fn(() => Promise.resolve(partialRequest) as any));
+    (global.fetch = mock(() => Promise.resolve(partialRequest) as any));
 
   afterAll(() => {
     global.fetch = localFetch;
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it("should call `onMatchesReceived` for each record in a successful response, and finally call `onRequestComplete`", async () => {
@@ -68,8 +65,8 @@ describe("TyperighterChunkedAdapter", () => {
       onComplete
     );
 
-    expect(onReceived).toHaveBeenCalledWith(mockResponse[0]);
-    expect(onReceived).toHaveBeenCalledWith(mockResponse[1]);
+    expect(onReceived.mock.calls[0][0]).toEqual(mockResponse[0]);
+    expect(onReceived.mock.calls[1][0]).toEqual(mockResponse[1]);
     expect(onComplete).toHaveBeenCalled();
   });
 
@@ -162,7 +159,6 @@ describe("readJsonSeqStream", () => {
   });
 
   it("should throw when it receives invalid json", async () => {
-    expect.assertions(1);
     const stream = createStream(["This is not JSON"]).getReader();
 
     const readInvalidStream = readJsonSeqStream(stream, noop);

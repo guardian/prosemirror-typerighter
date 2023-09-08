@@ -1,6 +1,8 @@
 import Store from "../store";
 import { createInitialState } from "../reducer";
 import { createDoc, p } from "../../test/helpers/prosemirror";
+import { describe, expect, it, mock } from "bun:test";
+import { noop } from "lodash";
 
 describe("store", () => {
   const doc = createDoc(p("Example doc"))
@@ -8,8 +10,8 @@ describe("store", () => {
 
   it("should allow consumers to subscribe to all store events, and trigger subscriptions when those events are emitted", () => {
     const store = new Store();
-    const newStateSub = jest.fn();
-    const newSub = jest.fn();
+    const newStateSub = mock(noop);
+    const newSub = mock(noop);
     store.on("STORE_EVENT_NEW_STATE", newStateSub);
     store.on("STORE_EVENT_NEW_MATCHES", newSub);
 
@@ -22,7 +24,7 @@ describe("store", () => {
   });
   it("should allow consumers to remove subscriptions", () => {
     const store = new Store();
-    const newStateSub = jest.fn();
+    const newStateSub = mock(noop);
     store.on("STORE_EVENT_NEW_STATE", newStateSub);
     store.removeEventListener("STORE_EVENT_NEW_STATE", newStateSub);
 
@@ -36,6 +38,6 @@ describe("store", () => {
     const store = new Store();
     expect(
       store.removeEventListener.bind(store, "STORE_EVENT_NEW_STATE", () => ({}))
-    ).toThrowError();
+    ).toThrow();
   });
 });

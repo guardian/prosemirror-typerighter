@@ -1,3 +1,4 @@
+import { describe, expect, it, spyOn } from "bun:test";
 import React from "react";
 import { render } from "@testing-library/react";
 import Store from "../../state/store";
@@ -8,14 +9,10 @@ import { createBoundCommands } from "../../commands";
 import { createEditor } from "../../test/helpers/createEditor";
 
 describe("Sidebar", () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it("should correctly unsubscribe from the Store when it unmounts", () => {
     // Errors do not propagate to the caller of `unmount`, but we can listen to JSDOM's
     // output, which will forward all errors to the NodeJS `console` by default.
-    const errorMock = jest.spyOn(console, "error");
+    const errorMock = spyOn(console, "error");
     const store = new Store();
     const { view } = createEditor("");
     const matcherService = new MatcherService(

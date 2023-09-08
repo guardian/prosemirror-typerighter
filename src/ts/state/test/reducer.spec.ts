@@ -1,3 +1,4 @@
+import { describe, expect, it } from "bun:test";
 import { Transaction } from "prosemirror-state";
 import { DecorationSet } from "prosemirror-view";
 import {
@@ -48,10 +49,12 @@ describe("Action handlers", () => {
     });
   });
   describe("Unknown action", () => {
-    const { state, tr } = createInitialData();
-    expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toEqual(
-      state
-    );
+    it("should just return the state", () => {
+      const { state, tr } = createInitialData();
+      expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toEqual(
+        state
+      );
+    });
   });
   describe("requestMatchesForDocument", () => {
     it("should apply dirty ranges for the entire doc", () => {
@@ -841,7 +844,7 @@ describe("Action handlers", () => {
       expect(newState.requestErrors).toEqual(state.requestErrors);
     });
   });
-  describe("setTyperighterEnabled", () => { 
+  describe("setTyperighterEnabled", () => {
     it("should remove any matches and decorations when disabled", () => {
       const { state, tr } = createInitialData();
       const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
@@ -881,23 +884,23 @@ describe("Action handlers", () => {
     it("should add requests-in-flight for the entire document when enabled", () => {
       const { state, tr } = createInitialData();
       const expectedRequest = {
-        "categoryIds": [], 
+        "categoryIds": [],
         "mapping": {
-          "from": 0, 
-          "maps": [], 
-          "mirror": undefined, 
+          "from": 0,
+          "maps": [],
+          "mirror": undefined,
           "to": 0
-        }, 
+        },
         "pendingBlocks": [{
           "block": {
-            "from": 1, 
-            "id": "0-from:1-to:23", 
-            "skipRanges": [], 
-            "text": "Example text to check", 
+            "from": 1,
+            "id": "0-from:1-to:23",
+            "skipRanges": [],
+            "text": "Example text to check",
             "to": 23
-          }, 
+          },
           "pendingCategoryIds": []
-        }], 
+        }],
         "totalBlocks": 1
       }
 
@@ -906,15 +909,15 @@ describe("Action handlers", () => {
         state,
         setTyperighterEnabled(true)
       ).requestsInFlight;
-      
-      
+
+
       const requestNames = Object.keys(requests);
       const actualRequest = requests[Object.keys(requests)[0]]
-      
-      expect(requestNames.length).toEqual(1); 
+
+      expect(requestNames.length).toEqual(1);
       expect(actualRequest).toMatchObject(
         expectedRequest
-      ); 
+      );
     });
   })
   describe("setConfigValue", () => {
