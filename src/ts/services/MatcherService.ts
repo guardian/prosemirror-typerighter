@@ -140,8 +140,7 @@ class MatcherService {
   }
 
   /**
-   * Request a fetch for matches. If we already have a request in flight,
-   * defer it until the next throttle window.
+   * Request a fetch for matches as with `requestFetchMatches`, but for the entire document.
    */
   public requestFetchMatchesForDocument() {
     const commands = this.getCommands();
