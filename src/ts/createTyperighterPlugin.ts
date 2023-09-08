@@ -110,7 +110,8 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
   typerighterEnabled?: boolean
   /**
    * A list of categoryIds to exclude from checks. These can be 
-   * modified on the MatcherService instance.
+   * modified on the MatcherService instance if they need to be changed after 
+   * the plugin initialises.
    */
   excludedCategoryIds?: string[]
 }
