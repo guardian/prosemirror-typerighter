@@ -1,10 +1,7 @@
-import { IBlock } from "../../interfaces/IMatch";
 import TyperighterAdapter from "./TyperighterAdapter";
 import {
-  TMatchesReceivedCallback,
-  TRequestErrorCallback,
   IMatcherAdapter,
-  TRequestCompleteCallback
+  FetchMatches
 } from "../../interfaces/IMatcherAdapter";
 
 /**
@@ -13,14 +10,15 @@ import {
  */
 class TyperighterChunkedAdapter extends TyperighterAdapter
   implements IMatcherAdapter {
-  public fetchMatches = async (
-    requestId: string,
-    inputs: IBlock[],
-    categoryIds: string[],
-    onMatchesReceived: TMatchesReceivedCallback,
-    onRequestError: TRequestErrorCallback,
-    onRequestComplete: TRequestCompleteCallback
-  ) => {
+  public fetchMatches = async ({
+    requestId,
+    inputs,
+    categoryIds,
+    excludeCategoryIds,
+    onMatchesReceived,
+    onRequestError,
+    onRequestComplete,
+  }: FetchMatches) => {
     const blocks = inputs.map(input => ({
       id: input.id,
       text: input.text,
@@ -38,7 +36,8 @@ class TyperighterChunkedAdapter extends TyperighterAdapter
       body: JSON.stringify({
         requestId,
         blocks,
-        categoryIds
+        categoryIds,
+        excludeCategoryIds
       })
     });
 

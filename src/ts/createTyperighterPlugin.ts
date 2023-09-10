@@ -108,6 +108,12 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
   adapter: IMatcherAdapter,
 
   typerighterEnabled?: boolean
+  /**
+   * A list of categoryIds to exclude from checks. These can be 
+   * modified on the MatcherService instance if they need to be changed after 
+   * the plugin initialises.
+   */
+  excludedCategoryIds?: string[]
 }
 
 /**
@@ -135,6 +141,7 @@ const createTyperighterPlugin = (
     adapter,
     telemetryAdapter,
     typerighterEnabled = true,
+    excludedCategoryIds = []
   } = options;
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
@@ -145,7 +152,7 @@ const createTyperighterPlugin = (
     getSkippedRanges
   );
 
-  const matcherService = new MatcherService(store, adapter, telemetryAdapter)
+  const matcherService = new MatcherService(store, adapter, telemetryAdapter, 2000, excludedCategoryIds)
 
   const plugin: Plugin<IPluginState> = new Plugin({
     key: pluginKey,
