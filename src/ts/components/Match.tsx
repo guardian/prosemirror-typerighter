@@ -47,8 +47,8 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       ruleId
     };
 
-    // render suggestions if they exist (the case for dictionary rules), otherwise render the replacement (as sometimes exists for classic Typerighter rules)
-    const suggestionsToRender = suggestions && suggestions.length > 0 ? suggestions : replacement ? [replacement] : [];
+    // render up to 6 suggestions if they exist (e.g. dictionary rules), otherwise render the replacement (as sometimes exists for classic Typerighter rules)
+    const suggestionsToRender = suggestions && suggestions.length > 0 ? suggestions.slice(0, 6) : replacement ? [replacement] : [];
     const suggestionContent = (
       <div className="MatchWidget__suggestion-list">
         {suggestionsToRender && applySuggestions && !markAsCorrect && (
