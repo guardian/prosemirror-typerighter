@@ -22,6 +22,14 @@ const applySuggestionToDoc = (
 };
 
 describe("Commands", () => {
+  describe("General behaviour", () => {
+    it("should not attempt to apply new states when the document has been destroyed", () => {
+      const { view, commands } = createEditor("<p>Example document");
+      view.destroy();
+      expect(commands.clearMatches).not.toThrow();
+    });
+  })
+
   describe("applySuggestionsCommand", () => {
     it("should apply a suggestion to the document", () => {
       const editorElement = applySuggestionToDoc(
@@ -121,8 +129,7 @@ describe("Commands", () => {
       expect(editorElement.innerHTML).toBe("An a<em>mp</em>le sentence");
     });
   });
-  describe("setTyperighterEnabled", () => { 
-
+  describe("setTyperighterEnabled", () => {
     const createExampleEditor = (
       before: string,
       from: number,
@@ -132,7 +139,7 @@ describe("Commands", () => {
         { text: "N/A", type: "TEXT_SUGGESTION" }
       ]);
       const { editorElement, commands } = createEditor(before, [match]);
-    
+
       return { editorElement, commands };
     };
 
