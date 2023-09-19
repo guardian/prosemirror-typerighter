@@ -147,7 +147,8 @@ describe("createTyperighterPlugin", () => {
           },
           matchContext: "bigger block of text",
           precedingText: "bigger block of text",
-          subsequentText: ""
+          subsequentText: "",
+          groupKey: "group-key"
         }
       ],
       requestId: "reqId"

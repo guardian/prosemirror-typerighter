@@ -600,7 +600,8 @@ describe("Action handlers", () => {
         },
         matchContext: "some more text",
         precedingText: "some more text",
-        subsequentText: ""
+        subsequentText: "",
+        groupKey: "group-key"
       };
       const localState = {
         ...state,
@@ -638,7 +639,8 @@ describe("Action handlers", () => {
         },
         matchContext: "bigger block of text",
         precedingText: "bigger block of text",
-        subsequentText: ""
+        subsequentText: "",
+        groupKey: "group-key"
       };
 
       const localState = {
@@ -683,7 +685,8 @@ describe("Action handlers", () => {
           markAsCorrect: true,
           matchContext: "bigger block of text",
           precedingText: "bigger block of text",
-          subsequentText: ""
+          subsequentText: "",
+          groupKey: "group-key"
         }
       ];
       const stateWithCurrentMatchesAndDecorations = {
@@ -732,7 +735,8 @@ describe("Action handlers", () => {
             id: "exampleId",
             matchContext: "bigger block of text",
             precedingText: "bigger block of text",
-            subsequentText: ""
+            subsequentText: "",
+            groupKey: "group-key"
           }
         ]
       };

@@ -106,7 +106,8 @@ export const createMatcherResponse = (
         suggestions,
         matchContext: "here is a [[block text]] match",
         precedingText: "here is a ",
-        subsequentText: " match"
+        subsequentText: " match",
+        groupKey: "group-key"
       };
 
       return {
@@ -146,7 +147,8 @@ export const createMatch = (
   suggestions,
   matchContext: "here is a [[block text]] match",
   precedingText: "here is a ",
-  subsequentText: " match"
+  subsequentText: " match",
+  groupKey: "group-key"
 });
 
 export const exampleCategoryIds = ["example-category"];
