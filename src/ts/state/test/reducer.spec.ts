@@ -22,7 +22,7 @@ import {
   createDecorationsForMatch
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNodes } from "../../utils/range";
-import { createDoc, p } from "../../test/helpers/prosemirror";
+import { createDoc, p } from "../../utils/prosemirrorTestUtils";
 import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
 import { addMatchesToState } from "../helpers";
 import {
@@ -35,7 +35,7 @@ import {
   defaultDoc,
   createMatch,
   createStateWithMatches
-} from "../../test/helpers/fixtures";
+} from "../../utils/createTestFixtures";
 import { createBlockId } from "../../utils/block";
 
 const reducer = createReducer(expandRangesToParentBlockNodes);
@@ -841,7 +841,7 @@ describe("Action handlers", () => {
       expect(newState.requestErrors).toEqual(state.requestErrors);
     });
   });
-  describe("setTyperighterEnabled", () => { 
+  describe("setTyperighterEnabled", () => {
     it("should remove any matches and decorations when disabled", () => {
       const { state, tr } = createInitialData();
       const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
@@ -881,23 +881,23 @@ describe("Action handlers", () => {
     it("should add requests-in-flight for the entire document when enabled", () => {
       const { state, tr } = createInitialData();
       const expectedRequest = {
-        "categoryIds": [], 
+        "categoryIds": [],
         "mapping": {
-          "from": 0, 
-          "maps": [], 
-          "mirror": undefined, 
+          "from": 0,
+          "maps": [],
+          "mirror": undefined,
           "to": 0
-        }, 
+        },
         "pendingBlocks": [{
           "block": {
-            "from": 1, 
-            "id": "0-from:1-to:23", 
-            "skipRanges": [], 
-            "text": "Example text to check", 
+            "from": 1,
+            "id": "0-from:1-to:23",
+            "skipRanges": [],
+            "text": "Example text to check",
             "to": 23
-          }, 
+          },
           "pendingCategoryIds": []
-        }], 
+        }],
         "totalBlocks": 1
       }
 
@@ -906,15 +906,15 @@ describe("Action handlers", () => {
         state,
         setTyperighterEnabled(true)
       ).requestsInFlight;
-      
-      
+
+
       const requestNames = Object.keys(requests);
       const actualRequest = requests[Object.keys(requests)[0]]
-      
-      expect(requestNames.length).toEqual(1); 
+
+      expect(requestNames.length).toEqual(1);
       expect(actualRequest).toMatchObject(
         expectedRequest
-      ); 
+      );
     });
   })
   describe("setConfigValue", () => {

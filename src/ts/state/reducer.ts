@@ -56,7 +56,7 @@ import {
   findOverlappingRangeIndex,
   removeOverlappingRanges
 } from "../utils/range";
-import { ExpandRanges, IFilterOptions } from "../createTyperighterPlugin";
+import { ExpandRanges, IFilterOptions } from "../plugin/createTyperighterPlugin";
 import { getBlocksFromDocument, nodeContainsText } from "../utils/prosemirror";
 import { Node } from "prosemirror-model";
 import {

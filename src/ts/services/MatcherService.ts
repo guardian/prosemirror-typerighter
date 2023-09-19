@@ -7,7 +7,7 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "../state/store";
-import { Commands } from "../commands";
+import { Commands } from "../state/commands";
 import { selectAllBlocksInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";

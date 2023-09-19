@@ -4,8 +4,8 @@ import Store from "../../state/store";
 import Sidebar from "../Sidebar";
 import MatcherService from "../../services/MatcherService";
 import TyperighterChunkedAdapter from "../../services/adapters/TyperighterChunkedAdapter";
-import { createBoundCommands } from "../../commands";
-import { createEditor } from "../../test/helpers/createEditor";
+import { createBoundCommands } from "../../state/commands";
+import { createEditor } from "../../utils/createTestEditor";
 
 describe("Sidebar", () => {
   afterEach(() => {

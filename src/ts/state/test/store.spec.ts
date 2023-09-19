@@ -1,6 +1,6 @@
 import Store from "../store";
 import { createInitialState } from "../reducer";
-import { createDoc, p } from "../../test/helpers/prosemirror";
+import { createDoc, p } from "../../utils/prosemirrorTestUtils";
 
 describe("store", () => {
   const doc = createDoc(p("Example doc"))

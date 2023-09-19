@@ -1,17 +1,17 @@
-import { applyNewDirtiedRanges } from "./state/actions";
+import { applyNewDirtiedRanges } from "../state/actions";
 import {
   IPluginState,
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IIgnoreMatchPredicate,
   includeAllMatches,
   IPluginConfig
-} from "./state/reducer";
-import { createInitialState, createReducer } from "./state/reducer";
+} from "../state/reducer";
+import { createInitialState, createReducer } from "../state/reducer";
 import {
   selectMatchByMatchId,
   selectNewBlockInFlight,
   selectPluginConfig
-} from "./state/selectors";
+} from "../state/selectors";
 import {
   IMatchTypeToColourMap,
   defaultMatchColours,
@@ -19,26 +19,26 @@ import {
   createGlobalDecorationStyleTag,
   GLOBAL_DECORATION_STYLE_ID,
   MatchType
-} from "./utils/decoration";
+} from "../utils/decoration";
 import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction } from "prosemirror-state";
-import { expandRangesToParentBlockNodes } from "./utils/range";
-import { getDirtiedRangesFromTransaction } from "./utils/prosemirror";
-import { IRange, IMatch } from "./interfaces/IMatch";
+import { expandRangesToParentBlockNodes } from "../utils/range";
+import { getDirtiedRangesFromTransaction } from "../utils/prosemirror";
+import { IRange, IMatch } from "../interfaces/IMatch";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
-} from "./state/store";
-import { doNotSkipRanges, TGetSkippedRanges } from "./utils/block";
-import { createBoundCommands, startHoverCommand, stopHoverCommand } from "./commands";
-import { IFilterMatches, maybeResetHoverStates } from "./utils/plugin";
-import { pluginKey } from "./utils/plugin";
-import { getClientRectIndex } from "./utils/clientRect";
-import MatcherService from "./services/MatcherService";
-import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
-import { IMatcherAdapter } from "./interfaces/IMatcherAdapter";
+} from "../state/store";
+import { doNotSkipRanges, TGetSkippedRanges } from "../utils/block";
+import { createBoundCommands, startHoverCommand, stopHoverCommand } from "../state/commands";
+import { IFilterMatches, maybeResetHoverStates } from "../utils/plugin";
+import { pluginKey } from "../utils/plugin";
+import { getClientRectIndex } from "../utils/clientRect";
+import MatcherService from "../services/MatcherService";
+import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
+import { IMatcherAdapter } from "../interfaces/IMatcherAdapter";
 import { v4 } from "uuid";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node) => IRange[];
@@ -109,8 +109,8 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
 
   typerighterEnabled?: boolean
   /**
-   * A list of categoryIds to exclude from checks. These can be 
-   * modified on the MatcherService instance if they need to be changed after 
+   * A list of categoryIds to exclude from checks. These can be
+   * modified on the MatcherService instance if they need to be changed after
    * the plugin initialises.
    */
   excludedCategoryIds?: string[]

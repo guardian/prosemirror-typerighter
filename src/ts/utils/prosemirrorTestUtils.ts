@@ -6,8 +6,8 @@ import {
   DecorationSet,
   Decoration
 } from "prosemirror-view";
-import { getNewDecorationsForCurrentMatches } from "../../utils/decoration";
-import { IMatch } from "../../interfaces/IMatch";
+import { getNewDecorationsForCurrentMatches } from "../utils/decoration";
+import { IMatch } from "../interfaces/IMatch";
 
 const schema = new Schema({
   nodes,

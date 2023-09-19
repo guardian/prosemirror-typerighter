@@ -2,13 +2,13 @@ import type { IMatch, ICategory, IBlock, ISuggestion } from './interfaces/IMatch
 import type { IPluginState } from './state/reducer';
 import type { IMatchTypeToColourMap } from './utils/decoration';
 import Store, { STORE_EVENT_NEW_STATE } from './state/store';
-import createTyperighterPlugin from "./createTyperighterPlugin";
+import createTyperighterPlugin from "./plugin/createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
 import { UserTelemetryEventSender, IUserTelemetryEvent} from "@guardian/user-telemetry-client";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import TyperighterAdapter, { convertTyperighterResponse } from "./services/adapters/TyperighterAdapter";
 import TyperighterChunkedAdapter from "./services/adapters/TyperighterChunkedAdapter";
-import { commands, createBoundCommands } from "./commands";
+import { commands, createBoundCommands } from "./state/commands";
 import * as selectors from "./state/selectors";
 import { getBlocksFromDocument } from './utils/prosemirror';
 import { createOverlayView } from "./components/createOverlayView";
@@ -45,11 +45,11 @@ export {
   getSquiggleAsUri,
   findAncestor,
   getHtmlFromMarkdown,
-  MatchType, 
-  IMatchTypeToColourMap, 
-  getMatchType, 
-  getColourForMatch, 
-  getColourForMatchType, 
+  MatchType,
+  IMatchTypeToColourMap,
+  getMatchType,
+  getColourForMatch,
+  getColourForMatchType,
   getMatchOffset,
   TelemetryContext
 };

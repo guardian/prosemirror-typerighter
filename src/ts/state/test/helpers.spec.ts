@@ -9,7 +9,7 @@ import {
   defaultDoc,
   createBlock,
   exampleRequestId
-} from "../../test/helpers/fixtures";
+} from "../../utils/createTestFixtures";
 import {
   createDebugDecorationFromRange,
   getNewDecorationsForCurrentMatches,

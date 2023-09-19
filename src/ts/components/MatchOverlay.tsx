@@ -5,7 +5,7 @@ import { selectMatchByMatchId } from "../state/selectors";
 import { IMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
-import { ApplySuggestionOptions } from "../commands";
+import { ApplySuggestionOptions } from "../state/commands";
 import { usePopper } from "react-popper";
 import { debounce } from "lodash"
 import { Placement } from "@popperjs/core";

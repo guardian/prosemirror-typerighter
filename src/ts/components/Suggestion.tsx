@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Change, diffChars } from "diff";
 
-import { ApplySuggestionOptions } from "../commands";
+import { ApplySuggestionOptions } from "../state/commands";
 import { ISuggestion, IMatch } from "../interfaces/IMatch";
 import WikiSuggestion from "./WikiSuggestion";
 import TelemetryContext from "../contexts/TelemetryContext";

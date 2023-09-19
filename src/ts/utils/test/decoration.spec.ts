@@ -3,7 +3,7 @@ import {
   getMatchType,
   MatchType
 } from "../decoration";
-import { createMatch } from "../../test/helpers/fixtures";
+import { createMatch } from "../../utils/createTestFixtures";
 import { IMatch } from "../../interfaces/IMatch";
 
 describe("Decoration utils", () => {

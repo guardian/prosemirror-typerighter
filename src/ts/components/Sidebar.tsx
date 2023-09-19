@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Store, { STORE_EVENT_NEW_STATE } from ".././state/store";
 import Results from "./Results";
 import Controls from "./Controls";
-import { Commands } from ".././commands";
+import { Commands } from "../state/commands";
 import { MatcherService } from "..";
 import { IPluginState } from "../state/reducer";
 

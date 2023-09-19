@@ -11,7 +11,7 @@ import {
   exampleRequestId,
   createInitialData,
   exampleCategoryIds
-} from "../../test/helpers/fixtures";
+} from "../../utils/createTestFixtures";
 import { IMatch } from '../../interfaces/IMatch';
 import { omit } from "lodash";
 

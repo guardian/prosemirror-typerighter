@@ -7,18 +7,18 @@ import {
   getDecorationSpecsFromDoc,
   getDecorationSpecs,
   getDecorationSpecsFromMatches
-} from "./helpers/prosemirror";
+} from "../../utils/prosemirrorTestUtils";
 import createTyperighterPlugin, {
   IPluginOptions
 } from "../createTyperighterPlugin";
-import { createMatch, createMatcherResponse } from "./helpers/fixtures";
-import { createEditor } from "./helpers/createEditor";
-import { createBoundCommands } from "../commands";
-import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
-import { getBlocksFromDocument } from "../utils/prosemirror";
-import { createDecorationsForMatches, MatchType } from "../utils/decoration";
-import { filterByMatchState, getState } from "../utils/plugin";
-import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
+import { createMatch, createMatcherResponse } from "../../utils/createTestFixtures";
+import { createEditor } from "../../utils/createTestEditor";
+import { createBoundCommands } from "../../state/commands";
+import { IMatch, IMatcherResponse } from "../../interfaces/IMatch";
+import { getBlocksFromDocument } from "../../utils/prosemirror";
+import { createDecorationsForMatches, MatchType } from "../../utils/decoration";
+import { filterByMatchState, getState } from "../../utils/plugin";
+import TyperighterAdapter from "../../services/adapters/TyperighterAdapter";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);

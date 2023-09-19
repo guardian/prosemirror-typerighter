@@ -8,7 +8,7 @@ import {
   getIntersection,
   mapAddedRange
 } from "../range";
-import { createDoc, p } from "../../test/helpers/prosemirror";
+import { createDoc, p } from "../../utils/prosemirrorTestUtils";
 
 describe("Range utils", () => {
   describe("expandRangeToParentBlockNode", () => {

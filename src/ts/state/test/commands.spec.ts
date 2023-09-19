@@ -1,5 +1,5 @@
-import { createEditor } from "./helpers/createEditor";
-import { createMatch } from "./helpers/fixtures";
+import { createEditor } from "../../utils/createTestEditor";
+import { createMatch } from "../../utils/createTestFixtures";
 
 /**
  * Applies a suggestion to a document, and returns the editor element

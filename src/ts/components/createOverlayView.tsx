@@ -2,7 +2,7 @@ import React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import MatchOverlay from "./MatchOverlay";
 import Store from "../state/store";
-import { Commands } from "../commands";
+import { Commands } from "../state/commands";
 import { IMatch } from "../interfaces/IMatch";
 import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
 import TelemetryContext from "../contexts/TelemetryContext";

@@ -13,28 +13,28 @@ import {
   newHighlightIdReceived,
   setFilterState,
   setTyperighterEnabled
-} from "./state/actions";
+} from "./actions";
 import {
   selectMatchByMatchId,
   selectAllAutoFixableMatches
-} from "./state/selectors";
+} from "./selectors";
 import {
   PROSEMIRROR_TYPERIGHTER_ACTION,
   IPluginState,
   IPluginConfig
-} from "./state/reducer";
+} from "./reducer";
 import {
   IMatcherResponse,
   TMatchRequestErrorWithDefault
-} from "./interfaces/IMatch";
+} from "../interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
-import { compact } from "./utils/array";
+import { compact } from "../utils/array";
 import {
   getPatchesFromReplacementText,
   applyPatchToTransaction
-} from "./utils/prosemirror";
-import { getState } from "./utils/plugin";
-import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
+} from "../utils/prosemirror";
+import { getState } from "../utils/plugin";
+import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
 
 type Command = (
   state: EditorState,

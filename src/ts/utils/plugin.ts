@@ -1,4 +1,4 @@
-import { stopHoverCommand, stopHighlightCommand } from "../commands";
+import { stopHoverCommand, stopHighlightCommand } from "../state/commands";
 import { EditorView } from "prosemirror-view";
 import { PluginKey } from "prosemirror-state";
 import { getMatchType, MatchType } from "./decoration";

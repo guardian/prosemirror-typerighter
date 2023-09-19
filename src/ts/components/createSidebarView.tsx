@@ -1,7 +1,7 @@
 import React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import Store from "../state/store";
-import { Commands } from "../commands";
+import { Commands } from "../state/commands";
 import { MatcherService } from "..";
 import Sidebar from "./Sidebar";
 import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";

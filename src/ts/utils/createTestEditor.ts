@@ -5,10 +5,10 @@ import { marks, schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { exampleSetup } from "prosemirror-example-setup";
 
-import createTyperighterPlugin from "../../createTyperighterPlugin";
-import { createBoundCommands } from "../../commands";
-import TyperighterAdapter from "../../services/adapters/TyperighterAdapter";
-import { IMatch } from "../..";
+import createTyperighterPlugin from "../plugin/createTyperighterPlugin";
+import { createBoundCommands } from "../state/commands";
+import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
+import { IMatch } from "..";
 
 export const createEditor = (htmlDoc: string, matches: IMatch[] = []) => {
   const mySchema = new Schema({

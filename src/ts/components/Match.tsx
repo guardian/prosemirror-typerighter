@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 import { IMatch } from "../interfaces/IMatch";
-import { ApplySuggestionOptions } from "../commands";
+import { ApplySuggestionOptions } from "../state/commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
 import { Check } from "@mui/icons-material";

@@ -7,17 +7,17 @@ import {
   ICategory,
   IBlockWithSkippedRanges,
   IRange
-} from "../../interfaces/IMatch";
-import { createBlockId, createMatchId } from "../../utils/block";
-import { IPluginState, IRequestInFlight, createReducer, IPluginConfig } from "../../state/reducer";
+} from "../interfaces/IMatch";
+import { createBlockId, createMatchId } from "../utils/block";
+import { IPluginState, IRequestInFlight, createReducer, IPluginConfig } from "../state/reducer";
 import { Mapping } from "prosemirror-transform";
 import { Transaction } from "prosemirror-state";
 import { Node } from "prosemirror-model";
 import { DecorationSet } from "prosemirror-view";
-import { createDoc, p } from "./prosemirror";
-import { defaultMatchColours } from "../../utils/decoration";
-import { requestMatchesForDocument, requestMatchesSuccess } from "../../state/actions";
-import { getBlocksFromDocument } from "../../utils/prosemirror";
+import { createDoc, p } from "./prosemirrorTestUtils";
+import { defaultMatchColours } from "../utils/decoration";
+import { requestMatchesForDocument, requestMatchesSuccess } from "../state/actions";
+import { getBlocksFromDocument } from "../utils/prosemirror";
 
 export const matchLibrary: IMatchLibrary = [
   [

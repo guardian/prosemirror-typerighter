@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ISuggestion, IMatch } from "../interfaces/IMatch";
 import Suggestion from "./Suggestion";
-import { ApplySuggestionOptions } from "../commands";
+import { ApplySuggestionOptions } from "../state/commands";
 
 interface IProps {
   suggestions: ISuggestion[];

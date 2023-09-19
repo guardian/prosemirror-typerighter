@@ -6,7 +6,7 @@ import {
 } from "../prosemirror";
 import { flatten } from "prosemirror-utils";
 import { doNotSkipRanges } from "../block";
-import { createEditor } from "../../test/helpers/createEditor";
+import { createEditor } from "../createTestEditor";
 
 describe("Prosemirror utils", () => {
   describe("getBlocksFromDocument", () => {
