@@ -40,6 +40,8 @@ import MatcherService from "../services/MatcherService";
 import TyperighterTelemetryAdapter from "../services/TyperighterTelemetryAdapter";
 import { IMatcherAdapter } from "../interfaces/IMatcherAdapter";
 import { v4 } from "uuid";
+import TyperighterChunkedAdapter from "../services/adapters/TyperighterChunkedAdapter";
+import { IUserTelemetryEvent, UserTelemetryEventSender } from "@guardian/user-telemetry-client";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node) => IRange[];
 
@@ -114,6 +116,22 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
    * the plugin initialises.
    */
   excludedCategoryIds?: string[]
+}
+
+type DefaultPluginOptions = Omit<IPluginOptions, "adapter" | "telemetryAdapter"> & {
+  typerighterUrl: string,
+  telemetryService: UserTelemetryEventSender,
+  app: string,
+  stage: string,
+  tags?: IUserTelemetryEvent["tags"]
+};
+
+export const createDefaultTyperighterPlugin = ({ typerighterUrl, telemetryService, app, stage, tags, ...options }: DefaultPluginOptions) => {
+  return createTyperighterPlugin({
+    ...options,
+    telemetryAdapter: new TyperighterTelemetryAdapter(telemetryService, app, stage, tags),
+    adapter: new TyperighterChunkedAdapter(typerighterUrl)
+  });
 }
 
 /**
