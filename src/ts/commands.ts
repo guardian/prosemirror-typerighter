@@ -436,23 +436,31 @@ export const createBoundCommands = (
   view: EditorView,
   telemetryAdapter?: TyperighterTelemetryAdapter
 ) => {
+  const dispatch = (tr: Transaction) => {
+    if (view.isDestroyed) {
+      return;
+    }
+    return view.dispatch(tr);
+  }
+
   const bindCommand = <CommandArgs extends any[]>(
     action: (...args: CommandArgs) => Command
-  ) => (...args: CommandArgs) => action(...args)(view.state, view.dispatch);
+  ) => (...args: CommandArgs) => action(...args)(view.state, dispatch);
+
   return {
     ignoreMatch: (id: string) =>
-      ignoreMatchCommand(id)(getState)(view.state, view.dispatch),
+      ignoreMatchCommand(id)(getState)(view.state, dispatch),
     clearMatches: () =>
-      clearMatchesCommand()(getState)(view.state, view.dispatch),
+      clearMatchesCommand()(getState)(view.state, dispatch),
     applySuggestions: (suggestionOpts: ApplySuggestionOptions) =>
       applySuggestionsCommand(suggestionOpts, getState)(
         view.state,
-        view.dispatch
+        dispatch
       ),
     selectMatch: (blockId: string) =>
-      selectMatchCommand(blockId, getState)(view.state, view.dispatch),
+      selectMatchCommand(blockId, getState)(view.state, dispatch),
     applyAutoFixableSuggestions: () =>
-      applyAutoFixableSuggestionsCommand(getState)(view.state, view.dispatch),
+      applyAutoFixableSuggestionsCommand(getState)(view.state, dispatch),
     requestMatchesForDocument: bindCommand(requestMatchesForDocumentCommand),
     requestMatchesForDirtyRanges: bindCommand(
       requestMatchesForDirtyRangesCommand
@@ -466,7 +474,7 @@ export const createBoundCommands = (
     applyRequestError: (matchRequestError: TMatchRequestErrorWithDefault) =>
       applyRequestErrorCommand(matchRequestError, telemetryAdapter)(
         view.state,
-        view.dispatch
+        dispatch
       ),
     applyRequestComplete: bindCommand(applyRequestCompleteCommand),
     setFilterState: bindCommand(setFilterStateCommand),
