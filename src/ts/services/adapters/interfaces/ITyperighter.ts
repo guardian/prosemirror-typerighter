@@ -28,6 +28,7 @@ export interface ITypeRighterMatch {
   matchContext: string;
   precedingText: string;
   subsequentText: string;
+  groupKey: string;
 }
 
 export interface ITypeRighterReplacement {

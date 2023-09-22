@@ -13,7 +13,8 @@ describe("Match helpers", () => {
     matchedText: "placeholder text",
     message: "placeholder message",
     matchContext: "[placeholder text]",
-    matcherType: "regex"
+    matcherType: "regex",
+    groupKey: "group-key"
   });
 
   describe("mapMatchThroughSkippedRanges", () => {

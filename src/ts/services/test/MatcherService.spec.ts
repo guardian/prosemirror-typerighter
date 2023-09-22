@@ -46,7 +46,8 @@ const createResponse = (
     markAsCorrect: false,
     matchContext: "whatever",
     precedingText: "whatever",
-    subsequentText: ""
+    subsequentText: "",
+    groupKey: "group-key"
   }))
 });
 

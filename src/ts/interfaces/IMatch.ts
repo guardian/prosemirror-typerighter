@@ -69,6 +69,7 @@ export interface IMatch<TSuggestion = ISuggestion> {
   matchContext: string;
   precedingText: string;
   subsequentText: string;
+  groupKey: string;
 }
 
 export interface IBlockResult {

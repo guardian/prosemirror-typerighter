@@ -151,7 +151,8 @@ describe("selectors", () => {
           matchedText: "hai",
           matchContext: "oh [[hai]]",
           precedingText: "oh ",
-          subsequentText: ""
+          subsequentText: "",
+          groupKey: "group-key"
         }
       ];
       expect(
@@ -190,7 +191,8 @@ describe("selectors", () => {
           matchedText: "hai",
           matchContext: "Oh [[hai]]",
           precedingText: "oh ",
-          subsequentText: ""
+          subsequentText: "",
+          groupKey: "group-key"
         }
       ];
       expect(
