@@ -11,6 +11,9 @@ export interface ICategory {
   colour: string;
 }
 
+/**
+ * A block of contiguous text.
+ */
 export interface IBlock {
   id: string;
   text: string;
@@ -18,9 +21,11 @@ export interface IBlock {
   to: number
 }
 
-
-export interface IBlockWithSkippedRanges extends IBlock {
-  skipRanges: IRange[]
+/**
+ * A block of contiguous text with some ranges marked as ignored.
+ */
+export interface IBlockWithIgnoredRanges extends IBlock {
+  ignoreRanges: IRange[]
 }
 
 export type ISuggestion = ITextSuggestion | IWikiSuggestion;

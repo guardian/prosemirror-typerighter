@@ -3,8 +3,8 @@ import { Transaction } from "prosemirror-state";
 import { Change, ChangeSet } from "prosemirror-changeset";
 import * as jsDiff from "diff";
 
-import { IBlockWithSkippedRanges, IRange } from "../interfaces/IMatch";
-import { createBlock, doNotSkipRanges, TGetSkippedRanges } from "./block";
+import { IBlockWithIgnoredRanges, IRange } from "../interfaces/IMatch";
+import { createBlock, doNotIgnoreRanges, GetIgnoredRanges } from "./block";
 
 export const MarkTypes = {
   legal: "legal",
@@ -45,9 +45,9 @@ export const findChildren = (
 export const getBlocksFromDocument = (
   doc: Node,
   time = 0,
-  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
-): IBlockWithSkippedRanges[] => {
-  const ranges = [] as IBlockWithSkippedRanges[];
+  getIgnoredRanges: GetIgnoredRanges = doNotIgnoreRanges
+): IBlockWithIgnoredRanges[] => {
+  const ranges = [] as IBlockWithIgnoredRanges[];
   doc.descendants((descNode, pos) => {
     if (!findChildren(descNode, _ => _.type.isBlock, false).length) {
       ranges.push(

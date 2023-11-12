@@ -1,18 +1,18 @@
-import { IBlockWithSkippedRanges, IMatch, IRange } from "../interfaces/IMatch";
+import { IBlockWithIgnoredRanges, IMatch, IRange } from "../interfaces/IMatch";
 import { mapAddedRange } from "./range";
 
 /**
  * Map the range this match applies to through the given ranges, adjusting its range accordingly.
  */
-export const mapThroughSkippedRanges = <TMatch extends IMatch>(
+export const mapThroughIgnoredRanges = <TMatch extends IMatch>(
   match: TMatch,
-  skipRanges: IRange[]
+  ignoreRanges: IRange[]
 ): TMatch => {
-  if (!skipRanges.length) {
+  if (!ignoreRanges.length) {
     return match;
   }
 
-  const [newMatch] = skipRanges.reduce(
+  const [newMatch] = ignoreRanges.reduce(
     ([accMatch, rangesAlreadyApplied], range) => {
       const initialRange = {
         from: accMatch.from,
@@ -34,11 +34,11 @@ export const mapThroughSkippedRanges = <TMatch extends IMatch>(
 };
 
 /**
- * Map this match through the given blocks' skipped ranges.
+ * Map this match through the given blocks' ignored ranges.
  */
 export const mapMatchThroughBlocks = <TMatch extends IMatch>(
   match: TMatch,
-  blocks: IBlockWithSkippedRanges[]
+  blocks: IBlockWithIgnoredRanges[]
 ): TMatch => {
   const maybeBlockForThisMatch = blocks.find(
     block => match.from >= block.from && match.to <= block.to
@@ -46,5 +46,5 @@ export const mapMatchThroughBlocks = <TMatch extends IMatch>(
   if (!maybeBlockForThisMatch) {
     return match;
   }
-  return mapThroughSkippedRanges(match, maybeBlockForThisMatch.skipRanges);
+  return mapThroughIgnoredRanges(match, maybeBlockForThisMatch.ignoreRanges);
 };

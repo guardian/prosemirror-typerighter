@@ -1,4 +1,4 @@
-import { IMatch, ICategory, IBlockWithSkippedRanges } from "../interfaces/IMatch";
+import { IMatch, ICategory, IBlockWithIgnoredRanges } from "../interfaces/IMatch";
 import {
   IMatcherAdapter,
   TMatchesReceivedCallback
@@ -11,7 +11,7 @@ import { Commands } from "../commands";
 import { selectAllBlocksInFlight } from "../state/selectors";
 import { v4 } from "uuid";
 import TyperighterTelemetryAdapter from "./TyperighterTelemetryAdapter";
-import { removeSkippedRanges } from "../utils/block";
+import { removeIgnoredRanges } from "../utils/block";
 import { mapMatchThroughBlocks } from "../utils/match";
 
 /**
@@ -86,26 +86,26 @@ class MatcherService {
   /**
    * Fetch matches for a set of blocks.
    *
-   * We transform the blocks to remove their skipped ranges before they are sent
-   * to the server, and map matches back through their owner blocks' skipped ranges
+   * We transform the blocks to remove their ignored ranges before they are sent
+   * to the server, and map matches back through their owner blocks' ignored ranges
    * as they return. Doing this in the MatcherService ensures that this transform
    * happens as close to the point of range egress/ingress as possible.
    */
-  public async fetchMatches(requestId: string, blocks: IBlockWithSkippedRanges[]) {
+  public async fetchMatches(requestId: string, blocks: IBlockWithIgnoredRanges[]) {
     const commands = this.getCommands();
     if (!commands) {
       return;
     }
     const applyMatcherResponse: TMatchesReceivedCallback = response => {
       this.sendMatchTelemetryEvents(response.matches);
-      // For matches, map through skipped ranges on the way in
+      // For matches, map through ignored ranges on the way in
       const transformedMatches = response.matches.map(match => mapMatchThroughBlocks(match, blocks))
       const transformedResponse = { ...response, matches: transformedMatches }
       commands.applyMatcherResponse(transformedResponse);
     };
 
-    // For blocks, remove skipped ranges on the way out
-    const transformedBlocks = blocks.map(removeSkippedRanges)
+    // For blocks, remove ignored ranges on the way out
+    const transformedBlocks = blocks.map(removeIgnoredRanges)
     this.adapter.fetchMatches({
       requestId,
       inputs: transformedBlocks,
