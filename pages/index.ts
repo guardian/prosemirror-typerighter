@@ -60,7 +60,7 @@ const {
     filterMatches: filterByMatchState,
     initialFilterState: [] as MatchType[]
   },
-  getSkippedRanges: (node, from, to) =>
+  getIgnoredRanges: (node, from, to) =>
     findMarkPositions(node, from, to, mySchema.marks.code),
   onMatchDecorationClicked: match =>
     typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL),

@@ -31,7 +31,7 @@ import Store, {
   STORE_EVENT_NEW_MATCHES,
   STORE_EVENT_NEW_DIRTIED_RANGES
 } from "./state/store";
-import { doNotSkipRanges, TGetSkippedRanges } from "./utils/block";
+import { doNotIgnoreRanges, GetIgnoredRanges } from "./utils/block";
 import { createBoundCommands, startHoverCommand, stopHoverCommand } from "./commands";
 import { IFilterMatches, maybeResetHoverStates } from "./utils/plugin";
 import { pluginKey } from "./utils/plugin";
@@ -88,7 +88,7 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
    * your CMS allows users to exclude ranges that we don't want to check,
    * but do want to accommodate as part of the document.
    */
-  getSkippedRanges?: TGetSkippedRanges;
+  getIgnoredRanges?: GetIgnoredRanges;
 
   /**
    * Is the given element part of the typerighter UI, but not
@@ -109,8 +109,8 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
 
   typerighterEnabled?: boolean
   /**
-   * A list of categoryIds to exclude from checks. These can be 
-   * modified on the MatcherService instance if they need to be changed after 
+   * A list of categoryIds to exclude from checks. These can be
+   * modified on the MatcherService instance if they need to be changed after
    * the plugin initialises.
    */
   excludedCategoryIds?: string[]
@@ -130,7 +130,7 @@ const createTyperighterPlugin = (
 } => {
   const {
     expandRanges = expandRangesToParentBlockNodes,
-    getSkippedRanges = doNotSkipRanges,
+    getIgnoredRanges = doNotIgnoreRanges,
     matches = [],
     filterOptions,
     ignoreMatch = includeAllMatches,
@@ -149,7 +149,7 @@ const createTyperighterPlugin = (
     expandRanges,
     ignoreMatch,
     filterOptions?.filterMatches,
-    getSkippedRanges
+    getIgnoredRanges
   );
 
   const matcherService = new MatcherService(store, adapter, telemetryAdapter, 2000, excludedCategoryIds)

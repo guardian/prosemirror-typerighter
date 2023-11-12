@@ -33,7 +33,7 @@ import {
   IMatch,
   IRange,
   IMatchRequestError,
-  IBlockWithSkippedRanges
+  IBlockWithIgnoredRanges
 } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
@@ -68,8 +68,8 @@ import {
 import { Mapping } from "prosemirror-transform";
 import {
   createBlock,
-  doNotSkipRanges,
-  TGetSkippedRanges
+  doNotIgnoreRanges,
+  GetIgnoredRanges
 } from "../utils/block";
 import {
   addMatchesToState,
@@ -82,7 +82,7 @@ import { IFilterMatches } from "../utils/plugin";
 export interface IBlockInFlight {
   // The categories that haven't yet reported for this block.
   pendingCategoryIds: string[];
-  block: IBlockWithSkippedRanges;
+  block: IBlockWithIgnoredRanges;
 }
 
 /**
@@ -232,7 +232,7 @@ export const createReducer = (
   expandRanges: ExpandRanges,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches,
   filterMatches?: IFilterMatches,
-  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
+  getIgnoredRanges: GetIgnoredRanges = doNotIgnoreRanges
 ) => {
   const handleMatchesRequestForDirtyRanges = createHandleMatchesRequestForDirtyRanges(
     expandRanges,
@@ -466,7 +466,7 @@ const handleNewDirtyRanges = (
  */
 const createHandleMatchesRequestForDirtyRanges = (
   expandRanges: ExpandRanges,
-  getIgnoredRanges: TGetSkippedRanges
+  getIgnoredRanges: GetIgnoredRanges
 ) => (
   tr: Transaction,
   state: IPluginState,
@@ -483,7 +483,7 @@ const createHandleMatchesRequestForDirtyRanges = (
  * Handle a matches request for the entire document.
  */
 const createHandleMatchesRequestForDocument = (
-  getIgnoredRanges: TGetSkippedRanges
+  getIgnoredRanges: GetIgnoredRanges
 ) => (
   tr: Transaction,
   state: IPluginState,
@@ -501,7 +501,7 @@ const createHandleMatchesRequestForDocument = (
  */
 const handleRequestStart = (
   requestId: string,
-  blocks: IBlockWithSkippedRanges[],
+  blocks: IBlockWithIgnoredRanges[],
   categoryIds: string[]
 ) => (
   tr: Transaction,
@@ -840,7 +840,7 @@ const handleSetFilterState = (
 });
 
 const handleSetTyperighterEnabled = (
-  getIgnoredRanges: TGetSkippedRanges = doNotSkipRanges
+  getIgnoredRanges: GetIgnoredRanges = doNotIgnoreRanges
 ) => (
   _: Transaction,
   state: IPluginState,

@@ -1,32 +1,32 @@
 import { omit } from "lodash";
 import { Node } from "prosemirror-model";
-import { IRange, IBlock, IBlockWithSkippedRanges } from "../interfaces/IMatch";
+import { IRange, IBlock, IBlockWithIgnoredRanges } from "../interfaces/IMatch";
 import { mapRemovedRange } from "./range";
 
-export type TGetSkippedRanges = (
+export type GetIgnoredRanges = (
   node: Node,
   from: number,
   to: number
 ) => IRange[] | undefined;
-export const doNotSkipRanges: TGetSkippedRanges = () => undefined;
+export const doNotIgnoreRanges: GetIgnoredRanges = () => undefined;
 
 export const createBlock = (
   doc: Node,
   range: IRange,
   time = 0,
-  getSkippedRangesFromNode: TGetSkippedRanges
-): IBlockWithSkippedRanges => {
+  getIgnoredRangesFromNode: GetIgnoredRanges
+): IBlockWithIgnoredRanges => {
   // Carriage returns are removed by textBetween, but they're one character
   // long, so if we strip them any position beyond them will be incorrectly offset.
   // The final argument of 'textBetween' here adds a newline character to represent
   // a non-text leaf node.
   const text = doc.textBetween(range.from, range.to, undefined, "\n");
-  const skipRanges = getSkippedRangesFromNode(doc, range.from, range.to) || [];
+  const ignoreRanges = getIgnoredRangesFromNode(doc, range.from, range.to) || [];
   return {
     text,
     ...range,
     id: createBlockId(time, range.from, range.to),
-    skipRanges
+    ignoreRanges: ignoreRanges
   };
 };
 
@@ -48,7 +48,7 @@ export const createMatchId = (
  *  from: 0,
  *  to: 2
  *  text: `ABC`,
- *  skipRanges: `[{ from: 1, to: 1 }]`
+ *  ignoreRanges: `[{ from: 1, to: 1 }]`
  * }```
  *
  * We produce a new block with `B` removed and the range reduced by 1:
@@ -59,12 +59,12 @@ export const createMatchId = (
  *  text: `AC`,
  * }```
  */
-export const removeSkippedRanges = (block: IBlockWithSkippedRanges): IBlock => {
-  const skipRanges = block.skipRanges || [];
-  if (skipRanges.length === 0) {
+export const removeIgnoredRanges = (block: IBlockWithIgnoredRanges): IBlock => {
+  const ignoreRanges = block.ignoreRanges || [];
+  if (ignoreRanges.length === 0) {
     return block;
   }
-  const [newBlock] = skipRanges.reduce(
+  const [newBlock] = ignoreRanges.reduce(
     ([accBlock, rangesAlreadyApplied], range) => {
       const mappedRange = rangesAlreadyApplied.reduce(
         (acc, rangeToRemove) => mapRemovedRange(acc, rangeToRemove),
@@ -82,7 +82,7 @@ export const removeSkippedRanges = (block: IBlockWithSkippedRanges): IBlock => {
         accBlock.text.slice(snipRange.to, accBlock.text.length);
 
       const mappedBlock = {
-        ...omit(accBlock, 'skipRanges'),
+        ...omit(accBlock, 'ignoreRanges'),
         text: newText,
         to: accBlock.from + newText.length
       };

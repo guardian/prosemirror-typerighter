@@ -69,7 +69,7 @@ describe("Action handlers", () => {
             text: "Example text to check",
             to: 23,
             id: "0-from:1-to:23",
-            skipRanges: []
+            ignoreRanges: []
           }
         ])
       });
@@ -106,7 +106,7 @@ describe("Action handlers", () => {
             from: 1,
             to: 22,
             id: "0-from:1-to:22",
-            skipRanges: []
+            ignoreRanges: []
           }
         ])
       });
@@ -338,7 +338,7 @@ describe("Action handlers", () => {
               id: firstBlock.id,
               text: "Example text to check",
               to: 15,
-              skipRanges: []
+              ignoreRanges: []
             },
             pendingCategoryIds: ["this-category-should-remain"]
           },
@@ -348,7 +348,7 @@ describe("Action handlers", () => {
               id: secondBlock.id,
               text: "Another block of text",
               to: 37,
-              skipRanges: []
+              ignoreRanges: []
             },
             pendingCategoryIds: ["1", "this-category-should-remain"]
           }
@@ -845,7 +845,7 @@ describe("Action handlers", () => {
       expect(newState.requestErrors).toEqual(state.requestErrors);
     });
   });
-  describe("setTyperighterEnabled", () => { 
+  describe("setTyperighterEnabled", () => {
     it("should remove any matches and decorations when disabled", () => {
       const { state, tr } = createInitialData();
       const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
@@ -885,23 +885,23 @@ describe("Action handlers", () => {
     it("should add requests-in-flight for the entire document when enabled", () => {
       const { state, tr } = createInitialData();
       const expectedRequest = {
-        "categoryIds": [], 
+        "categoryIds": [],
         "mapping": {
-          "from": 0, 
-          "maps": [], 
-          "mirror": undefined, 
+          "from": 0,
+          "maps": [],
+          "mirror": undefined,
           "to": 0
-        }, 
+        },
         "pendingBlocks": [{
           "block": {
-            "from": 1, 
-            "id": "0-from:1-to:23", 
-            "skipRanges": [], 
-            "text": "Example text to check", 
+            "from": 1,
+            "id": "0-from:1-to:23",
+            "ignoreRanges": [],
+            "text": "Example text to check",
             "to": 23
-          }, 
+          },
           "pendingCategoryIds": []
-        }], 
+        }],
         "totalBlocks": 1
       }
 
@@ -910,15 +910,15 @@ describe("Action handlers", () => {
         state,
         setTyperighterEnabled(true)
       ).requestsInFlight;
-      
-      
+
+
       const requestNames = Object.keys(requests);
       const actualRequest = requests[Object.keys(requests)[0]]
-      
-      expect(requestNames.length).toEqual(1); 
+
+      expect(requestNames.length).toEqual(1);
       expect(actualRequest).toMatchObject(
         expectedRequest
-      ); 
+      );
     });
   })
   describe("setConfigValue", () => {
