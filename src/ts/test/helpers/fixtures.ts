@@ -5,7 +5,7 @@ import {
   IBlock,
   IMatcherResponse,
   ICategory,
-  IBlockWithSkippedRanges,
+  IBlockWithIgnoredRanges,
   IRange
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
@@ -48,13 +48,13 @@ export const createBlock = (
   from: number,
   to: number,
   text = "str",
-  skipRanges: IRange[] = []
-): IBlockWithSkippedRanges => ({
+  ignoreRanges: IRange[] = []
+): IBlockWithIgnoredRanges => ({
   text,
   from,
   to,
   id: `0-from:${from}-to:${to}`,
-  skipRanges
+  ignoreRanges: ignoreRanges
 });
 
 export interface ICreateMatcherResponseSpec {
@@ -156,7 +156,7 @@ export const exampleCategoryIds = ["example-category"];
 export const exampleRequestId = "set-id";
 
 export const createRequestInFlight = (
-  blocksInFlight: IBlockWithSkippedRanges[],
+  blocksInFlight: IBlockWithIgnoredRanges[],
   setId = exampleRequestId,
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
