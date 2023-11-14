@@ -236,26 +236,44 @@ export const mapRemovedRange = (
 };
 
 /**
- * Map a from and to position through the given added range.
+ * Remove an ignored range from the given range, adjusting `from` and `to`,
+ * and splitting the range into two if the ignored range intersects.
  */
-export const mapAddedRange = (
+export const removeIgnoredRange = (
   currentRange: IRange,
-  addedRange: IRange
-): IRange => {
+  rangeToIgnore: IRange
+): IRange[] => {
   // We add one to our lengths here to ensure the to value
   // is placed beyond the last position the range occupies.
-  const lengthOfAddedRange = addedRange.to - addedRange.from;
+  const lengthOfAddedRange = rangeToIgnore.to - rangeToIgnore.from;
   const charsAddedBeforeFrom =
-    addedRange.from <= currentRange.from ? lengthOfAddedRange + 1 : 0;
-  const intersection = getIntersection(currentRange, addedRange);
+    rangeToIgnore.from <= currentRange.from ? lengthOfAddedRange + 1 : 0;
+  const intersection = getIntersection(currentRange, rangeToIgnore);
   const charsAddedBeforeTo = intersection
     ? lengthOfAddedRange + 1
     : charsAddedBeforeFrom;
 
-  const from = currentRange.from + charsAddedBeforeFrom;
-  const to = currentRange.to + charsAddedBeforeTo;
+  if (!intersection) {
+    const from = currentRange.from + charsAddedBeforeFrom;
+    const to = currentRange.to + charsAddedBeforeTo;
 
-  return { from, to };
+    return [{ from, to }];
+  }
+
+  const rangeBeforeIntersection = {
+    from: currentRange.from,
+    to: intersection.from - 1
+  }
+
+  const rangeAfterIntersection = {
+    from: currentRange.from + charsAddedBeforeTo,
+    to: currentRange.to + charsAddedBeforeTo
+  }
+
+  return [
+    rangeBeforeIntersection,
+    rangeAfterIntersection
+  ].filter(rangeHasLength)
 };
 
 export const getIntersection = (
@@ -268,3 +286,5 @@ export const getIntersection = (
   };
   return range.from < range.to ? range : undefined;
 };
+
+export const rangeHasLength = (range: IRange) => range.from < range.to;
