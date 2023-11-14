@@ -2,7 +2,7 @@ import { news, opinion, success } from "@guardian/src-foundations";
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, IMatch } from "../interfaces/IMatch";
+import { IRange, MappedMatch, BaseMatch } from "../interfaces/IMatch";
 import { getSquiggleAsUri } from "./squiggle";
 
 export enum MatchType {
@@ -97,7 +97,7 @@ export const removeDecorationsFromRanges = (
  * returns a new decoration set containing the new matches.
  */
 export const getNewDecorationsForCurrentMatches = (
-  outputs: IMatch[],
+  outputs: MappedMatch[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
@@ -110,7 +110,7 @@ export const getNewDecorationsForCurrentMatches = (
  * Create decorations for the given match.
  */
 export const createDecorationsForMatch = (
-  match: IMatch,
+  match: MappedMatch,
   isSelected: boolean = false
 ) => {
   const matchType = getMatchType(match);
@@ -121,10 +121,10 @@ export const createDecorationsForMatch = (
     : "";
 
   const spec = createDecorationSpecFromMatch(match);
-  const decorations = [
+  const decorations = match.ranges.map(range =>
     Decoration.inline(
-      match.from,
-      match.to,
+      range.from,
+      range.to,
       {
         class: className,
         [DECORATION_ATTRIBUTE_ID]: match.matchId,
@@ -132,12 +132,12 @@ export const createDecorationsForMatch = (
       },
       spec
     )
-  ];
+  );
 
   return decorations;
 };
 
-export const createDecorationSpecFromMatch = (match: IMatch) => ({
+export const createDecorationSpecFromMatch = (match: BaseMatch) => ({
   type: DECORATION_MATCH,
   id: match.matchId,
   categoryId: match.category.id,
@@ -145,7 +145,7 @@ export const createDecorationSpecFromMatch = (match: IMatch) => ({
   inclusiveEnd: false
 });
 
-export const getMatchType = (match: IMatch): MatchType => {
+export const getMatchType = (match: BaseMatch): MatchType => {
   if (match.markAsCorrect) {
     return MatchType.OK;
   }
@@ -156,7 +156,7 @@ export const getMatchType = (match: IMatch): MatchType => {
 };
 
 export const getColourForMatch = (
-  match: IMatch,
+  match: BaseMatch,
   matchColours: IMatchTypeToColourMap,
   isSelected: boolean
 ): { backgroundColour: string; borderColour: string } => {
@@ -205,7 +205,7 @@ export const getColourForMatchType = (
 };
 
 export const createDecorationsForMatches = (
-  matches: IMatch[],
+  matches: MappedMatch[],
 ) => flatten(matches.map(match => createDecorationsForMatch(match)));
 
 export const findSingleDecoration = (

@@ -6,7 +6,7 @@ import {
   expandRangesToParentBlockNodes,
   mapRemovedRange,
   getIntersection,
-  mapAddedRange
+  removeIgnoredRange
 } from "../range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
 
@@ -337,41 +337,47 @@ describe("Range utils", () => {
       ]);
     });
   });
-  describe("mapAddedRange", () => {
+  describe("removeIgnoredRange", () => {
     it("should account for a range added before the given range", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 0, to: 5 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
+      const ignoredRange = { from: 0, to: 5 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
         from: 16,
         to: 21
-      });
+      }]);
     });
 
     it("should account for a range added within the given range", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 10, to: 15 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
+      const ignoredRange = { from: 10, to: 15 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
         from: 16,
         to: 21
-      });
+      }]);
     });
 
     it("should account for a range added partially within the given range – left hand side", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 5, to: 12 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
+      const ignoredRange = { from: 5, to: 12 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
         from: 18,
         to: 23
-      });
+      }]);
     });
 
     it("should account for a range added partially the given range – right hand side", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 13, to: 20 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
-        from: 10,
-        to: 23
-      });
+      const ignoredRange = { from: 13, to: 20 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([
+        {
+          from: 10,
+          to: 12
+        },
+        {
+          from: 18,
+          to: 23
+        }
+      ]);
     });
   });
   describe("mapRemovedRange", () => {

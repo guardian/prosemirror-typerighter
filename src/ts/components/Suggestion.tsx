@@ -2,11 +2,11 @@ import React, { useContext } from "react";
 import { Change, diffChars } from "diff";
 
 import { ApplySuggestionOptions } from "../commands";
-import { ISuggestion, IMatch } from "../interfaces/IMatch";
+import { ISuggestion, MappedMatch } from "../interfaces/IMatch";
 import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
-  match: IMatch;
+  match: MappedMatch;
   suggestion: ISuggestion;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
 }

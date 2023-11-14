@@ -17,8 +17,8 @@ import {
   IUserTelemetryEvent,
   UserTelemetryEventSender
 } from "@guardian/user-telemetry-client";
-import { IMatch } from "..";
 import { MatchType } from "../utils/decoration";
+import { MappedMatch } from "../interfaces/IMatch";
 
 class TyperighterTelemetryAdapter {
   constructor(
@@ -34,7 +34,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public suggestionIsAccepted(
-    match: IMatch,
+    match: MappedMatch,
     documentUrl: string,
     suggestion: string
   ) {
@@ -49,7 +49,7 @@ class TyperighterTelemetryAdapter {
     } as ISuggestionAcceptedEvent);
   }
 
-  public matchIsMarkedAsCorrect(match: IMatch, documentUrl: string) {
+  public matchIsMarkedAsCorrect(match: MappedMatch, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT,
       value: 1,
@@ -60,7 +60,7 @@ class TyperighterTelemetryAdapter {
     } as IMarkAsCorrectEvent);
   }
 
-  public matchDecorationClicked(match: IMatch, documentUrl: string) {
+  public matchDecorationClicked(match: MappedMatch, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_DECORATION_CLICKED,
       value: 1,
@@ -111,7 +111,7 @@ class TyperighterTelemetryAdapter {
     } as IOpenTyperighterEvent);
   }
 
-  public sidebarMatchClicked(match: IMatch, documentUrl: string) {
+  public sidebarMatchClicked(match: MappedMatch, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK,
       value: 1,
@@ -122,7 +122,7 @@ class TyperighterTelemetryAdapter {
     } as ISidebarClickEvent);
   }
 
-  public matchFound(match: IMatch, documentUrl: string) {
+  public matchFound(match: MappedMatch, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_FOUND,
       value: 1,
@@ -161,7 +161,7 @@ class TyperighterTelemetryAdapter {
     });
   }
 
-  private getTelemetryTagsFromMatch = (match: IMatch) => ({
+  private getTelemetryTagsFromMatch = (match: MappedMatch) => ({
     matcherType: match.matcherType,
     ruleId: match.ruleId,
     matchId: match.matchId,

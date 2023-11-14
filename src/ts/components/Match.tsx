@@ -1,21 +1,21 @@
 import React, { Component } from "react";
 
-import { IMatch } from "../interfaces/IMatch";
+import { MappedMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
 import { Check } from "@mui/icons-material";
 import { getHtmlFromMarkdown } from "../utils/dom";
 
-interface IMatchProps<TMatch extends IMatch> {
+interface IMatchProps {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
-  match: TMatch;
+  match: MappedMatch;
   matchColours: IMatchTypeToColourMap;
   feedbackHref?: string;
-  onMarkCorrect?: (match: IMatch) => void;
+  onMarkCorrect?: (match: MappedMatch) => void;
 }
 
-class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
+class Match extends Component<IMatchProps> {
   public ref: HTMLDivElement | null = null;
   public render() {
     const {
@@ -23,7 +23,7 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       matchColours,
       applySuggestions,
       onMarkCorrect
-    }: IMatchProps<TMatch> = this.props;
+    }: IMatchProps = this.props;
     const {
       matchId,
       category,

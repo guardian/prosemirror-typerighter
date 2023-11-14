@@ -12,7 +12,7 @@ import {
   createInitialData,
   exampleCategoryIds
 } from "../../test/helpers/fixtures";
-import { IMatch } from '../../interfaces/IMatch';
+import { MappedMatch } from '../../interfaces/IMatch';
 import { omit } from "lodash";
 
 describe("selectors", () => {
@@ -128,13 +128,14 @@ describe("selectors", () => {
     });
     it("should handle unknown suggestions for found outputs", () => {
       const { state } = createInitialData();
-      const currentMatches: IMatch[] = [
+      const currentMatches: MappedMatch[] = [
         {
           matcherType: "regex",
           ruleId: "ruleId",
           matchId: "match-id",
           from: 0,
           to: 5,
+          ranges: [{ from: 0, to: 5 }],
           suggestions: [
             { type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION", text: "example" },
             {
@@ -168,13 +169,14 @@ describe("selectors", () => {
     });
     it("should select a suggestion and the range it should be applied to, given a match id and suggestion index", () => {
       const { state } = createInitialData();
-      const currentMatches: IMatch[] = [
+      const currentMatches: MappedMatch[] = [
         {
           matcherType: "regex",
           ruleId: "ruleId",
           matchId: "match-id",
           from: 0,
           to: 5,
+          ranges: [{ from: 0, to: 5 }],
           suggestions: [
             { type: "TEXT_SUGGESTION" as "TEXT_SUGGESTION", text: "example" },
             {

@@ -1,4 +1,4 @@
-import { IMatch, ICategory, IBlockWithIgnoredRanges } from "../interfaces/IMatch";
+import { ICategory, IBlockWithIgnoredRanges, MappedMatch } from "../interfaces/IMatch";
 import {
   IMatcherAdapter,
   TMatchesReceivedCallback
@@ -49,8 +49,8 @@ class MatcherService {
     return this.commands
   }
 
-  private sendMatchTelemetryEvents = (matches: IMatch[]) => {
-    matches.forEach((match: IMatch) =>
+  private sendMatchTelemetryEvents = (matches: MappedMatch[]) => {
+    matches.forEach((match: MappedMatch) =>
       this.telemetryAdapter?.matchFound(match, document.URL)
     );
   };
@@ -97,9 +97,9 @@ class MatcherService {
       return;
     }
     const applyMatcherResponse: TMatchesReceivedCallback = response => {
-      this.sendMatchTelemetryEvents(response.matches);
       // For matches, map through ignored ranges on the way in
       const transformedMatches = response.matches.map(match => mapMatchThroughBlocks(match, blocks))
+      this.sendMatchTelemetryEvents(transformedMatches);
       const transformedResponse = { ...response, matches: transformedMatches }
       commands.applyMatcherResponse(transformedResponse);
     };
