@@ -50,11 +50,9 @@ export type TMatchRequestErrorWithDefault = PartialBy<
   "type"
 >;
 
-export interface IMatch<TSuggestion = ISuggestion> {
+export interface BaseMatch<TSuggestion = ISuggestion> {
   matcherType: string
   matchId: string;
-  from: number;
-  to: number;
   ruleId: string;
   matchedText: string;
   message: string;
@@ -68,12 +66,21 @@ export interface IMatch<TSuggestion = ISuggestion> {
   groupKey: string;
 }
 
+export interface IMatch<TSuggestion = ISuggestion> extends BaseMatch<TSuggestion> {
+  from: number;
+  to: number;
+}
+
+export interface MappedMatch<TSuggestion = ISuggestion> extends IMatch<TSuggestion> {
+  ranges: IRange[]
+}
+
 export interface IBlockResult {
   categoryIds: string[];
   id: string;
 }
 
-export interface IMatcherResponse<MatchesType extends IMatch[] = IMatch[]> {
+export interface IMatcherResponse<MatchesType extends BaseMatch[] = IMatch[]> {
   blocks: IBlock[];
   categoryIds: string[];
   matches: MatchesType;
