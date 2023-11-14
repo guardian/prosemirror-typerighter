@@ -1,12 +1,12 @@
 import {
   IMatchLibrary,
-  IMatch,
   ISuggestion,
   IBlock,
   IMatcherResponse,
   ICategory,
   IBlockWithIgnoredRanges,
-  IRange
+  IRange,
+  MappedMatch
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
 import { IPluginState, IRequestInFlight, createReducer, IPluginConfig } from "../../state/reducer";
@@ -70,7 +70,7 @@ export interface ICreateMatcherResponseSpec {
 export const createMatcherResponse = (
   specs: ICreateMatcherResponseSpec[],
   requestId: string = exampleRequestId
-): IMatcherResponse =>
+): IMatcherResponse<MappedMatch[]> =>
   specs.reduce(
     (acc, spec) => {
       const {
@@ -102,6 +102,7 @@ export const createMatcherResponse = (
         message: "annotation",
         from: wordFrom,
         to: wordTo,
+        ranges: [{ from: wordFrom, to: wordTo }],
         matchId: createMatchId(0, wordFrom, wordTo, 0),
         suggestions,
         matchContext: "here is a [[block text]] match",
@@ -123,7 +124,7 @@ export const createMatcherResponse = (
       categoryIds: [],
       blocks: [],
       matches: []
-    } as IMatcherResponse
+    } as IMatcherResponse<MappedMatch[]>
   );
 
 export const createMatch = (
@@ -135,7 +136,7 @@ export const createMatch = (
     name: "Cat",
     colour: "eeeee"
   },
-): IMatch => ({
+): MappedMatch => ({
   matcherType: "regex",
   ruleId: "ruleId",
   category,
@@ -143,6 +144,7 @@ export const createMatch = (
   message: "annotation",
   from,
   to,
+  ranges: [{ from, to }],
   matchId: createMatchId(0, from, to, 0),
   suggestions,
   matchContext: "here is a [[block text]] match",
@@ -232,7 +234,7 @@ export const createInitialData = (
 export const createStateWithMatches = (
   localReducer: ReturnType<typeof createReducer>,
   matches: ICreateMatcherResponseSpec[]
-): { state: IPluginState; matches: IMatch[] } => {
+): { state: IPluginState; matches: MappedMatch[] } => {
   const docTime = 1337;
   const { state, tr } = createInitialData(defaultDoc, docTime);
 

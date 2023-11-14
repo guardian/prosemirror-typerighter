@@ -1,7 +1,8 @@
 import {
   IMatchRequestError,
   IMatcherResponse,
-  IRange
+  IRange,
+  MappedMatch
 } from "../interfaces/IMatch";
 import { IPluginConfig, IPluginState } from "./reducer";
 
@@ -50,8 +51,8 @@ export type ActionRequestMatchesForDocument = ReturnType<
   typeof requestMatchesForDocument
 >;
 
-export const requestMatchesSuccess = <TPluginState extends IPluginState>(
-  response: IMatcherResponse<TPluginState["currentMatches"]>
+export const requestMatchesSuccess = (
+  response: IMatcherResponse<MappedMatch[]>
 ) => ({
   type: REQUEST_SUCCESS,
   payload: { response }

@@ -7,7 +7,7 @@ import {
   Decoration
 } from "prosemirror-view";
 import { getNewDecorationsForCurrentMatches } from "../../utils/decoration";
-import { IMatch } from "../../interfaces/IMatch";
+import { MappedMatch } from "../../interfaces/IMatch";
 
 const schema = new Schema({
   nodes,
@@ -33,7 +33,7 @@ export const getDecorationSpecsFromDoc = (
 ) =>
   getDecorationSpecsFromSet(view.someProp("decorations", f => f(view.state)) as DecorationSet);
 
-export const getDecorationSpecsFromMatches = (matches: IMatch[], doc: Node) => {
+export const getDecorationSpecsFromMatches = (matches: MappedMatch[], doc: Node) => {
   const decorationSet = getNewDecorationsForCurrentMatches(matches, DecorationSet.empty, doc)
   return getDecorationSpecsFromSet(decorationSet);
 }

@@ -24,6 +24,7 @@ import {
 } from "./state/reducer";
 import {
   IMatcherResponse,
+  MappedMatch,
   TMatchRequestErrorWithDefault
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
@@ -218,7 +219,7 @@ export const setFilterStateCommand = <TPluginState extends IPluginState>(
  * Apply a successful matcher response to the document.
  */
 export const applyMatcherResponseCommand = (
-  matcherResponse: IMatcherResponse
+  matcherResponse: IMatcherResponse<MappedMatch[]>
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(

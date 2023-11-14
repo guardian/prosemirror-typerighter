@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 
-import { IMatch } from "..";
 import TelemetryContext from "../contexts/TelemetryContext";
 import {
   getColourForMatchType,
@@ -8,6 +7,7 @@ import {
   IMatchTypeToColourMap,
   MatchType
 } from "../utils/decoration";
+import { MappedMatch } from "../interfaces/IMatch";
 
 const filterOrder = Object.values([
   MatchType.OK,
@@ -18,7 +18,7 @@ const filterOrder = Object.values([
 interface IProps {
   filterState: MatchType[];
   applyFilterState: (matchType: MatchType[]) => void;
-  matches: IMatch[];
+  matches: MappedMatch[];
   matchColours: IMatchTypeToColourMap;
 }
 

@@ -22,40 +22,35 @@ describe("Match helpers", () => {
       const ruleMatch = getRuleMatch(10, 15);
       const ignoredRange = [{ from: 0, to: 5 }];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.from).toBe(16);
-      expect(mappedMatch.to).toBe(21);
+      expect(mappedMatch.ranges).toEqual([{ from: 16, to: 21 }]);
     });
 
     it("should account for a range ignored within the given range", () => {
       const ruleMatch = getRuleMatch(10, 15);
       const ignoredRange = [{ from: 10, to: 15 }];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.from).toBe(16);
-      expect(mappedMatch.to).toBe(21);
+      expect(mappedMatch.ranges).toEqual([{ from: 16, to: 21 }]);
     });
 
     it("should account for a range ignored within the given range, and extending beyond it", () => {
       const ruleMatch = getRuleMatch(8, 12);
       const ignoredRange = [{ from: 8, to: 15 }];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.from).toBe(16);
-      expect(mappedMatch.to).toBe(20);
+      expect(mappedMatch.ranges).toEqual([{ from: 16, to: 20 }]);
     });
 
     it("should account for a range ignored partially within the given range – left hand side", () => {
       const ruleMatch = getRuleMatch(10, 15);
       const ignoredRange = [{ from: 5, to: 12 }];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.from).toBe(18);
-      expect(mappedMatch.to).toBe(23);
+      expect(mappedMatch.ranges).toEqual([{ from: 18, to: 23 }]);
     });
 
     it("should account for a range ignored partially the given range – right hand side", () => {
       const ruleMatch = getRuleMatch(10, 15);
       const ignoredRange = [{ from: 13, to: 20 }];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.from).toBe(10);
-      expect(mappedMatch.to).toBe(23);
+      expect(mappedMatch.ranges).toEqual([{ from: 10, to: 12 }, { from: 18, to: 23}]);
     });
 
     it("should account for multiple ranges", () => {
@@ -66,8 +61,7 @@ describe("Match helpers", () => {
         { from: 40, to: 47 }
       ];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.from).toBe(26);
-      expect(mappedMatch.to).toBe(30);
+      expect(mappedMatch.ranges).toEqual([{ from: 26, to: 30 }]);
     });
   });
 });

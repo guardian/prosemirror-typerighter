@@ -30,10 +30,10 @@ import {
   ActionSetTyperighterEnabled
 } from "./actions";
 import {
-  IMatch,
   IRange,
   IMatchRequestError,
-  IBlockWithIgnoredRanges
+  IBlockWithIgnoredRanges,
+  MappedMatch
 } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
@@ -90,7 +90,7 @@ export interface IBlockInFlight {
  * Handy when, for example, consumers know that parts of the document are
  * exempt from checks.
  */
-export type IIgnoreMatchPredicate = (match: IMatch) => boolean;
+export type IIgnoreMatchPredicate = (match: MappedMatch) => boolean;
 export const includeAllMatches: IIgnoreMatchPredicate = () => false;
 
 export interface IRequestInFlight {
@@ -116,12 +116,12 @@ export interface IPluginState {
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current matches for the document.
-  currentMatches: IMatch[];
+  currentMatches: MappedMatch[];
   // The current matches, filtered by the current filterState and the
   // supplied filter predicate. This is cached in the state and only
   // recomputed when necessary – filtering decorations in the plugin
   // decoration mapping on every transaction is not performant.
-  filteredMatches: IMatch[];
+  filteredMatches: MappedMatch[];
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last request.
   dirtiedRanges: IRange[];
@@ -164,7 +164,7 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 
 interface IInitialStateOpts {
   doc: Node;
-  matches?: IMatch[];
+  matches?: MappedMatch[];
   ignoreMatch?: IIgnoreMatchPredicate;
   matchColours?: IMatchTypeToColourMap;
   filterOptions?: IFilterOptions;
@@ -195,8 +195,8 @@ export const createInitialState = ({
       createDecorationsForMatches(matches)
     ),
     dirtiedRanges: [],
-    currentMatches: [] as IMatch[],
-    filteredMatches: [] as IMatch[],
+    currentMatches: [] as MappedMatch[],
+    filteredMatches: [] as MappedMatch[],
     selectedMatch: undefined,
     hoverId: undefined,
     hoverRectIndex: undefined,
@@ -443,8 +443,8 @@ const handleNewDirtyRanges = (
   // Remove any matches and associated decorations touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.filter(
-    output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
-  );
+    match => match.ranges.some(range => findOverlappingRangeIndex(range, dirtiedRanges) === -1
+  ));
 
   const shouldPersistNewDirtyRanges =
     state.config.requestMatchesOnDocModified ||
@@ -613,11 +613,15 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => (
   }
 
   // Remove matches superceded by the incoming matches.
-  let currentMatches = removeOverlappingRanges(
-    state.currentMatches,
-    blocksInFlight.map(_ => _.block),
-    match => !response.categoryIds.includes(match.category.id)
-  );
+  let currentMatches = state.currentMatches.filter(match => {
+    const incomingMatchesAreOfTheSameCategory = !response.categoryIds.includes(match.category.id);
+    const matchIsInSameBlock = removeOverlappingRanges(
+        match.ranges,
+        blocksInFlight.map(_ => _.block)
+      ).length > 0
+
+      return !(incomingMatchesAreOfTheSameCategory && matchIsInSameBlock);
+    });
 
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = blocksInFlight.reduce(
@@ -646,11 +650,16 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => (
 
   // Map our matches across any changes, filtering out inapplicable matches
   const docSelection = new AllSelection(tr.doc);
-  const mappedMatchesToAdd = mapRanges(response.matches, currentMapping).filter(
-    match =>
-      match.to <= docSelection.to && // Match should be within document bounds
-      match.to !== match.from && // Match should not be zero width (can happen as a result of mapping)
-      !ignoreMatch(match) // Match should not be marked as ignored by consumer
+  const mappedMatchesToAdd = response.matches.map(match => ({
+    ...match,
+    from: currentMapping.map(match.from),
+    to: currentMapping.map(match.to),
+    ranges: mapRanges(match.ranges, currentMapping)
+  })).filter(
+    match => match.ranges.every(range =>
+      range.to <= docSelection.to && // Match should be within document bounds
+      range.to !== range.from // Match should not be zero width (can happen as a result of mapping)
+    ) && !ignoreMatch(match) // Match should not be marked as ignored by consumer
   );
 
   // Add the response to the current matches.
@@ -658,7 +667,10 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => (
 
   // We don't apply incoming matches to ranges that have
   // been dirtied since they were requested.
-  currentMatches = removeOverlappingRanges(currentMatches, state.dirtiedRanges);
+  currentMatches = currentMatches.filter(match => removeOverlappingRanges(
+    match.ranges,
+    state.dirtiedRanges
+  ).length !== 0);
 
   // Create our decorations for the newly current matches.
   const newDecorations = createDecorationsForMatches(mappedMatchesToAdd);

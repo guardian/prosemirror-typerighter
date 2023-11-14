@@ -4,7 +4,7 @@ import { chain } from "lodash";
 import React, { Fragment, useState } from "react";
 import { usePopper } from "react-popper";
 import { IMatch } from "..";
-import { ISuggestion } from "../interfaces/IMatch";
+import { ISuggestion, MappedMatch } from "../interfaces/IMatch";
 import {
   getColourForMatch,
   getMatchType,
@@ -119,7 +119,7 @@ const MatchHeader: React.FunctionComponent<{
 };
 
 interface ISidebarProps {
-  matches: IMatch[];
+  matches: MappedMatch[];
   matchColours?: IMatchTypeToColourMap;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;

@@ -23,7 +23,7 @@ import {
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNodes } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
-import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
+import { IMatchRequestError, MappedMatch } from "../../interfaces/IMatch";
 import { addMatchesToState } from "../helpers";
 import {
   createMatcherResponse,
@@ -585,12 +585,13 @@ describe("Action handlers", () => {
     });
     it("should add hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IMatch = {
+      const output: MappedMatch = {
         matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
         from: 0,
         to: 5,
+        ranges: [{ from: 0, to: 5 }],
         matchedText: "block text",
         message: "Annotation",
         category: {
@@ -624,12 +625,13 @@ describe("Action handlers", () => {
     });
     it("should remove hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IMatch = {
+      const output: MappedMatch = {
         matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
         from: 0,
         to: 5,
+        ranges: [{ from: 0, to: 5 }],
         matchedText: "block text",
         message: "Annotation",
         category: {
@@ -668,13 +670,14 @@ describe("Action handlers", () => {
   describe("handleNewDirtyRanges", () => {
     it("should remove any decorations and matches that touch the passed ranges", () => {
       const { state } = createInitialData();
-      const currentMatches: IMatch[] = [
+      const currentMatches: MappedMatch[] = [
         {
           matcherType: "regex",
           ruleId: "ruleId",
           matchId: "match-id",
           from: 1,
           to: 7,
+          ranges: [{ from: 1, to: 7 }],
           matchedText: "block text",
           message: "Annotation",
           category: {
@@ -724,6 +727,7 @@ describe("Action handlers", () => {
             text: "example",
             from: 1,
             to: 1,
+            ranges: [{ from: 1, to: 1 }],
             matchedText: "block text",
             message: "example",
             suggestions: [],

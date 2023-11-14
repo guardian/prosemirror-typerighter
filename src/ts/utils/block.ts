@@ -21,7 +21,8 @@ export const createBlock = (
   // The final argument of 'textBetween' here adds a newline character to represent
   // a non-text leaf node.
   const text = doc.textBetween(range.from, range.to, undefined, "\n");
-  const ignoreRanges = getIgnoredRangesFromNode(doc, range.from, range.to) || [];
+  const ignoreRanges =
+    getIgnoredRangesFromNode(doc, range.from, range.to) || [];
   return {
     text,
     ...range,
@@ -82,7 +83,7 @@ export const removeIgnoredRanges = (block: IBlockWithIgnoredRanges): IBlock => {
         accBlock.text.slice(snipRange.to, accBlock.text.length);
 
       const mappedBlock = {
-        ...omit(accBlock, 'ignoreRanges'),
+        ...omit(accBlock, "ignoreRanges"),
         text: newText,
         to: accBlock.from + newText.length
       };

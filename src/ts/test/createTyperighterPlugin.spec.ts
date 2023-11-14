@@ -14,7 +14,7 @@ import createTyperighterPlugin, {
 import { createMatch, createMatcherResponse } from "./helpers/fixtures";
 import { createEditor } from "./helpers/createEditor";
 import { createBoundCommands } from "../commands";
-import { IMatch, IMatcherResponse } from "../interfaces/IMatch";
+import { IMatcherResponse, MappedMatch } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
 import { filterByMatchState, getState } from "../utils/plugin";
@@ -23,7 +23,7 @@ import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
 const matches = [createMatch(1)];
-const matchWithReplacement: IMatch = {
+const matchWithReplacement: MappedMatch = {
   ...createMatch(5),
   replacement: { text: "replacement text", type: "TEXT_SUGGESTION" }
 };
@@ -129,12 +129,13 @@ describe("createTyperighterPlugin", () => {
     const { store, commands } = createPlugin();
     const storeSpy = jest.fn();
     store.on("STORE_EVENT_NEW_MATCHES", storeSpy);
-    const response: IMatcherResponse = {
+    const response: IMatcherResponse<MappedMatch[]> = {
       blocks,
       categoryIds: ["cat1"],
       matches: [
         {
           ...blocks[0],
+          ranges: [blocks[0]],
           matcherType: "regex",
           ruleId: "ruleId",
           matchId: "matchId",
@@ -214,7 +215,7 @@ describe("createTyperighterPlugin", () => {
       ignoreMatch: () => true
     });
 
-    const response: IMatcherResponse = createMatcherResponse([
+    const response = createMatcherResponse([
       { from: 1, to: 2, block: blocks[0] }
     ]);
 
@@ -260,7 +261,7 @@ describe("createTyperighterPlugin", () => {
       expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
     });
     it("should filter matches with the supplied predicate when the plugin initialises", () => {
-      const matchesWithReplacements: IMatch[] = [
+      const matchesWithReplacements: MappedMatch[] = [
         matchWithReplacement,
         createMatch(2),
         createMatch(3)

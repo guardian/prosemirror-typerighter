@@ -5,9 +5,10 @@ import { IMatchTypeToColourMap } from "../utils/decoration";
 import { createScrollToRangeHandler } from "../utils/component";
 import TelemetryContext from "../contexts/TelemetryContext";
 import { getSidebarMatchStyles } from "./SidebarMatch";
+import { MappedMatch } from "../interfaces/IMatch";
 
 interface IProps {
-  match: IMatch;
+  match: MappedMatch;
   matchColours?: IMatchTypeToColourMap;
   indicateHighlight: (blockId: string, _?: any) => void;
   stopHighlight: () => void;
