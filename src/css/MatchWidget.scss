@@ -145,10 +145,3 @@
 .SidebarMatch__suggestion-list + .MatchWidget__ignore-match {
   margin-top: 3px;
 }
-
-.MatchWidget__feedbackLink {
-  font-size: $font-size-small;
-  a {
-    color: $match-gray;
-  }
-}

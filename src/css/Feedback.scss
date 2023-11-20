@@ -1,0 +1,68 @@
+
+
+
+.Feedback__container {
+  margin-top: $gutter-width;
+  width: 100%;
+  font-size: $font-size-small;
+  a {
+    color: $match-gray;
+  }
+}
+
+.Feedback__responses {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: calc($gutter-width);
+  margin-top: calc($gutter-width / 2);
+}
+
+.Feedback__response {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: $gutter-width;
+  gap: calc($gutter-width / 2);
+  border-radius: $base-border-radius;
+  font-weight: normal;
+  font-size: $font-size-base;
+  background-color: $match-feedback-background-color;
+  cursor: pointer;
+  &:hover {
+    background-color: darken($match-feedback-background-color, 5%);
+  }
+  svg {
+    color: darken($match-feedback-background-color, 40%);
+  }
+}
+
+.Feedback__feedback-detail {
+  width: 100%;
+  margin-top: calc($gutter-width / 2);
+  padding:  calc($gutter-width / 2);
+  border-color: $match-gray;
+  border-radius:  $base-border-radius;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.Feedback__response-send {
+  margin-top: calc($gutter-width / 2);
+  font-weight: bold;
+  background-color: $match-feedback-send-background-color;
+  color: white;
+  svg {
+    color: white;
+  }
+  &:hover {
+    background-color: $composer-primary-hover;
+  }
+}
+
+.Feedback__feedback-sent {
+  font-size: $font-size-base;
+  min-height: 100px;
+}

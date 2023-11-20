@@ -6,6 +6,7 @@ import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
 import { Check } from "@mui/icons-material";
 import { getHtmlFromMarkdown } from "../utils/dom";
+import { Feedback } from "./Feedback";
 
 interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
@@ -25,30 +26,21 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
       onMarkCorrect
     }: IMatchProps<TMatch> = this.props;
     const {
-      matchId,
       category,
       message,
       suggestions,
       replacement,
-      markAsCorrect,
-      matchContext,
-      ruleId
+      markAsCorrect
     } = match;
     const url = document.URL;
-    const feedbackInfo = {
-      matchId,
-      category,
-      message,
-      suggestions,
-      replacement,
-      url,
-      matchContext,
-      markAsCorrect,
-      ruleId
-    };
 
     // render up to 6 suggestions if they exist (e.g. dictionary rules), otherwise render the replacement (as sometimes exists for classic Typerighter rules)
-    const suggestionsToRender = suggestions && suggestions.length > 0 ? suggestions.slice(0, 6) : replacement ? [replacement] : [];
+    const suggestionsToRender =
+      suggestions && suggestions.length > 0
+        ? suggestions.slice(0, 6)
+        : replacement
+        ? [replacement]
+        : [];
     const suggestionContent = (
       <div className="MatchWidget__suggestion-list">
         {suggestionsToRender && applySuggestions && !markAsCorrect && (
@@ -93,29 +85,12 @@ class Match<TMatch extends IMatch> extends Component<IMatchProps<TMatch>> {
             dangerouslySetInnerHTML={{ __html: getHtmlFromMarkdown(message) }}
           ></div>
           <div className="MatchWidget__footer">
-            {this.props.feedbackHref && (
-              <div className="MatchWidget__feedbackLink">
-                <a
-                  target="_blank"
-                  href={this.getFeedbackLink(
-                    this.props.feedbackHref!,
-                    feedbackInfo
-                  )}
-                >
-                  Issue with this result? Tell us!
-                </a>
-              </div>
-            )}
+            <Feedback documentUrl={url} match={match} />
           </div>
         </div>
       </div>
     );
   }
-
-  private getFeedbackLink = (feedbackHref: string, feedbackInfo: any) => {
-    const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2));
-    return feedbackHref + data;
-  };
 }
 
 export default Match;

@@ -3,6 +3,7 @@ import {
   ICheckRangeEvent,
   IClearDocumentEvent,
   IErrorEvent,
+  IFeedbackReceivedEvent,
   IFilterToggleEvent,
   IMarkAsCorrectEvent,
   IMatchDecorationClickedEvent,
@@ -139,6 +140,18 @@ class TyperighterTelemetryAdapter {
       value: toggledOn ? 1 : 0,
       tags: { matchType }
     } as IFilterToggleEvent);
+  }
+
+  public feedbackReceived(match: MappedMatch, feedbackMessage: string, documentUrl: string) {
+    this.addEvent({
+      type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_FEEDBACK_RECEIVED,
+      value: 1,
+      tags: {
+        documentUrl,
+        feedbackMessage,
+        ...this.getTelemetryTagsFromMatch(match)
+      }
+    } as IFeedbackReceivedEvent);
   }
 
   public error(message: string) {
