@@ -12,7 +12,6 @@ interface IMatchProps<TMatch extends IMatch> {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
   matchColours: IMatchTypeToColourMap;
-  feedbackHref?: string;
   onMarkCorrect?: (match: IMatch) => void;
 }
 

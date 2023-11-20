@@ -142,7 +142,7 @@ class TyperighterTelemetryAdapter {
     } as IFilterToggleEvent);
   }
 
-  public feedbackReceived(match: MappedMatch, feedbackMessage: string, documentUrl: string) {
+  public feedbackReceived(match: IMatch, feedbackMessage: string, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_FEEDBACK_RECEIVED,
       value: 1,
