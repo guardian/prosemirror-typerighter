@@ -153,6 +153,36 @@ export const createMatch = (
   groupKey: "group-key"
 });
 
+export const createMatchWithRanges = (
+  ranges: IRange[],
+  suggestions = [] as ISuggestion[],
+  category = {
+    id: "1",
+    name: "Cat",
+    colour: "eeeee"
+  }
+): MappedMatch => {
+  const from = Math.min(...ranges.map(range => range.from));
+  const to = Math.max(...ranges.map(range => range.to));
+
+  return {
+    matcherType: "regex",
+    ruleId: "ruleId",
+    category,
+    matchedText: "block text",
+    message: "annotation",
+    from,
+    to,
+    ranges,
+    matchId: createMatchId(0, from, to, 0),
+    suggestions,
+    matchContext: "here is a [[block text]] match",
+    precedingText: "here is a ",
+    subsequentText: " match",
+    groupKey: "group-key"
+  };
+};
+
 export const exampleCategoryIds = ["example-category"];
 
 export const exampleRequestId = "set-id";
