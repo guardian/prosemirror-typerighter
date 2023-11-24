@@ -50,7 +50,7 @@ describe("Match helpers", () => {
       const ruleMatch = getRuleMatch(10, 15);
       const ignoredRange = [{ from: 13, to: 20 }];
       const mappedMatch = mapThroughIgnoredRanges(ruleMatch, ignoredRange);
-      expect(mappedMatch.ranges).toEqual([{ from: 10, to: 12 }, { from: 18, to: 23}]);
+      expect(mappedMatch.ranges).toEqual([{ from: 10, to: 13 }, { from: 21, to: 23 }]);
     });
 
     it("should account for multiple ranges", () => {

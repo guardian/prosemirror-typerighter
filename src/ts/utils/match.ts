@@ -12,7 +12,7 @@ export const mapThroughIgnoredRanges = <TMatch extends IMatch>(
     return matchToMappedMatch(match)
   }
 
-  const mappedMatch = {
+  const initialMappedMatch = {
     ...match,
     ranges: [{ from: match.from, to: match.to }]
   }
@@ -30,7 +30,7 @@ export const mapThroughIgnoredRanges = <TMatch extends IMatch>(
 
       return [newRuleMatch, rangesAlreadyApplied];
     },
-    [mappedMatch, [] as Range[]]
+    [initialMappedMatch, [] as Range[]]
   );
 
   return {
