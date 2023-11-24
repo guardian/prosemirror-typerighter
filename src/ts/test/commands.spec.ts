@@ -1,5 +1,6 @@
+import { IRange } from "../interfaces/IMatch";
 import { createEditor } from "./helpers/createEditor";
-import { createMatch } from "./helpers/fixtures";
+import { createMatch, createMatchWithRanges } from "./helpers/fixtures";
 
 /**
  * Applies a suggestion to a document, and returns the editor element
@@ -7,11 +8,10 @@ import { createMatch } from "./helpers/fixtures";
  */
 const applySuggestionToDoc = (
   before: string,
-  from: number,
-  to: number,
+  ranges: IRange[],
   replacement: string
 ): HTMLElement => {
-  const match = createMatch(from, to, [
+  const match = createMatchWithRanges(ranges, [
     { text: "N/A", type: "TEXT_SUGGESTION" }
   ]);
   const { editorElement, commands } = createEditor(before, [match]);
@@ -34,8 +34,7 @@ describe("Commands", () => {
     it("should apply a suggestion to the document", () => {
       const editorElement = applySuggestionToDoc(
         "<p>An example sentence</p>",
-        4,
-        11,
+        [{ from: 4, to: 11 }],
         "improved"
       );
 
@@ -45,8 +44,7 @@ describe("Commands", () => {
     it("should keep marks across the whole replaced text when suggestions are applied and additions are made to the end of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>An <strong>example</strong> sentence</p>",
-        4,
-        11,
+        [{ from: 4, to: 11 }],
         "improved"
       );
 
@@ -58,8 +56,7 @@ describe("Commands", () => {
     it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>i'm a celebrity get me <em>out</em> of <strong>here</strong></p>",
-        1,
-        36,
+        [{ from: 1, to: 36 }],
         "I'm a Celebrity ... Get Me Out Of Here!"
       );
 
@@ -71,8 +68,7 @@ describe("Commands", () => {
     it("should keep overlapping marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>i'm a celebrity get me <em>out of <strong>here</em></strong></p>",
-        1,
-        36,
+        [{ from: 1, to: 36 }],
         "I'm a Celebrity ... Get Me Out Of Here!"
       );
 
@@ -84,8 +80,7 @@ describe("Commands", () => {
     it("should keep marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>Two <strong>eggs</strong></p>",
-        5,
-        9,
+        [{ from: 5, to: 9 }],
         "beggars"
       );
 
@@ -95,8 +90,7 @@ describe("Commands", () => {
     it("should keep multiple marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>Two <em><strong>eggs</strong></em></p>",
-        5,
-        9,
+        [{ from: 5, to: 9 }],
         "beggars"
       );
 
@@ -108,8 +102,7 @@ describe("Commands", () => {
     it("should keep marks across parts of the replaced text when suggestions are applied with additions", () => {
       const editorElement = applySuggestionToDoc(
         "<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>",
-        4,
-        11,
+        [{ from: 4, to: 11 }],
         "Example"
       );
 
@@ -121,12 +114,31 @@ describe("Commands", () => {
     it("should keep marks across parts of the replaced text when suggestions are applied with deletions", () => {
       const editorElement = applySuggestionToDoc(
         "<p>An <strong>ex</strong>a<em>mp</em>le sentence</p>",
-        4,
-        11,
+        [{ from: 4, to: 11 }],
         "ample"
       );
 
       expect(editorElement.innerHTML).toBe("An a<em>mp</em>le sentence");
+    });
+
+    it("should ignore ranges not covered by the match – 1", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p>An exa-----mple sentence</p>",
+        [{ from: 4, to: 7 }, { from: 12, to: 16 }],
+        "ample"
+      );
+
+      expect(editorElement.innerHTML).toBe("An amp-----le sentence");
+    });
+
+    it("should ignore ranges not covered by the match – 2", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p>An ex-a-mple sentence</p>",
+        [{ from: 4, to: 6 }, { from: 7, to: 8 }, { from: 9, to: 13 }],
+        "ample"
+      );
+
+      expect(editorElement.innerHTML).toBe("An am--ple sentence");
     });
   });
   describe("setTyperighterEnabled", () => {

@@ -296,8 +296,7 @@ export const applySuggestionsCommand = (
       const maybeMatch = selectMatchByMatchId(pluginState, opt.matchId);
       return maybeMatch
         ? {
-            from: maybeMatch.from,
-            to: maybeMatch.to,
+            match: maybeMatch,
             text: opt.text
           }
         : undefined;
@@ -340,8 +339,7 @@ export const clearMatchesCommand = () => (_: GetState) => (
 
 const maybeApplySuggestions = (
   suggestionsToApply: Array<{
-    from: number;
-    to: number;
+    match: MappedMatch,
     text: string | undefined;
   }>,
   state: EditorState,
@@ -356,23 +354,38 @@ const maybeApplySuggestions = (
   }
 
   const tr = state.tr;
-  suggestionsToApply.forEach(({ from, to, text }) => {
+  suggestionsToApply.forEach(({ match, text }) => {
     if (!text) {
       return;
     }
 
-    const mappedFrom = tr.mapping.map(from);
-    const mappedTo = tr.mapping.map(to);
-    const replacementFrags = getPatchesFromReplacementText(
-      tr,
-      mappedFrom,
-      mappedTo,
-      text
-    );
+    let textCursor = 0;
 
-    replacementFrags.forEach(frag =>
-      applyPatchToTransaction(tr, state.schema, frag)
-    );
+    // Apply the suggestion to the matched range.
+    // If the match is split into multiple ranges, attempts to preserve a reasonable split between
+    match.ranges.forEach(({ from, to }, index) => {
+      const isLastRange = index === match.ranges.length - 1;
+      const mappedFrom = tr.mapping.map(from);
+      const mappedTo = tr.mapping.map(to);
+      const fragmentToApply = text.slice(textCursor, !isLastRange ? to - from : Infinity);
+      textCursor += to - from;
+
+      const replacementFrags = getPatchesFromReplacementText(
+        tr,
+        mappedFrom,
+        mappedTo,
+        fragmentToApply
+      );
+
+      // Do not attempt to preserve marks if match ranges are split –
+      // it's likely to go wrong!
+      const preserveMarks = match.ranges.length === 1;
+
+      replacementFrags.forEach(frag =>
+        applyPatchToTransaction(tr, state.schema, frag, preserveMarks)
+      );
+    })
+
   });
 
   dispatch(tr);

@@ -217,10 +217,11 @@ export const getPatchesFromReplacementText = (
 export const applyPatchToTransaction = (
   tr: Transaction,
   schema: Schema<any>,
-  patch: ISuggestionPatch
+  patch: ISuggestionPatch,
+  preserveMarks?: boolean
 ) => {
   if (patch.type === "INSERT") {
-    const marks = patch.getMarks(tr);
+    const marks = preserveMarks ? patch.getMarks(tr) : [];
     const node = schema.text(patch.text, marks);
     return tr.insert(patch.from, node);
   }
