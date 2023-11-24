@@ -362,13 +362,21 @@ const maybeApplySuggestions = (
     let textCursor = 0;
 
     // Apply the suggestion to the matched range.
+    //
     // If the match is split into multiple ranges, attempts to preserve a reasonable split between
+    // ranges by allocating the suggestion the same number of characters as the original range. Extra
+    // characters are append.
+    //
+    // For example, given:
+    //   - the match 'ex-a-mple', where dashes denote splits in the match
+    //   - the suggestion 'ample'
+    // We get the result 'am-p-le'.
     match.ranges.forEach(({ from, to }, index) => {
       const isLastRange = index === match.ranges.length - 1;
       const mappedFrom = tr.mapping.map(from);
       const mappedTo = tr.mapping.map(to);
-      const fragmentToApply = text.slice(textCursor, !isLastRange ? to - from : Infinity);
-      textCursor += to - from;
+      const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (to - from) : Infinity);
+      textCursor += fragmentToApply.length;
 
       const replacementFrags = getPatchesFromReplacementText(
         tr,
