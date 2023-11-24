@@ -3,7 +3,6 @@ import { Change, diffChars } from "diff";
 
 import { ApplySuggestionOptions } from "../commands";
 import { ISuggestion, IMatch } from "../interfaces/IMatch";
-import WikiSuggestion from "./WikiSuggestion";
 import TelemetryContext from "../contexts/TelemetryContext";
 
 interface IProps {
@@ -83,23 +82,12 @@ const Suggestion = ({ match, suggestion, applySuggestions }: IProps) => {
       suggestion.text
     );
   };
-  switch (suggestion.type) {
-    case "TEXT_SUGGESTION": {
-      return (
-        <div className="Suggestion" onClick={boundApplySuggestions}>
-          {renderSuggestionText(match.matchedText, suggestion.text)}
-        </div>
-      );
-    }
-    case "WIKI_SUGGESTION": {
-      return (
-        <WikiSuggestion
-          {...suggestion}
-          applySuggestion={boundApplySuggestions}
-        />
-      );
-    }
-  }
+
+  return (
+    <div className="Suggestion" onClick={boundApplySuggestions}>
+      {renderSuggestionText(match.matchedText, suggestion.text)}
+    </div>
+  );
 };
 
 export default Suggestion;

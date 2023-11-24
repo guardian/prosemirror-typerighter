@@ -23,18 +23,9 @@ export interface IBlockWithSkippedRanges extends IBlock {
   skipRanges: IRange[]
 }
 
-export type ISuggestion = ITextSuggestion | IWikiSuggestion;
-
-export interface ITextSuggestion {
+export interface ISuggestion {
   type: "TEXT_SUGGESTION";
   text: string;
-}
-
-export interface IWikiSuggestion {
-  type: "WIKI_SUGGESTION";
-  title: string;
-  text: string;
-  score: number;
 }
 
 export type TErrorType = "GENERAL_ERROR" | "AUTH_ERROR";
