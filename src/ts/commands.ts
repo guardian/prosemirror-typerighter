@@ -15,8 +15,7 @@ import {
   setTyperighterEnabled
 } from "./state/actions";
 import {
-  selectMatchByMatchId,
-  selectAllAutoFixableMatches
+  selectMatchByMatchId
 } from "./state/selectors";
 import {
   PROSEMIRROR_TYPERIGHTER_ACTION,
@@ -308,30 +307,6 @@ export const applySuggestionsCommand = (
 };
 
 /**
- * Applies the first suggestion for each rule marked as auto-fixable.
- */
-export const applyAutoFixableSuggestionsCommand = (
-  getState: GetState
-): Command => (state, dispatch) => {
-  const pluginState = getState(state);
-  if (!pluginState) {
-    return false;
-  }
-
-  const suggestionsToApply = selectAllAutoFixableMatches(pluginState).map(
-    output => ({
-      from: output.from,
-      to: output.to,
-      text:
-        output.suggestions && output.suggestions.length
-          ? output.suggestions[0].text
-          : undefined
-    })
-  );
-  return maybeApplySuggestions(suggestionsToApply, state, dispatch);
-};
-
-/**
  * Ignore a match, removing it from the plugin state.
  * Returns true if the match was found, false if not.
  */
@@ -459,8 +434,6 @@ export const createBoundCommands = (
       ),
     selectMatch: (blockId: string) =>
       selectMatchCommand(blockId, getState)(view.state, dispatch),
-    applyAutoFixableSuggestions: () =>
-      applyAutoFixableSuggestionsCommand(getState)(view.state, dispatch),
     requestMatchesForDocument: bindCommand(requestMatchesForDocumentCommand),
     requestMatchesForDirtyRanges: bindCommand(
       requestMatchesForDirtyRangesCommand
@@ -487,7 +460,6 @@ export const commands = {
   clearMatchesCommand,
   applySuggestionsCommand,
   selectMatchCommand,
-  applyAutoFixableSuggestionsCommand,
   requestMatchesForDocumentCommand,
   requestMatchesForDirtyRangesCommand,
   startHoverCommand,
