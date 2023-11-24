@@ -138,7 +138,7 @@ describe("Commands", () => {
         "ample"
       );
 
-      expect(editorElement.innerHTML).toBe("An am--ple sentence");
+      expect(editorElement.innerHTML).toBe("An am-p-le sentence");
     });
   });
   describe("setTyperighterEnabled", () => {
