@@ -128,7 +128,7 @@ describe("Commands", () => {
         "ample"
       );
 
-      expect(editorElement.innerHTML).toBe("An amp-----le sentence");
+      expect(editorElement.textContent).toBe("An a-----mple sentence");
     });
 
     it("should ignore ranges not covered by the match – 2", () => {
@@ -138,7 +138,7 @@ describe("Commands", () => {
         "ample"
       );
 
-      expect(editorElement.innerHTML).toBe("An am-p-le sentence");
+      expect(editorElement.textContent).toBe("An -a-mple sentence");
     });
   });
   describe("setTyperighterEnabled", () => {
