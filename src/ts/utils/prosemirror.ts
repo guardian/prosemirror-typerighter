@@ -209,6 +209,14 @@ export const getPatchesFromReplacementText = (
   return fragments;
 };
 
+export const getFirstMatchingChar = (str1: string, str2: string) => {
+  for (let i = 0; i < str1.length; i++) {
+    if (str1[i] === str2[0]) return i;
+  }
+
+  return 0;
+}
+
 /**
  * Apply a suggestion fragment to a transaction.
  *

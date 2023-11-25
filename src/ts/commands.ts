@@ -31,7 +31,8 @@ import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
 import {
   getPatchesFromReplacementText,
-  applyPatchToTransaction
+  applyPatchToTransaction,
+  getFirstMatchingChar
 } from "./utils/prosemirror";
 import { getState } from "./utils/plugin";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
@@ -361,6 +362,10 @@ const maybeApplySuggestions = (
 
     let textCursor = 0;
 
+    // Ensure the replacement always begins at the first point that the old and new suggestions match.
+    const strToReplace = match.ranges.map(range => tr.doc.textBetween(range.from, range.to)).join('')
+    tr.deleteRange(match.from, match.from + getFirstMatchingChar(strToReplace, text));
+
     // Apply the suggestion to the matched range.
     //
     // If the match is split into multiple ranges, attempts to preserve a reasonable split between
@@ -375,7 +380,7 @@ const maybeApplySuggestions = (
       const isLastRange = index === match.ranges.length - 1;
       const mappedFrom = tr.mapping.map(from);
       const mappedTo = tr.mapping.map(to);
-      const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (to - from) : Infinity);
+      const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (mappedTo - mappedFrom) : Infinity);
       textCursor += fragmentToApply.length;
 
       const replacementFrags = getPatchesFromReplacementText(
