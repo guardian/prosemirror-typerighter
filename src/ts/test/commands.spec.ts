@@ -121,7 +121,7 @@ describe("Commands", () => {
       expect(editorElement.innerHTML).toBe("An a<em>mp</em>le sentence");
     });
 
-    it("should ignore ranges not covered by the match – 1", () => {
+    it("should ignore ranges not covered by the match", () => {
       const editorElement = applySuggestionToDoc(
         "<p>An exa-----mple sentence</p>",
         [{ from: 4, to: 7 }, { from: 12, to: 16 }],
@@ -131,7 +131,7 @@ describe("Commands", () => {
       expect(editorElement.textContent).toBe("An a-----mple sentence");
     });
 
-    it("should ignore ranges not covered by the match – 2", () => {
+    it("should ignore ranges not covered by the match, preserving position of the start of the suggestion", () => {
       const editorElement = applySuggestionToDoc(
         "<p>An ex-a-mple sentence</p>",
         [{ from: 4, to: 6 }, { from: 7, to: 8 }, { from: 9, to: 13 }],
@@ -139,6 +139,16 @@ describe("Commands", () => {
       );
 
       expect(editorElement.textContent).toBe("An -a-mple sentence");
+    });
+
+    it("should ignore ranges not covered by the match, flowing subsequent parts of the suggestion through the ranges", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p>An ex-aa-mple sentence</p>",
+        [{ from: 4, to: 6 }, { from: 7, to: 9 }, { from: 10, to: 14 }],
+        "example"
+      );
+
+      expect(editorElement.textContent).toBe("An ex-am-ple sentence");
     });
   });
   describe("setTyperighterEnabled", () => {
