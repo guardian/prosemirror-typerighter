@@ -386,12 +386,12 @@ const maybeApplySuggestions = (
       const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (mappedTo - mappedFrom) : Infinity);
       textCursor += fragmentToApply.length;
 
-      return getPatchesFromReplacementText(
+      return getPatchesFromReplacementText({
         tr,
-        mappedFrom,
-        mappedTo,
-        fragmentToApply
-      );
+        from: mappedFrom,
+        to: mappedTo,
+        replacement: fragmentToApply
+      });
     });
 
     applyPatchesToTransaction(patches, match.ranges, tr, state.schema)

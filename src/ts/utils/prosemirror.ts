@@ -5,7 +5,7 @@ import * as jsDiff from "diff";
 
 import { IBlockWithIgnoredRanges, IRange } from "../interfaces/IMatch";
 import { createBlock, doNotIgnoreRanges, GetIgnoredRanges } from "./block";
-import { isPosWithinRange } from "./range";
+import { invertRanges, isPosWithinRange } from "./range";
 
 export const MarkTypes = {
   legal: "legal",
@@ -112,12 +112,12 @@ type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete;
  *
  * Preserves marks that span the entirety of the text to be replaced.
  */
-export const getPatchesFromReplacementText = (
+export const getPatchesFromReplacementText = ({ tr, from, to, replacement }: {
   tr: Transaction,
   from: number,
   to: number,
-  replacement: string
-): ISuggestionPatch[] => {
+  replacement: string,
+}): ISuggestionPatch[] => {
   const currentText = tr.doc.textBetween(from, to);
   const patches = jsDiff.diffChars(currentText, replacement, {
     ignoreCase: false
@@ -190,23 +190,21 @@ export const getFirstMatchingChar = (str1: string, str2: string) => {
 }
 
 /**
- * Apply a suggestion fragment to a transaction.
+ * Apply a suggestion fragment to a transaction, preserving marks from the
+ * original document where possible.
  *
  * Mutates the given transaction.
  */
 export const applyPatchesToTransaction = (
   patches: ISuggestionPatch[],
-  _ranges: IRange[],
+  ranges: IRange[],
   tr: Transaction,
   schema: Schema<any>
 ) => {
-  // We reference this when figuring out whether marks should be applied to new insertions.
+  // We reference this when figuring out whether marks should be applied to new
+  // insertions.
   const docBeforeEdits = tr.doc;
-  const rangesToIgnore = _ranges
-    .flatMap((_, index) =>
-      index < _ranges.length - 1
-        ? [{ from: _ranges[index].to, to: _ranges[index + 1].from }]
-        : [])
+  const rangesToIgnore = invertRanges(ranges);
 
   patches.forEach((patch, index) => {
     if (patch.type === "DELETE") {
@@ -214,18 +212,24 @@ export const applyPatchesToTransaction = (
       return;
     }
 
+    // Make the change to the document.
     const node = schema.text(patch.text);
     tr.insert(patch.from, node);
 
+    // Apply marks: map the positions from the insertion back to the original
+    // document, and use those positions and the original document to derive marks.
     const mapToDocBeforeEdits = tr.mapping.invert();
     const prevFragment = patches[index - 1];
-    const isInsertionThatFollowsUnalteredRange =
+
+    const insertionFollowsIgnoredRange = rangesToIgnore.some(range => isPosWithinRange(mapToDocBeforeEdits.map(patch.from, -1), range));
+    const insertionFollowsUnpatchedRange =
       !!prevFragment
       && (prevFragment.to || 0) < patch.from
-      && !rangesToIgnore.some(range => isPosWithinRange(mapToDocBeforeEdits.map(patch.from, -1), range))
+    const insertionShouldDeriveStylesFromPreviousChar =
+      insertionFollowsUnpatchedRange
+      && !insertionFollowsIgnoredRange
+    const fromOffset = insertionShouldDeriveStylesFromPreviousChar ? -1 : 0;
 
-
-    const fromOffset = isInsertionThatFollowsUnalteredRange ? -1 : 0;
     const $beforeEditFrom = docBeforeEdits.resolve(mapToDocBeforeEdits.map(patch.from, -1) + fromOffset);
     const $beforeEditTo = docBeforeEdits.resolve(mapToDocBeforeEdits.map(patch.to, 1));
 

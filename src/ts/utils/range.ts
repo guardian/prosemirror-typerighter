@@ -9,6 +9,18 @@ export const isPosWithinRange = (pos: number, range: IRange) =>
   pos >= range.from && pos <= range.to;
 
 /**
+ * Get the ranges between the given ranges, inclusive of start and end.
+ *
+ * For example, passing `[{ from: 1, to: 2 }, { from: 3, to: 4 }]` would
+ * yield `[{ from: 2, to: 3 }]`.
+ */
+export const invertRanges = (ranges: IRange[]): IRange[] => ranges
+  .flatMap((_, index) =>
+    index < ranges.length - 1
+      ? [{ from: ranges[index].to, to: ranges[index + 1].from }]
+      : [])
+
+/**
  * Find the index of the first range in the given range array that overlaps/abuts with the given range.
  */
 export const findOverlappingRangeIndex = (range: IRange, ranges: IRange[]) =>
