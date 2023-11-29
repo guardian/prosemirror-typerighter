@@ -222,18 +222,19 @@ export const getFirstMatchingChar = (str1: string, str2: string) => {
  *
  * Mutates the given transaction.
  */
-export const applyPatchToTransaction = (
+export const applyPatchesToTransaction = (
+  patches: ISuggestionPatch[],
   tr: Transaction,
-  schema: Schema<any>,
-  patch: ISuggestionPatch,
-  preserveMarks?: boolean
+  schema: Schema<any>
 ) => {
-  if (patch.type === "INSERT") {
-    const marks = preserveMarks ? patch.getMarks(tr) : [];
-    const node = schema.text(patch.text, marks);
-    return tr.insert(patch.from, node);
-  }
-  tr.delete(patch.from, patch.to);
+  patches.forEach((patch,) => {
+    if (patch.type === "INSERT") {
+      const marks = patch.getMarks(tr);
+      const node = schema.text(patch.text, marks);
+      return tr.insert(patch.from, node);
+    }
+    tr.delete(patch.from, patch.to);
+  })
 };
 
 /**
