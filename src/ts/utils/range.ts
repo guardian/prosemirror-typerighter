@@ -5,6 +5,9 @@ import { IRange } from "../interfaces/IMatch";
 import { IBlock } from "../interfaces/IMatch";
 import { Mapping } from "prosemirror-transform";
 
+export const isPosWithinRange = (pos: number, range: IRange) =>
+  pos >= range.from && pos <= range.to;
+
 /**
  * Find the index of the first range in the given range array that overlaps/abuts with the given range.
  */
