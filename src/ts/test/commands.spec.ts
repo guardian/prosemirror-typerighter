@@ -17,6 +17,7 @@ const applySuggestionToDoc = (
   const { editorElement, commands } = createEditor(before, [match]);
 
   commands.applySuggestions([{ text: replacement, matchId: match.matchId }]);
+  commands.clearMatches();
 
   return editorElement.querySelector("p")!;
 };
@@ -55,13 +56,37 @@ describe("Commands", () => {
 
     it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
       const editorElement = applySuggestionToDoc(
-        "<p>i'm a celebrity get me <em>out</em> of <strong>here</strong></p>",
+        "<p>1<em>2</em>3<strong>4</strong>5</p>",
+        [{ from: 1, to: 6 }],
+        "1-3-5"
+      );
+
+      expect(editorElement.innerHTML).toBe(
+        "1<em>-</em>3<strong>-</strong>5"
+      );
+    });
+
+    it("should extend marks when the patch grows", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p>1<em>2</em>3<strong>4</strong>5</p>",
+        [{ from: 1, to: 7 }],
+        "1-34-5"
+      );
+
+      expect(editorElement.innerHTML).toBe(
+        "1<em>-</em>3<strong>4-</strong>5"
+      );
+    });
+
+    it("should keep marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p>i'm a celebrity get me <em>o</em>ut of <strong>here</strong></p>",
         [{ from: 1, to: 36 }],
         "I'm a Celebrity ... Get Me Out Of Here!"
       );
 
       expect(editorElement.innerHTML).toBe(
-        "I'm a Celebrity ... Get Me <em>Out</em> Of <strong>Here!</strong>"
+        "I'm a Celebrity ... Get Me <em>O</em>ut Of <strong>Here!</strong>"
       );
     });
 

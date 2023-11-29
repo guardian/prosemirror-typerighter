@@ -5,6 +5,7 @@ import * as jsDiff from "diff";
 
 import { IBlockWithIgnoredRanges, IRange } from "../interfaces/IMatch";
 import { createBlock, doNotIgnoreRanges, GetIgnoredRanges } from "./block";
+import { isPosWithinRange } from "./range";
 
 export const MarkTypes = {
   legal: "legal",
@@ -100,11 +101,6 @@ interface ISuggestionPatchDelete extends IBaseSuggestionPatch {
 interface ISuggestionPatchInsert extends IBaseSuggestionPatch {
   type: "INSERT";
   text: string;
-  // Why a function? We must evaluate getMarks at the point at which the patch
-  // is applied to the document, not when it's first created. This ensures that
-  // positions stored in a patch correctly map to the document, even after previous
-  // patches have altered it.
-  getMarks: (tr: Transaction) => Array<Mark>;
 }
 
 type ISuggestionPatch = ISuggestionPatchInsert | ISuggestionPatchDelete;
@@ -164,33 +160,9 @@ export const getPatchesFromReplacementText = (
         };
       }
 
-      const prevFragment = currentFragments[currentFragments.length - 1];
-      const isInsertionThatFollowsUnalteredRange =
-        !!prevFragment && (prevFragment.to || 0) < newFrom;
-
-      let getMarks;
-      if (isInsertionThatFollowsUnalteredRange) {
-        // If this patch is an insertion that follows an unaltered range, inherit the marks
-        // from the character that precedes this patch. This ensures that text that expands
-        // upon an existing range shares the existing range's style.
-        getMarks = (localTr: Transaction) => {
-          const $newFrom = localTr.doc.resolve(newFrom);
-          const $lastCharFrom = localTr.doc.resolve(newFrom - 1);
-          return $lastCharFrom.marksAcross($newFrom) || Mark.none;
-        };
-      } else {
-        // If this patch is a replacement, find all of the marks
-        // that span the text we're replacing, and copy them across.
-        getMarks = (localTr: Transaction) => {
-          const $newTo = localTr.doc.resolve(newTo);
-          return localTr.doc.resolve(newFrom).marksAcross($newTo) || Mark.none;
-        };
-      }
-
       const newFragment: ISuggestionPatchInsert = {
         type: "INSERT",
         text: patch.value,
-        getMarks,
         from: newFrom,
         to: newTo
       };
@@ -224,17 +196,43 @@ export const getFirstMatchingChar = (str1: string, str2: string) => {
  */
 export const applyPatchesToTransaction = (
   patches: ISuggestionPatch[],
+  _ranges: IRange[],
   tr: Transaction,
   schema: Schema<any>
 ) => {
-  patches.forEach((patch,) => {
-    if (patch.type === "INSERT") {
-      const marks = patch.getMarks(tr);
-      const node = schema.text(patch.text, marks);
-      return tr.insert(patch.from, node);
+  // We reference this when figuring out whether marks should be applied to new insertions.
+  const docBeforeEdits = tr.doc;
+  const rangesToIgnore = _ranges
+    .flatMap((_, index) =>
+      index < _ranges.length - 1
+        ? [{ from: _ranges[index].to, to: _ranges[index + 1].from }]
+        : [])
+
+  patches.forEach((patch, index) => {
+    if (patch.type === "DELETE") {
+      tr.delete(patch.from, patch.to);
+      return;
     }
-    tr.delete(patch.from, patch.to);
-  })
+
+    const node = schema.text(patch.text);
+    tr.insert(patch.from, node);
+
+    const mapToDocBeforeEdits = tr.mapping.invert();
+    const prevFragment = patches[index - 1];
+    const isInsertionThatFollowsUnalteredRange =
+      !!prevFragment
+      && (prevFragment.to || 0) < patch.from
+      && !rangesToIgnore.some(range => isPosWithinRange(mapToDocBeforeEdits.map(patch.from, -1), range))
+
+
+    const fromOffset = isInsertionThatFollowsUnalteredRange ? -1 : 0;
+    const $beforeEditFrom = docBeforeEdits.resolve(mapToDocBeforeEdits.map(patch.from, -1) + fromOffset);
+    const $beforeEditTo = docBeforeEdits.resolve(mapToDocBeforeEdits.map(patch.to, 1));
+
+    const marks: Mark[] = $beforeEditFrom.marksAcross($beforeEditTo) || Mark.none;
+
+    marks.forEach(mark => tr.addMark(patch.from, patch.to, mark));
+  });
 };
 
 /**

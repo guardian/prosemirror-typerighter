@@ -360,11 +360,14 @@ const maybeApplySuggestions = (
       return;
     }
 
-    let textCursor = 0;
-
     // Ensure the replacement always begins at the first point that the old and new suggestions match.
     const strToReplace = match.ranges.map(range => tr.doc.textBetween(range.from, range.to)).join('')
-    tr.deleteRange(match.from, match.from + getFirstMatchingChar(strToReplace, text));
+    const indexOfFirstMatchingChar = getFirstMatchingChar(strToReplace, text);
+    if (indexOfFirstMatchingChar > 0) {
+      tr.deleteRange(match.from, match.from + indexOfFirstMatchingChar);
+    }
+
+    let textCursor = 0;
 
     // Apply the suggestion to the matched range.
     //
@@ -376,24 +379,22 @@ const maybeApplySuggestions = (
     //   - the match 'ex-a-mple', where dashes denote splits in the match
     //   - the suggestion 'ample'
     // We get the result 'am-p-le'.
-    match.ranges.forEach(({ from, to }, index) => {
+    const patches = match.ranges.flatMap(({ from, to }, index) => {
       const isLastRange = index === match.ranges.length - 1;
       const mappedFrom = tr.mapping.map(from);
       const mappedTo = tr.mapping.map(to);
       const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (mappedTo - mappedFrom) : Infinity);
       textCursor += fragmentToApply.length;
 
-      const patches = getPatchesFromReplacementText(
+      return getPatchesFromReplacementText(
         tr,
         mappedFrom,
         mappedTo,
         fragmentToApply
       );
+    });
 
-      applyPatchesToTransaction(patches, tr, state.schema)
-
-    })
-
+    applyPatchesToTransaction(patches, match.ranges, tr, state.schema)
   });
 
   dispatch(tr);
