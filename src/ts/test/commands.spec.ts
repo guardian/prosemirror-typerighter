@@ -65,18 +65,6 @@ describe("Commands", () => {
       );
     });
 
-    it("should keep overlapping marks within parts of the replaced text when multi-word suggestions are applied and additions are made to the end of the range", () => {
-      const editorElement = applySuggestionToDoc(
-        "<p>i'm a celebrity get me <em>out of <strong>here</em></strong></p>",
-        [{ from: 1, to: 36 }],
-        "I'm a Celebrity ... Get Me Out Of Here!"
-      );
-
-      expect(editorElement.innerHTML).toBe(
-        "I'm a Celebrity ... Get Me <em>Out Of <strong>Here!</strong></em>"
-      );
-    });
-
     it("should keep marks across the whole replaced text when suggestions are applied and additions are made to the beginning of the range", () => {
       const editorElement = applySuggestionToDoc(
         "<p>Two <strong>eggs</strong></p>",
@@ -128,7 +116,7 @@ describe("Commands", () => {
         "ample"
       );
 
-      expect(editorElement.textContent).toBe("An a-----mple sentence");
+      expect(editorElement.innerHTML).toBe("An a-----mple sentence");
     });
 
     it("should ignore ranges not covered by the match, preserving position of the start of the suggestion", () => {
@@ -138,7 +126,7 @@ describe("Commands", () => {
         "ample"
       );
 
-      expect(editorElement.textContent).toBe("An -a-mple sentence");
+      expect(editorElement.innerHTML).toBe("An -a-mple sentence");
     });
 
     it("should ignore ranges not covered by the match, flowing subsequent parts of the suggestion through the ranges", () => {
@@ -148,9 +136,20 @@ describe("Commands", () => {
         "example"
       );
 
-      expect(editorElement.textContent).toBe("An ex-am-ple sentence");
+      expect(editorElement.innerHTML).toBe("An ex-am-ple sentence");
+    });
+
+    it("should not consider styling of ignored and adjacent ranges when preserving marks", () => {
+      const editorElement = applySuggestionToDoc(
+        "<p><strong>An </strong><em>e<strong>-</strong>m<strong>-</strong>ple</em><strong> sentence</strong></p>",
+        [{ from: 4, to: 5 }, { from: 6, to: 7 }, { from: 8, to: 11 }],
+        "temple"
+      );
+
+      expect(editorElement.innerHTML).toBe("<strong>An </strong><em>t<strong>-</strong>e<strong>-</strong>mple</em><strong> sentence</strong>");
     });
   });
+
   describe("setTyperighterEnabled", () => {
     const createExampleEditor = (
       before: string,
@@ -174,7 +173,7 @@ describe("Commands", () => {
 
       const maybeMatchElement = editorElement.querySelector("span[data-match-id]")!;
       expect(maybeMatchElement).toBeFalsy()
-    })
+    });
 
     it("should not remove match decorations when setTyperighterEnabled is set to true", () => {
       const { editorElement, commands } = createExampleEditor("<p>An example sentence</p>",

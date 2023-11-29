@@ -31,7 +31,7 @@ import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
 import {
   getPatchesFromReplacementText,
-  applyPatchToTransaction,
+  applyPatchesToTransaction,
   getFirstMatchingChar
 } from "./utils/prosemirror";
 import { getState } from "./utils/plugin";
@@ -383,20 +383,15 @@ const maybeApplySuggestions = (
       const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (mappedTo - mappedFrom) : Infinity);
       textCursor += fragmentToApply.length;
 
-      const replacementFrags = getPatchesFromReplacementText(
+      const patches = getPatchesFromReplacementText(
         tr,
         mappedFrom,
         mappedTo,
         fragmentToApply
       );
 
-      // Do not attempt to preserve marks if match ranges are split –
-      // it's likely to go wrong!
-      const preserveMarks = match.ranges.length === 1;
+      applyPatchesToTransaction(patches, tr, state.schema)
 
-      replacementFrags.forEach(frag =>
-        applyPatchToTransaction(tr, state.schema, frag, preserveMarks)
-      );
     })
 
   });
