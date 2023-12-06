@@ -13,7 +13,6 @@ import SidebarMatches from "./SidebarMatches";
 
 interface IProps {
   store: Store;
-  applyAutoFixableSuggestions: () => void;
   applyFilterState: (filterState: MatchType[]) => void;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (matchId: string, _?: any) => void;

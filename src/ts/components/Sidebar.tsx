@@ -60,7 +60,6 @@ const Sidebar = ({
           />
           <Results
             store={store}
-            applyAutoFixableSuggestions={commands.applyAutoFixableSuggestions}
             applyFilterState={commands.setFilterState}
             selectMatch={commands.selectMatch}
             indicateHighlight={commands.indicateHighlight}

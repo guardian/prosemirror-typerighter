@@ -117,11 +117,6 @@ export const selectSuggestionAndRange = (
   };
 };
 
-export const selectAllAutoFixableMatches = (state: IPluginState): IMatch[] =>
-  state.currentMatches.filter(
-    _ => _.replacement && _.replacement.text === _.message
-  );
-
 export const selectHasGeneralError = (state: IPluginState): boolean => {
   const generalErrors = state.requestErrors.filter(
     _ => _.type === "GENERAL_ERROR"
