@@ -299,6 +299,21 @@ describe("Action handlers", () => {
         ]
       );
 
+      it("should remove previous matches that match block and category of the incoming match", () => {
+        const newState = reducer(
+          tr,
+          state,
+          requestMatchesSuccess({
+            blocks: [firstBlock, secondBlock],
+            categoryIds: ["1", category.id],
+            matches: [],
+            requestId: exampleRequestId
+          })
+        );
+
+        expect(newState.currentMatches).toEqual([]);
+      });
+
       it("should remove previous decorations that match block and category of the incoming match", () => {
         const newState = reducer(
           tr,
@@ -355,6 +370,21 @@ describe("Action handlers", () => {
         ]);
       });
       it("should not regenerate decorations for matches that remain", () => {
+        const newState = reducer(
+          tr,
+          state,
+          requestMatchesSuccess({
+            blocks: [firstBlock],
+            categoryIds: ["another-category"],
+            matches: [],
+            requestId: exampleRequestId
+          })
+        );
+
+        expect(newState.decorations).toBe(state.decorations);
+      });
+
+      it("should remove superceded matches remain", () => {
         const newState = reducer(
           tr,
           state,
