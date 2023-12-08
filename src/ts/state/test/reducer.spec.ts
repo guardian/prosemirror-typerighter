@@ -668,30 +668,31 @@ describe("Action handlers", () => {
     });
   });
   describe("handleNewDirtyRanges", () => {
+    const { state } = createInitialData();
+    const match: MappedMatch =
+      {
+        matcherType: "regex",
+        ruleId: "ruleId",
+        matchId: "match-id",
+        from: 1,
+        to: 7,
+        ranges: [{ from: 1, to: 7 }],
+        matchedText: "block text",
+        message: "Annotation",
+        category: {
+          id: "1",
+          name: "cat",
+          colour: "eeeeee"
+        },
+        markAsCorrect: true,
+        matchContext: "bigger block of text",
+        precedingText: "bigger block of text",
+        subsequentText: "",
+        groupKey: "group-key"
+      }
+
     it("should remove any decorations and matches that touch the passed ranges", () => {
-      const { state } = createInitialData();
-      const currentMatches: MappedMatch[] = [
-        {
-          matcherType: "regex",
-          ruleId: "ruleId",
-          matchId: "match-id",
-          from: 1,
-          to: 7,
-          ranges: [{ from: 1, to: 7 }],
-          matchedText: "block text",
-          message: "Annotation",
-          category: {
-            id: "1",
-            name: "cat",
-            colour: "eeeeee"
-          },
-          markAsCorrect: true,
-          matchContext: "bigger block of text",
-          precedingText: "bigger block of text",
-          subsequentText: "",
-          groupKey: "group-key"
-        }
-      ];
+      const currentMatches = [match];
       const stateWithCurrentMatchesAndDecorations = {
         ...state,
         currentMatches,
@@ -701,6 +702,7 @@ describe("Action handlers", () => {
           defaultDoc
         )
       };
+
       expect(
         reducer(
           new Transaction(defaultDoc),
@@ -709,6 +711,34 @@ describe("Action handlers", () => {
         )
       ).toEqual({
         ...state,
+        requestPending: true,
+        dirtiedRanges: [{ from: 1, to: 2 }]
+      });
+    });
+
+    it("should remove any decorations and matches that touch the passed ranges for multi-range matches", () => {
+      const currentMatches = [{
+        ...match,
+        ranges: [{ from: 1, to: 2 }, { from: 3, to: 7 }],
+      }];
+      const stateWithCurrentMatchesAndDecorations = {
+        ...state,
+        currentMatches,
+        decorations: getNewDecorationsForCurrentMatches(
+          currentMatches,
+          state.decorations,
+          defaultDoc
+        )
+      };
+
+      expect(
+        reducer(
+          new Transaction(defaultDoc),
+          stateWithCurrentMatchesAndDecorations,
+          applyNewDirtiedRanges([{ from: 1, to: 2 }])
+        )
+      ).toMatchObject({
+        currentMatches: [],
         requestPending: true,
         dirtiedRanges: [{ from: 1, to: 2 }]
       });
