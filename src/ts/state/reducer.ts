@@ -613,15 +613,17 @@ const handleMatchesRequestSuccess = (ignoreMatch: IIgnoreMatchPredicate) => (
   }
 
   // Remove matches superceded by the incoming matches.
+  const blockRanges = blocksInFlight.map(_ => _.block);
   let currentMatches = state.currentMatches.filter(match => {
-    const incomingMatchesAreOfTheSameCategory = !response.categoryIds.includes(match.category.id);
-    const matchIsInSameBlock = removeOverlappingRanges(
-        match.ranges,
-        blocksInFlight.map(_ => _.block)
-      ).length > 0
+    const incomingMatchesAreOfTheSameCategory = response.categoryIds.includes(
+      match.category.id
+    );
+    const matchIsInSameBlock = match.ranges.some(
+      range => findOverlappingRangeIndex(range, blockRanges) !== -1
+    );
 
-      return !(incomingMatchesAreOfTheSameCategory && matchIsInSameBlock);
-    });
+    return !(incomingMatchesAreOfTheSameCategory && matchIsInSameBlock);
+  });
 
   // Remove decorations superceded by the incoming matches.
   const decsToRemove = blocksInFlight.reduce(
