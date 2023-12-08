@@ -443,7 +443,7 @@ const handleNewDirtyRanges = (
   // Remove any matches and associated decorations touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.filter(
-    match => match.ranges.some(range => findOverlappingRangeIndex(range, dirtiedRanges) === -1
+    match => match.ranges.every(range => findOverlappingRangeIndex(range, dirtiedRanges) === -1
   ));
 
   const shouldPersistNewDirtyRanges =
