@@ -11,6 +11,9 @@ export interface ICategory {
   colour: string;
 }
 
+/**
+ * A block of contiguous text.
+ */
 export interface IBlock {
   id: string;
   text: string;
@@ -18,9 +21,11 @@ export interface IBlock {
   to: number
 }
 
-
-export interface IBlockWithSkippedRanges extends IBlock {
-  skipRanges: IRange[]
+/**
+ * A block of contiguous text with some ranges marked as ignored.
+ */
+export interface IBlockWithIgnoredRanges extends IBlock {
+  ignoreRanges: IRange[]
 }
 
 export interface ISuggestion {
@@ -45,11 +50,11 @@ export type TMatchRequestErrorWithDefault = PartialBy<
   "type"
 >;
 
-export interface IMatch<TSuggestion = ISuggestion> {
-  matcherType: string
-  matchId: string;
+export interface MatchFromTyperighter<TSuggestion = ISuggestion> {
   from: number;
   to: number;
+  matcherType: string
+  matchId: string;
   ruleId: string;
   matchedText: string;
   message: string;
@@ -63,12 +68,16 @@ export interface IMatch<TSuggestion = ISuggestion> {
   groupKey: string;
 }
 
+export interface Match<TSuggestion = ISuggestion> extends MatchFromTyperighter<TSuggestion> {
+  ranges: IRange[]
+}
+
 export interface IBlockResult {
   categoryIds: string[];
   id: string;
 }
 
-export interface IMatcherResponse<MatchesType extends IMatch[] = IMatch[]> {
+export interface IMatcherResponse<MatchesType extends MatchFromTyperighter[] = MatchFromTyperighter[]> {
   blocks: IBlock[];
   categoryIds: string[];
   matches: MatchesType;

@@ -3,8 +3,7 @@ import { space } from "@guardian/src-foundations";
 import { chain } from "lodash";
 import React, { Fragment, useState } from "react";
 import { usePopper } from "react-popper";
-import { IMatch } from "..";
-import { ISuggestion } from "../interfaces/IMatch";
+import { ISuggestion, Match } from "../interfaces/IMatch";
 import {
   getColourForMatch,
   getMatchType,
@@ -57,7 +56,7 @@ const MatchHeaderIconBox = styled.div`
 
 const MatchHeader: React.FunctionComponent<{
   matchColours?: IMatchTypeToColourMap;
-  match: IMatch<ISuggestion>;
+  match: Match<ISuggestion>;
   matchType: MatchType;
   setTooltipOpaque: SetState<boolean>;
   updatePopper: Update;
@@ -119,7 +118,7 @@ const MatchHeader: React.FunctionComponent<{
 };
 
 interface ISidebarProps {
-  matches: IMatch[];
+  matches: Match[];
   matchColours?: IMatchTypeToColourMap;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;

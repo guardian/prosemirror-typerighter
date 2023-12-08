@@ -56,7 +56,7 @@ const block = {
   to: 10,
   text: "1234567890",
   id: "0-from:0-to:10",
-  skipRanges: []
+  ignoreRanges: []
 };
 
 const commands = {
@@ -127,26 +127,26 @@ describe("MatcherService", () => {
     });
   });
 
-  describe("handling skipRanges", () => {
+  describe("handling ignoreRanges", () => {
     const blockText = "ABCDEF";
     const outgoingText = "BDF";
-    const blockWithSkipRanges = {
+    const blockWithIgnoreRanges = {
       id: "id",
       from: 0,
       to: 6,
       text: blockText,
-      skipRanges: [
+      ignoreRanges: [
         { from: 0, to: 0 },
         { from: 2, to: 2 },
         { from: 4, to: 4 }
       ]
     };
-    it("should remove the skipped ranges from block text as they're passed to the Typerighter service", done => {
+    it("should remove the ignored ranges from block text as they're passed to the Typerighter service", done => {
       const service = createMatcherService();
       fetchMock.post(`${endpoint}/check`, 400);
       service.requestFetchMatches();
 
-      store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithSkipRanges]);
+      store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithIgnoreRanges]);
       setTimeout(() => {
         const { blocks } = getLastRequest();
         const expectedBlocks = [
@@ -162,16 +162,16 @@ describe("MatcherService", () => {
       });
     });
 
-    it("On receipt of matches, map matches that succeed skipped ranges through those ranges to ensure they're correct", done => {
+    it("On receipt of matches, map matches that succeed ignored ranges through those ranges to ensure they're correct", done => {
       const service = createMatcherService();
       // We send the text "BDF", and create a match for the "F" at position 2
       const response = createResponse(["F"], 2);
       fetchMock.post(`${endpoint}/check`, response);
       service.requestFetchMatches();
 
-      store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithSkipRanges]);
+      store.emit("STORE_EVENT_NEW_MATCHES", requestId, [blockWithIgnoreRanges]);
       setTimeout(() => {
-        // We map our match (position 2) back through three skipRanges of
+        // We map our match (position 2) back through three ignoreRanges of
         // one char each, pushing range into (5, 6).
         const matches = commands.applyMatcherResponse.mock.calls[0][0].matches[0]
         expect(matches.from).toBe(5);

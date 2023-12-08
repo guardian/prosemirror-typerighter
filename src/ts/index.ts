@@ -1,4 +1,4 @@
-import type { IMatch, ICategory, IBlock, ISuggestion } from './interfaces/IMatch'
+import type { ICategory, IBlock, ISuggestion, Match } from './interfaces/IMatch'
 import type { IPluginState } from './state/reducer';
 import type { IMatchTypeToColourMap } from './utils/decoration';
 import Store, { STORE_EVENT_NEW_STATE } from './state/store';
@@ -34,7 +34,7 @@ export {
   getState,
   createTyperighterPlugin,
   filterByMatchState,
-  IMatch,
+  Match,
   IBlock,
   ICategory,
   ISuggestion,
@@ -45,11 +45,11 @@ export {
   getSquiggleAsUri,
   findAncestor,
   getHtmlFromMarkdown,
-  MatchType, 
-  IMatchTypeToColourMap, 
-  getMatchType, 
-  getColourForMatch, 
-  getColourForMatchType, 
+  MatchType,
+  IMatchTypeToColourMap,
+  getMatchType,
+  getColourForMatch,
+  getColourForMatchType,
   getMatchOffset,
   TelemetryContext
 };

@@ -4,7 +4,6 @@ import {
   MatchType
 } from "../decoration";
 import { createMatch } from "../../test/helpers/fixtures";
-import { IMatch } from "../../interfaces/IMatch";
 
 describe("Decoration utils", () => {
   describe("createDecorationsForMatch", () => {
@@ -33,7 +32,7 @@ describe("Decoration utils", () => {
       ]);
     });
     it("should add an 'is correct' marker if markAsCorrect is set", () => {
-      const match = { ...createMatch(0, 5), markAsCorrect: true } as IMatch;
+      const match = { ...createMatch(0, 5), markAsCorrect: true };
       const decorations = createDecorationsForMatch(match);
       expect(decorations).toMatchObject([
         {

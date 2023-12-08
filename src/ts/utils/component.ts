@@ -1,8 +1,9 @@
-import { IMatch, TyperighterTelemetryAdapter } from "..";
+import { TyperighterTelemetryAdapter } from "..";
+import { Match } from "../interfaces/IMatch";
 import { getMatchOffset } from "../utils/decoration";
 
 export const createScrollToRangeHandler = (
-  match: IMatch,
+  match: Match,
   getScrollOffset: () => number,
   editorScrollElement: Element,
   telemetryAdapter?: TyperighterTelemetryAdapter
@@ -21,5 +22,4 @@ export const createScrollToRangeHandler = (
     top: scrollToYCoord,
     behavior: "smooth"
   });
-
 };

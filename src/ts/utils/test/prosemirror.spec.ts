@@ -5,7 +5,7 @@ import {
   nodeContainsText
 } from "../prosemirror";
 import { flatten } from "prosemirror-utils";
-import { doNotSkipRanges } from "../block";
+import { doNotIgnoreRanges } from "../block";
 import { createEditor } from "../../test/helpers/createEditor";
 
 describe("Prosemirror utils", () => {
@@ -16,34 +16,34 @@ describe("Prosemirror utils", () => {
         p("Paragraph 2"),
         p(ul(li("List item 1"), li("List item 2")))
       );
-      expect(getBlocksFromDocument(node, 0, doNotSkipRanges)).toEqual([
+      expect(getBlocksFromDocument(node, 0, doNotIgnoreRanges)).toEqual([
         {
           from: 1,
           to: 13,
           text: "Paragraph 1",
           id: "0-from:1-to:13",
-          skipRanges: []
+          ignoreRanges: []
         },
         {
           from: 14,
           to: 26,
           text: "Paragraph 2",
           id: "0-from:14-to:26",
-          skipRanges: []
+          ignoreRanges: []
         },
         {
           from: 29,
           to: 41,
           text: "List item 1",
           id: "0-from:29-to:41",
-          skipRanges: []
+          ignoreRanges: []
         },
         {
           from: 42,
           to: 54,
           text: "List item 2",
           id: "0-from:42-to:54",
-          skipRanges: []
+          ignoreRanges: []
         }
       ]);
     });

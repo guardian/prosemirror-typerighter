@@ -4,6 +4,7 @@ import { Schema, DOMParser } from "prosemirror-model";
 import { marks, schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
 import { history } from "prosemirror-history";
+import { toggleMark } from "prosemirror-commands";
 import { exampleSetup, buildMenuItems } from "prosemirror-example-setup";
 import applyDevTools from "prosemirror-dev-tools";
 import "prosemirror-view/style/prosemirror.css";
@@ -21,10 +22,19 @@ import { MatchType } from "../src/ts/utils/decoration";
 import { filterByMatchState } from "../src/ts/utils/plugin";
 import { findMarkPositions } from "../src/ts/utils/prosemirror";
 import TyperighterChunkedAdapter from "../src/ts/services/adapters/TyperighterChunkedAdapter";
+import { keymap } from "prosemirror-keymap";
+
+const noteMark = {
+  parseDOM: [{ tag: "note" }],
+  toDOM() { return ['note', 0] as [string, number]; }
+}
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
-  marks
+  marks: {
+    ...marks,
+    note: noteMark
+  }
 });
 
 const contentElement =
@@ -60,8 +70,8 @@ const {
     filterMatches: filterByMatchState,
     initialFilterState: [] as MatchType[]
   },
-  getSkippedRanges: (node, from, to) =>
-    findMarkPositions(node, from, to, mySchema.marks.code),
+  getIgnoredRanges: (node, from, to) =>
+    findMarkPositions(node, from, to, mySchema.marks.note),
   onMatchDecorationClicked: match =>
     typerighterTelemetryAdapter.matchDecorationClicked(match, document.URL),
   requestMatchesOnDocModified: true,
@@ -72,6 +82,8 @@ const {
   typerighterEnabled: true
 });
 
+const toggleNoteMark = toggleMark(mySchema.marks.note);
+
 if (editorElement && sidebarNode) {
   const view = new EditorView(editorElement, {
     state: EditorState.create({
@@ -80,7 +92,10 @@ if (editorElement && sidebarNode) {
         ...exampleSetup({
           schema: mySchema,
           history: false,
-          menuContent: buildMenuItems(mySchema).fullMenu
+          menuContent: buildMenuItems(mySchema).fullMenu,
+        }),
+        keymap({
+          "F10": toggleNoteMark,
         }),
         historyPlugin,
         validatorPlugin

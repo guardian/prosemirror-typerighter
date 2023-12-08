@@ -6,6 +6,7 @@ import {
   expandRangesToParentBlockNodes,
   mapRemovedRange,
   getIntersection,
+  removeIgnoredRange,
   mapAddedRange
 } from "../range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
@@ -337,41 +338,103 @@ describe("Range utils", () => {
       ]);
     });
   });
-  describe("mapAddedRange", () => {
+  describe("removeIgnoredRange", () => {
     it("should account for a range added before the given range", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 0, to: 5 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
+      const ignoredRange = { from: 0, to: 5 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
         from: 16,
         to: 21
-      });
+      }]);
+    });
+
+    it("should account for a range that touches the given range – left hand side", () => {
+      const currentRange = { from: 10, to: 15 };
+      const ignoredRange = { from: 0, to: 10 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
+        from: 21,
+        to: 26
+      }]);
+    });
+
+    it("should account for a range that touches the given range – right hand side", () => {
+      const currentRange = { from: 10, to: 15 };
+      const ignoredRange = { from: 15, to: 20 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
+        from: 10,
+        to: 15
+      }]);
+    });
+
+    it("should account for an ignored range that begins within the match and touches right hand side", () => {
+      const currentRange = { from: 5, to: 14 };
+      const ignoredRange = { from: 10, to: 17 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
+        from: 5,
+        to: 10
+      }, {
+        from: 18,
+        to: 22
+      }]);
     });
 
     it("should account for a range added within the given range", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 10, to: 15 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
+      const ignoredRange = { from: 10, to: 15 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
         from: 16,
         to: 21
-      });
+      }]);
     });
 
     it("should account for a range added partially within the given range – left hand side", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 5, to: 12 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
+      const ignoredRange = { from: 5, to: 12 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([{
         from: 18,
         to: 23
-      });
+      }]);
     });
 
     it("should account for a range added partially the given range – right hand side", () => {
       const currentRange = { from: 10, to: 15 };
-      const addedRange = { from: 13, to: 20 };
-      expect(mapAddedRange(currentRange, addedRange)).toEqual({
-        from: 10,
-        to: 23
-      });
+      const ignoredRange = { from: 13, to: 20 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([
+        {
+          from: 10,
+          to: 13
+        },
+        {
+          from: 21,
+          to: 23
+        }
+      ]);
+    });
+
+    it("should handle ignored ranges of a single char", () => {
+      const currentRange = { from: 10, to: 15 };
+      const ignoredRange = { from: 13, to: 13 };
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([
+        {
+          from: 10,
+          to: 13
+        },
+        {
+          from: 14,
+          to: 16
+        }
+      ]);
+    });
+
+    it("should handle ignored ranges when they touch a current range", () => {
+      const currentRange = {from: 16, to: 22};
+      const ignoredRange = {from: 6, to: 16};
+      expect(removeIgnoredRange(currentRange, ignoredRange)).toEqual([
+        {
+          from: 27,
+          to: 33
+        }
+      ]);
     });
   });
   describe("mapRemovedRange", () => {
@@ -410,6 +473,53 @@ describe("Range utils", () => {
       });
     });
   });
+
+  describe("mapAddedRange", () => {
+    it("should account for a range added before the given range", () => {
+      const currentRange = {
+        from: 4,
+        to: 9
+      };
+      const removedRange = { from: 0, to: 5 };
+      expect(mapAddedRange(currentRange, removedRange)).toEqual({ from: 10, to: 15 });
+    });
+
+    it("should account for a range completely added within the given range", () => {
+      const currentRange = {
+        from: 10,
+        to: 10
+      };
+      const removedRange = { from: 10, to: 15 };
+      expect(mapAddedRange(currentRange, removedRange)).toEqual({ from: 10, to: 10 });
+    });
+    it("should account for a range partially added within the given range – left hand side", () => {
+      const currentRange = {
+        from: 4,
+        to: 7
+      };
+      const removedRange = { from: 5, to: 12 };
+      expect(mapAddedRange(currentRange, removedRange)).toEqual({ from: 4, to: 14 });
+    });
+
+    it("should account for a range partially added within the given range – right hand side", () => {
+      const currentRange = {
+        from: 10,
+        to: 13
+      };
+      const removedRange = { from: 13, to: 20 };
+      expect(mapAddedRange(currentRange, removedRange)).toEqual({ from: 10, to: 13 });
+    });
+
+    it("should ignore ranges after the current range", () => {
+      const currentRange = {
+        from: 10,
+        to: 13
+      };
+      const removedRange = { from: 14, to: 20 };
+      expect(mapAddedRange(currentRange, removedRange)).toEqual(currentRange);
+    });
+  });
+
   describe("getIntersectionOfRanges", () => {
     it("should return an option containing a new range representing the intersection of two ranges", () => {
       const rangeA = { from: 0, to: 5 };
