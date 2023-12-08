@@ -24,7 +24,7 @@ import { EditorView } from "prosemirror-view";
 import { Plugin, Transaction } from "prosemirror-state";
 import { expandRangesToParentBlockNodes } from "./utils/range";
 import { getDirtiedRangesFromTransaction } from "./utils/prosemirror";
-import { IRange, MappedMatch } from "./interfaces/IMatch";
+import { IRange, Match } from "./interfaces/IMatch";
 import { Node } from "prosemirror-model";
 import Store, {
   STORE_EVENT_NEW_STATE,
@@ -69,7 +69,7 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
   /**
    * The initial set of matches to apply to the document, if any.
    */
-  matches?: MappedMatch[];
+  matches?: Match[];
 
   /**
    * Ignore matches when this predicate returns true.
@@ -101,7 +101,7 @@ export interface IPluginOptions extends PluginOptionsFromConfig {
   /**
    * Called when a match decoration is clicked.
    */
-  onMatchDecorationClicked?: (match: MappedMatch) => void;
+  onMatchDecorationClicked?: (match: Match) => void;
 
   telemetryAdapter?: TyperighterTelemetryAdapter;
 

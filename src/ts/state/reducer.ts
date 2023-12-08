@@ -33,7 +33,7 @@ import {
   IRange,
   IMatchRequestError,
   IBlockWithIgnoredRanges,
-  MappedMatch
+  Match
 } from "../interfaces/IMatch";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import omit from "lodash/omit";
@@ -90,7 +90,7 @@ export interface IBlockInFlight {
  * Handy when, for example, consumers know that parts of the document are
  * exempt from checks.
  */
-export type IIgnoreMatchPredicate = (match: MappedMatch) => boolean;
+export type IIgnoreMatchPredicate = (match: Match) => boolean;
 export const includeAllMatches: IIgnoreMatchPredicate = () => false;
 
 export interface IRequestInFlight {
@@ -116,12 +116,12 @@ export interface IPluginState {
   // The current decorations the plugin is applying to the document.
   decorations: DecorationSet;
   // The current matches for the document.
-  currentMatches: MappedMatch[];
+  currentMatches: Match[];
   // The current matches, filtered by the current filterState and the
   // supplied filter predicate. This is cached in the state and only
   // recomputed when necessary – filtering decorations in the plugin
   // decoration mapping on every transaction is not performant.
-  filteredMatches: MappedMatch[];
+  filteredMatches: Match[];
   // The current ranges that are marked as dirty, that is, have been
   // changed since the last request.
   dirtiedRanges: IRange[];
@@ -164,7 +164,7 @@ export const PROSEMIRROR_TYPERIGHTER_ACTION = "PROSEMIRROR_TYPERIGHTER_ACTION";
 
 interface IInitialStateOpts {
   doc: Node;
-  matches?: MappedMatch[];
+  matches?: Match[];
   ignoreMatch?: IIgnoreMatchPredicate;
   matchColours?: IMatchTypeToColourMap;
   filterOptions?: IFilterOptions;
@@ -195,8 +195,8 @@ export const createInitialState = ({
       createDecorationsForMatches(matches)
     ),
     dirtiedRanges: [],
-    currentMatches: [] as MappedMatch[],
-    filteredMatches: [] as MappedMatch[],
+    currentMatches: [] as Match[],
+    filteredMatches: [] as Match[],
     selectedMatch: undefined,
     hoverId: undefined,
     hoverRectIndex: undefined,

@@ -3,7 +3,7 @@ import { EditorView } from "prosemirror-view";
 import { PluginKey } from "prosemirror-state";
 import { getMatchType, MatchType } from "./decoration";
 import { IPluginState } from "../state/reducer";
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 
 export const pluginKey = new PluginKey("prosemirror-typerighter");
 export const getState = (pluginKey as PluginKey<IPluginState>).getState.bind(
@@ -43,8 +43,8 @@ export type IDefaultFilterState = MatchType[];
  */
 export type IFilterMatches = (
   filterState: MatchType[],
-  matches: MappedMatch[]
-) => MappedMatch[];
+  matches: Match[]
+) => Match[];
 
 export const filterByMatchState: IFilterMatches = (filterState, matches) =>
   matches.filter(match => !filterState.includes(getMatchType(match)));

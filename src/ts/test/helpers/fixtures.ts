@@ -6,7 +6,7 @@ import {
   ICategory,
   IBlockWithIgnoredRanges,
   IRange,
-  MappedMatch
+  Match
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
 import { IPluginState, IRequestInFlight, createReducer, IPluginConfig } from "../../state/reducer";
@@ -70,7 +70,7 @@ export interface ICreateMatcherResponseSpec {
 export const createMatcherResponse = (
   specs: ICreateMatcherResponseSpec[],
   requestId: string = exampleRequestId
-): IMatcherResponse<MappedMatch[]> =>
+): IMatcherResponse<Match[]> =>
   specs.reduce(
     (acc, spec) => {
       const {
@@ -124,7 +124,7 @@ export const createMatcherResponse = (
       categoryIds: [],
       blocks: [],
       matches: []
-    } as IMatcherResponse<MappedMatch[]>
+    } as IMatcherResponse<Match[]>
   );
 
 export const createMatch = (
@@ -136,7 +136,7 @@ export const createMatch = (
     name: "Cat",
     colour: "eeeee"
   },
-): MappedMatch => ({
+): Match => ({
   matcherType: "regex",
   ruleId: "ruleId",
   category,
@@ -161,7 +161,7 @@ export const createMatchWithRanges = (
     name: "Cat",
     colour: "eeeee"
   }
-): MappedMatch => {
+): Match => {
   const from = Math.min(...ranges.map(range => range.from));
   const to = Math.max(...ranges.map(range => range.to));
 
@@ -264,7 +264,7 @@ export const createInitialData = (
 export const createStateWithMatches = (
   localReducer: ReturnType<typeof createReducer>,
   matches: ICreateMatcherResponseSpec[]
-): { state: IPluginState; matches: MappedMatch[] } => {
+): { state: IPluginState; matches: Match[] } => {
   const docTime = 1337;
   const { state, tr } = createInitialData(defaultDoc, docTime);
 

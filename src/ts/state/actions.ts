@@ -2,7 +2,7 @@ import {
   IMatchRequestError,
   IMatcherResponse,
   IRange,
-  MappedMatch
+  Match
 } from "../interfaces/IMatch";
 import { IPluginConfig, IPluginState } from "./reducer";
 
@@ -52,7 +52,7 @@ export type ActionRequestMatchesForDocument = ReturnType<
 >;
 
 export const requestMatchesSuccess = (
-  response: IMatcherResponse<MappedMatch[]>
+  response: IMatcherResponse<Match[]>
 ) => ({
   type: REQUEST_SUCCESS,
   payload: { response }

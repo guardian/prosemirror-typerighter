@@ -2,7 +2,7 @@ import Match from "./Match";
 import React, { useState, useEffect, useRef } from "react";
 import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match as TMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
 import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
@@ -16,7 +16,7 @@ interface IProps {
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   stopHover: () => void;
   feedbackHref?: string;
-  onMarkCorrect?: (match: MappedMatch) => void;
+  onMarkCorrect?: (match: TMatch) => void;
 }
 
 /**

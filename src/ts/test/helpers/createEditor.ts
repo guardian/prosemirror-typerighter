@@ -8,9 +8,9 @@ import { exampleSetup } from "prosemirror-example-setup";
 import createTyperighterPlugin from "../../createTyperighterPlugin";
 import { createBoundCommands } from "../../commands";
 import TyperighterAdapter from "../../services/adapters/TyperighterAdapter";
-import { MappedMatch } from "../../interfaces/IMatch";
+import { Match } from "../../interfaces/IMatch";
 
-export const createEditor = (htmlDoc: string, matches: MappedMatch[] = []) => {
+export const createEditor = (htmlDoc: string, matches: Match[] = []) => {
   const mySchema = new Schema({
     nodes: addListNodes(schema.spec.nodes as any, "paragraph block*", "block"),
     marks

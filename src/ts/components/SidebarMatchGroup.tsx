@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 import { IMatchTypeToColourMap } from "../utils/decoration";
 import MatchSnippet from "./MatchSnippet";
 import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
@@ -9,7 +9,7 @@ import SidebarMatchContainer from "./SidebarMatchContainer";
 import { getSidebarMatchStyles } from "./SidebarMatch";
 
 interface IProps {
-  matchGroup: Array<MappedMatch>;
+  matchGroup: Array<Match>;
   matchColours?: IMatchTypeToColourMap;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;

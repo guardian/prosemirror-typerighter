@@ -1,9 +1,9 @@
 import { TyperighterTelemetryAdapter } from "..";
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 import { getMatchOffset } from "../utils/decoration";
 
 export const createScrollToRangeHandler = (
-  match: MappedMatch,
+  match: Match,
   getScrollOffset: () => number,
   editorScrollElement: Element,
   telemetryAdapter?: TyperighterTelemetryAdapter

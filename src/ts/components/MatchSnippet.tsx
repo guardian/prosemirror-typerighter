@@ -1,14 +1,13 @@
 import React, { useContext } from "react";
-import { IMatch } from "..";
 import SidebarMatchContainer from "./SidebarMatchContainer";
 import { IMatchTypeToColourMap } from "../utils/decoration";
 import { createScrollToRangeHandler } from "../utils/component";
 import TelemetryContext from "../contexts/TelemetryContext";
 import { getSidebarMatchStyles } from "./SidebarMatch";
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 
 interface IProps {
-  match: MappedMatch;
+  match: Match;
   matchColours?: IMatchTypeToColourMap;
   indicateHighlight: (blockId: string, _?: any) => void;
   stopHighlight: () => void;
@@ -16,7 +15,7 @@ interface IProps {
   editorScrollElement: Element;
 }
 
-const getMatchContext = (match: IMatch) => {
+const getMatchContext = (match: Match) => {
 
     const { matchedText, subsequentText, precedingText} = match
 

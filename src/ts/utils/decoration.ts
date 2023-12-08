@@ -2,7 +2,7 @@ import { news, opinion, success } from "@guardian/src-foundations";
 import flatten from "lodash/flatten";
 import { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { IRange, MappedMatch, BaseMatch } from "../interfaces/IMatch";
+import { IRange, Match } from "../interfaces/IMatch";
 import { getSquiggleAsUri } from "./squiggle";
 
 export enum MatchType {
@@ -97,7 +97,7 @@ export const removeDecorationsFromRanges = (
  * returns a new decoration set containing the new matches.
  */
 export const getNewDecorationsForCurrentMatches = (
-  outputs: MappedMatch[],
+  outputs: Match[],
   decorationSet: DecorationSet,
   doc: Node
 ) => {
@@ -110,7 +110,7 @@ export const getNewDecorationsForCurrentMatches = (
  * Create decorations for the given match.
  */
 export const createDecorationsForMatch = (
-  match: MappedMatch,
+  match: Match,
   isSelected: boolean = false
 ) => {
   const matchType = getMatchType(match);
@@ -137,7 +137,7 @@ export const createDecorationsForMatch = (
   return decorations;
 };
 
-export const createDecorationSpecFromMatch = (match: BaseMatch) => ({
+export const createDecorationSpecFromMatch = (match: Match) => ({
   type: DECORATION_MATCH,
   id: match.matchId,
   categoryId: match.category.id,
@@ -145,7 +145,7 @@ export const createDecorationSpecFromMatch = (match: BaseMatch) => ({
   inclusiveEnd: false
 });
 
-export const getMatchType = (match: BaseMatch): MatchType => {
+export const getMatchType = (match: Match): MatchType => {
   if (match.markAsCorrect) {
     return MatchType.OK;
   }
@@ -156,7 +156,7 @@ export const getMatchType = (match: BaseMatch): MatchType => {
 };
 
 export const getColourForMatch = (
-  match: BaseMatch,
+  match: Match,
   matchColours: IMatchTypeToColourMap,
   isSelected: boolean
 ): { backgroundColour: string; borderColour: string } => {
@@ -205,7 +205,7 @@ export const getColourForMatchType = (
 };
 
 export const createDecorationsForMatches = (
-  matches: MappedMatch[],
+  matches: Match[],
 ) => flatten(matches.map(match => createDecorationsForMatch(match)));
 
 export const findSingleDecoration = (

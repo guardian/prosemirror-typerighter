@@ -14,7 +14,7 @@ import createTyperighterPlugin, {
 import { createMatch, createMatcherResponse } from "./helpers/fixtures";
 import { createEditor } from "./helpers/createEditor";
 import { createBoundCommands } from "../commands";
-import { IMatcherResponse, MappedMatch } from "../interfaces/IMatch";
+import { IMatcherResponse, Match } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
 import { filterByMatchState, getState } from "../utils/plugin";
@@ -23,7 +23,7 @@ import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
 const matches = [createMatch(1)];
-const matchWithReplacement: MappedMatch = {
+const matchWithReplacement: Match = {
   ...createMatch(5),
   replacement: { text: "replacement text", type: "TEXT_SUGGESTION" }
 };
@@ -129,7 +129,7 @@ describe("createTyperighterPlugin", () => {
     const { store, commands } = createPlugin();
     const storeSpy = jest.fn();
     store.on("STORE_EVENT_NEW_MATCHES", storeSpy);
-    const response: IMatcherResponse<MappedMatch[]> = {
+    const response: IMatcherResponse<Match[]> = {
       blocks,
       categoryIds: ["cat1"],
       matches: [
@@ -261,7 +261,7 @@ describe("createTyperighterPlugin", () => {
       expect(decorationSpecs).toEqual(decorationsSpecsToExpect);
     });
     it("should filter matches with the supplied predicate when the plugin initialises", () => {
-      const matchesWithReplacements: MappedMatch[] = [
+      const matchesWithReplacements: Match[] = [
         matchWithReplacement,
         createMatch(2),
         createMatch(3)

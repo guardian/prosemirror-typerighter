@@ -1,5 +1,5 @@
 import React, { useContext, memo } from "react";
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 import {
   IMatchTypeToColourMap,
   getColourForMatch,
@@ -14,7 +14,7 @@ import { css, SerializedStyles } from "@emotion/react";
 import { getSquiggleAsUri } from "../utils/squiggle";
 
 interface IProps {
-  match: MappedMatch;
+  match: Match;
   matchColours?: IMatchTypeToColourMap;
   selectMatch: (matchId: string) => void;
   indicateHighlight: (blockId: string, _?: any) => void;
@@ -25,7 +25,7 @@ interface IProps {
 }
 
 export const getSidebarMatchStyles = (
-  match: MappedMatch,
+  match: Match,
   matchColours?: IMatchTypeToColourMap
 ): SerializedStyles => {
   const matchType = getMatchType(match);
