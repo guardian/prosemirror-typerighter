@@ -1,4 +1,7 @@
 // Variables
+
+$composer-primary: #00ADEE;
+$composer-primary-hover: #008fc5;
 $gutter-width: 8px;
 $sidebar-border-color: #ddd;
 $text-color-secondary: #5f5e5e;
@@ -12,6 +15,9 @@ $match-suggestion-background-color: #228816;
 $match-suggestion-background-color-hover: #1e7014;
 $match-suggestion-color: #fff;
 $match-suggestion-color-hover: #fff;
+$match-feedback-background-color: #e9e9e9;
+$match-feedback-send-background-color: $composer-primary;
+$match-feedback-send-background-color-hover: $composer-primary-hover;
 $icon-fill-color-default: #999999;
 $font-size-base: 15px;
 $font-size-large: 1.1em;
@@ -43,6 +49,18 @@ $sidebar-highlight-color:#01adee;
   }
 }
 
+// Animations;
+
+.animation__pop-in {
+  animation-duration: 0.2s;
+  animation-name: animation__pop-in;
+}
+
+@keyframes animation__pop-in {
+  0% { opacity: 0; transform: translate3d(0, -10px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0);  }
+}
+
 // Imports
 @import "./Controls.scss";
 @import "./Sidebar.scss";
@@ -51,6 +69,7 @@ $sidebar-highlight-color:#01adee;
 @import "./SuggestionList.scss";
 @import "./MatchWidget.scss";
 @import "./MatchDebug.scss";
+@import "./Feedback.scss";
 
 // Elements
 

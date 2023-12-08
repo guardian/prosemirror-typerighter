@@ -15,7 +15,6 @@ interface IProps {
   store: Store;
   applySuggestions: (opts: ApplySuggestionOptions) => void;
   stopHover: () => void;
-  feedbackHref?: string;
   onMarkCorrect?: (match: IMatch) => void;
 }
 
@@ -24,7 +23,6 @@ interface IProps {
  */
 const matchOverlay = ({
   applySuggestions,
-  feedbackHref,
   onMarkCorrect,
   stopHover,
   store
@@ -136,7 +134,6 @@ const matchOverlay = ({
         match={maybeMatch}
         matchColours={pluginState.config.matchColours}
         applySuggestions={applySuggestions}
-        feedbackHref={feedbackHref}
         onMarkCorrect={onMarkCorrect}
       />
     </div>

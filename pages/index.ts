@@ -113,7 +113,6 @@ if (editorElement && sidebarNode) {
     store,
     commands,
     overlayNode,
-    feedbackHref: "http://a-form-for-example.com",
     onMarkCorrect: match => console.info("Match ignored!", match),
     telemetryAdapter: typerighterTelemetryAdapter,
   });
