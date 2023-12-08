@@ -44,6 +44,7 @@
   border-radius:  $base-border-radius;
   font-family: inherit;
   resize: vertical;
+  min-height: 110px;
 }
 
 .Feedback__response-send {
