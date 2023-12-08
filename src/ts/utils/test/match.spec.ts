@@ -1,8 +1,8 @@
-import { IMatch } from "../..";
+import { MatchFromTyperighter } from "../../interfaces/IMatch";
 import { mapThroughIgnoredRanges } from "../match";
 
 describe("Match helpers", () => {
-  const getRuleMatch = (from: number, to: number): IMatch => ({
+  const getRuleMatch = (from: number, to: number): MatchFromTyperighter => ({
     ruleId: "rule-id",
     category: { id: "category-id", name: "Category", colour: "puce" },
     from,

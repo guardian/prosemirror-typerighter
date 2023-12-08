@@ -23,7 +23,7 @@ import {
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNodes } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
-import { IMatchRequestError, MappedMatch } from "../../interfaces/IMatch";
+import { IMatchRequestError, Match } from "../../interfaces/IMatch";
 import { addMatchesToState } from "../helpers";
 import {
   createMatcherResponse,
@@ -585,7 +585,7 @@ describe("Action handlers", () => {
     });
     it("should add hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: MappedMatch = {
+      const output: Match = {
         matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
@@ -625,7 +625,7 @@ describe("Action handlers", () => {
     });
     it("should remove hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: MappedMatch = {
+      const output: Match = {
         matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
@@ -669,7 +669,7 @@ describe("Action handlers", () => {
   });
   describe("handleNewDirtyRanges", () => {
     const { state } = createInitialData();
-    const match: MappedMatch =
+    const match: Match =
       {
         matcherType: "regex",
         ruleId: "ruleId",

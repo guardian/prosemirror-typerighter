@@ -1,7 +1,7 @@
-import { IMatch } from "./IMatch";
+import { Match } from "./IMatch";
 
 interface IHoverEvent {
-  match: IMatch | undefined;
+  match: Match | undefined;
 }
 
 export default IHoverEvent;

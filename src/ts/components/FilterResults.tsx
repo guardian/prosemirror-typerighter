@@ -7,7 +7,7 @@ import {
   IMatchTypeToColourMap,
   MatchType
 } from "../utils/decoration";
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 
 const filterOrder = Object.values([
   MatchType.OK,
@@ -18,7 +18,7 @@ const filterOrder = Object.values([
 interface IProps {
   filterState: MatchType[];
   applyFilterState: (matchType: MatchType[]) => void;
-  matches: MappedMatch[];
+  matches: Match[];
   matchColours: IMatchTypeToColourMap;
 }
 

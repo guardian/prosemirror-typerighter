@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { MappedMatch } from "../interfaces/IMatch";
+import { Match as TMatch } from "../interfaces/IMatch";
 import { ApplySuggestionOptions } from "../commands";
 import SuggestionList from "./SuggestionList";
 import { getColourForMatch, IMatchTypeToColourMap } from "../utils/decoration";
@@ -10,9 +10,9 @@ import { Feedback } from "./Feedback";
 
 interface IMatchProps {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
-  match: MappedMatch;
+  match: TMatch;
   matchColours: IMatchTypeToColourMap;
-  onMarkCorrect?: (match: MappedMatch) => void;
+  onMarkCorrect?: (match: TMatch) => void;
 }
 
 class Match extends Component<IMatchProps> {

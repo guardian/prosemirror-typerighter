@@ -22,11 +22,11 @@ import {
   isFilterStateStale
 } from "../helpers";
 import { createReducer, IPluginState } from "../reducer";
-import { MappedMatch } from "../../interfaces/IMatch";
+import { Match } from "../../interfaces/IMatch";
 
 describe("State helpers", () => {
   const getState = <TFilterState extends unknown>(
-    matchesToAdd: MappedMatch[],
+    matchesToAdd: Match[],
     filterState: TFilterState
   ) => {
     const { state, matches } = createStateWithMatches(
@@ -46,14 +46,14 @@ describe("State helpers", () => {
 
   describe("isFilterStateStale", () => {
     it("should report fresh when the filter state is undefined", () => {
-      const matches = [] as MappedMatch[];
+      const matches = [] as Match[];
       const { state: oldState } = getState(matches, undefined);
       const { state: newState } = getState(matches, undefined);
       const isStale = isFilterStateStale(oldState, newState, identity);
       expect(isStale).toBe(false);
     });
     it("should report fresh when the filter state is undefined and the matches change", () => {
-      const { state: oldState } = getState([] as MappedMatch[], undefined);
+      const { state: oldState } = getState([] as Match[], undefined);
       const { state: newState } = getState([createMatch(1, 2)], undefined);
       const isStale = isFilterStateStale(oldState, newState, identity);
       expect(isStale).toBe(false);
@@ -61,7 +61,7 @@ describe("State helpers", () => {
     it("should report stale when the filter state changes", () => {
       const oldFilterState = [] as MatchType[];
       const newFilterState = [MatchType.OK];
-      const matches = [] as MappedMatch[];
+      const matches = [] as Match[];
       const { state: oldState } = getState(matches, oldFilterState);
       const { state: newState } = getState(matches, newFilterState);
       const isStale = isFilterStateStale(oldState, newState, identity);
@@ -69,7 +69,7 @@ describe("State helpers", () => {
     });
     it("should report stale when the matches change and the filter state remains the same", () => {
       const filterState = [] as MatchType[];
-      const oldMatches = [] as MappedMatch[];
+      const oldMatches = [] as Match[];
       const newMatches = [createMatch(1, 2)];
       const { state: oldState } = getState(oldMatches, filterState);
       const { state: newState } = getState(newMatches, filterState);
