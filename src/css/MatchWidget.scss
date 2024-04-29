@@ -14,6 +14,9 @@
   transform: translate3d(0, -3px, 0);
   z-index: 100;
   overflow: hidden;
+  * {
+    box-sizing: border-box;
+  }
 }
 
 .MatchWidget__container {
@@ -144,11 +147,4 @@
 
 .SidebarMatch__suggestion-list + .MatchWidget__ignore-match {
   margin-top: 3px;
-}
-
-.MatchWidget__feedbackLink {
-  font-size: $font-size-small;
-  a {
-    color: $match-gray;
-  }
 }

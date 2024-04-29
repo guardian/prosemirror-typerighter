@@ -13,7 +13,6 @@ interface OverlayViewOptions {
   store: Store;
   commands: Commands;
   overlayNode: Element;
-  feedbackHref?: string;
   onMarkCorrect?: (match: IMatch) => void;
   telemetryAdapter?: TyperighterTelemetryAdapter;
 }
@@ -28,7 +27,6 @@ export const createOverlayView = ({
   telemetryAdapter,
   commands,
   overlayNode,
-  feedbackHref,
   onMarkCorrect
 }: OverlayViewOptions) => {
   overlayNode.classList.add("TyperighterPlugin__tooltip-overlay");
@@ -59,7 +57,6 @@ export const createOverlayView = ({
             telemetryAdapter?.matchIsMarkedAsCorrect(match, document.URL);
           })
         }
-        feedbackHref={feedbackHref}
         stopHover={commands.stopHover}
       />
     </TelemetryContext.Provider>,
