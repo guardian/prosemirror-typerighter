@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from "react";
-import { IMatch } from "../interfaces/IMatch";
+import { Match } from "../interfaces/IMatch";
 import TelemetryContext from "../contexts/TelemetryContext";
 import { MoreHoriz, Announcement, MailOutline } from "@mui/icons-material";
 
@@ -20,7 +20,7 @@ export const Feedback = ({
   match,
   documentUrl
 }: {
-  match: IMatch;
+  match: Match;
   documentUrl: string;
 }) => {
   const [formState, setFormState] = useState<keyof typeof FeedbackFormStates>(
