@@ -23,7 +23,7 @@ import {
 } from "../../utils/decoration";
 import { expandRangesToParentBlockNodes } from "../../utils/range";
 import { createDoc, p } from "../../test/helpers/prosemirror";
-import { IMatch, IMatchRequestError } from "../../interfaces/IMatch";
+import { IMatchRequestError, Match } from "../../interfaces/IMatch";
 import { addMatchesToState } from "../helpers";
 import {
   createMatcherResponse,
@@ -69,7 +69,7 @@ describe("Action handlers", () => {
             text: "Example text to check",
             to: 23,
             id: "0-from:1-to:23",
-            skipRanges: []
+            ignoreRanges: []
           }
         ])
       });
@@ -106,7 +106,7 @@ describe("Action handlers", () => {
             from: 1,
             to: 22,
             id: "0-from:1-to:22",
-            skipRanges: []
+            ignoreRanges: []
           }
         ])
       });
@@ -299,6 +299,21 @@ describe("Action handlers", () => {
         ]
       );
 
+      it("should remove previous matches that match block and category of the incoming match", () => {
+        const newState = reducer(
+          tr,
+          state,
+          requestMatchesSuccess({
+            blocks: [firstBlock, secondBlock],
+            categoryIds: ["1", category.id],
+            matches: [],
+            requestId: exampleRequestId
+          })
+        );
+
+        expect(newState.currentMatches).toEqual([]);
+      });
+
       it("should remove previous decorations that match block and category of the incoming match", () => {
         const newState = reducer(
           tr,
@@ -338,7 +353,7 @@ describe("Action handlers", () => {
               id: firstBlock.id,
               text: "Example text to check",
               to: 15,
-              skipRanges: []
+              ignoreRanges: []
             },
             pendingCategoryIds: ["this-category-should-remain"]
           },
@@ -348,13 +363,28 @@ describe("Action handlers", () => {
               id: secondBlock.id,
               text: "Another block of text",
               to: 37,
-              skipRanges: []
+              ignoreRanges: []
             },
             pendingCategoryIds: ["1", "this-category-should-remain"]
           }
         ]);
       });
       it("should not regenerate decorations for matches that remain", () => {
+        const newState = reducer(
+          tr,
+          state,
+          requestMatchesSuccess({
+            blocks: [firstBlock],
+            categoryIds: ["another-category"],
+            matches: [],
+            requestId: exampleRequestId
+          })
+        );
+
+        expect(newState.decorations).toBe(state.decorations);
+      });
+
+      it("should remove superceded matches remain", () => {
         const newState = reducer(
           tr,
           state,
@@ -585,12 +615,13 @@ describe("Action handlers", () => {
     });
     it("should add hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IMatch = {
+      const output: Match = {
         matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
         from: 0,
         to: 5,
+        ranges: [{ from: 0, to: 5 }],
         matchedText: "block text",
         message: "Annotation",
         category: {
@@ -624,12 +655,13 @@ describe("Action handlers", () => {
     });
     it("should remove hover decorations", () => {
       const { state, tr } = createInitialData();
-      const output: IMatch = {
+      const output: Match = {
         matcherType: "regex",
         ruleId: "ruleId",
         matchId: "match-id",
         from: 0,
         to: 5,
+        ranges: [{ from: 0, to: 5 }],
         matchedText: "block text",
         message: "Annotation",
         category: {
@@ -666,29 +698,31 @@ describe("Action handlers", () => {
     });
   });
   describe("handleNewDirtyRanges", () => {
+    const { state } = createInitialData();
+    const match: Match =
+      {
+        matcherType: "regex",
+        ruleId: "ruleId",
+        matchId: "match-id",
+        from: 1,
+        to: 7,
+        ranges: [{ from: 1, to: 7 }],
+        matchedText: "block text",
+        message: "Annotation",
+        category: {
+          id: "1",
+          name: "cat",
+          colour: "eeeeee"
+        },
+        markAsCorrect: true,
+        matchContext: "bigger block of text",
+        precedingText: "bigger block of text",
+        subsequentText: "",
+        groupKey: "group-key"
+      }
+
     it("should remove any decorations and matches that touch the passed ranges", () => {
-      const { state } = createInitialData();
-      const currentMatches: IMatch[] = [
-        {
-          matcherType: "regex",
-          ruleId: "ruleId",
-          matchId: "match-id",
-          from: 1,
-          to: 7,
-          matchedText: "block text",
-          message: "Annotation",
-          category: {
-            id: "1",
-            name: "cat",
-            colour: "eeeeee"
-          },
-          markAsCorrect: true,
-          matchContext: "bigger block of text",
-          precedingText: "bigger block of text",
-          subsequentText: "",
-          groupKey: "group-key"
-        }
-      ];
+      const currentMatches = [match];
       const stateWithCurrentMatchesAndDecorations = {
         ...state,
         currentMatches,
@@ -698,6 +732,7 @@ describe("Action handlers", () => {
           defaultDoc
         )
       };
+
       expect(
         reducer(
           new Transaction(defaultDoc),
@@ -706,6 +741,34 @@ describe("Action handlers", () => {
         )
       ).toEqual({
         ...state,
+        requestPending: true,
+        dirtiedRanges: [{ from: 1, to: 2 }]
+      });
+    });
+
+    it("should remove any decorations and matches that touch the passed ranges for multi-range matches", () => {
+      const currentMatches = [{
+        ...match,
+        ranges: [{ from: 1, to: 2 }, { from: 3, to: 7 }],
+      }];
+      const stateWithCurrentMatchesAndDecorations = {
+        ...state,
+        currentMatches,
+        decorations: getNewDecorationsForCurrentMatches(
+          currentMatches,
+          state.decorations,
+          defaultDoc
+        )
+      };
+
+      expect(
+        reducer(
+          new Transaction(defaultDoc),
+          stateWithCurrentMatchesAndDecorations,
+          applyNewDirtiedRanges([{ from: 1, to: 2 }])
+        )
+      ).toMatchObject({
+        currentMatches: [],
         requestPending: true,
         dirtiedRanges: [{ from: 1, to: 2 }]
       });
@@ -724,6 +787,7 @@ describe("Action handlers", () => {
             text: "example",
             from: 1,
             to: 1,
+            ranges: [{ from: 1, to: 1 }],
             matchedText: "block text",
             message: "example",
             suggestions: [],
@@ -845,7 +909,7 @@ describe("Action handlers", () => {
       expect(newState.requestErrors).toEqual(state.requestErrors);
     });
   });
-  describe("setTyperighterEnabled", () => { 
+  describe("setTyperighterEnabled", () => {
     it("should remove any matches and decorations when disabled", () => {
       const { state, tr } = createInitialData();
       const matcherResponse = createMatcherResponse([{ from: 5, to: 10 }]);
@@ -885,23 +949,23 @@ describe("Action handlers", () => {
     it("should add requests-in-flight for the entire document when enabled", () => {
       const { state, tr } = createInitialData();
       const expectedRequest = {
-        "categoryIds": [], 
+        "categoryIds": [],
         "mapping": {
-          "from": 0, 
-          "maps": [], 
-          "mirror": undefined, 
+          "from": 0,
+          "maps": [],
+          "mirror": undefined,
           "to": 0
-        }, 
+        },
         "pendingBlocks": [{
           "block": {
-            "from": 1, 
-            "id": "0-from:1-to:23", 
-            "skipRanges": [], 
-            "text": "Example text to check", 
+            "from": 1,
+            "id": "0-from:1-to:23",
+            "ignoreRanges": [],
+            "text": "Example text to check",
             "to": 23
-          }, 
+          },
           "pendingCategoryIds": []
-        }], 
+        }],
         "totalBlocks": 1
       }
 
@@ -910,15 +974,15 @@ describe("Action handlers", () => {
         state,
         setTyperighterEnabled(true)
       ).requestsInFlight;
-      
-      
+
+
       const requestNames = Object.keys(requests);
       const actualRequest = requests[Object.keys(requests)[0]]
-      
-      expect(requestNames.length).toEqual(1); 
+
+      expect(requestNames.length).toEqual(1);
       expect(actualRequest).toMatchObject(
         expectedRequest
-      ); 
+      );
     });
   })
   describe("setConfigValue", () => {

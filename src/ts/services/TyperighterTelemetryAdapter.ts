@@ -18,8 +18,8 @@ import {
   IUserTelemetryEvent,
   UserTelemetryEventSender
 } from "@guardian/user-telemetry-client";
-import { IMatch } from "..";
 import { MatchType } from "../utils/decoration";
+import { Match } from "../interfaces/IMatch";
 
 class TyperighterTelemetryAdapter {
   constructor(
@@ -35,7 +35,7 @@ class TyperighterTelemetryAdapter {
   }
 
   public suggestionIsAccepted(
-    match: IMatch,
+    match: Match,
     documentUrl: string,
     suggestion: string
   ) {
@@ -50,7 +50,7 @@ class TyperighterTelemetryAdapter {
     } as ISuggestionAcceptedEvent);
   }
 
-  public matchIsMarkedAsCorrect(match: IMatch, documentUrl: string) {
+  public matchIsMarkedAsCorrect(match: Match, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MARK_AS_CORRECT,
       value: 1,
@@ -61,7 +61,7 @@ class TyperighterTelemetryAdapter {
     } as IMarkAsCorrectEvent);
   }
 
-  public matchDecorationClicked(match: IMatch, documentUrl: string) {
+  public matchDecorationClicked(match: Match, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_DECORATION_CLICKED,
       value: 1,
@@ -112,7 +112,7 @@ class TyperighterTelemetryAdapter {
     } as IOpenTyperighterEvent);
   }
 
-  public sidebarMatchClicked(match: IMatch, documentUrl: string) {
+  public sidebarMatchClicked(match: Match, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_SIDEBAR_MATCH_CLICK,
       value: 1,
@@ -123,7 +123,7 @@ class TyperighterTelemetryAdapter {
     } as ISidebarClickEvent);
   }
 
-  public matchFound(match: IMatch, documentUrl: string) {
+  public matchFound(match: Match, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_MATCH_FOUND,
       value: 1,
@@ -142,7 +142,7 @@ class TyperighterTelemetryAdapter {
     } as IFilterToggleEvent);
   }
 
-  public feedbackReceived(match: IMatch, feedbackMessage: string, documentUrl: string) {
+  public feedbackReceived(match: Match, feedbackMessage: string, documentUrl: string) {
     this.addEvent({
       type: TYPERIGHTER_TELEMETRY_TYPE.TYPERIGHTER_FEEDBACK_RECEIVED,
       value: 1,
@@ -174,7 +174,7 @@ class TyperighterTelemetryAdapter {
     });
   }
 
-  private getTelemetryTagsFromMatch = (match: IMatch) => ({
+  private getTelemetryTagsFromMatch = (match: Match) => ({
     matcherType: match.matcherType,
     ruleId: match.ruleId,
     matchId: match.matchId,

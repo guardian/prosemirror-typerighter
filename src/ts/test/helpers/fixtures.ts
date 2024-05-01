@@ -1,12 +1,12 @@
 import {
   IMatchLibrary,
-  IMatch,
   ISuggestion,
   IBlock,
   IMatcherResponse,
   ICategory,
-  IBlockWithSkippedRanges,
-  IRange
+  IBlockWithIgnoredRanges,
+  IRange,
+  Match
 } from "../../interfaces/IMatch";
 import { createBlockId, createMatchId } from "../../utils/block";
 import { IPluginState, IRequestInFlight, createReducer, IPluginConfig } from "../../state/reducer";
@@ -48,13 +48,13 @@ export const createBlock = (
   from: number,
   to: number,
   text = "str",
-  skipRanges: IRange[] = []
-): IBlockWithSkippedRanges => ({
+  ignoreRanges: IRange[] = []
+): IBlockWithIgnoredRanges => ({
   text,
   from,
   to,
   id: `0-from:${from}-to:${to}`,
-  skipRanges
+  ignoreRanges: ignoreRanges
 });
 
 export interface ICreateMatcherResponseSpec {
@@ -70,7 +70,7 @@ export interface ICreateMatcherResponseSpec {
 export const createMatcherResponse = (
   specs: ICreateMatcherResponseSpec[],
   requestId: string = exampleRequestId
-): IMatcherResponse =>
+): IMatcherResponse<Match[]> =>
   specs.reduce(
     (acc, spec) => {
       const {
@@ -102,6 +102,7 @@ export const createMatcherResponse = (
         message: "annotation",
         from: wordFrom,
         to: wordTo,
+        ranges: [{ from: wordFrom, to: wordTo }],
         matchId: createMatchId(0, wordFrom, wordTo, 0),
         suggestions,
         matchContext: "here is a [[block text]] match",
@@ -123,7 +124,7 @@ export const createMatcherResponse = (
       categoryIds: [],
       blocks: [],
       matches: []
-    } as IMatcherResponse
+    } as IMatcherResponse<Match[]>
   );
 
 export const createMatch = (
@@ -135,7 +136,7 @@ export const createMatch = (
     name: "Cat",
     colour: "eeeee"
   },
-): IMatch => ({
+): Match => ({
   matcherType: "regex",
   ruleId: "ruleId",
   category,
@@ -143,6 +144,7 @@ export const createMatch = (
   message: "annotation",
   from,
   to,
+  ranges: [{ from, to }],
   matchId: createMatchId(0, from, to, 0),
   suggestions,
   matchContext: "here is a [[block text]] match",
@@ -151,12 +153,42 @@ export const createMatch = (
   groupKey: "group-key"
 });
 
+export const createMatchWithRanges = (
+  ranges: IRange[],
+  suggestions = [] as ISuggestion[],
+  category = {
+    id: "1",
+    name: "Cat",
+    colour: "eeeee"
+  }
+): Match => {
+  const from = Math.min(...ranges.map(range => range.from));
+  const to = Math.max(...ranges.map(range => range.to));
+
+  return {
+    matcherType: "regex",
+    ruleId: "ruleId",
+    category,
+    matchedText: "block text",
+    message: "annotation",
+    from,
+    to,
+    ranges,
+    matchId: createMatchId(0, from, to, 0),
+    suggestions,
+    matchContext: "here is a [[block text]] match",
+    precedingText: "here is a ",
+    subsequentText: " match",
+    groupKey: "group-key"
+  };
+};
+
 export const exampleCategoryIds = ["example-category"];
 
 export const exampleRequestId = "set-id";
 
 export const createRequestInFlight = (
-  blocksInFlight: IBlockWithSkippedRanges[],
+  blocksInFlight: IBlockWithIgnoredRanges[],
   setId = exampleRequestId,
   categoryIds: string[] = exampleCategoryIds,
   pendingCategoryIds: string[] = categoryIds,
@@ -232,7 +264,7 @@ export const createInitialData = (
 export const createStateWithMatches = (
   localReducer: ReturnType<typeof createReducer>,
   matches: ICreateMatcherResponseSpec[]
-): { state: IPluginState; matches: IMatch[] } => {
+): { state: IPluginState; matches: Match[] } => {
   const docTime = 1337;
   const { state, tr } = createInitialData(defaultDoc, docTime);
 

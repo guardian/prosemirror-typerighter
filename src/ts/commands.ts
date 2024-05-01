@@ -24,13 +24,15 @@ import {
 } from "./state/reducer";
 import {
   IMatcherResponse,
+  Match,
   TMatchRequestErrorWithDefault
 } from "./interfaces/IMatch";
 import { EditorView } from "prosemirror-view";
 import { compact } from "./utils/array";
 import {
   getPatchesFromReplacementText,
-  applyPatchToTransaction
+  applyPatchesToTransaction,
+  getFirstMatchingChar
 } from "./utils/prosemirror";
 import { getState } from "./utils/plugin";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
@@ -218,7 +220,7 @@ export const setFilterStateCommand = <TPluginState extends IPluginState>(
  * Apply a successful matcher response to the document.
  */
 export const applyMatcherResponseCommand = (
-  matcherResponse: IMatcherResponse
+  matcherResponse: IMatcherResponse<Match[]>
 ): Command => (state, dispatch) => {
   if (dispatch) {
     dispatch(
@@ -295,8 +297,7 @@ export const applySuggestionsCommand = (
       const maybeMatch = selectMatchByMatchId(pluginState, opt.matchId);
       return maybeMatch
         ? {
-            from: maybeMatch.from,
-            to: maybeMatch.to,
+            match: maybeMatch,
             text: opt.text
           }
         : undefined;
@@ -339,8 +340,7 @@ export const clearMatchesCommand = () => (_: GetState) => (
 
 const maybeApplySuggestions = (
   suggestionsToApply: Array<{
-    from: number;
-    to: number;
+    match: Match,
     text: string | undefined;
   }>,
   state: EditorState,
@@ -355,23 +355,46 @@ const maybeApplySuggestions = (
   }
 
   const tr = state.tr;
-  suggestionsToApply.forEach(({ from, to, text }) => {
+  suggestionsToApply.forEach(({ match, text }) => {
     if (!text) {
       return;
     }
 
-    const mappedFrom = tr.mapping.map(from);
-    const mappedTo = tr.mapping.map(to);
-    const replacementFrags = getPatchesFromReplacementText(
-      tr,
-      mappedFrom,
-      mappedTo,
-      text
-    );
+    // Ensure the replacement always begins at the first point that the old and new suggestions match.
+    const strToReplace = match.ranges.map(range => tr.doc.textBetween(range.from, range.to)).join('')
+    const indexOfFirstMatchingChar = getFirstMatchingChar(strToReplace, text);
+    if (indexOfFirstMatchingChar > 0) {
+      tr.deleteRange(match.from, match.from + indexOfFirstMatchingChar);
+    }
 
-    replacementFrags.forEach(frag =>
-      applyPatchToTransaction(tr, state.schema, frag)
-    );
+    let textCursor = 0;
+
+    // Apply the suggestion to the matched range.
+    //
+    // If the match is split into multiple ranges, attempts to preserve a reasonable split between
+    // ranges by allocating the suggestion the same number of characters as the original range. Extra
+    // characters are append.
+    //
+    // For example, given:
+    //   - the match 'ex-a-mple', where dashes denote splits in the match
+    //   - the suggestion 'ample'
+    // We get the result 'am-p-le'.
+    const patches = match.ranges.flatMap(({ from, to }, index) => {
+      const isLastRange = index === match.ranges.length - 1;
+      const mappedFrom = tr.mapping.map(from);
+      const mappedTo = tr.mapping.map(to);
+      const fragmentToApply = text.slice(textCursor, !isLastRange ? textCursor + (mappedTo - mappedFrom) : Infinity);
+      textCursor += fragmentToApply.length;
+
+      return getPatchesFromReplacementText({
+        tr,
+        from: mappedFrom,
+        to: mappedTo,
+        replacement: fragmentToApply
+      });
+    });
+
+    applyPatchesToTransaction(patches, match.ranges, tr, state.schema)
   });
 
   dispatch(tr);

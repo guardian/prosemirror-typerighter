@@ -1,9 +1,9 @@
 import {
   IBlock,
-  IMatch,
   ICategory,
   IMatcherResponse,
-  TMatchRequestErrorWithDefault
+  TMatchRequestErrorWithDefault,
+  MatchFromTyperighter
 } from "./IMatch";
 
 export type FetchMatches = {
@@ -33,7 +33,7 @@ export declare class IMatcherAdapter {
   constructor(apiUrl: string);
 }
 
-export type TMatchesReceivedCallback = (response: IMatcherResponse<IMatch[]>) => void;
+export type TMatchesReceivedCallback = (response: IMatcherResponse<MatchFromTyperighter[]>) => void;
 
 export type TRequestErrorCallback = (
   matchRequestError: TMatchRequestErrorWithDefault

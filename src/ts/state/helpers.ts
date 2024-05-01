@@ -130,7 +130,12 @@ export const getNewStateFromTransaction = (
     ...incomingState,
     decorations: incomingState.decorations.map(tr.mapping, tr.doc),
     dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentMatches: mapRanges(incomingState.currentMatches, tr.mapping),
+    currentMatches: incomingState.currentMatches.map(match => ({
+      ...match,
+      from: tr.mapping.map(match.from),
+      to: tr.mapping.map(match.to),
+      ranges: mapRanges(match.ranges, tr.mapping)
+    })),
     requestsInFlight: mappedRequestsInFlight,
     docChangedSinceCheck: true,
     docIsEmpty: !nodeContainsText(tr.doc)

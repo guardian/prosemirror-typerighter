@@ -1,5 +1,5 @@
 import { sortBy } from "lodash";
-import { IMatch, ISuggestion } from "../interfaces/IMatch";
+import { ISuggestion, Match } from "../interfaces/IMatch";
 import { getMatchType, MatchType } from "../utils/decoration";
 import { IPluginState, IBlockInFlight, IRequestInFlight } from "./reducer";
 
@@ -135,7 +135,7 @@ export const selectRequestsInProgress = (state: IPluginState): boolean =>
 export const selectHasMatches = (state: IPluginState): boolean =>
   !!state.currentMatches && state.currentMatches.length > 0;
 
-const getSortOrderForMatchType = (match: IMatch) => {
+const getSortOrderForMatchType = (match: Match) => {
   const matchType = getMatchType(match);
   if (matchType === MatchType.AMEND) {
     return 0;
@@ -146,16 +146,16 @@ const getSortOrderForMatchType = (match: IMatch) => {
   }
 };
 
-const getSortOrderForMatchAppearance = (match: IMatch) => match.from;
+const getSortOrderForMatchAppearance = (match: Match) => match.from;
 
 export const selectDocumentOrderedMatches = (
   state: IPluginState
-): Array<IMatch<ISuggestion>> =>
+): Array<Match<ISuggestion>> =>
   sortBy(state.filteredMatches, getSortOrderForMatchAppearance);
 
 export const selectImportanceOrderedMatches = (
   state: IPluginState
-): Array<IMatch<ISuggestion>> =>
+): Array<Match<ISuggestion>> =>
   sortBy(
     state.filteredMatches,
     getSortOrderForMatchType,
