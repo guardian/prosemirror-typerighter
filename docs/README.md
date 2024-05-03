@@ -4,7 +4,7 @@
 
 ![](https://travis-ci.org/guardian/prosemirror-typerighter.svg?branch=main) [![Coverage Status](https://coveralls.io/repos/github/guardian/prosemirror-typerighter/badge.svg?branch=main)](https://coveralls.io/github/guardian/prosemirror-typerighter?branch=main)
 
-This Prosemirror plugin adds the ability to validate a document by sending it, or some parts of it, to an external service for validation.
+This Prosemirror plugin adds the ability to validate a document by sending it, or some parts of it, to an external service for validation, and providing an interface to review suggestions and apply changes.
 
 ## Installation
 
