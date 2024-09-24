@@ -65,7 +65,7 @@
     "typedoc": "^0.23.14",
     "typedoc-plugin-markdown": "^2.4.0",
     "typescript": "^4.7.4",
-    "vite": "^2.9.13",
+    "vite": "^3.2.11",
     "whatwg-fetch": "^3.0.0"
   },
   "dependencies": {
