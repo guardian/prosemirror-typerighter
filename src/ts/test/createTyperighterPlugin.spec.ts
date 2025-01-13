@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import { AllSelection, EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 
 import {
@@ -64,6 +64,19 @@ describe("createTyperighterPlugin", () => {
   it("should allow us to specify real time checking when creating the plugin", () => {
     const { getState, view } = createPlugin({adapter, requestMatchesOnDocModified: true });
     expect(getState(view.state)!.config.requestMatchesOnDocModified).toEqual(true);
+  });
+  it("should not update the store state if the plugin state has not changed", () => {
+    const spy = jest.fn();
+    const { view, store } = createPlugin({
+      adapter,
+      requestMatchesOnDocModified: true
+    });
+    store.on("STORE_EVENT_NEW_STATE", spy);
+
+    // Dispatch an action that will ensure the view is updated
+    view.dispatch(view.state.tr.setSelection(new AllSelection(view.state.doc)));
+
+    expect(spy.mock.calls.length).toBe(0);
   });
 
   describe("Match persistence/removal", () => {
