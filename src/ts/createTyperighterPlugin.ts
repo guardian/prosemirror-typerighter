@@ -292,9 +292,10 @@ const createTyperighterPlugin = (
 
       return {
         // Update our store with the new state.
-        update: _ => {
+        update: (_, prevState) => {
           const pluginState = plugin.getState(view.state);
-          if (pluginState) {
+          let prevPluginState = plugin.getState(prevState);
+          if (pluginState && pluginState !== prevPluginState) {
             store.emit(STORE_EVENT_NEW_STATE, pluginState);
           }
         }
