@@ -105,6 +105,10 @@ export const deriveFilteredDecorations = (
  *
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
+ *
+ * This function takes care to preserve the object identity of its properties,
+ * so consuming code can use a shallow identity comparison to determine whether
+ * something has changed.
  */
 export const getNewStateFromTransaction = (
   tr: Transaction,
