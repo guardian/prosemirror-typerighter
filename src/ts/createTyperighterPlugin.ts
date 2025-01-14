@@ -40,6 +40,8 @@ import MatcherService from "./services/MatcherService";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import { IMatcherAdapter } from "./interfaces/IMatcherAdapter";
 import { v4 } from "uuid";
+import { emptyArray } from "./state/helpers";
+import { shallowEqual } from "./utils/shallowEqual";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node) => IRange[];
 
@@ -131,7 +133,7 @@ const createTyperighterPlugin = (
   const {
     expandRanges = expandRangesToParentBlockNodes,
     getIgnoredRanges = doNotIgnoreRanges,
-    matches = [],
+    matches = emptyArray as Match[],
     filterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
@@ -141,7 +143,7 @@ const createTyperighterPlugin = (
     adapter,
     telemetryAdapter,
     typerighterEnabled = true,
-    excludedCategoryIds = []
+    excludedCategoryIds = emptyArray as string[]
   } = options;
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();
@@ -269,7 +271,7 @@ const createTyperighterPlugin = (
 
       // Check the document eagerly on editor initialisation if
       // requestMatchesOnDocModified is enabled
-      const pluginState = store.getState();
+      const pluginState = pluginKey.getState(view.state);
       if (
         pluginState &&
         selectPluginConfig(pluginState).requestMatchesOnDocModified &&
@@ -292,11 +294,16 @@ const createTyperighterPlugin = (
 
       return {
         // Update our store with the new state.
-        update: _ => {
-          const pluginState = plugin.getState(view.state);
-          if (pluginState) {
-            store.emit(STORE_EVENT_NEW_STATE, pluginState);
+        update: (_, prevState) => {
+          const { dirtiedRanges, ...pluginState } = plugin.getState(view.state) as IPluginState;
+          const { dirtiedRanges: prevDirtiedRanges, ...prevPluginState } = plugin.getState(prevState) as IPluginState;
+
+          // Do not update if nothing has changed.
+          if (shallowEqual(pluginState, prevPluginState)) {
+            return;
           }
+
+          store.emit(STORE_EVENT_NEW_STATE, pluginState);
         }
       };
     }

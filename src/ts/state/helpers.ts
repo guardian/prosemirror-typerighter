@@ -15,6 +15,12 @@ import { DecorationSet } from "prosemirror-view";
 import { IFilterMatches } from "../utils/plugin";
 import { mapAndMergeRanges, mapRange, mapRanges } from "../utils/range";
 import { nodeContainsText } from "../utils/prosemirror";
+import { produce } from "immer";
+import { Match } from "../interfaces/IMatch";
+
+// Immutable(ish) empty defaults
+export const emptyObject = Object.freeze({});
+export const emptyArray = Object.freeze(Array());
 
 export const addMatchesToState = (
   state: IPluginState,
@@ -22,14 +28,16 @@ export const addMatchesToState = (
   matches: Array<IPluginState["currentMatches"][number]>,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ): IPluginState => {
-  const matchesToApply = matches.filter(match => !ignoreMatch(match));
-  const decorations = matchesToApply.reduce(
+  const currentMatches = matches.length
+    ? matches.filter(match => !ignoreMatch(match))
+    : (emptyArray as Match[]);
+  const decorations = currentMatches.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
     DecorationSet.empty
   );
   return {
     ...state,
-    currentMatches: matchesToApply,
+    currentMatches,
     decorations
   };
 };
@@ -98,6 +106,10 @@ export const deriveFilteredDecorations = (
  *
  * We need to respond to each transaction in our reducer, whether or not there's
  * an action present, in order to maintain mappings and respond to user input.
+ *
+ * This function takes care to preserve the object identity of its properties,
+ * so consuming code can use a shallow identity comparison to determine whether
+ * something has changed.
  */
 export const getNewStateFromTransaction = (
   tr: Transaction,
@@ -112,10 +124,12 @@ export const getNewStateFromTransaction = (
     mapping.appendMapping(requestsInFlight.mapping);
     mapping.appendMapping(tr.mapping);
 
-    const mappedPendingBlocks = requestsInFlight.pendingBlocks.map(blockInFlight => ({
-      pendingCategoryIds: blockInFlight.pendingCategoryIds,
-      block: mapRange(blockInFlight.block, tr.mapping)
-    }));
+    const mappedPendingBlocks = requestsInFlight.pendingBlocks.map(
+      blockInFlight => ({
+        pendingCategoryIds: blockInFlight.pendingCategoryIds,
+        block: mapRange(blockInFlight.block, tr.mapping)
+      })
+    );
 
     return {
       ...acc,
@@ -125,19 +139,25 @@ export const getNewStateFromTransaction = (
         mapping
       }
     };
-  }, {});
-  return {
-    ...incomingState,
-    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentMatches: incomingState.currentMatches.map(match => ({
+  }, emptyObject);
+
+  return produce(incomingState, draftState => {
+    draftState.decorations = draftState.decorations.map(tr.mapping, tr.doc);
+
+    draftState.dirtiedRanges = mapAndMergeRanges(
+      incomingState.dirtiedRanges,
+      tr.mapping
+    );
+
+    draftState.currentMatches = draftState.currentMatches.map(match => ({
       ...match,
       from: tr.mapping.map(match.from),
       to: tr.mapping.map(match.to),
       ranges: mapRanges(match.ranges, tr.mapping)
-    })),
-    requestsInFlight: mappedRequestsInFlight,
-    docChangedSinceCheck: true,
-    docIsEmpty: !nodeContainsText(tr.doc)
-  };
+    }));
+
+    draftState.requestsInFlight = mappedRequestsInFlight;
+    draftState.docChangedSinceCheck = true;
+    draftState.docIsEmpty = !nodeContainsText(tr.doc);
+  });
 };

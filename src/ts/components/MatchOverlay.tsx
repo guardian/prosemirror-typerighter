@@ -1,10 +1,9 @@
 import Match from "./Match";
 import React, { useState, useEffect, useRef } from "react";
-import { IPluginState } from "../state/reducer";
 import { selectMatchByMatchId } from "../state/selectors";
 import { Match as TMatch } from "../interfaces/IMatch";
 import { maybeGetDecorationElement } from "../utils/decoration";
-import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
+import Store, { StoreState, STORE_EVENT_NEW_STATE } from "../state/store";
 import { ApplySuggestionOptions } from "../commands";
 import { usePopper } from "react-popper";
 import { debounce } from "lodash"
@@ -27,7 +26,7 @@ const matchOverlay = ({
   stopHover,
   store
 }: IProps) => {
-  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
+  const [pluginState, setPluginState] = useState<StoreState | undefined>(
     undefined
   );
   const [currentMatchId, setCurrentMatchId] = useState<string | undefined>(
@@ -51,7 +50,7 @@ const matchOverlay = ({
     // Subscribe to the plugin state. We keep a separate reference to the
     // currentMatchId so we can create an effect that watches for it changing.
     // If we watched the whole plugin state, we'd have a lot of redundant calls.
-    const updateState = (newState: IPluginState) => {
+    const updateState = (newState: StoreState) => {
       setPluginState(newState);
       setCurrentMatchId(newState.hoverId);
       setCurrentRectIndex(newState.hoverRectIndex);
