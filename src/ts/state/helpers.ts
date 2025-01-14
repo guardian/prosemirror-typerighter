@@ -15,6 +15,11 @@ import { DecorationSet } from "prosemirror-view";
 import { IFilterMatches } from "../utils/plugin";
 import { mapAndMergeRanges, mapRange, mapRanges } from "../utils/range";
 import { nodeContainsText } from "../utils/prosemirror";
+import { IRange, Match } from "../interfaces/IMatch";
+
+// Immutable(ish) empty defaults
+export const emptyObject = Object.freeze({});
+export const emptyArray = Object.freeze(Array());
 
 export const addMatchesToState = (
   state: IPluginState,
@@ -22,14 +27,16 @@ export const addMatchesToState = (
   matches: Array<IPluginState["currentMatches"][number]>,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ): IPluginState => {
-  const matchesToApply = matches.filter(match => !ignoreMatch(match));
-  const decorations = matchesToApply.reduce(
+  const currentMatches = matches.length
+    ? matches.filter(match => !ignoreMatch(match))
+    : (emptyArray as Match[]);
+  const decorations = currentMatches.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
     DecorationSet.empty
   );
   return {
     ...state,
-    currentMatches: matchesToApply,
+    currentMatches,
     decorations
   };
 };
@@ -112,10 +119,12 @@ export const getNewStateFromTransaction = (
     mapping.appendMapping(requestsInFlight.mapping);
     mapping.appendMapping(tr.mapping);
 
-    const mappedPendingBlocks = requestsInFlight.pendingBlocks.map(blockInFlight => ({
-      pendingCategoryIds: blockInFlight.pendingCategoryIds,
-      block: mapRange(blockInFlight.block, tr.mapping)
-    }));
+    const mappedPendingBlocks = requestsInFlight.pendingBlocks.map(
+      blockInFlight => ({
+        pendingCategoryIds: blockInFlight.pendingCategoryIds,
+        block: mapRange(blockInFlight.block, tr.mapping)
+      })
+    );
 
     return {
       ...acc,
@@ -125,18 +134,25 @@ export const getNewStateFromTransaction = (
         mapping
       }
     };
-  }, {});
+  }, emptyObject);
+
   return {
     ...incomingState,
     decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping),
-    currentMatches: incomingState.currentMatches.map(match => ({
-      ...match,
-      from: tr.mapping.map(match.from),
-      to: tr.mapping.map(match.to),
-      ranges: mapRanges(match.ranges, tr.mapping)
-    })),
-    requestsInFlight: mappedRequestsInFlight,
+    dirtiedRanges: incomingState.dirtiedRanges.length
+      ? mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping)
+      : (emptyArray as IRange[]),
+    currentMatches: incomingState.currentMatches.length
+      ? incomingState.currentMatches.map(match => ({
+          ...match,
+          from: tr.mapping.map(match.from),
+          to: tr.mapping.map(match.to),
+          ranges: mapRanges(match.ranges, tr.mapping)
+        }))
+      : (emptyArray as Match[]),
+    requestsInFlight: Object.keys(incomingState.requestsInFlight).length
+      ? mappedRequestsInFlight
+      : emptyObject,
     docChangedSinceCheck: true,
     docIsEmpty: !nodeContainsText(tr.doc)
   };
