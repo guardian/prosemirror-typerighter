@@ -15,7 +15,8 @@ import { DecorationSet } from "prosemirror-view";
 import { IFilterMatches } from "../utils/plugin";
 import { mapAndMergeRanges, mapRange, mapRanges } from "../utils/range";
 import { nodeContainsText } from "../utils/prosemirror";
-import { IRange, Match } from "../interfaces/IMatch";
+import { produce } from "immer";
+import { Match } from "../interfaces/IMatch";
 
 // Immutable(ish) empty defaults
 export const emptyObject = Object.freeze({});
@@ -140,24 +141,23 @@ export const getNewStateFromTransaction = (
     };
   }, emptyObject);
 
-  return {
-    ...incomingState,
-    decorations: incomingState.decorations.map(tr.mapping, tr.doc),
-    dirtiedRanges: incomingState.dirtiedRanges.length
-      ? mapAndMergeRanges(incomingState.dirtiedRanges, tr.mapping)
-      : (emptyArray as IRange[]),
-    currentMatches: incomingState.currentMatches.length
-      ? incomingState.currentMatches.map(match => ({
-          ...match,
-          from: tr.mapping.map(match.from),
-          to: tr.mapping.map(match.to),
-          ranges: mapRanges(match.ranges, tr.mapping)
-        }))
-      : (emptyArray as Match[]),
-    requestsInFlight: Object.keys(incomingState.requestsInFlight).length
-      ? mappedRequestsInFlight
-      : emptyObject,
-    docChangedSinceCheck: true,
-    docIsEmpty: !nodeContainsText(tr.doc)
-  };
+  return produce(incomingState, draftState => {
+    draftState.decorations = draftState.decorations.map(tr.mapping, tr.doc);
+
+    draftState.dirtiedRanges = mapAndMergeRanges(
+      incomingState.dirtiedRanges,
+      tr.mapping
+    );
+
+    draftState.currentMatches = draftState.currentMatches.map(match => ({
+      ...match,
+      from: tr.mapping.map(match.from),
+      to: tr.mapping.map(match.to),
+      ranges: mapRanges(match.ranges, tr.mapping)
+    }));
+
+    draftState.requestsInFlight = mappedRequestsInFlight;
+    draftState.docChangedSinceCheck = true;
+    draftState.docIsEmpty = !nodeContainsText(tr.doc);
+  });
 };
