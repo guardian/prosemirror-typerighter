@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import sortBy from "lodash/sortBy";
-import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
-import { IPluginState } from "../state/reducer";
+import Store, { StoreState, STORE_EVENT_NEW_STATE } from "../state/store";
 import {
   selectImportanceOrderedMatches,
   selectPercentRemaining
@@ -36,12 +35,12 @@ const Results = ({
   getScrollOffset,
   applyFilterState
 }: IProps) => {
-  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
+  const [pluginState, setPluginState] = useState<StoreState | undefined>(
     undefined
   );
   const [loadingBarVisible, setLoadingBarVisible] = useState<boolean>(false);
 
-  const handleNewState = (incomingState: IPluginState) => {
+  const handleNewState = (incomingState: StoreState) => {
     setPluginState({
       ...incomingState,
       currentMatches: sortBy(incomingState.currentMatches, "from")

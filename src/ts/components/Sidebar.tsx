@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-import Store, { STORE_EVENT_NEW_STATE } from ".././state/store";
+import Store, { StoreState, STORE_EVENT_NEW_STATE } from ".././state/store";
 import Results from "./Results";
 import Controls from "./Controls";
 import { Commands } from ".././commands";
 import { MatcherService } from "..";
-import { IPluginState } from "../state/reducer";
 
 interface IProps {
   store: Store;
@@ -28,7 +27,7 @@ const Sidebar = ({
   feedbackHref,
   enableDevMode
 }: IProps) => {
-  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
+  const [pluginState, setPluginState] = useState<StoreState | undefined>(
     undefined
   );
   useEffect(() => {

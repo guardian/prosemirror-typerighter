@@ -269,7 +269,7 @@ const createTyperighterPlugin = (
 
       // Check the document eagerly on editor initialisation if
       // requestMatchesOnDocModified is enabled
-      const pluginState = store.getState();
+      const pluginState = pluginKey.getState(view.state);
       if (
         pluginState &&
         selectPluginConfig(pluginState).requestMatchesOnDocModified &&
