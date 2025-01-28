@@ -10,12 +10,15 @@ type STORE_EVENT_NEW_MATCHES = typeof STORE_EVENT_NEW_MATCHES;
 type STORE_EVENT_NEW_STATE = typeof STORE_EVENT_NEW_STATE;
 type STORE_EVENT_NEW_DIRTIED_RANGES = typeof STORE_EVENT_NEW_DIRTIED_RANGES;
 
+// The part of the plugin state we expose to plugin users.
+export type StoreState = Omit<IPluginState, 'dirtiedRanges'>
+
 export interface IStoreEvents {
   [STORE_EVENT_NEW_MATCHES]: (
     requestId: string,
     blocks: IBlockWithIgnoredRanges[]
   ) => void;
-  [STORE_EVENT_NEW_STATE]: (state: IPluginState) => void;
+  [STORE_EVENT_NEW_STATE]: (state: StoreState) => void;
   [STORE_EVENT_NEW_DIRTIED_RANGES]: () => void;
 }
 
@@ -25,7 +28,7 @@ type EventNames = keyof IStoreEvents;
  * A store to allow consumers to subscribe to state updates.
  */
 class Store {
-  private state: IPluginState | undefined;
+  private state: StoreState | undefined;
   private subscribers: {
     [EventName in EventNames]: Array<IStoreEvents[EventName]>;
   } = {
@@ -90,7 +93,7 @@ class Store {
   /**
    * Update the store's reference to the plugin state.
    */
-  private updateState(state: IPluginState) {
+  private updateState(state: StoreState) {
     this.state = state;
   }
 }

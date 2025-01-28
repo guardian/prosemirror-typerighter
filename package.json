@@ -78,6 +78,7 @@
     "@mui/material": "^5.9.0",
     "@popperjs/core": "^2.4.4",
     "diff": "^4.0.2",
+    "immer": "^10.1.1",
     "lodash": "^4.17.11",
     "prosemirror-changeset": "^2.2.0",
     "prosemirror-example-setup": "^1.2.1",

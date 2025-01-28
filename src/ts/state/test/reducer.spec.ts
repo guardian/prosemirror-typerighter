@@ -49,7 +49,7 @@ describe("Action handlers", () => {
   });
   describe("Unknown action", () => {
     const { state, tr } = createInitialData();
-    expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toEqual(
+    expect(reducer(tr, state, { type: "UNKNOWN_ACTION" } as any)).toBe(
       state
     );
   });

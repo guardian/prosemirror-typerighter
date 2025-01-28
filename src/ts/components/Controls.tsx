@@ -2,8 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import { IconButton } from "@mui/material";
 import { DeleteForever } from "@mui/icons-material";
-import Store, { STORE_EVENT_NEW_STATE } from "../state/store";
-import { IPluginState } from "../state/reducer";
+import Store, { STORE_EVENT_NEW_STATE, StoreState } from "../state/store";
 import { ICategory } from "../interfaces/IMatch";
 import {
   selectHasGeneralError,
@@ -32,7 +31,7 @@ interface IProps {
 }
 
 const getErrorFeedbackLink = (
-  pluginState: IPluginState | undefined,
+  pluginState: StoreState | undefined,
   feedbackHref: string | undefined
 ) => {
   const errorLimit = 10;
@@ -58,7 +57,7 @@ const Controls = ({
   setShowPendingInflightChecks,
   setTyperighterEnabled
 }: IProps) => {
-  const [pluginState, setPluginState] = useState<IPluginState | undefined>(
+  const [pluginState, setPluginState] = useState<StoreState | undefined>(
     undefined
   );
 

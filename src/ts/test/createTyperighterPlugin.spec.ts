@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import { AllSelection, EditorState, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 
 import {
@@ -14,11 +14,12 @@ import createTyperighterPlugin, {
 import { createMatch, createMatcherResponse } from "./helpers/fixtures";
 import { createEditor } from "./helpers/createEditor";
 import { createBoundCommands } from "../commands";
-import { IMatcherResponse, Match } from "../interfaces/IMatch";
+import { IMatcherResponse, ISuggestion, Match } from "../interfaces/IMatch";
 import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
 import { filterByMatchState, getState } from "../utils/plugin";
 import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
+import { emptyArray } from "../state/helpers";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
@@ -64,6 +65,43 @@ describe("createTyperighterPlugin", () => {
   it("should allow us to specify real time checking when creating the plugin", () => {
     const { getState, view } = createPlugin({adapter, requestMatchesOnDocModified: true });
     expect(getState(view.state)!.config.requestMatchesOnDocModified).toEqual(true);
+  });
+  it("should not update the store state if the plugin state has not changed for a no-op transaction", () => {
+    const spy = jest.fn();
+    const { view, store } = createPlugin({
+      adapter,
+      requestMatchesOnDocModified: true
+    });
+    store.on("STORE_EVENT_NEW_STATE", spy);
+
+    // Dispatch an action that will ensure the view is updated.
+    view.dispatch(view.state.tr.setSelection(new AllSelection(view.state.doc)));
+
+    expect(spy.mock.calls.length).toBe(0);
+  });
+
+  it("should not update the store state if the plugin state has not changed for a transaction that modifies the document", () => {
+    const spy = jest.fn();
+    const { view, store } = createPlugin({
+      adapter,
+      matches: emptyArray as Match<ISuggestion>[],
+    });
+    store.on("STORE_EVENT_NEW_STATE", spy);
+
+    const modifyDoc = () => {
+      const selection = TextSelection.near(view.state.doc.resolve(0));
+      view.dispatch(view.state.tr.insertText("a change", selection.from, selection.to));
+    }
+
+
+    // Dispatch an initial action to modify the document, which will flip
+    // `docChangedSinceCheck`, resulting in a single call to our spy.
+    modifyDoc();
+    expect(spy.mock.calls.length).toBe(1);
+
+    // Subsequent changes to the document should not emit updates.
+    modifyDoc();
+    expect(spy.mock.calls.length).toBe(1);
   });
 
   describe("Match persistence/removal", () => {
