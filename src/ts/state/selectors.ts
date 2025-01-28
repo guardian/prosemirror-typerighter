@@ -1,23 +1,24 @@
 import { sortBy } from "lodash";
 import { IMatch, ISuggestion } from "../interfaces/IMatch";
 import { getMatchType, MatchType } from "../utils/decoration";
-import { IPluginState, IBlockInFlight, IRequestInFlight } from "./reducer";
+import { IBlockInFlight, IRequestInFlight } from "./reducer";
+import { StoreState } from "./store";
 
-export const selectMatchByMatchId = <TPluginState extends IPluginState>(
+export const selectMatchByMatchId = <TPluginState extends StoreState>(
   state: TPluginState,
   matchId: string
 ): TPluginState["currentMatches"][number] | undefined =>
   state.currentMatches.find(match => match.matchId === matchId);
 
 export const selectRequestInFlightById = (
-  state: IPluginState,
+  state: StoreState,
   requestId: string
 ): IRequestInFlight | undefined => {
   return state.requestsInFlight[requestId];
 };
 
 export const selectSingleBlockInRequestInFlightById = (
-  state: IPluginState,
+  state: StoreState,
   requestId: string,
   blockId: string
 ): IBlockInFlight | undefined => {
@@ -29,7 +30,7 @@ export const selectSingleBlockInRequestInFlightById = (
 };
 
 export const selectBlocksInFlightById = (
-  state: IPluginState,
+  state: StoreState,
   requestId: string,
   blockIds: string[]
 ): IBlockInFlight[] =>
@@ -40,7 +41,7 @@ export const selectBlocksInFlightById = (
     .filter(_ => !!_) as IBlockInFlight[];
 
 export const selectAllBlocksInFlight = (
-  state: IPluginState
+  state: StoreState
 ): IBlockInFlight[] =>
   Object.values(state.requestsInFlight).reduce(
     (acc, value) => acc.concat(value.pendingBlocks),
@@ -54,8 +55,8 @@ type TSelectRequestInFlight = Array<
 >;
 
 export const selectNewBlockInFlight = (
-  oldState: IPluginState,
-  newState: IPluginState
+  oldState: StoreState,
+  newState: StoreState
 ): TSelectRequestInFlight =>
   Object.keys(newState.requestsInFlight).reduce(
     (acc, requestId) =>
@@ -69,7 +70,7 @@ export const selectNewBlockInFlight = (
   );
 
 export const selectPercentRemaining = (
-  state?: IPluginState
+  state?: StoreState
 ) => {
   if (!state) {
     return 0;
@@ -98,7 +99,7 @@ export const selectPercentRemaining = (
 };
 
 export const selectSuggestionAndRange = (
-  state: IPluginState,
+  state: StoreState,
   matchId: string,
   suggestionIndex: number
 ) => {
@@ -117,27 +118,27 @@ export const selectSuggestionAndRange = (
   };
 };
 
-export const selectAllAutoFixableMatches = (state: IPluginState): IMatch[] =>
+export const selectAllAutoFixableMatches = (state: StoreState): IMatch[] =>
   state.currentMatches.filter(
     _ => _.replacement && _.replacement.text === _.message
   );
 
-export const selectHasGeneralError = (state: IPluginState): boolean => {
+export const selectHasGeneralError = (state: StoreState): boolean => {
   const generalErrors = state.requestErrors.filter(
     _ => _.type === "GENERAL_ERROR"
   );
   return generalErrors.length > 0;
 };
 
-export const selectHasAuthError = (state: IPluginState): boolean => {
+export const selectHasAuthError = (state: StoreState): boolean => {
   const authErrors = state.requestErrors.filter(_ => _.type === "AUTH_ERROR");
   return authErrors.length > 0;
 };
 
-export const selectRequestsInProgress = (state: IPluginState): boolean =>
+export const selectRequestsInProgress = (state: StoreState): boolean =>
   !!Object.keys(state.requestsInFlight).length;
 
-export const selectHasMatches = (state: IPluginState): boolean =>
+export const selectHasMatches = (state: StoreState): boolean =>
   !!state.currentMatches && state.currentMatches.length > 0;
 
 const getSortOrderForMatchType = (match: IMatch) => {
@@ -154,12 +155,12 @@ const getSortOrderForMatchType = (match: IMatch) => {
 const getSortOrderForMatchAppearance = (match: IMatch) => match.from;
 
 export const selectDocumentOrderedMatches = (
-  state: IPluginState
+  state: StoreState
 ): Array<IMatch<ISuggestion>> =>
   sortBy(state.filteredMatches, getSortOrderForMatchAppearance);
 
 export const selectImportanceOrderedMatches = (
-  state: IPluginState
+  state: StoreState
 ): Array<IMatch<ISuggestion>> =>
   sortBy(
     state.filteredMatches,
@@ -167,12 +168,12 @@ export const selectImportanceOrderedMatches = (
     getSortOrderForMatchAppearance
   );
 
-export const selectDocumentHasChanged = (state: IPluginState): boolean => {
+export const selectDocumentHasChanged = (state: StoreState): boolean => {
   return state.docChangedSinceCheck;
 };
 
-export const selectDocumentIsEmpty = (state: IPluginState): boolean => {
+export const selectDocumentIsEmpty = (state: StoreState): boolean => {
   return state.docIsEmpty;
 };
 
-export const selectPluginConfig = (state: IPluginState) => state.config;
+export const selectPluginConfig = (state: StoreState) => state.config;

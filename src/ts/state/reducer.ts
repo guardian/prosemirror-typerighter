@@ -74,6 +74,7 @@ import {
 import {
   addMatchesToState,
   deriveFilteredDecorations,
+  emptyArray,
   getNewStateFromTransaction,
   isFilterStateStale
 } from "./helpers";
@@ -194,17 +195,17 @@ export const createInitialState = ({
       doc,
       createDecorationsForMatches(matches)
     ),
-    dirtiedRanges: [],
-    currentMatches: [] as IMatch[],
-    filteredMatches: [] as IMatch[],
+    dirtiedRanges: emptyArray as IRange[],
+    currentMatches: emptyArray as IMatch[],
+    filteredMatches: emptyArray as IMatch[],
     selectedMatch: undefined,
     hoverId: undefined,
     hoverRectIndex: undefined,
     highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
-    requestErrors: [],
-    filterState: filterOptions?.initialFilterState ?? [],
+    requestErrors: emptyArray as IMatchRequestError[],
+    filterState: filterOptions?.initialFilterState ?? emptyArray as MatchType[],
     docChangedSinceCheck: false,
     docIsEmpty: !nodeContainsText(doc),
     typerighterEnabled
@@ -457,7 +458,7 @@ const handleNewDirtyRanges = (
     requestPending: state.config.requestMatchesOnDocModified ? true : false,
     dirtiedRanges: shouldPersistNewDirtyRanges
       ? state.dirtiedRanges.concat(dirtiedRanges)
-      : []
+      : emptyArray as IRange[]
   };
 };
 
