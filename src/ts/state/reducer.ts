@@ -443,9 +443,9 @@ const handleNewDirtyRanges = (
 
   // Remove any matches and associated decorations touched by the dirtied ranges from the doc
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
-  const currentMatches = state.currentMatches.filter(
+  const currentMatches = state.currentMatches.length ? state.currentMatches.filter(
     output => findOverlappingRangeIndex(output, dirtiedRanges) === -1
-  );
+  ) : emptyArray as IMatch[];
 
   const shouldPersistNewDirtyRanges =
     state.config.requestMatchesOnDocModified ||
