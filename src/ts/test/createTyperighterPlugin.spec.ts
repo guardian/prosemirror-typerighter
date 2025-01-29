@@ -1,6 +1,5 @@
 import { AllSelection, EditorState, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-
 import {
   createDoc,
   p,
@@ -66,6 +65,8 @@ describe("createTyperighterPlugin", () => {
     const { getState, view } = createPlugin({adapter, requestMatchesOnDocModified: true });
     expect(getState(view.state)!.config.requestMatchesOnDocModified).toEqual(true);
   });
+
+  describe("store updates", () => {
   it("should not update the store state if the plugin state has not changed for a no-op transaction", () => {
     const spy = jest.fn();
     const { view, store } = createPlugin({
@@ -75,33 +76,59 @@ describe("createTyperighterPlugin", () => {
     store.on("STORE_EVENT_NEW_STATE", spy);
 
     // Dispatch an action that will ensure the view is updated.
-    view.dispatch(view.state.tr.setSelection(new AllSelection(view.state.doc)));
+      view.dispatch(
+        view.state.tr.setSelection(new AllSelection(view.state.doc))
+      );
 
     expect(spy.mock.calls.length).toBe(0);
   });
+
+    const modifyDoc = (view: EditorView) => {
+      const selection = TextSelection.near(view.state.doc.resolve(0));
+      view.dispatch(
+        view.state.tr.insertText("a change", selection.from, selection.to)
+      );
+    };
 
   it("should not update the store state if the plugin state has not changed for a transaction that modifies the document", () => {
     const spy = jest.fn();
     const { view, store } = createPlugin({
       adapter,
-      matches: emptyArray as IMatch[],
+        matches: emptyArray as IMatch[]
     });
     store.on("STORE_EVENT_NEW_STATE", spy);
 
-    const modifyDoc = () => {
-      const selection = TextSelection.near(view.state.doc.resolve(0));
-      view.dispatch(view.state.tr.insertText("a change", selection.from, selection.to));
-    }
+      // Dispatch an initial action to modify the document, which will flip
+      // `docChangedSinceCheck`, resulting in a single call to our spy.
+      modifyDoc(view);
+      expect(spy.mock.calls.length).toBe(1);
 
+      // Subsequent changes to the document should not emit updates.
+      modifyDoc(view);
+      expect(spy.mock.calls.length).toBe(1);
+    });
+
+    it("should not update the store state if the plugin state has not changed for a transaction that modifies the document, and matches are filtered", () => {
+      const spy = jest.fn();
+      const { view, store } = createPlugin({
+        adapter,
+        matches: emptyArray as IMatch[],
+        filterOptions: {
+          filterMatches: filterByMatchState,
+          initialFilterState: []
+        }
+      });
+      store.on("STORE_EVENT_NEW_STATE", spy);
 
     // Dispatch an initial action to modify the document, which will flip
     // `docChangedSinceCheck`, resulting in a single call to our spy.
-    modifyDoc();
+      modifyDoc(view);
     expect(spy.mock.calls.length).toBe(1);
 
     // Subsequent changes to the document should not emit updates.
-    modifyDoc();
+      modifyDoc(view);
     expect(spy.mock.calls.length).toBe(1);
+    });
   });
 
   describe("Match persistence/removal", () => {

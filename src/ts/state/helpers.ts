@@ -65,10 +65,9 @@ export const deriveFilteredDecorations = (
   newState: IPluginState,
   filterMatches: IFilterMatches
 ): IPluginState => {
-  const filteredMatches = filterMatches(
-    newState.filterState,
-    newState.currentMatches
-  );
+  const filteredMatches = newState.currentMatches.length
+    ? filterMatches(newState.filterState, newState.currentMatches)
+    : emptyArray as IMatch[];
   const filteredMatchIds = filteredMatches.map(_ => _.matchId);
 
   const matchIdsWithDecorations = newState.decorations
