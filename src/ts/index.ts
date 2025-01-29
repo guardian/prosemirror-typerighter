@@ -1,7 +1,7 @@
 import type { IMatch, ICategory, IBlock, ISuggestion } from './interfaces/IMatch'
-import type { IPluginState } from './state/reducer';
 import type { IMatchTypeToColourMap } from './utils/decoration';
 import Store, { STORE_EVENT_NEW_STATE } from './state/store';
+import type { StoreState } from "./state/store";
 import createTyperighterPlugin from "./createTyperighterPlugin";
 import MatcherService from "./services/MatcherService";
 import { UserTelemetryEventSender, IUserTelemetryEvent} from "@guardian/user-telemetry-client";
@@ -39,17 +39,17 @@ export {
   ICategory,
   ISuggestion,
   IUserTelemetryEvent,
-  IPluginState,
+  StoreState,
   Store,
   STORE_EVENT_NEW_STATE,
   getSquiggleAsUri,
   findAncestor,
   getHtmlFromMarkdown,
-  MatchType, 
-  IMatchTypeToColourMap, 
-  getMatchType, 
-  getColourForMatch, 
-  getColourForMatchType, 
+  MatchType,
+  IMatchTypeToColourMap,
+  getMatchType,
+  getColourForMatch,
+  getColourForMatchType,
   getMatchOffset,
   TelemetryContext
 };
