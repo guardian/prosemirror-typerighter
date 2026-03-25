@@ -20,22 +20,22 @@ jobs:
       contents: write
       id-token: write
       pull-requests: write
-      
-    strategy:
-      matrix:
-        node-version: [18.15.0]
 
     steps:
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
+      # See https://docs.npmjs.com/trusted-publishers
+      # Find the latest version with `npm info npm@latest version`
+    - name: Install suitable NPM version for trusted publishing
+      run: npm install -g npm@11.12.0
     - run: npm ci
     - run: npm run test
     - run: npm run build
     - name: Semantic Release
-      uses: cycjimmy/semantic-release-action@8e58d20d0f6c8773181f43eb74d6a05e3099571d
+      uses: cycjimmy/semantic-release-action@36bdefbcf6d8854593f95b76e7d567f89d76181e
       with:
         branches: |
           [
@@ -47,4 +47,3 @@ jobs:
           ]
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
