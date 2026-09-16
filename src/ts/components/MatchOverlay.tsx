@@ -87,6 +87,12 @@ const matchOverlay = ({
       const rects = referenceElement?.getClientRects();
       const hoverRect = rects[currentRectIndex];
       const lastRect = rects[rects.length - 1];
+      // The decoration's rects can be momentarily empty/stale - e.g. if its
+      // range has just been removed from the document while it was hovered.
+      // Bail out to the default offset rather than crashing Popper.
+      if (!hoverRect || !lastRect) {
+        return [0, yOffset];
+      }
       //Determine the X offset as the difference between the last rect (bottom left) and the current rect.
       //This will only work if the placement is set to the "bottom-start". If we wanted to change this we
       //would need to build more flexibility into how this is calculated.
