@@ -116,7 +116,7 @@ if (editorElement && sidebarNode) {
     commands,
     sidebarNode,
     contactHref: "mailto:example@typerighter.co.uk",
-    feedbackHref: "http://a-form-for-example.com",
+    feedbackHref: "https://a-form-for-example.com",
     editorScrollElement: editorElement,
     getScrollOffset,
     telemetryAdapter: typerighterTelemetryAdapter,
@@ -128,6 +128,7 @@ if (editorElement && sidebarNode) {
     store,
     commands,
     overlayNode,
+    feedbackHref: "https://a-form-for-example.com",
     onMarkCorrect: match => console.info("Match ignored!", match),
     telemetryAdapter: typerighterTelemetryAdapter,
   });

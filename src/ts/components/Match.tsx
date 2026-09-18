@@ -12,6 +12,7 @@ interface IMatchProps {
   applySuggestions?: (opts: ApplySuggestionOptions) => void;
   match: TMatch;
   matchColours: IMatchTypeToColourMap;
+  feedbackHref?: string;
   onMarkCorrect?: (match: TMatch) => void;
 }
 
@@ -22,14 +23,18 @@ class Match extends Component<IMatchProps> {
       match,
       matchColours,
       applySuggestions,
+      feedbackHref,
       onMarkCorrect
     }: IMatchProps = this.props;
     const {
+      matchId,
       category,
       message,
       suggestions,
       replacement,
-      markAsCorrect
+      markAsCorrect,
+      matchContext,
+      ruleId
     } = match;
     const url = document.URL;
 
@@ -84,12 +89,38 @@ class Match extends Component<IMatchProps> {
             dangerouslySetInnerHTML={{ __html: getHtmlFromMarkdown(message) }}
           ></div>
           <div className="MatchWidget__footer">
-            <Feedback documentUrl={url} match={match} />
+            {feedbackHref ? (
+              <div className="MatchWidget__feedbackLink">
+                <a
+                  target="_blank"
+                  href={this.getFeedbackLink(feedbackHref, {
+                    matchId,
+                    category,
+                    message,
+                    suggestions,
+                    replacement,
+                    url,
+                    matchContext,
+                    markAsCorrect,
+                    ruleId
+                  })}
+                >
+                  Issue with this result? Tell us!
+                </a>
+              </div>
+            ) : (
+              <Feedback documentUrl={url} match={match} />
+            )}
           </div>
         </div>
       </div>
     );
   }
+
+  private getFeedbackLink = (feedbackHref: string, feedbackInfo: any) => {
+    const data = encodeURIComponent(JSON.stringify(feedbackInfo, undefined, 2));
+    return feedbackHref + data;
+  };
 }
 
 export default Match;
