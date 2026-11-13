@@ -34,7 +34,7 @@ export default defineConfig({
     rollupOptions: {
       // We do not bundle any dependencies specified by node_modules –
       // they should be bundled by the application using this module.
-      external: Object.keys(packageJson.dependencies)
+      external: [...Object.keys(packageJson.dependencies), ...Object.keys(packageJson.peerDependencies)]
     }
   }
 });
