@@ -40,10 +40,30 @@ describe("shallowEqual", () => {
     expect(shallowEqual({ a: 1 }, { a: 2 })).toBe(false);
   });
 
-  it("compares nested objects by reference", () => {
-    const inner = {};
-    expect(shallowEqual({ a: {} }, { a: {} })).toBe(false);
+  it("compares non-empty nested objects by reference", () => {
+    const inner = { b: 1 };
+    expect(shallowEqual({ a: { b: 1 } }, { a: { b: 1 } })).toBe(false);
     expect(shallowEqual({ a: inner }, { a: inner })).toBe(true);
+  });
+
+  it("treats distinct empty arrays as equal values", () => {
+    expect(shallowEqual({ a: [] }, { a: [] })).toBe(true);
+  });
+
+  it("treats distinct empty objects as equal values", () => {
+    expect(shallowEqual({ a: {} }, { a: {} })).toBe(true);
+  });
+
+  it("does not treat an empty array and an empty object as equal values", () => {
+    expect(shallowEqual({ a: [] }, { a: {} })).toBe(false);
+  });
+
+  it("does not treat empty non-plain objects as equal values", () => {
+    expect(shallowEqual({ a: new Date(0) }, { a: new Date(1) })).toBe(false);
+  });
+
+  it("does not treat an empty array as equal to a non-empty one", () => {
+    expect(shallowEqual({ a: [] }, { a: [1] })).toBe(false);
   });
 
   it("distinguishes +0 from -0", () => {
