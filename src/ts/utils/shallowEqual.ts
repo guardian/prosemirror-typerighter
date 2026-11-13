@@ -1,10 +1,30 @@
 /**
  * Performs equality by iterating through keys on an object and returning false
  * when any key has values which are not strictly equal between the arguments.
- * Returns true when the values of all keys are strictly equal.
+ * Returns true when the values of all keys are strictly equal. Unlike the
+ * original, distinct empty arrays (or empty plain objects) are considered equal.
  *
  * Vendored from https://github.com/facebook/fbjs/blob/main/packages/fbjs/src/core/shallowEqual.js
  */
+const isEmptyArray = (value: unknown): boolean =>
+  Array.isArray(value) && value.length === 0;
+
+const isEmptyPlainObject = (value: unknown): boolean => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return (
+    (proto === Object.prototype || proto === null) &&
+    Object.keys(value).length === 0
+  );
+};
+
+const valuesEqual = (a: unknown, b: unknown): boolean =>
+  Object.is(a, b) ||
+  (isEmptyArray(a) && isEmptyArray(b)) ||
+  (isEmptyPlainObject(a) && isEmptyPlainObject(b));
+
 export function shallowEqual(objA: Object, objB: Object): boolean {
   if (Object.is(objA, objB)) {
     return true;
@@ -30,7 +50,7 @@ export function shallowEqual(objA: Object, objB: Object): boolean {
   for (let i = 0; i < keysA.length; i++) {
     if (
       !Object.prototype.hasOwnProperty.call(objB, keysA[i]) ||
-      !Object.is(
+      !valuesEqual(
         objA[keysA[i] as keyof typeof objA],
         objB[keysA[i] as keyof typeof objB]
       )

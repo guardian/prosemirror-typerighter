@@ -40,7 +40,6 @@ import MatcherService from "./services/MatcherService";
 import TyperighterTelemetryAdapter from "./services/TyperighterTelemetryAdapter";
 import { IMatcherAdapter } from "./interfaces/IMatcherAdapter";
 import { v4 } from "uuid";
-import { emptyArray } from "./state/helpers";
 import { shallowEqual } from "./utils/shallowEqual";
 
 export type ExpandRanges = (ranges: IRange[], doc: Node) => IRange[];
@@ -133,7 +132,7 @@ const createTyperighterPlugin = (
   const {
     expandRanges = expandRangesToParentBlockNodes,
     getIgnoredRanges = doNotIgnoreRanges,
-    matches = emptyArray as Match[],
+    matches = [] as Match[],
     filterOptions,
     ignoreMatch = includeAllMatches,
     matchColours = defaultMatchColours,
@@ -143,7 +142,7 @@ const createTyperighterPlugin = (
     adapter,
     telemetryAdapter,
     typerighterEnabled = true,
-    excludedCategoryIds = emptyArray as string[]
+    excludedCategoryIds = [] as string[]
   } = options;
   // Set up our store, which we'll use to notify consumer code of state updates.
   const store = new Store();

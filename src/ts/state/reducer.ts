@@ -74,7 +74,6 @@ import {
 import {
   addMatchesToState,
   deriveFilteredDecorations,
-  emptyArray,
   getNewStateFromTransaction,
   isFilterStateStale
 } from "./helpers";
@@ -195,17 +194,17 @@ export const createInitialState = ({
       doc,
       createDecorationsForMatches(matches)
     ),
-    dirtiedRanges: emptyArray as IRange[],
-    currentMatches: emptyArray as Match[],
-    filteredMatches: emptyArray as Match[],
+    dirtiedRanges: [] as IRange[],
+    currentMatches: [] as Match[],
+    filteredMatches: [] as Match[],
     selectedMatch: undefined,
     hoverId: undefined,
     hoverRectIndex: undefined,
     highlightId: undefined,
     requestsInFlight: {},
     requestPending: false,
-    requestErrors: emptyArray as IMatchRequestError[],
-    filterState: filterOptions?.initialFilterState ?? emptyArray as MatchType[],
+    requestErrors: [] as IMatchRequestError[],
+    filterState: filterOptions?.initialFilterState ?? [] as MatchType[],
     docChangedSinceCheck: false,
     docIsEmpty: !nodeContainsText(doc),
     typerighterEnabled
@@ -445,7 +444,7 @@ const handleNewDirtyRanges = (
   newDecorations = removeDecorationsFromRanges(newDecorations, dirtiedRanges);
   const currentMatches = state.currentMatches.length ? state.currentMatches.filter(
     match => match.ranges.every(range => findOverlappingRangeIndex(range, dirtiedRanges) === -1
-  )) : emptyArray as Match[];
+  )) : [] as Match[];
 
   const shouldPersistNewDirtyRanges =
     state.config.requestMatchesOnDocModified ||
@@ -458,7 +457,7 @@ const handleNewDirtyRanges = (
     requestPending: state.config.requestMatchesOnDocModified ? true : false,
     dirtiedRanges: shouldPersistNewDirtyRanges
       ? state.dirtiedRanges.concat(dirtiedRanges)
-      : emptyArray as IRange[]
+      : [] as IRange[]
   };
 };
 
