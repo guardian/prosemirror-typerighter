@@ -16,11 +16,6 @@ import { IFilterMatches } from "../utils/plugin";
 import { mapAndMergeRanges, mapRange, mapRanges } from "../utils/range";
 import { nodeContainsText } from "../utils/prosemirror";
 import { produce } from "immer";
-import { Match } from "../interfaces/IMatch";
-
-// Immutable(ish) empty defaults
-export const emptyObject = Object.freeze({});
-export const emptyArray = Object.freeze(Array());
 
 export const addMatchesToState = (
   state: IPluginState,
@@ -28,9 +23,7 @@ export const addMatchesToState = (
   matches: Array<IPluginState["currentMatches"][number]>,
   ignoreMatch: IIgnoreMatchPredicate = includeAllMatches
 ): IPluginState => {
-  const currentMatches = matches.length
-    ? matches.filter(match => !ignoreMatch(match))
-    : (emptyArray as Match[]);
+  const currentMatches = matches.filter(match => !ignoreMatch(match))
   const decorations = currentMatches.reduce(
     (set, output) => set.add(doc, createDecorationsForMatch(output)),
     DecorationSet.empty
@@ -65,9 +58,7 @@ export const deriveFilteredDecorations = (
   newState: IPluginState,
   filterMatches: IFilterMatches
 ): IPluginState => {
-  const filteredMatches = newState.currentMatches.length
-    ? filterMatches(newState.filterState, newState.currentMatches)
-    : emptyArray as Match[];
+  const filteredMatches = filterMatches(newState.filterState, newState.currentMatches);
   const filteredMatchIds = filteredMatches.map(_ => _.matchId);
 
   const matchIdsWithDecorations = newState.decorations
@@ -138,7 +129,7 @@ export const getNewStateFromTransaction = (
         mapping
       }
     };
-  }, emptyObject);
+  }, {});
 
   return produce(incomingState, draftState => {
     draftState.decorations = draftState.decorations.map(tr.mapping, tr.doc);
@@ -148,13 +139,7 @@ export const getNewStateFromTransaction = (
       tr.mapping
     );
 
-    draftState.currentMatches = draftState.currentMatches.map(match => ({
-      ...match,
-      from: tr.mapping.map(match.from),
-      to: tr.mapping.map(match.to),
-      ranges: mapRanges(match.ranges, tr.mapping)
-    }));
-
+    draftState.currentMatches = mapRanges(incomingState.currentMatches, tr.mapping);
     draftState.requestsInFlight = mappedRequestsInFlight;
     draftState.docChangedSinceCheck = true;
     draftState.docIsEmpty = !nodeContainsText(tr.doc);

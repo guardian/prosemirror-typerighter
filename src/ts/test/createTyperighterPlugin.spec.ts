@@ -19,7 +19,6 @@ import { getBlocksFromDocument } from "../utils/prosemirror";
 import { createDecorationsForMatches, MatchType } from "../utils/decoration";
 import { filterByMatchState, getState } from "../utils/plugin";
 import TyperighterAdapter from "../services/adapters/TyperighterAdapter";
-import { emptyArray } from "../state/helpers";
 
 const doc = createDoc(p("Example text to check"), p("More text to check"));
 const blocks = getBlocksFromDocument(doc);
@@ -85,7 +84,7 @@ describe("createTyperighterPlugin", () => {
     const noopFilterThatReplacesMatchIdentity = (_: any, matches: Match[]) => [...matches];
     const { view, store } = createPlugin({
       adapter,
-      matches: emptyArray as Match<ISuggestion>[],
+      matches: [] as Match<ISuggestion>[],
       filterOptions: {
         filterMatches: noopFilterThatReplacesMatchIdentity,
         initialFilterState: []
