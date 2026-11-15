@@ -139,7 +139,12 @@ export const getNewStateFromTransaction = (
       tr.mapping
     );
 
-    draftState.currentMatches = mapRanges(incomingState.currentMatches, tr.mapping);
+    draftState.currentMatches = draftState.currentMatches.map(match => ({
+      ...match,
+      from: tr.mapping.map(match.from),
+      to: tr.mapping.map(match.to),
+      ranges: mapRanges(match.ranges, tr.mapping)
+    }));
     draftState.requestsInFlight = mappedRequestsInFlight;
     draftState.docChangedSinceCheck = true;
     draftState.docIsEmpty = !nodeContainsText(tr.doc);
