@@ -162,6 +162,15 @@ describe("State helpers", () => {
       expect(newState.currentMatches[1].to).toBe(matches[1].to - deleteRange);
     });
 
+    it("should map the ranges of current matches through the transaction mapping", () => {
+      const { tr, state } = getState([createMatch(4, 7)], [MatchType.REVIEW]);
+
+      tr.delete(2, 3);
+      const newState = getNewStateFromTransaction(tr, state);
+
+      expect(newState.currentMatches[0].ranges).toEqual([{ from: 3, to: 6 }]);
+    });
+
     it("should map dirtied ranges through the transaction mapping", () => {
       const deleteRange = 1;
       const deleteFrom = 2;
